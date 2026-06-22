@@ -4,9 +4,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import Breadcrumb from "@/components/breadcrumb";
+import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import { CONTACT_EMAIL, WHATSAPP_NUMBER, type Product } from "@/lib/products";
 import { seoCategories, seoCities, type SeoCategory, type SeoCity } from "@/lib/seo-data";
+import {
+  breadcrumbSchema,
+  buildGraph,
+  faqSchema,
+  itemListSchema,
+  localBusinessSchema,
+  webPageSchema,
+} from "@/lib/schema";
 
 function MaterialIcon({
   name,
@@ -161,8 +170,25 @@ export function SeoCategoryPage({
   category: SeoCategory;
   products: Product[];
 }) {
+  const path = `/${category.slug}`;
+  const categorySchema = buildGraph(
+    webPageSchema(path, category.metaTitle, category.metaDescription, "CollectionPage"),
+    breadcrumbSchema([
+      { name: "Accueil", item: "/" },
+      { name: "Matériel médical", item: "/location-materiel-medical-agadir" },
+      { name: category.label, item: path },
+    ]),
+    itemListSchema(
+      `Matériel de ${category.label.toLowerCase()} en location`,
+      path,
+      products.map((product) => ({ name: product.name, url: `/produits/${product.slug}` }))
+    ),
+    faqSchema(category.faqs, path)
+  );
+
   return (
     <>
+      <JsonLd data={categorySchema} />
       <Navbar />
       <main className="flex-1 pb-20 pt-16 md:pb-0 md:pt-20">
         <div className="px-4 sm:px-6 lg:px-8">
@@ -297,8 +323,32 @@ export function SeoCityPage({
   city: SeoCity;
   products: Product[];
 }) {
+  const path = `/${city.slug}`;
+  const citySchema = buildGraph(
+    webPageSchema(path, city.metaTitle, city.metaDescription),
+    breadcrumbSchema([
+      { name: "Accueil", item: "/" },
+      { name: city.name, item: path },
+    ]),
+    localBusinessSchema({
+      description: city.description,
+      addressLocality: city.name,
+      areaServed: [
+        { "@type": "City", name: city.name },
+        { "@type": "Country", name: "Maroc" },
+      ],
+    }),
+    itemListSchema(
+      `Matériel médical en location à ${city.name}`,
+      path,
+      products.slice(0, 6).map((product) => ({ name: product.name, url: `/produits/${product.slug}` }))
+    ),
+    faqSchema(city.faqs, path)
+  );
+
   return (
     <>
+      <JsonLd data={citySchema} />
       <Navbar />
       <main className="flex-1 pb-20 pt-16 md:pb-0 md:pt-20">
         <div className="px-4 sm:px-6 lg:px-8">

@@ -31,12 +31,11 @@ const pageLinks = [
   { label: "Services", href: "/services" },
   { label: "Tarifs", href: "/tarifs" },
   { label: "Blog", href: "/blog" },
+  { label: "Contact", href: "/contact" },
 ];
 
 const hashLinks = [
-  { label: "Tarifs", hash: "tarifs" },
   { label: "FAQ", hash: "faq" },
-  { label: "Contact", hash: "contact" },
 ];
 
 export default function Navbar() {

@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import JsonLd from "@/components/json-ld";
 import { getProductBySlug, products } from "@/lib/products";
+import { buildGraph, productBreadcrumbSchema, productSchema } from "@/lib/schema";
 import ProductDetail from "./product-detail";
 
 const siteUrl = (
@@ -41,64 +43,12 @@ function ProductJsonLd({ slug }: { slug: string }) {
   const product = getProductBySlug(slug);
   if (!product) return null;
 
-  const schema = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Product",
-        name: product.name,
-        description: product.description,
-        image: `${siteUrl}${product.image}`,
-        category: product.category,
-        offers: {
-          "@type": "Offer",
-          availability: "https://schema.org/InStock",
-          priceCurrency: "MAD",
-          price: "0",
-          priceSpecification: {
-            "@type": "PriceSpecification",
-            price: "0",
-            priceCurrency: "MAD",
-            valueAddedTaxIncluded: true,
-          },
-          description: "Tarif sur demande",
-          areaServed: { "@type": "City", name: product.city },
-        },
-      },
-      {
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          {
-            "@type": "ListItem",
-            position: 1,
-            name: "Accueil",
-            item: siteUrl,
-          },
-          {
-            "@type": "ListItem",
-            position: 2,
-            name: "Location Matériel",
-            item: `${siteUrl}/#materiels`,
-          },
-          {
-            "@type": "ListItem",
-            position: 3,
-            name: product.shortName,
-            item: `${siteUrl}/produits/${slug}`,
-          },
-        ],
-      },
-    ],
-  };
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify(schema).replace(/</g, "\\u003c"),
-      }}
-    />
+  const schema = buildGraph(
+    productSchema(product, slug),
+    productBreadcrumbSchema(slug, product.shortName)
   );
+
+  return <JsonLd data={schema} />;
 }
 
 export default async function ProductPage({ params }: PageProps) {

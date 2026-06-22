@@ -5,17 +5,23 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import Logo from "@/components/logo";
 import Navbar from "@/components/navbar";
-import { LOGO } from "@/lib/brand";
 import {
   CONTACT_EMAIL,
   getCatalogProducts,
   WHATSAPP_NUMBER,
 } from "@/lib/products";
 import { seoCategories, seoCities } from "@/lib/seo-data";
-
-const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://medidomicile.ma"
-).replace(/\/$/, "");
+import JsonLd from "@/components/json-ld";
+import {
+  buildGraph,
+  breadcrumbSchema,
+  faqSchema,
+  itemListSchema,
+  localBusinessSchema,
+  organizationSchema,
+  webPageSchema,
+  websiteSchema,
+} from "@/lib/schema";
 
 const products = getCatalogProducts();
 
@@ -122,102 +128,6 @@ const faqs = [
   },
 ];
 
-const schema = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      "@id": `${siteUrl}/#organization`,
-      name: "MediDomicile",
-      url: siteUrl,
-      logo: `${siteUrl}${LOGO.default}`,
-      areaServed: [
-        { "@type": "Country", name: "Maroc" },
-        { "@type": "City", name: "Agadir" },
-      ],
-      knowsAbout: [
-        "Location de matériel médical",
-        "Aide à domicile",
-        "Maintien à domicile",
-        "Services de santé à domicile au Maroc",
-      ],
-    },
-    {
-      "@type": "LocalBusiness",
-      "@id": `${siteUrl}/#localbusiness`,
-      name: "MediDomicile",
-      description:
-        "Location de matériel médical à Agadir et livraison au Maroc. Lits médicalisés, fauteuils roulants, concentrateurs d'oxygène.",
-      url: siteUrl,
-      telephone: "+212-522-000000",
-      email: CONTACT_EMAIL,
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: "Agadir",
-        addressCountry: "MA",
-      },
-      areaServed: [
-        { "@type": "City", name: "Agadir" },
-        { "@type": "Country", name: "Maroc" },
-      ],
-      priceRange: "$$",
-      openingHours: "Mo-Su 00:00-23:59",
-      sameAs: [`https://wa.me/${WHATSAPP_NUMBER}`],
-    },
-    {
-      "@type": "WebSite",
-      "@id": `${siteUrl}/#website`,
-      name: "MediDomicile",
-      url: siteUrl,
-      inLanguage: "fr-MA",
-      publisher: { "@id": `${siteUrl}/#organization` },
-    },
-    {
-      "@type": "WebPage",
-      "@id": `${siteUrl}/#webpage`,
-      url: siteUrl,
-      name: "Location de matériel médical à Agadir et au Maroc | MediDomicile",
-      description:
-        "Louez du matériel médical à Agadir et au Maroc. Lits médicalisés, fauteuils roulants, oxygène. Livraison, installation et désinfection incluses.",
-      inLanguage: "fr-MA",
-      isPartOf: { "@id": `${siteUrl}/#website` },
-      dateModified: "2026-06-20",
-    },
-    {
-      "@type": "BreadcrumbList",
-      "@id": `${siteUrl}/#breadcrumb`,
-      itemListElement: [
-        {
-          "@type": "ListItem",
-          position: 1,
-          name: "Accueil",
-          item: siteUrl,
-        },
-      ],
-    },
-    {
-      "@type": "ItemList",
-      "@id": `${siteUrl}/#products`,
-      name: "Matériel médical en location",
-      itemListElement: products.map((product, index) => ({
-        "@type": "ListItem",
-        position: index + 1,
-        name: product.name,
-        url: `${siteUrl}/produits/${product.slug}`,
-      })),
-    },
-    {
-      "@type": "FAQPage",
-      "@id": `${siteUrl}/#faq`,
-      mainEntity: faqs.map((faq) => ({
-        "@type": "Question",
-        name: faq.question,
-        acceptedAnswer: { "@type": "Answer", text: faq.answer },
-      })),
-    },
-  ],
-};
-
 function MaterialIcon({
   name,
   className = "",
@@ -232,16 +142,26 @@ function MaterialIcon({
   );
 }
 
-function JsonLd() {
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify(schema).replace(/</g, "\\u003c"),
-      }}
-    />
-  );
-}
+const homeSchema = buildGraph(
+  organizationSchema(),
+  localBusinessSchema(),
+  websiteSchema(),
+  webPageSchema(
+    "/",
+    "Location de matériel médical à Agadir et au Maroc | MediDomicile",
+    "Louez du matériel médical à Agadir et au Maroc. Lits médicalisés, fauteuils roulants, oxygène. Livraison, installation et désinfection incluses."
+  ),
+  breadcrumbSchema([{ name: "Accueil", item: "/" }]),
+  itemListSchema(
+    "Matériel médical en location",
+    "/",
+    products.map((product) => ({
+      name: product.name,
+      url: `/produits/${product.slug}`,
+    }))
+  ),
+  faqSchema(faqs, "/")
+);
 
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState("all");
@@ -302,7 +222,7 @@ export default function Home() {
 
   return (
     <>
-      <JsonLd />
+      <JsonLd data={homeSchema} />
       <Navbar />
 
       <main className="flex-1 pb-20 pt-16 md:pb-0 md:pt-20">

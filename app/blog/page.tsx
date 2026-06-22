@@ -2,8 +2,15 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb";
+import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import { blogPosts } from "@/lib/blog";
+import {
+  breadcrumbSchema,
+  buildGraph,
+  itemListSchema,
+  webPageSchema,
+} from "@/lib/schema";
 
 const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://medidomicile.ma"
@@ -48,9 +55,27 @@ function MaterialIcon({
   );
 }
 
+const blogSchema = buildGraph(
+  webPageSchema(
+    "/blog",
+    "Blog matériel médical & aide à domicile | MediDomicile",
+    "Conseils et guides sur la location de matériel médical à Agadir et au Maroc : lits médicalisés, fauteuils roulants, oxygène, matelas anti-escarres."
+  ),
+  breadcrumbSchema([
+    { name: "Accueil", item: "/" },
+    { name: "Blog", item: "/blog" },
+  ]),
+  itemListSchema(
+    "Articles du blog",
+    "/blog",
+    blogPosts.map((post) => ({ name: post.title, url: `/blog/${post.slug}` }))
+  )
+);
+
 export default function BlogPage() {
   return (
     <>
+      <JsonLd data={blogSchema} />
       <Navbar />
       <main className="flex-1 pb-20 pt-16 md:pb-0 md:pt-20">
         <div className="px-4 sm:px-6 lg:px-8">

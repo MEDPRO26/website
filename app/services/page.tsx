@@ -3,15 +3,18 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import JsonLd from "@/components/json-ld";
 import Logo from "@/components/logo";
 import Navbar from "@/components/navbar";
-
-const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://medidomicile.ma"
-).replace(/\/$/, "");
-
-const WHATSAPP_NUMBER = "212000000000";
-const CONTACT_EMAIL = "contact@medidomicile.ma";
+import { CONTACT_EMAIL, WHATSAPP_NUMBER } from "@/lib/products";
+import {
+  breadcrumbSchema,
+  buildGraph,
+  faqSchema,
+  localBusinessSchema,
+  serviceSchema,
+  webPageSchema,
+} from "@/lib/schema";
 
 const serviceSpecialties = [
   {
@@ -104,38 +107,25 @@ const careTypes = [
   "Garde-malade",
 ];
 
-const schema = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebPage",
-      "@id": `${siteUrl}/services#webpage`,
-      url: `${siteUrl}/services`,
-      name: "Soins et aide à domicile à Agadir | MediDomicile",
-      description:
-        "MediDomicile vous met en relation avec des infirmiers, aide-soignants et kinésithérapeutes qualifiés pour des soins à domicile.",
-      inLanguage: "fr-MA",
-      isPartOf: { "@id": `${siteUrl}/#website` },
-      dateModified: "2026-06-20",
-    },
-    {
-      "@type": "FAQPage",
-      "@id": `${siteUrl}/services#faq`,
-      mainEntity: faqs.map((faq) => ({
-        "@type": "Question",
-        name: faq.question,
-        acceptedAnswer: { "@type": "Answer", text: faq.answer },
-      })),
-    },
-    ...serviceSpecialties.map((service) => ({
-      "@type": "Service",
-      name: service.title,
-      description: service.description,
-      provider: { "@type": "Organization", name: "MediDomicile" },
-      areaServed: { "@type": "Country", name: "Maroc" },
-    })),
-  ],
-};
+const servicesSchema = buildGraph(
+  webPageSchema(
+    "/services",
+    "Soins et aide à domicile à Agadir | MediDomicile",
+    "MediDomicile vous met en relation avec des infirmiers, aide-soignants et kinésithérapeutes qualifiés pour des soins à domicile."
+  ),
+  breadcrumbSchema([
+    { name: "Accueil", item: "/" },
+    { name: "Services", item: "/services" },
+  ]),
+  faqSchema(faqs, "/services"),
+  localBusinessSchema({
+    description:
+      "Services d'aide à domicile et location de matériel médical à Agadir et au Maroc.",
+  }),
+  ...serviceSpecialties.map((service) =>
+    serviceSchema(service.title, service.description, "/services")
+  )
+);
 
 function MaterialIcon({
   name,
@@ -158,17 +148,6 @@ function MaterialIcon({
     >
       {name}
     </span>
-  );
-}
-
-function JsonLd() {
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify(schema).replace(/</g, "\\u003c"),
-      }}
-    />
   );
 }
 
@@ -213,7 +192,7 @@ export default function ServicesPage() {
 
   return (
     <>
-      <JsonLd />
+      <JsonLd data={servicesSchema} />
       <Navbar />
 
       <main className="flex-1 pb-20 pt-16 md:pb-0 md:pt-20">

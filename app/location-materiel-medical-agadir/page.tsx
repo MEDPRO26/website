@@ -2,9 +2,18 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb";
+import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import { products } from "@/lib/products";
 import { agadirHub, seoCategories } from "@/lib/seo-data";
+import {
+  breadcrumbSchema,
+  buildGraph,
+  faqSchema,
+  itemListSchema,
+  localBusinessSchema,
+  webPageSchema,
+} from "@/lib/schema";
 
 const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://medidomicile.ma"
@@ -30,9 +39,35 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+const hubSchema = buildGraph(
+  webPageSchema(
+    "/location-materiel-medical-agadir",
+    agadirHub.metaTitle,
+    agadirHub.metaDescription
+  ),
+  breadcrumbSchema([
+    { name: "Accueil", item: "/" },
+    { name: "Location matériel médical Agadir", item: "/location-materiel-medical-agadir" },
+  ]),
+  localBusinessSchema({
+    description: agadirHub.description,
+    addressLocality: "Agadir",
+  }),
+  itemListSchema(
+    "Matériel médical disponible à Agadir",
+    "/location-materiel-medical-agadir",
+    products.map((product) => ({
+      name: product.name,
+      url: `/produits/${product.slug}`,
+    }))
+  ),
+  faqSchema(agadirHub.faqs, "/location-materiel-medical-agadir")
+);
+
 export default function AgadirHubPage() {
   return (
     <>
+      <JsonLd data={hubSchema} />
       <Navbar />
       <main className="flex-1 pb-20 pt-16 md:pb-0 md:pt-20">
         <div className="px-4 sm:px-6 lg:px-8">

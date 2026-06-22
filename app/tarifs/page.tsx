@@ -2,8 +2,16 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb";
+import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import { CONTACT_EMAIL, products, WHATSAPP_NUMBER } from "@/lib/products";
+import {
+  breadcrumbSchema,
+  buildGraph,
+  itemListSchema,
+  offerCatalogSchema,
+  webPageSchema,
+} from "@/lib/schema";
 
 const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://medidomicile.ma"
@@ -107,9 +115,42 @@ const includedServices = [
   "Assistance pendant toute la location",
 ];
 
+const tarifsSchema = buildGraph(
+  webPageSchema(
+    "/tarifs",
+    "Tarifs location matériel médical Agadir | MediDomicile",
+    "Consultez nos tarifs de location de matériel médical à Agadir : lit médicalisé, fauteuil roulant, concentrateur d'oxygène, matelas anti-escarres. Devis gratuit."
+  ),
+  breadcrumbSchema([
+    { name: "Accueil", item: "/" },
+    { name: "Tarifs", item: "/tarifs" },
+  ]),
+  offerCatalogSchema(
+    "Tarifs de location de matériel médical",
+    "/tarifs",
+    pricingCategories.flatMap((cat) =>
+      cat.items.map((item) => ({
+        name: item.name,
+        price: item.price,
+        description: item.note,
+        category: cat.category,
+      }))
+    )
+  ),
+  itemListSchema(
+    "Produits en location",
+    "/tarifs",
+    products.map((product) => ({
+      name: product.name,
+      url: `/produits/${product.slug}`,
+    }))
+  )
+);
+
 export default function TarifsPage() {
   return (
     <>
+      <JsonLd data={tarifsSchema} />
       <Navbar />
       <main className="flex-1 pb-20 pt-16 md:pb-0 md:pt-20">
         <div className="px-4 sm:px-6 lg:px-8">

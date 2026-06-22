@@ -3,10 +3,16 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb";
+import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import { blogPosts, getBlogPostBySlug } from "@/lib/blog";
 import { products } from "@/lib/products";
 import { CONTACT_EMAIL, WHATSAPP_NUMBER } from "@/lib/products";
+import {
+  blogPostingSchema,
+  breadcrumbSchema,
+  buildGraph,
+} from "@/lib/schema";
 
 const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://medidomicile.ma"
@@ -67,38 +73,17 @@ function MaterialIcon({
   );
 }
 
-function BlogJsonLd({ post }: { post: (typeof blogPosts)[number] }) {
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: post.title,
-    description: post.metaDescription,
-    image: `${siteUrl}${post.image}`,
-    author: {
-      "@type": "Organization",
-      name: post.author,
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "MediDomicile",
-      logo: `${siteUrl}/og-image.png`,
-    },
-    datePublished: post.publishedAt,
-    dateModified: post.modifiedAt,
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": `${siteUrl}/blog/${post.slug}`,
-    },
-  };
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify(schema).replace(/</g, "\\u003c"),
-      }}
-    />
+function BlogPostJsonLd({ post }: { post: (typeof blogPosts)[number] }) {
+  const schema = buildGraph(
+    blogPostingSchema(post),
+    breadcrumbSchema([
+      { name: "Accueil", item: "/" },
+      { name: "Blog", item: "/blog" },
+      { name: post.title, item: `/blog/${post.slug}` },
+    ])
   );
+
+  return <JsonLd data={schema} />;
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
@@ -113,7 +98,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   return (
     <>
-      <BlogJsonLd post={post} />
+      <BlogPostJsonLd post={post} />
       <Navbar />
       <main className="flex-1 pb-20 pt-16 md:pb-0 md:pt-20">
         <div className="px-4 sm:px-6 lg:px-8">

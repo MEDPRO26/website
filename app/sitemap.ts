@@ -53,6 +53,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       createSitemapEntry(`/produits/${product.slug}`, 0.85, [product.image])
     ),
     createSitemapEntry("/tarifs", 0.9, ["/medidomicile-hero.jpg"]),
+    createSitemapEntry("/contact", 0.9, ["/medidomicile-hero.jpg"]),
     createSitemapEntry("/blog", 0.9, ["/medidomicile-hero.jpg"]),
     ...blogPosts.map((post) =>
       createSitemapEntry(`/blog/${post.slug}`, 0.8, [post.image])
