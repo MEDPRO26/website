@@ -1,353 +1,186 @@
-export type BlogSection = {
-  type: "paragraph" | "heading" | "list" | "tip" | "faq";
-  content?: string;
-  items?: string[];
-  title?: string;
-};
-
-export type BlogPost = {
-  slug: string;
-  title: string;
-  metaTitle: string;
-  metaDescription: string;
-  excerpt: string;
-  category: string;
-  readTime: string;
-  publishedAt: string;
-  modifiedAt: string;
-  author: string;
-  image: string;
-  alt: string;
-  sections: BlogSection[];
-  relatedProducts?: string[];
-  faqs?: { question: string; answer: string }[];
-};
-
-export const blogPosts: BlogPost[] = [
+export const blogPosts = [
   {
-    slug: "quel-lit-medicalise-choisir-senior",
-    title: "Quel lit médicalisé choisir pour une personne âgée ?",
-    metaTitle:
-      "Quel lit médicalisé choisir pour senior | Guide MediDomicile",
-    metaDescription:
-      "Découvrez comment choisir un lit médicalisé pour personne âgée : dimensions, réglages électriques, accessoires et prix de location à Agadir.",
+    slug: "guide-location-lit-medicalise-agadir",
+    title: "Guide complet pour louer un lit médicalisé à Agadir",
     excerpt:
-      "Guide complet pour choisir le bon lit médicalisé électrique selon l’autonomie, l’espace disponible et les besoins de soins.",
-    category: "Confort",
-    readTime: "6 min",
+      "Découvrez comment choisir un lit médicalisé adapté aux besoins du patient, les options disponibles à Agadir et les tarifs de location.",
+    metaTitle:
+      "Louer un lit médicalisé à Agadir : guide, tarifs et conseils | MediDomicile",
+    metaDescription:
+      "Guide pratique pour la location de lit médicalisé à Agadir. Tarifs, options électriques/manuelles, livraison et conseils d’utilisation.",
+    category: "Guide",
+    author: "MediDomicile",
     publishedAt: "2026-06-20",
     modifiedAt: "2026-06-20",
-    author: "MediDomicile",
-    image: "/products/lit-medicalise-electrique.jpg",
-    alt: "Lit médicalisé électrique pour senior dans une chambre",
+    readTime: "6 min",
+    image: "/products/lit-medicalise-electrique.png",
+    alt: "Lit médicalisé électrique livré à domicile à Agadir",
     sections: [
       {
         type: "paragraph",
         content:
-          "Choisir un lit médicalisé pour une personne âgée dépend de plusieurs critères : son niveau d’autonomie, la fréquence des soins, l’espace disponible dans la chambre et le budget. Un bon lit médicalisé améliore le confort, facilite les soins et réduit les risques de chutes.",
+          "Le lit médicalisé est souvent indispensable après une opération, une chute ou pour accompagner une perte d’autonomie. Louer un lit médicalisé à Agadir permet d’améliorer le confort du patient tout en allégeant la charge des aidants.",
       },
       {
         type: "heading",
-        content: "Les critères essentiels de choix",
-      },
-      {
-        type: "list",
-        items: [
-          "Hauteur réglable électriquement pour faciliter les transferts",
-          "Réglage du dossier et des jambes pour le confort respiratoire et la circulation",
-          "Barrières de sécurité latérales pour éviter les chutes",
-          "Dimensions adaptées à la chambre et au matelas",
-          "Roulettes avec freins pour des déplacements ponctuels",
-        ],
-      },
-      {
-        type: "heading",
-        content: "Lit médicalisé manuel ou électrique ?",
+        content: "Pourquoi louer un lit médicalisé ?",
       },
       {
         type: "paragraph",
         content:
-          "Le lit électrique est recommandé pour les personnes à mobilité réduite ou les aidants qui interviennent fréquemment. Le réglage se fait par télécommande, ce qui permet d’adapter la position sans effort. Le lit manuel convient aux besoins temporaires et aux budgets plus serrés.",
+          "L’achat d’un lit médicalisé représente un investissement important, surtout s’il n’est utilisé que quelques semaines ou mois. La location offre flexibilité, livraison à domicile et maintenance incluse.",
+      },
+      {
+        type: "list",
+        items: [
+          "Location courte ou longue durée selon vos besoins",
+          "Livraison, installation et reprise à domicile",
+          "Options électriques pour un réglage simple de la tête et des jambes",
+          "Barrières de sécurité et matelas compatibles disponibles",
+        ],
+      },
+      {
+        type: "heading",
+        content: "Lit électrique ou lit manuel ?",
+      },
+      {
+        type: "paragraph",
+        content:
+          "Le lit électrique est recommandé pour les patients en fauteuil ou avec peu de mobilité. Le lit manuel convient mieux aux besoins temporaires et aux budgets plus serrés.",
       },
       {
         type: "tip",
         title: "Conseil MediDomicile",
         content:
-          "Pour une location courte durée ou une convalescence, privilégiez un lit médicalisé électrique. Il offre plus d’autonomie au patient et facilite le travail des soignants.",
-      },
-      {
-        type: "heading",
-        content: "Prix de location d’un lit médicalisé à Agadir",
-      },
-      {
-        type: "paragraph",
-        content:
-          "Le prix de location d’un lit médicalisé à Agadir varie selon la durée et les options choisies. Chez MediDomicile, la livraison et l’installation sont incluses. Contactez-nous pour un devis personnalisé sous 15 minutes.",
+          "Pensez à associer votre lit à un matelas anti-escarres pour préserver la peau du patient en cas d’immobilité prolongée.",
       },
     ],
-    relatedProducts: ["lit-medicalise-agadir", "matelas-air-anti-escarres"],
     faqs: [
       {
-        question: "Quelles sont les dimensions d’un lit médicalisé standard ?",
+        question: "Quel est le prix de location d’un lit médicalisé à Agadir ?",
         answer:
-          "Un lit médicalisé standard mesure 90 cm de large sur 200 cm de long. Nous proposons également des largeurs adaptées selon les besoins.",
+          "Les tarifs débutent généralement à partir de 150 MAD/jour selon la durée et le type de lit. Contactez-nous pour un devis personnalisé.",
       },
       {
-        question: "Le lit médicalisé est-il livré monté ?",
+        question: "Livrez-vous le lit médicalisé à domicile ?",
         answer:
-          "Oui, notre équipe livre et installe le lit médicalisé chez vous à Agadir. Nous vous expliquons également le fonctionnement de la télécommande.",
+          "Oui, MediDomicile assure la livraison, l’installation et la reprise du lit médicalisé à Agadir et aux alentours.",
+      },
+      {
+        question: "Peut-on louer un lit médicalisé pour une courte durée ?",
+        answer:
+          "Oui, la location est possible à la semaine ou au mois selon vos besoins médicaux.",
       },
     ],
+    relatedProducts: ["lit-medicalise-electrique", "matelas-anti-escarres"],
   },
   {
-    slug: "comment-choisir-fauteuil-roulant",
-    title: "Comment choisir un fauteuil roulant ?",
-    metaTitle: "Comment choisir un fauteuil roulant | Guide complet",
-    metaDescription:
-      "Apprenez à choisir un fauteuil roulant adapté : pliable, léger, électrique ou manuel. Conseils et tarifs de location à Agadir et au Maroc.",
+    slug: "choisir-fauteuil-roulant-agadir",
+    title: "Comment choisir un fauteuil roulant à Agadir ?",
     excerpt:
-      "Manuel, électrique, pliable ou standard : voici les critères pour choisir un fauteuil roulant adapté à votre mobilité et votre quotidien.",
-    category: "Mobilité",
-    readTime: "5 min",
-    publishedAt: "2026-06-20",
-    modifiedAt: "2026-06-20",
-    author: "MediDomicile",
-    image: "/products/fauteuil-roulant-leger.jpg",
-    alt: "Fauteuil roulant léger dans un intérieur clair",
-    sections: [
-      {
-        type: "paragraph",
-        content:
-          "Le choix d’un fauteuil roulant dépend de l’usage quotidien, de la force physique de l’utilisateur ou de l’aidant, et des déplacements prévus. Un mauvais choix peut entraîner fatigue, inconfort ou difficultés de manipulation.",
-      },
-      {
-        type: "heading",
-        content: "Fauteuil roulant manuel ou électrique ?",
-      },
-      {
-        type: "paragraph",
-        content:
-          "Le fauteuil manuel est léger, pliable et facile à transporter. Il convient aux personnes ayant une bonne force dans les bras ou disposant d’un aidant. Le fauteuil électrique offre une autonomie totale pour les déplacements intérieurs et extérieurs.",
-      },
-      {
-        type: "heading",
-        content: "Les points à vérifier avant de louer",
-      },
-      {
-        type: "list",
-        items: [
-          "Poids du fauteuil pour le transport",
-          "Largeur d’assise et confort",
-          "Pliage rapide pour la voiture",
-          "Freins accessibles et fiables",
-          "Repose-pieds et accoudoirs amovibles",
-        ],
-      },
-      {
-        type: "heading",
-        content: "Location de fauteuil roulant à Agadir",
-      },
-      {
-        type: "paragraph",
-        content:
-          "MediDomicile propose la location de fauteuils roulants légers à Agadir et dans tout le Maroc. La livraison est incluse et le matériel est désinfecté avant chaque location.",
-      },
-    ],
-    relatedProducts: ["fauteuil-roulant-leger", "rollator-4-roues"],
-    faqs: [
-      {
-        question: "Quel fauteuil roulant choisir pour une sortie occasionnelle ?",
-        answer:
-          "Pour une utilisation occasionnelle, choisissez un fauteuil pliable et léger en aluminium, facile à transporter dans le coffre d’une voiture.",
-      },
-      {
-        question: "Puis-je louer un fauteuil roulant pour une semaine ?",
-        answer:
-          "Oui, la durée minimale de location est généralement d’une semaine. Nous proposons aussi des tarifs dégressifs pour les locations longue durée.",
-      },
-    ],
-  },
-  {
-    slug: "guide-concentrateur-oxygene",
-    title: "Concentrateur d’oxygène : guide d’utilisation à domicile",
+      "Pliant, confort, électrique : comparez les types de fauteuils roulants et trouvez celui qui correspond à votre mobilité.",
     metaTitle:
-      "Concentrateur d'oxygène : guide d'utilisation | MediDomicile",
+      "Choisir un fauteuil roulant à Agadir : pliant, électrique ou confort | MediDomicile",
     metaDescription:
-      "Tout savoir sur le concentrateur d’oxygène à domicile : fonctionnement, débit, entretien et location à Agadir et au Maroc.",
-    excerpt:
-          "Guide pratique pour utiliser un concentrateur d’oxygène en toute sécurité à domicile : réglages, entretien et précautions.",
-    category: "Respiratoire",
-    readTime: "7 min",
-    publishedAt: "2026-06-20",
-    modifiedAt: "2026-06-20",
+      "Guide de choix d’un fauteuil roulant à Agadir. Comparez les modèles pliants, électriques et confort, et louez-le avec livraison à domicile.",
+    category: "Guide",
     author: "MediDomicile",
-    image: "/products/concentrateur-oxygene.jpg",
-    alt: "Concentrateur d'oxygène blanc sur fond médical épuré",
+    publishedAt: "2026-06-18",
+    modifiedAt: "2026-06-18",
+    readTime: "5 min",
+    image: "/products/fauteuil-roulant-pliant.png",
+    alt: "Fauteuil roulant pliant léger à louer à Agadir",
     sections: [
       {
         type: "paragraph",
         content:
-          "Le concentrateur d’oxygène est un appareil médical qui aspire l’air ambiant, le filtre et restitue de l’oxygène concentré au patient via une tubulure. Il est prescrit pour les personnes souffrant d’insuffisance respiratoire, de BPCO ou d’autres pathologies pulmonaires.",
+          "Le fauteuil roulant est un allié précieux pour conserver son autonomie au quotidien. Le choix dépend de la morphologie du patient, de son niveau d’autonomie et de l’usage prévu.",
       },
       {
         type: "heading",
-        content: "Comment fonctionne un concentrateur d’oxygène ?",
-      },
-      {
-        type: "list",
-        items: [
-          "L’appareil aspire l’air ambiant",
-          "Il filtre l’azote et concentre l’oxygène",
-          "L’oxygène est délivré au patient par une tubulure nasale",
-          "Le débit est réglable selon la prescription médicale",
-        ],
-      },
-      {
-        type: "heading",
-        content: "Entretien et précautions",
+        content: "Les différents types de fauteuils roulants",
       },
       {
         type: "paragraph",
         content:
-          "Il est important de vérifier régulièrement le filtre à air, de nettoyer la tubulure et de respecter la distance de sécurité avec des sources de chaleur. L’appareil doit rester allumé en continu selon les recommandations du médecin.",
+          "On distingue principalement les fauteuils roulants pliants, manuels de confort, et les modèles électriques. Chacun répond à des besoins différents.",
+      },
+      {
+        type: "list",
+        items: [
+          "Fauteuil roulant pliant : idéal pour les déplacements en voiture",
+          "Fauteuil confort : dossier inclinable, repose-jambes, assise ergonomique",
+          "Fauteuil électrique : autonomie totale sans effort physique",
+        ],
+      },
+      {
+        type: "heading",
+        content: "Location ou achat ?",
+      },
+      {
+        type: "paragraph",
+        content:
+          "La location est particulièrement avantageuse après une fracture, une opération ou un séjour temporaire à Agadir. Elle évite l’achat d’un équipement coûteux et inutile à long terme.",
       },
       {
         type: "tip",
-        title: "À savoir",
+        title: "Astuce pratique",
         content:
-          "Nos concentrateurs sont silencieux et économiques en énergie. Nous vous expliquons le fonctionnement lors de l’installation à domicile.",
+          "Mesurez la largeur des portes et couloirs de votre domicile avant de choisir un modèle trop large.",
       },
     ],
-    relatedProducts: ["concentrateur-oxygene"],
     faqs: [
       {
-        question: "Quel débit d’oxygène faut-il régler ?",
+        question: "Quel fauteuil roulant choisir pour une personne âgée ?",
         answer:
-          "Le débit est défini par le médecin traitant. Il ne doit jamais être modifié sans avis médical.",
+          "Un fauteuil pliant léger ou un modèle confort avec repose-jambes est généralement recommandé selon l’autonomie de la personne.",
       },
       {
-        question: "Le concentrateur d’oxygène fait-il du bruit ?",
+        question: "Proposez-vous des fauteuils roulants électriques ?",
         answer:
-          "Nos concentrateurs sont sélectionnés pour leur faible niveau sonore, généralement inférieur à 45 dB, comparable à un réfrigérateur.",
-      },
-    ],
-  },
-  {
-    slug: "location-vs-achat-materiel-medical",
-    title: "Location ou achat de matériel médical : que choisir ?",
-    metaTitle:
-      "Location ou achat matériel médical | Guide MediDomicile",
-    metaDescription:
-      "Location ou achat de matériel médical ? Découvrez les avantages de la location à domicile à Agadir : flexibilité, entretien inclus, pas d’engagement.",
-    excerpt:
-      "Pourquoi louer plutôt qu’acheter son matériel médical ? Analyse des avantages, coûts et situations où la location est préférable.",
-    category: "Conseils",
-    readTime: "5 min",
-    publishedAt: "2026-06-20",
-    modifiedAt: "2026-06-20",
-    author: "MediDomicile",
-    image: "/medidomicile-hero.jpg",
-    alt: "Matériel médical à domicile : lit et fauteuil roulant",
-    sections: [
-      {
-        type: "paragraph",
-        content:
-          "Face à un besoin temporaire de matériel médical, beaucoup de familles hésitent entre l’achat et la location. La location présente de nombreux avantages pratiques et économiques, notamment pour les convalescences, les post-opératoires et le maintien à domicile.",
-      },
-      {
-        type: "heading",
-        content: "Avantages de la location",
-      },
-      {
-        type: "list",
-        items: [
-          "Pas d’investissement initial lourd",
-          "Flexibilité selon la durée du besoin",
-          "Entretien, réparation et désinfection inclus",
-          "Livraison et installation à domicile",
-          "Matériel adapté et récent",
-        ],
-      },
-      {
-        type: "heading",
-        content: "Quand acheter plutôt que louer ?",
-      },
-      {
-        type: "paragraph",
-        content:
-          "L’achat est pertinent lorsque le besoin est permanent et que l’utilisateur maîtrise parfaitement l’entretien du matériel. Dans la plupart des cas de convalescence ou de dépendance progressive, la location reste la solution la plus sereine.",
-      },
-      {
-        type: "heading",
-        content: "Tarifs de location à Agadir",
-      },
-      {
-        type: "paragraph",
-        content:
-          "Chez MediDomicile, les tarifs de location sont transparents et adaptés à la durée. La livraison et l’installation sont incluses à Agadir. Demandez un devis personnalisé pour connaître le coût selon votre matériel et votre ville.",
+          "Oui, MediDomicile propose des fauteuils roulants électriques en location à Agadir.",
       },
     ],
     relatedProducts: [
-      "lit-medicalise-agadir",
-      "fauteuil-roulant-leger",
-      "concentrateur-oxygene",
-    ],
-    faqs: [
-      {
-        question: "La location de matériel médical est-elle moins chère que l’achat ?",
-        answer:
-          "Sur une courte ou moyenne durée, la location est souvent plus économique. Elle évite aussi les frais d’entretien et de stockage.",
-      },
-      {
-        question: "Puis-je changer de matériel pendant la location ?",
-        answer:
-          "Oui, selon la disponibilité, nous pouvons adapter le matériel à l’évolution des besoins du patient.",
-      },
+      "fauteuil-roulant-pliant",
+      "fauteuil-roulant-electrique",
+      "fauteuil-roulant-confort",
     ],
   },
   {
-    slug: "matelas-anti-escarres-fonctionnement",
-    title: "Matelas anti-escarres : comment ça marche ?",
-    metaTitle:
-      "Matelas anti-escarres : fonctionnement et utilisation | MediDomicile",
-    metaDescription:
-      "Comprendre le fonctionnement du matelas à air anti-escarres, ses bénéfices pour les personnes alitées et les tarifs de location à Agadir.",
+    slug: "concentreur-oxygene-agadir-avantages",
+    title: "Concentrateur d’oxygène à Agadir : avantages et utilisation",
     excerpt:
-      "Le matelas à air anti-escarres prévient les plaies de pression. Découvrez son fonctionnement et quand il est recommandé.",
-    category: "Confort",
-    readTime: "5 min",
-    publishedAt: "2026-06-20",
-    modifiedAt: "2026-06-20",
+      "Tout savoir sur le concentrateur d’oxygène : fonctionnement, entretien, coût de location et livraison à domicile à Agadir.",
+    metaTitle:
+      "Concentrateur d’oxygène à Agadir : location, prix et conseils | MediDomicile",
+    metaDescription:
+      "Louez un concentrateur d’oxygène à Agadir avec livraison et maintenance. Découvrez les avantages, l’entretien et les tarifs de location.",
+    category: "Conseil",
     author: "MediDomicile",
-    image: "/products/matelas-air-anti-escarres.jpg",
-    alt: "Matelas à air anti-escarres pour lit médicalisé",
+    publishedAt: "2026-06-15",
+    modifiedAt: "2026-06-15",
+    readTime: "5 min",
+    image: "/products/concentrateur-oxygene.png",
+    alt: "Concentrateur d’oxygène stationnaire pour utilisation à domicile",
     sections: [
       {
         type: "paragraph",
         content:
-          "Le matelas anti-escarres est un dispositif médical essentiel pour les personnes alitées longtemps. Il répartit la pression du corps de manière dynamique pour prévenir l’apparition des plaies de pression, également appelées escarres.",
+          "Le concentrateur d’oxygène est un appareil médical qui extrait l’oxygène de l’air ambiant et le délivre au patient de manière continue. Il remplace souvent les bouteilles d’oxygène encombrantes.",
       },
       {
         type: "heading",
-        content: "Fonctionnement du matelas à air",
+        content: "Les avantages du concentrateur d’oxygène",
       },
       {
         type: "list",
         items: [
-          "Des cellules gonflables se relaient pour modifier les points de pression",
-          "Un compresseur silencieux assure le mouvement alterné",
-          "La pression est réglable selon le poids du patient",
-          "Le matelas s’adapte à la plupart des lits médicalisés",
+          "Oxygène illimité sans changer de bouteille",
+          "Plus sûr et plus pratique au quotidien",
+          "Fonctionnement silencieux sur prise électrique",
+          "Solution économique pour une utilisation prolongée",
         ],
-      },
-      {
-        type: "heading",
-        content: "Qui a besoin d’un matelas anti-escarres ?",
-      },
-      {
-        type: "paragraph",
-        content:
-          "Il est recommandé pour les personnes alitées de façon prolongée, les seniors à mobilité réduite, les patients en post-opératoire et toute personne présentant un risque élevé de développer des escarres.",
       },
       {
         type: "heading",
@@ -356,29 +189,235 @@ export const blogPosts: BlogPost[] = [
       {
         type: "paragraph",
         content:
-          "MediDomicile loue des matelas à air anti-escarres à Agadir avec livraison et installation. Chaque matelas est nettoyé et désinfecté avant location.",
+          "MediDomicile livre et installe le concentrateur d’oxygène à votre domicile à Agadir. Nous vous expliquons le fonctionnement et assurons le suivi technique.",
+      },
+      {
+        type: "tip",
+        title: "Entretien",
+        content:
+          "Nettoyez régulièrement le filtre à air et vérifiez le positionnement de l’appareil pour une ventilation optimale.",
       },
     ],
-    relatedProducts: ["matelas-air-anti-escarres", "lit-medicalise-agadir"],
     faqs: [
       {
-        question: "Un matelas anti-escarres est-il bruyant ?",
+        question: "Faut-il une ordonnance pour louer un concentrateur d’oxygène ?",
         answer:
-          "Non, nos matelas sont équipés de compresseurs silencieux adaptés à un usage nocturne.",
+          "Il est recommandé de consulter votre médecin. Notre équipe peut vous accompagner selon les indications médicales.",
       },
       {
-        question: "Faut-il un lit médicalisé pour utiliser ce matelas ?",
+        question: "Livrez-vous en urgence à Agadir ?",
         answer:
-          "Non, le matelas s’adapte à la plupart des lits standards, mais il est idéalement associé à un lit médicalisé pour les soins.",
+          "Oui, nous assurons une livraison rapide du concentrateur d’oxygène à Agadir et aux environs.",
       },
     ],
+    relatedProducts: ["concentrateur-oxygene", "bouteille-oxygene-medicale"],
+  },
+  {
+    slug: "aide-domicile-agadir-soins-infirmiers",
+    title: "Soins infirmiers à domicile à Agadir : quand faire appel ?",
+    excerpt:
+      "Pansements, perfusions, injections, prise de sang : découvrez quand et comment bénéficier de soins infirmiers à domicile.",
+    metaTitle:
+      "Soins infirmiers à domicile à Agadir : quand faire appel ? | MediDomicile",
+    metaDescription:
+      "Infirmiers diplômés à domicile à Agadir : pansements, perfusions, soins post-opératoires. Réservez un soin infirmier rapidement.",
+    category: "Service",
+    author: "MediDomicile",
+    publishedAt: "2026-06-12",
+    modifiedAt: "2026-06-12",
+    readTime: "4 min",
+    image: "/medidomicile-hero.jpg",
+    alt: "Infirmière à domicile à Agadir pour soins médicaux",
+    sections: [
+      {
+        type: "paragraph",
+        content:
+          "Les soins infirmiers à domicile permettent d’éviter les déplacements fréquents à l’hôpital et de garantir un suivi personnalisé dans un environnement familier.",
+      },
+      {
+        type: "heading",
+        content: "Types de soins proposés",
+      },
+      {
+        type: "list",
+        items: [
+          "Pansements et soins de plaies",
+          "Injections intramusculaires et sous-cutanées",
+          "Perfusions et chimiothérapie",
+          "Prélèvements sanguins",
+          "Soins post-opératoires",
+        ],
+      },
+      {
+        type: "heading",
+        content: "Pourquoi choisir un soin à domicile ?",
+      },
+      {
+        type: "paragraph",
+        content:
+          "Le domicile offre confort, réduction du risque infectieux et flexibilité horaire. C’est une solution adaptée aux personnes à mobilité réduite ou sorties récentes de l’hôpital.",
+      },
+      {
+        type: "tip",
+        title: "Disponibilité",
+        content:
+          "MediDomicile propose des interventions 7j/7 à Agadir sur rendez-vous, y compris en urgence selon disponibilité.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Comment réserver un soin infirmier à domicile ?",
+        answer:
+          "Contactez-nous par WhatsApp ou email pour décrire le soin souhaité. Nous planifions une intervention rapidement.",
+      },
+      {
+        question: "Les infirmiers sont-ils diplômés ?",
+        answer:
+          "Oui, tous nos professionnels de santé sont diplômés et expérimentés en soins à domicile.",
+      },
+    ],
+    relatedProducts: ["lit-medicalise-electrique", "matelas-anti-escarres"],
+  },
+  {
+    slug: "location-materiel-medical-conge-hopital",
+    title: "Matériel médical pour une sortie d’hôpital à Agadir",
+    excerpt:
+        "Retour à domicile après une hospitalisation : découvrez le matériel médical indispensable pour assurer confort et sécurité.",
+    metaTitle:
+        "Matériel médical sortie d’hôpital à Agadir | Location rapide | MediDomicile",
+    metaDescription:
+        "Louez le matériel nécessaire à une sortie d’hôpital à Agadir : lit médicalisé, fauteuil roulant, oxygène, matelas anti-escarres. Livraison 7j/7.",
+    category: "Guide",
+    author: "MediDomicile",
+    publishedAt: "2026-06-10",
+    modifiedAt: "2026-06-10",
+    readTime: "5 min",
+    image: "/medidomicile-hero.jpg",
+    alt: "Matériel médical livré à domicile pour une sortie d’hôpital à Agadir",
+    sections: [
+      {
+        type: "paragraph",
+        content:
+          "La sortie d’hôpital est souvent une étape stressante pour le patient et sa famille. Anticiper la location du matériel médical permet de rentrer chez soi en toute sérénité.",
+      },
+      {
+        type: "heading",
+        content: "Le matériel essentiel au retour à domicile",
+      },
+      {
+        type: "list",
+        items: [
+          "Lit médicalisé pour le confort nocturne",
+          "Fauteuil roulant pour les déplacements",
+          "Matelas anti-escarres en cas d’alitement",
+          "Concentrateur ou bouteille d’oxygène si besoin",
+        ],
+      },
+      {
+        type: "heading",
+        content: "Planifiez votre location à l’avance",
+      },
+      {
+        type: "paragraph",
+        content:
+          "Contactez MediDomicile dès que la date de sortie est connue. Nous préparons votre matériel et assurons la livraison le jour J.",
+      },
+      {
+        type: "tip",
+        title: "Bon à savoir",
+        content:
+          "Un devis rapide vous permet de vérifier la disponibilité et de réserver chaque article en quelques minutes.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Peut-on louer plusieurs appareils en même temps ?",
+        answer:
+          "Oui, vous pouvez louer un pack complet incluant lit, fauteuil, matelas et oxygène selon vos besoins.",
+      },
+      {
+        question: "Livrez-vous le week-end à Agadir ?",
+        answer:
+          "Oui, la livraison est disponible 7j/7 à Agadir avec rendez-vous.",
+      },
+    ],
+    relatedProducts: [
+      "lit-medicalise-electrique",
+      "fauteuil-roulant-pliant",
+      "matelas-anti-escarres",
+      "concentrateur-oxygene",
+    ],
+  },
+  {
+    slug: "bienfaits-aide-domicile-personnes-agees",
+    title: "Les bienfaits de l’aide à domicile pour les personnes âgées",
+    excerpt:
+        "Auxiliaire de vie, aide-ménagère, accompagnement : pourquoi l’aide à domicile améliore le quotidien des seniors à Agadir.",
+    metaTitle:
+        "Aide à domicile personnes âgées à Agadir | MediDomicile",
+    metaDescription:
+        "Découvrez les avantages de l’aide à domicile pour les seniors à Agadir : autonomie, sécurité, compagnie et soins personnalisés.",
+    category: "Conseil",
+    author: "MediDomicile",
+    publishedAt: "2026-06-08",
+    modifiedAt: "2026-06-08",
+    readTime: "4 min",
+    image: "/medidomicile-hero.jpg",
+    alt: "Aide à domicile pour personne âgée à Agadir",
+    sections: [
+      {
+        type: "paragraph",
+        content:
+          "L’aide à domicile permet aux personnes âgées de rester dans leur environnement familier tout en bénéficiant d’un soutien quotidien adapté.",
+      },
+      {
+        type: "heading",
+        content: "Les principaux avantages",
+      },
+      {
+        type: "list",
+        items: [
+          "Préservation de l’autonomie et de la dignité",
+          "Aide aux soins d’hygiène et à l’habillement",
+          "Préparation des repas adaptés",
+          "Aide ménagère et sécurisation du logement",
+          "Prévention de l’isolement social",
+        ],
+      },
+      {
+        type: "heading",
+        content: "Un accompagnement sur mesure",
+      },
+      {
+        type: "paragraph",
+        content:
+          "Chaque situation est unique. MediDomicile évalue les besoins de la personne âgée pour proposer un intervenant qualifié et un planning personnalisé.",
+      },
+      {
+        type: "tip",
+        title: "Conseil famille",
+        content:
+          "Commencez par identifier les activités du quotidien qui posent difficulté pour cibler au mieux le type d’aide nécessaire.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Quelles sont les missions d’un auxiliaire de vie ?",
+        answer:
+          "L’auxiliaire de vie aide aux soins d’hygiène, à la préparation des repas, aux courses et à la compagnie au quotidien.",
+      },
+      {
+        question: "Puis-je réserver de l’aide à domicile ponctuellement ?",
+        answer:
+          "Oui, nous proposons des interventions ponctuelles ou régulières selon vos besoins.",
+      },
+    ],
+    relatedProducts: ["lit-medicalise-electrique", "deambulateur"],
   },
 ];
 
+export type BlogPost = (typeof blogPosts)[number];
+
 export function getBlogPostBySlug(slug: string): BlogPost | undefined {
   return blogPosts.find((post) => post.slug === slug);
-}
-
-export function getAllBlogSlugs(): string[] {
-  return blogPosts.map((post) => post.slug);
 }

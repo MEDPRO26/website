@@ -29,6 +29,8 @@ function classNames(...classes: (string | false | null | undefined)[]) {
 
 const pageLinks = [
   { label: "Services", href: "/services" },
+  { label: "Tarifs", href: "/tarifs" },
+  { label: "Blog", href: "/blog" },
 ];
 
 const hashLinks = [
@@ -223,18 +225,21 @@ export default function Navbar() {
               {category.label}
             </Link>
           ))}
-          <Link
-            href="/services"
-            onClick={() => setMobileMenuOpen(false)}
-            className={classNames(
-              "rounded-lg px-4 py-3 text-base font-medium transition-colors",
-              pathname === "/services"
-                ? "bg-primary/10 text-primary"
-                : "text-on-surface hover:bg-surface-container hover:text-primary"
-            )}
-          >
-            Services
-          </Link>
+          {pageLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setMobileMenuOpen(false)}
+              className={classNames(
+                "rounded-lg px-4 py-3 text-base font-medium transition-colors",
+                pathname === link.href
+                  ? "bg-primary/10 text-primary"
+                  : "text-on-surface hover:bg-surface-container hover:text-primary"
+              )}
+            >
+              {link.label}
+            </Link>
+          ))}
           {hashLinks.map((link) => {
             const hash = `#${link.hash}`;
             return (
