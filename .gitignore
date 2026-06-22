@@ -42,5 +42,6 @@ next-env.d.ts
 .cursor
 .cursor/
 .stitch/
+.stitch/designs/
 AGENTS.md
 CLAUDE.md
