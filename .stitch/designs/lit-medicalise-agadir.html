@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Location de lit médicalisé à Agadir | MediDomicile.ma</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(0, 104, 95, 0.05), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-surface-variant": "#3d4947",
+                      "surface-bright": "#f7f9fb",
+                      "on-error": "#ffffff",
+                      "surface-variant": "#e0e3e5",
+                      "tertiary-container": "#00873b",
+                      "outline-variant": "#bcc9c6",
+                      "surface": "#f7f9fb",
+                      "on-surface": "#191c1e",
+                      "on-primary": "#ffffff",
+                      "surface-container-low": "#f2f4f6",
+                      "on-primary-container": "#f4fffc",
+                      "primary": "#00685f",
+                      "on-secondary": "#ffffff",
+                      "secondary-container": "#dae2fd",
+                      "surface-subtle": "#f1f5f9",
+                      "tertiary": "#006b2d",
+                      "primary-container": "#008378",
+                      "background": "#f7f9fb",
+                      "secondary": "#565e74",
+                      "surface-container-high": "#e6e8ea"
+              },
+              "borderRadius": {
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-desktop": "40px",
+                      "stack-lg": "32px",
+                      "margin-mobile": "16px",
+                      "section-gap": "80px",
+                      "stack-sm": "8px",
+                      "gutter": "24px",
+                      "container-max": "1280px",
+                      "stack-md": "16px",
+                      "base": "8px"
+              },
+              "fontFamily": {
+                      "button": ["Inter"],
+                      "display-lg": ["Inter"],
+                      "headline-lg": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "label-md": ["Inter"],
+                      "body-md": ["Inter"]
+              },
+              "fontSize": {
+                      "button": ["16px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                      "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-lg": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                      "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-desktop h-20 bg-surface/95 backdrop-blur-md shadow-sm">
+<div class="flex items-center gap-stack-lg">
+<span class="font-headline-md text-headline-md font-bold text-primary">MediDomicile.ma</span>
+<nav class="hidden md:flex gap-gutter">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">Matériel</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">Services</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">Tarifs</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">Blog</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">Contact</a>
+</nav>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="bg-primary text-on-primary px-6 py-3 rounded-xl font-button text-button transition-all hover:opacity-90 active:scale-95">Mon Espace</button>
+</div>
+</header>
+<main class="pt-24 pb-section-gap">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+<!-- Breadcrumb -->
+<nav aria-label="Breadcrumb" class="flex mb-stack-md text-label-md font-label-md text-on-surface-variant">
+<ol class="flex items-center space-x-2">
+<li><a class="hover:text-primary transition-colors" href="#">Accueil</a></li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<a class="hover:text-primary transition-colors" href="#">Location Matériel</a>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-primary font-bold">Lit Médicalisé</span>
+</li>
+</ol>
+</nav>
+<!-- H1 Title -->
+<h1 class="font-headline-lg text-headline-lg mb-section-gap max-w-3xl">Location de lit médicalisé à Agadir : demandez une disponibilité</h1>
+<!-- Bento Layout for Product Details -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Main Image Section -->
+<div class="lg:col-span-7 bg-white rounded-xl overflow-hidden shadow-sm relative group">
+<img alt="Lit médicalisé haut de gamme" class="w-full h-full min-h-[400px] object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A professional high-end electric hospital bed positioned in a brightly lit, clean, and airy home setting. The bed features premium light wood accents and white medical-grade padding, conveying a sense of comfort and safety. Natural sunlight streams through large windows, highlighting the soft teal and white color palette of the room. The overall atmosphere is calming, reassuring, and premium, avoiding clinical sterility." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-ftFB15ansb5cvtuGsXyyi0sadZXFbmshVNGZo_9S39F8JJ5SKRRzevsM4JzFBHaHCb1JlqeizXPpjmOScLCifgzQ4lH35CrmSDHyhV1n8D6I2rCBE4RgEGMHWaCgV0dLBborEFTYd_k0oMXCv-1ux5lwCFunos3ujcIhkxjaEaJVEuHwBg-DITxb6kK3obWmaCtJg5s6mi30GFlYYs8qAozma07bCg-p6dtlLvxzruL4Aick1u7DtFxmqo8n5v-K1psQUftuDRo"/>
+<div class="absolute top-4 left-4 flex gap-2">
+<span class="bg-primary/90 text-white px-3 py-1 rounded-full text-[12px] font-bold uppercase tracking-wider backdrop-blur-sm">Nouveau modèle</span>
+<span class="bg-tertiary/90 text-white px-3 py-1 rounded-full text-[12px] font-bold uppercase tracking-wider backdrop-blur-sm">Disponibilité Agadir</span>
+</div>
+</div>
+<!-- Form Card -->
+<div class="lg:col-span-5 bg-white p-stack-lg rounded-xl shadow-lg border border-surface-container-high sticky top-24">
+<div class="mb-stack-md">
+<div class="flex items-end gap-2 mb-1">
+<span class="text-primary font-bold font-headline-md text-headline-md leading-none">Tarif sur demande</span>
+</div>
+<p class="text-on-surface-variant font-body-md text-body-md">Livraison et installation à domicile par nos experts à Agadir.</p>
+</div>
+<form class="space-y-4" onsubmit="event.preventDefault(); alert('Demande envoyée !');">
+<div>
+<label class="block font-label-md text-label-md mb-2">Ville de livraison</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary">location_on</span>
+<input class="w-full pl-10 pr-4 py-3 bg-surface-container-low border-none rounded-lg font-body-md focus:ring-2 focus:ring-primary" readonly="" type="text" value="Agadir"/>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="block font-label-md text-label-md mb-2">Date début</label>
+<input class="w-full px-4 py-3 border border-outline-variant rounded-lg font-body-md focus:ring-2 focus:ring-primary outline-none" type="date"/>
+</div>
+<div>
+<label class="block font-label-md text-label-md mb-2">Durée (jours)</label>
+<input class="w-full px-4 py-3 border border-outline-variant rounded-lg font-body-md focus:ring-2 focus:ring-primary outline-none" placeholder="7" type="number"/>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md mb-2">Votre téléphone</label>
+<input class="w-full px-4 py-3 border border-outline-variant rounded-lg font-body-md focus:ring-2 focus:ring-primary outline-none" placeholder="06 XX XX XX XX" required="" type="tel"/>
+</div>
+<button class="w-full bg-primary text-white py-4 rounded-xl font-button text-button shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all" type="submit">
+                            Vérifier la disponibilité
+                        </button>
+</form>
+<div class="mt-stack-md p-stack-sm bg-surface-container-low rounded-lg flex items-center gap-stack-md">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container">support_agent</span>
+</div>
+<div>
+<p class="text-label-md font-bold text-primary">Conseil gratuit</p>
+<p class="text-[12px] text-on-surface-variant">Un spécialiste vous rappelle en 15 min</p>
+</div>
+</div>
+</div>
+<!-- Description & Features -->
+<div class="lg:col-span-7 space-y-section-gap">
+<!-- Description -->
+<section>
+<h2 class="font-headline-md text-headline-md mb-stack-md text-primary">Description complète</h2>
+<p class="text-body-lg font-body-lg text-on-surface-variant leading-relaxed">
+                            Notre service de location de lits médicalisés à Agadir offre une solution sécurisée et confortable pour le maintien à domicile. Ce lit électrique 3 fonctions est spécialement conçu pour faciliter le travail des soignants et améliorer l'autonomie du patient.
+                        </p>
+<p class="mt-stack-md text-body-md font-body-md text-on-surface-variant">
+                            Doté d'un design élégant s'intégrant parfaitement dans une chambre résidentielle, il permet un réglage précis de la hauteur, du relève-buste et du relève-jambes par télécommande simple.
+                        </p>
+</section>
+<!-- Specifications Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<div class="p-stack-md bg-white rounded-xl border border-surface-container-high">
+<span class="material-symbols-outlined text-primary mb-2">settings_input_component</span>
+<h3 class="font-bold mb-2">Caractéristiques Techniques</h3>
+<ul class="space-y-2 text-on-surface-variant text-body-md">
+<li class="flex justify-between"><span>Poids max supporté</span> <span class="font-bold">170 kg</span></li>
+<li class="flex justify-between"><span>Hauteur variable</span> <span class="font-bold">30 à 80 cm</span></li>
+<li class="flex justify-between"><span>Dimensions matelas</span> <span class="font-bold">90 x 200 cm</span></li>
+</ul>
+</div>
+<div class="p-stack-md bg-white rounded-xl border border-surface-container-high">
+<span class="material-symbols-outlined text-primary mb-2">verified_user</span>
+<h3 class="font-bold mb-2">Équipements Inclus</h3>
+<ul class="space-y-2 text-on-surface-variant text-body-md">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-status-success text-sm">check_circle</span> Barrières de sécurité</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-status-success text-sm">check_circle</span> Potence de lit</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-status-success text-sm">check_circle</span> Télécommande verrouillable</li>
+</ul>
+</div>
+</section>
+<!-- Why rent? section -->
+<section class="bg-primary-container/10 p-stack-lg rounded-2xl">
+<h2 class="font-headline-md text-headline-md mb-stack-lg text-primary">Dans quels cas louer ?</h2>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-stack-md">
+<div class="text-center">
+<div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+<span class="material-symbols-outlined text-primary text-3xl">healing</span>
+</div>
+<h4 class="font-bold mb-2">Post-opératoire</h4>
+<p class="text-label-md text-on-surface-variant">Convalescence temporaire nécessitant une position surélevée.</p>
+</div>
+<div class="text-center">
+<div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+<span class="material-symbols-outlined text-primary text-3xl">elderly</span>
+</div>
+<h4 class="font-bold mb-2">Maintien à domicile</h4>
+<p class="text-label-md text-on-surface-variant">Sécurisation du sommeil pour les personnes âgées.</p>
+</div>
+<div class="text-center">
+<div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+<span class="material-symbols-outlined text-primary text-3xl">personal_injury</span>
+</div>
+<h4 class="font-bold mb-2">Mobilité réduite</h4>
+<p class="text-label-md text-on-surface-variant">Aide au transfert lit/fauteuil en toute sécurité.</p>
+</div>
+</div>
+</section>
+</div>
+</div>
+<!-- Complementary Products -->
+<section class="mt-section-gap">
+<h2 class="font-headline-md text-headline-md mb-stack-lg border-l-4 border-primary pl-4">Produits fréquemment loués ensemble</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Product 1 -->
+<div class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
+<div class="h-48 overflow-hidden">
+<img alt="Matelas Anti-escarres" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="A specialized medical pressure relief mattress placed on a minimalist hospital frame. The scene is bright and professional, using soft blue and white tones to highlight the technical air-cell structure of the mattress. The image communicates comfort, medical expertise, and preventative care in a high-end domestic environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDH8yS4A4TK4EjHETIHyx480OAgOFN61YDDSAwzxryxIsGer0K0STRp57iQxmP80ybLQHzK58KQpggFsQvNLfffW4h2agamFEUA9nHkCfykU-eGbfgtU6FMF_8rtp1cagIHNu-nIOPG3hf89uUv_c8dZDtkei9KPnqH9YAk-4GOX8BRzZnZh5a_8eT-9S2sXuqPoSDDBU9aU9k3oQ8MF9eugqFY0wgwi3V9gf_OvTMIWtlxLD9R7AxKzbCMqLhtT6jNYlpjkWu8lsk"/>
+</div>
+<div class="p-stack-md">
+<h3 class="font-bold mb-1">Matelas Anti-escarres</h3>
+<p class="text-label-md text-on-surface-variant mb-4 line-clamp-2">Système à air motorisé pour la prévention des plaies de pression.</p>
+<span class="text-primary font-bold">À partir de 15 DH/jour</span>
+</div>
+</div>
+<!-- Product 2 -->
+<div class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
+<div class="h-48 overflow-hidden">
+<img alt="Table de lit à roulettes" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="An elegant, height-adjustable overbed table with a light wood surface and sleek white metal legs. It is positioned next to a clean medical bed, holding a ceramic cup and a tablet. The setting is a modern home-care room with soft natural lighting and a peaceful, premium aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBML06KAjpzucVsEcdT3jgwpTtSBW7fGF52C9OXWzT1CiKVN3cDCeifBVEK0E19yT3CNwj0Mv1gZCwV2zW8yk6N97tYYqxL_dDYDAglRuvEUQy8YgAGAZ4tIv5y4tunq5Hl889Zvy8EX20TqDsXrzy7Ta4sOIlPAIGc-da_SOGV5BivNpI84dqKLZ1CpU1cFodsbB4oEVvMEwpMPRS1gEc3YUGWeBHX5wGzIsG4t4w8Ll4Nii1PvXBFXu-djv3FUTBWAuIX-tXm1Lk"/>
+</div>
+<div class="p-stack-md">
+<h3 class="font-bold mb-1">Table de lit inclinable</h3>
+<p class="text-label-md text-on-surface-variant mb-4 line-clamp-2">Idéale pour les repas et la lecture en position allongée.</p>
+<span class="text-primary font-bold">À partir de 5 DH/jour</span>
+</div>
+</div>
+<!-- Product 3 -->
+<div class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
+<div class="h-48 overflow-hidden">
+<img alt="Fauteuil Roulant" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="A modern, lightweight manual wheelchair in a clean, contemporary living room. The frame is matte black with silver accents, emphasizing durability and ergonomic design. Soft sunlight enters from the side, creating a warm, empowering atmosphere that focuses on mobility and independence." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKUxFBOzwVdNNYAf-6X0WRIfQzdj4jm8VMIuZ7Ivxf-e9votewI3r52xj8mQGu9jqrzX0M3yQDj2Ke0uEXZ13pQ-c_AgrSc0la80tri1CTHykFqd9_v80eCl0xVj1yRNLJEzIsGeNuQDTomKoSGggUuXqahs3yNFt-wXRFEuDfGdWTGQzfDYEXpDhN0RgHLuKjEwcVKWqy9hf0n8xUA4Abiu8Rv3OvTyRmYaq84rrPDyUah-9bm_216KsfpU-fvSd-AUV9wsGBzv4"/>
+</div>
+<div class="p-stack-md">
+<h3 class="font-bold mb-1">Fauteuil Roulant Léger</h3>
+<p class="text-label-md text-on-surface-variant mb-4 line-clamp-2">Structure en aluminium pour un transfert facile et confortable.</p>
+<span class="text-primary font-bold">À partir de 25 DH/jour</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-section-gap px-margin-desktop grid grid-cols-1 md:grid-cols-4 gap-gutter bg-surface-container-highest">
+<div class="space-y-stack-md">
+<span class="font-headline-md text-headline-md text-primary font-bold">MediDomicile.ma</span>
+<p class="text-on-surface-variant font-body-md">Solutions professionnelles de santé à domicile au Maroc. Expertise, rapidité et confiance.</p>
+</div>
+<div>
+<h4 class="font-bold mb-stack-md">Nos Services</h4>
+<ul class="space-y-2">
+<li><a class="text-on-surface-variant hover:text-primary transition-all" href="#">Location Matériel</a></li>
+<li><a class="text-on-surface-variant hover:text-primary transition-all" href="#">Soins Infirmiers</a></li>
+<li><a class="text-on-surface-variant hover:text-primary transition-all" href="#">Aide à domicile</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold mb-stack-md">Assistance</h4>
+<ul class="space-y-2">
+<li><a class="text-on-surface-variant hover:text-primary transition-all" href="#">Aide &amp; FAQ</a></li>
+<li><a class="text-on-surface-variant hover:text-primary transition-all" href="#">Conditions de Location</a></li>
+<li><a class="text-on-surface-variant hover:text-primary transition-all" href="#">Contact</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold mb-stack-md">Contact Agadir</h4>
+<p class="text-on-surface-variant mb-2">Quartier Industriel, Agadir 80000</p>
+<p class="text-primary font-bold text-lg">+212 5 28 XX XX XX</p>
+</div>
+<div class="md:col-span-4 pt-10 border-t border-outline-variant text-center text-on-surface-variant text-sm">
+            © 2024 MediDomicile.ma - Solutions de santé à domicile. Tous droits réservés.
+        </div>
+</footer>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 md:hidden flex justify-around items-center h-16 px-margin-mobile pb-safe bg-surface border-t border-outline-variant shadow-lg">
+<a class="flex flex-col items-center justify-center text-on-surface-variant active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Accueil</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">medical_services</span>
+<span class="text-[10px] font-medium">Matériel</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">volunteer_activism</span>
+<span class="text-[10px] font-medium">Services</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#25D366] active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">chat</span>
+<span class="text-[10px] font-medium">WhatsApp</span>
+</a>
+</nav>
+<!-- FAB (Floating Action Button) - Sticky WhatsApp -->
+<a class="fixed bottom-20 right-6 md:bottom-10 md:right-10 w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all z-40" href="https://wa.me/212000000000">
+<span class="material-symbols-outlined text-3xl">chat</span>
+</a>
+<script>
+        // Micro-interaction for form inputs
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.classList.add('scale-[1.01]');
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.classList.remove('scale-[1.01]');
+            });
+        });
+
+        // Simple scroll reveal for product cards
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                    entry.target.classList.remove('opacity-0', 'translate-y-10');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.group').forEach(card => {
+            card.classList.add('transition-all', 'duration-700', 'opacity-0', 'translate-y-10');
+            observer.observe(card);
+        });
+    </script>
+</body></html>

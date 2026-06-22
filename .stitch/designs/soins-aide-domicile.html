@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Soins et Aide à domicile | MediDomicile.ma</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<!-- Tailwind Config Verbatim -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-surface-variant": "#3d4947",
+                    "surface-bright": "#f7f9fb",
+                    "on-error": "#ffffff",
+                    "surface-variant": "#e0e3e5",
+                    "tertiary-container": "#00873b",
+                    "outline-variant": "#bcc9c6",
+                    "surface": "#f7f9fb",
+                    "surface-dim": "#d8dadc",
+                    "surface-container": "#eceef0",
+                    "primary-fixed": "#89f5e7",
+                    "on-surface": "#191c1e",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "on-error-container": "#93000a",
+                    "on-secondary-container": "#5c647a",
+                    "error-container": "#ffdad6",
+                    "on-primary": "#ffffff",
+                    "surface-container-low": "#f2f4f6",
+                    "on-primary-container": "#f4fffc",
+                    "surface-base": "#ffffff",
+                    "on-primary-fixed": "#00201d",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-fixed": "#6bff8f",
+                    "status-error": "#ef4444",
+                    "outline": "#6d7a77",
+                    "text-main": "#0f172a",
+                    "text-muted": "#64748b",
+                    "primary": "#00685f",
+                    "status-warning": "#f59e0b",
+                    "on-secondary": "#ffffff",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-background": "#191c1e",
+                    "secondary-container": "#dae2fd",
+                    "on-secondary-fixed": "#131b2e",
+                    "inverse-surface": "#2d3133",
+                    "surface-tint": "#006a61",
+                    "secondary-fixed": "#dae2fd",
+                    "surface-subtle": "#f1f5f9",
+                    "status-info": "#0ea5e9",
+                    "tertiary": "#006b2d",
+                    "secondary-fixed-dim": "#bec6e0",
+                    "status-success": "#22c55e",
+                    "tertiary-fixed-dim": "#4ae176",
+                    "primary-container": "#008378",
+                    "on-primary-fixed-variant": "#005049",
+                    "on-tertiary-fixed": "#002109",
+                    "primary-fixed-dim": "#6bd8cb",
+                    "inverse-on-surface": "#eff1f3",
+                    "error": "#ba1a1a",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-fixed-variant": "#005321",
+                    "inverse-primary": "#6bd8cb",
+                    "on-tertiary-container": "#f7fff3",
+                    "background": "#f7f9fb",
+                    "secondary": "#565e74",
+                    "surface-container-high": "#e6e8ea"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "40px",
+                    "stack-lg": "32px",
+                    "margin-mobile": "16px",
+                    "section-gap": "80px",
+                    "stack-sm": "8px",
+                    "gutter": "24px",
+                    "container-max": "1280px",
+                    "stack-md": "16px",
+                    "base": "8px"
+            },
+            "fontFamily": {
+                    "button": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "display-lg-mobile": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "label-md": ["Inter"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "button": ["16px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "display-lg-mobile": ["36px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+</head>
+<body class="bg-surface text-on-surface font-body-md overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-desktop h-20 bg-surface/95 backdrop-blur-md shadow-sm">
+<div class="flex items-center gap-gutter">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">MediDomicile.ma</h1>
+<nav class="hidden md:flex items-center gap-stack-lg ml-margin-desktop">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Matériel</a>
+<a class="font-body-md text-body-md text-primary font-bold border-b-2 border-primary" href="#">Services</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Tarifs</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Blog</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Contact</a>
+</nav>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="hidden md:flex font-button text-button bg-primary text-on-primary px-stack-md py-stack-sm rounded-lg hover:bg-primary-container transition-all">
+                Mon Espace
+            </button>
+<span class="material-symbols-outlined md:hidden text-primary cursor-pointer">menu</span>
+</div>
+</header>
+<main class="pt-20">
+<!-- Hero Section -->
+<section class="relative min-h-[614px] flex items-center justify-center overflow-hidden px-margin-mobile md:px-margin-desktop py-section-gap">
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover opacity-10" data-alt="A warm and bright home interior with soft sunlight streaming through large windows, creating a serene and safe atmosphere. The color palette is composed of soft whites, light teals, and natural wood tones, evoking a premium healthcare environment that is both professional and deeply comforting for elderly patients." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDP0xx7wetDK3LPRu5P6J367oq5JLeXaRoNCFFaJuIBrcN9PG2Tjs7EBWLGAa825rn6Wd752Lu7sfBz4J4plwVZoTXZKJrTZht7MdyCP31ouRmwT5w40-2sb96VH5_7266T0SS6xQwWRTvSqK8rfBxNl248H37soqXxd0p1Zi26Lk7g_2dWNY7iCqEeRnxcQxATBbLFrZBKIehRMWbP5FO95B6-TshUqSeVsnbGV-NQqo19mFLG7UBi2tqz1ZzsNaFarIG6jfavx7c"/>
+<div class="absolute inset-0 bg-gradient-to-b from-surface/50 to-surface"></div>
+</div>
+<div class="relative z-10 max-w-container-max mx-auto text-center">
+<span class="inline-block bg-primary-container/10 text-primary font-label-md text-label-md px-stack-md py-base rounded-full mb-stack-md">Accompagnement Professionnel</span>
+<h2 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary mb-stack-md">Services de soins et aide à domicile</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto mb-stack-lg">
+                    Nous vous mettons en relation avec des professionnels de santé qualifiés et bienveillants pour assurer votre confort et votre rétablissement dans la dignité de votre foyer.
+                </p>
+<div class="flex flex-col md:flex-row gap-stack-md justify-center">
+<a class="font-button text-button bg-primary text-on-primary px-10 py-4 rounded-xl shadow-lg hover:scale-105 transition-transform flex items-center justify-center gap-2" href="#request-form">
+                        Demander un service <span class="material-symbols-outlined">arrow_forward</span>
+</a>
+<a class="font-button text-button border-2 border-primary text-primary px-10 py-4 rounded-xl hover:bg-primary/5 transition-all flex items-center justify-center gap-2" href="https://wa.me/2120000000">
+<span class="material-symbols-outlined">chat</span> WhatsApp Express
+                    </a>
+</div>
+</div>
+</section>
+<!-- Services Bento Grid -->
+<section class="px-margin-mobile md:px-margin-desktop py-section-gap max-w-container-max mx-auto">
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-section-gap gap-stack-md">
+<div class="max-w-xl">
+<h3 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-stack-sm">Nos spécialités à domicile</h3>
+<p class="text-on-surface-variant">Une gamme complète de soins médicaux et paramédicaux adaptée à chaque besoin spécifique, de la surveillance ponctuelle à l'assistance permanente.</p>
+</div>
+<div class="flex gap-stack-sm">
+<button class="p-stack-sm rounded-full border border-outline-variant text-on-surface-variant hover:bg-primary-container hover:text-on-primary transition-all">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="p-stack-sm rounded-full border border-outline-variant text-on-surface-variant hover:bg-primary-container hover:text-on-primary transition-all">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Card 1: Infirmier -->
+<div class="group bg-surface-base rounded-3xl p-stack-lg shadow-sm border border-outline-variant/30 hover:shadow-xl transition-all duration-300 flex flex-col h-full">
+<div class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-stack-lg group-hover:bg-primary group-hover:text-on-primary transition-all">
+<span class="material-symbols-outlined text-4xl">medical_services</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-stack-sm">Infirmier à domicile</h4>
+<p class="text-on-surface-variant mb-stack-lg flex-grow">Injections, pansements complexes, perfusions et suivi des constantes vitales par des professionnels diplômés d'État.</p>
+<ul class="space-y-2 mb-stack-lg text-label-md font-label-md text-on-surface-variant">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-sm">check_circle</span> Soins post-opératoires</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-sm">check_circle</span> Prise de sang</li>
+</ul>
+<a class="text-primary font-bold flex items-center gap-2 hover:underline" href="#">Voir les tarifs <span class="material-symbols-outlined">chevron_right</span></a>
+</div>
+<!-- Card 2: Aide-soignante -->
+<div class="group bg-surface-base rounded-3xl p-stack-lg shadow-sm border border-outline-variant/30 hover:shadow-xl transition-all duration-300 flex flex-col h-full">
+<div class="w-16 h-16 bg-secondary-container/30 rounded-2xl flex items-center justify-center text-secondary mb-stack-lg group-hover:bg-secondary group-hover:text-on-secondary transition-all">
+<span class="material-symbols-outlined text-4xl">volunteer_activism</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-stack-sm">Aide-soignante</h4>
+<p class="text-on-surface-variant mb-stack-lg flex-grow">Accompagnement quotidien pour l'hygiène, l'habillage et l'aide à la mobilité des personnes âgées ou dépendantes.</p>
+<ul class="space-y-2 mb-stack-lg text-label-md font-label-md text-on-surface-variant">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-secondary text-sm">check_circle</span> Aide à la toilette</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-secondary text-sm">check_circle</span> Surveillance nocturne</li>
+</ul>
+<a class="text-secondary font-bold flex items-center gap-2 hover:underline" href="#">Voir les tarifs <span class="material-symbols-outlined">chevron_right</span></a>
+</div>
+<!-- Card 3: Kiné -->
+<div class="group bg-surface-base rounded-3xl p-stack-lg shadow-sm border border-outline-variant/30 hover:shadow-xl transition-all duration-300 flex flex-col h-full">
+<div class="w-16 h-16 bg-tertiary-container/10 rounded-2xl flex items-center justify-center text-tertiary mb-stack-lg group-hover:bg-tertiary group-hover:text-on-tertiary transition-all">
+<span class="material-symbols-outlined text-4xl">fitness_center</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-stack-sm">Kinésithérapeute</h4>
+<p class="text-on-surface-variant mb-stack-lg flex-grow">Rééducation fonctionnelle, respiratoire ou neurologique directement chez vous pour une récupération optimale.</p>
+<ul class="space-y-2 mb-stack-lg text-label-md font-label-md text-on-surface-variant">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-tertiary text-sm">check_circle</span> Rééducation motrice</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-tertiary text-sm">check_circle</span> Kiné respiratoire</li>
+</ul>
+<a class="text-tertiary font-bold flex items-center gap-2 hover:underline" href="#">Voir les tarifs <span class="material-symbols-outlined">chevron_right</span></a>
+</div>
+</div>
+</section>
+<!-- Why Choose Us / Trust Section -->
+<section class="bg-surface-container-low py-section-gap px-margin-mobile md:px-margin-desktop overflow-hidden">
+<div class="max-w-container-max mx-auto grid grid-cols-1 lg:grid-cols-2 gap-section-gap items-center">
+<div class="relative">
+<div class="relative z-10 rounded-[40px] overflow-hidden shadow-2xl">
+<img class="w-full aspect-[4/5] object-cover" data-alt="A professional healthcare provider in a clean, modern teal uniform gently holding the hand of an elderly person in a domestic setting. The lighting is soft and natural, emphasizing a sense of warmth, empathy, and high-quality medical expertise. The background is a blurred, tastefully decorated home that suggests comfort and safety." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoo86CQTK2HGk3v1IbrN64Je5O58veubS0QkrMaxBW0HH4LJpwl18jmFYmczHATiNg2Ey4JlAC4i5VpjPqcAyuEIY8m_LAaX5ujtlUxn79Z9GqhbcNj017MPth7n-QUT9SwIBBci8KLBDoh4eexz5cn_NZMhFFA_eNpNFBEpeLVafP39jObIBWVzh8WWHNftKW3CYJgR1Q5-r42qOcJUB8Yv2Ym4AX-1zmWRDDUdg0V6RCr0JXLlGILxM4Y9UwPZkzVZAZpF6lHVk"/>
+</div>
+<div class="absolute -bottom-10 -right-10 bg-primary-container p-stack-lg rounded-3xl text-on-primary-container shadow-xl max-w-xs hidden md:block">
+<p class="font-headline-md text-headline-md mb-2">24h/7j</p>
+<p class="font-label-md text-label-md">Disponibilité immédiate pour les urgences de soins à domicile.</p>
+</div>
+</div>
+<div>
+<h3 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary mb-stack-lg">Pourquoi choisir nos partenaires ?</h3>
+<div class="space-y-stack-lg">
+<div class="flex gap-stack-md">
+<div class="shrink-0 w-12 h-12 rounded-full bg-surface-base flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined">verified_user</span>
+</div>
+<div>
+<h5 class="font-headline-md text-headline-md-mobile text-on-surface">Professionnels Vérifiés</h5>
+<p class="text-on-surface-variant">Chaque intervenant subit un processus de sélection rigoureux : diplômes, antécédents et références sont systématiquement contrôlés.</p>
+</div>
+</div>
+<div class="flex gap-stack-md">
+<div class="shrink-0 w-12 h-12 rounded-full bg-surface-base flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined">speed</span>
+</div>
+<div>
+<h5 class="font-headline-md text-headline-md-mobile text-on-surface">Réactivité Maximale</h5>
+<p class="text-on-surface-variant">Nous trouvons un professionnel disponible dans votre zone géographique en moins de 2 heures pour les interventions urgentes.</p>
+</div>
+</div>
+<div class="flex gap-stack-md">
+<div class="shrink-0 w-12 h-12 rounded-full bg-surface-base flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<div>
+<h5 class="font-headline-md text-headline-md-mobile text-on-surface">Tarifs Transparents</h5>
+<p class="text-on-surface-variant">Aucun frais caché. Les tarifs sont annoncés à l'avance et correspondent aux standards de qualité du marché privé.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Request Form Section -->
+<section class="px-margin-mobile md:px-margin-desktop py-section-gap max-w-container-max mx-auto" id="request-form">
+<div class="bg-surface-base rounded-[48px] p-8 md:p-16 shadow-lg border border-outline-variant/20 grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<div class="lg:col-span-5">
+<h3 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary mb-stack-md">Demande de service rapide</h3>
+<p class="text-on-surface-variant mb-stack-lg">Remplissez ce formulaire et notre équipe de coordination vous rappellera dans les 15 minutes pour confirmer les détails de l'intervention.</p>
+<div class="bg-primary/5 p-stack-md rounded-2xl flex items-center gap-4 border border-primary/10">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-xl">phone_in_talk</span>
+</div>
+<div>
+<p class="text-label-md font-bold text-primary">Ligne d'urgence</p>
+<p class="text-headline-md font-headline-md text-on-surface">+212 5 22 XX XX XX</p>
+</div>
+</div>
+</div>
+<form class="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-on-surface-variant">Type de soin</label>
+<select class="h-[52px] rounded-xl border-outline-variant focus:border-primary focus:ring-primary bg-surface-bright">
+<option>Infirmier</option>
+<option>Aide-soignante</option>
+<option>Kinésithérapeute</option>
+<option>Garde-malade</option>
+</select>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-on-surface-variant">Ville / Quartier</label>
+<input class="h-[52px] rounded-xl border-outline-variant focus:border-primary focus:ring-primary bg-surface-bright" placeholder="Ex: Casablanca, Maârif" type="text"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-on-surface-variant">Nom complet</label>
+<input class="h-[52px] rounded-xl border-outline-variant focus:border-primary focus:ring-primary bg-surface-bright" placeholder="Votre nom" type="text"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-on-surface-variant">Téléphone</label>
+<input class="h-[52px] rounded-xl border-outline-variant focus:border-primary focus:ring-primary bg-surface-bright" placeholder="06 XX XX XX XX" type="tel"/>
+</div>
+<div class="md:col-span-2 flex flex-col gap-2">
+<label class="font-label-md text-on-surface-variant">Message ou besoin spécifique</label>
+<textarea class="rounded-xl border-outline-variant focus:border-primary focus:ring-primary bg-surface-bright" placeholder="Décrivez brièvement la situation..." rows="3"></textarea>
+</div>
+<div class="md:col-span-2 mt-4">
+<button class="w-full font-button text-button bg-primary text-on-primary h-[56px] rounded-xl hover:bg-primary-container transition-all shadow-md" type="submit">
+                            Envoyer ma demande
+                        </button>
+</div>
+</form>
+</div>
+</section>
+<!-- FAQ Section -->
+<section class="px-margin-mobile md:px-margin-desktop py-section-gap max-w-3xl mx-auto">
+<h3 class="font-headline-lg text-headline-lg text-center text-on-surface mb-section-gap">Questions Fréquentes</h3>
+<div class="space-y-stack-md">
+<details class="group bg-surface-base rounded-2xl border border-outline-variant/30 p-stack-md" open="">
+<summary class="flex justify-between items-center cursor-pointer list-none font-headline-md text-headline-md-mobile text-on-surface">
+                        Comment sont sélectionnés vos professionnels ?
+                        <span class="material-symbols-outlined group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<p class="mt-stack-md text-on-surface-variant">Nous vérifions systématiquement le diplôme d'État, l'inscription à l'ordre des infirmiers ou masseurs-kinésithérapeutes, et nous effectuons une enquête de moralité ainsi qu'une vérification des expériences passées.</p>
+</details>
+<details class="group bg-surface-base rounded-2xl border border-outline-variant/30 p-stack-md">
+<summary class="flex justify-between items-center cursor-pointer list-none font-headline-md text-headline-md-mobile text-on-surface">
+                        Intervenez-vous le week-end et les jours fériés ?
+                        <span class="material-symbols-outlined group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<p class="mt-stack-md text-on-surface-variant">Oui, notre service de coordination est opérationnel 24h/24 et 7j/7. Les soins de santé n'attendent pas, c'est pourquoi nous assurons une continuité de service totale.</p>
+</details>
+<details class="group bg-surface-base rounded-2xl border border-outline-variant/30 p-stack-md">
+<summary class="flex justify-between items-center cursor-pointer list-none font-headline-md text-headline-md-mobile text-on-surface">
+                        Quel est le délai de mise en place d'un service ?
+                        <span class="material-symbols-outlined group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<p class="mt-stack-md text-on-surface-variant">Pour les soins infirmiers classiques, l'intervention peut avoir lieu dans les 2 à 4 heures suivant votre appel. Pour une garde-malade longue durée, nous prévoyons généralement 24h pour organiser le planning.</p>
+</details>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-section-gap px-margin-desktop grid grid-cols-1 md:grid-cols-4 gap-gutter bg-surface-container-highest">
+<div class="flex flex-col gap-stack-md">
+<h4 class="font-headline-md text-headline-md text-primary">MediDomicile.ma</h4>
+<p class="text-on-surface-variant font-body-md text-body-md">Votre partenaire de confiance pour une santé sereine à domicile partout au Maroc.</p>
+</div>
+<div class="flex flex-col gap-4">
+<h5 class="font-bold text-on-surface">Services</h5>
+<a class="text-on-surface-variant hover:text-primary transition-all" href="#">Soins Infirmiers</a>
+<a class="text-on-surface-variant hover:text-primary transition-all" href="#">Location Matériel</a>
+<a class="text-on-surface-variant hover:text-primary transition-all" href="#">Aide aux Seniors</a>
+</div>
+<div class="flex flex-col gap-4">
+<h5 class="font-bold text-on-surface">Légal</h5>
+<a class="text-on-surface-variant hover:text-primary transition-all" href="#">Confidentialité</a>
+<a class="text-on-surface-variant hover:text-primary transition-all" href="#">Conditions Générales</a>
+<a class="text-on-surface-variant hover:text-primary transition-all" href="#">Contact</a>
+</div>
+<div class="flex flex-col gap-4">
+<h5 class="font-bold text-on-surface">Suivez-nous</h5>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-primary cursor-pointer">face_nod</span>
+<span class="material-symbols-outlined text-primary cursor-pointer">share_reviews</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-4 opacity-70">© 2024 MediDomicile.ma - Solutions de santé à domicile. Tous droits réservés.</p>
+</div>
+</footer>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 md:hidden flex justify-around items-center h-16 px-margin-mobile pb-safe bg-surface border-t border-outline-variant shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Accueil</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">medical_services</span>
+<span class="text-[10px] font-medium">Matériel</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">volunteer_activism</span>
+<span class="text-[10px] font-bold">Services</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="https://wa.me/2120000000">
+<span class="material-symbols-outlined text-green-600">chat</span>
+<span class="text-[10px] font-medium">WhatsApp</span>
+</a>
+</nav>
+<!-- FAB WhatsApp (Desktop) -->
+<a class="hidden md:flex fixed bottom-8 right-8 w-16 h-16 bg-[#25D366] text-white rounded-full items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all z-50" href="https://wa.me/2120000000">
+<span class="material-symbols-outlined text-3xl">chat</span>
+</a>
+<script>
+        // Smooth scroll for anchors
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Simple Intersection Observer for scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                    entry.target.classList.remove('opacity-0', 'translate-y-10');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('section > div').forEach(el => {
+            el.classList.add('transition-all', 'duration-700', 'opacity-0', 'translate-y-10');
+            observer.observe(el);
+        });
+    </script>
+</body></html>

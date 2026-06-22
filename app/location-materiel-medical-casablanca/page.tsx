@@ -1,0 +1,36 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { SeoCityPage } from "@/components/seo-page-template";
+import { products } from "@/lib/products";
+import { getCityBySlug } from "@/lib/seo-data";
+
+const citySlug = "location-materiel-medical-casablanca";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const city = getCityBySlug(citySlug);
+  if (!city) return {};
+
+  return {
+    title: city.metaTitle,
+    description: city.metaDescription,
+    keywords: city.keywords,
+    alternates: {
+      canonical: `/${citySlug}`,
+    },
+    openGraph: {
+      title: city.metaTitle,
+      description: city.metaDescription,
+      url: `/${citySlug}`,
+      type: "website",
+      locale: "fr_MA",
+      siteName: "MediDomicile",
+    },
+  };
+}
+
+export default function CityPage() {
+  const city = getCityBySlug(citySlug);
+  if (!city) notFound();
+
+  return <SeoCityPage city={city} products={products} />;
+}
