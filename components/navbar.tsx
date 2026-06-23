@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { CONTACT_EMAIL } from "@/lib/products";
-import { seoCategories } from "@/lib/seo-data";
+import Logo from "@/components/logo";
+import { CONTACT_EMAIL, WHATSAPP_NUMBER } from "@/lib/products";
 
 function MaterialIcon({
   name,
@@ -35,28 +35,77 @@ const pageLinks = [
 ];
 
 const hashLinks = [
-  { label: "FAQ", hash: "faq" },
+  { label: "FAQ", hash: "faq", href: "/#faq" },
 ];
+
+function MaterialDropdownLinks({
+  pathname,
+  onNavigate,
+  className = "",
+}: {
+  pathname: string;
+  onNavigate?: () => void;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <p className="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+        Location
+      </p>
+      <span
+        className="flex cursor-default items-center gap-3 px-4 py-2.5 text-sm font-medium text-on-surface-variant"
+        aria-disabled="true"
+      >
+        <MaterialIcon name="schedule" />
+        Bientôt disponible
+      </span>
+
+      <p className="mt-2 border-t border-outline-variant/30 px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+        Vente
+      </p>
+      <Link
+        href="/vente"
+        onClick={onNavigate}
+        className={classNames(
+          "flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors",
+          pathname === "/vente"
+            ? "bg-primary/10 text-primary"
+            : "text-on-surface hover:bg-surface-container-low hover:text-primary"
+        )}
+      >
+        Tous les matériels
+      </Link>
+    </div>
+  );
+}
 
 export default function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const handleHashLink = (e: React.MouseEvent, hash: string) => {
+  const handleHashLink = (
+    e: React.MouseEvent,
+    href: string,
+    hash: string,
+  ) => {
     setMobileMenuOpen(false);
     const id = hash.replace("#", "");
-    const element = document.getElementById(id);
-    if (element) {
-      e.preventDefault();
-      element.scrollIntoView({ behavior: "smooth" });
+    const basePath = href.split("#")[0] || "/";
+
+    if (pathname === basePath) {
+      const element = document.getElementById(id);
+      if (element) {
+        e.preventDefault();
+        element.scrollIntoView({ behavior: "smooth" });
+      }
     }
   };
 
   const isMaterialActive =
     pathname === "/" ||
+    pathname === "/vente" ||
     pathname === "/location-materiel-medical-agadir" ||
-    seoCategories.some((c) => pathname === `/${c.slug}`) ||
     pathname.startsWith("/produits");
 
   return (
@@ -66,12 +115,7 @@ export default function Navbar() {
     >
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-6 lg:gap-10">
-          <Link
-            href="/"
-            className="font-heading text-xl font-bold text-primary sm:text-2xl"
-          >
-            MediDomicile.ma
-          </Link>
+          <Logo priority size="md" />
 
           <nav className="hidden items-center gap-1 md:flex">
             {/* Matériel dropdown */}
@@ -109,23 +153,7 @@ export default function Navbar() {
                 )}
               >
                 <div className="overflow-hidden rounded-2xl border border-outline-variant/50 bg-white shadow-xl">
-                  <Link
-                    href="/location-materiel-medical-agadir"
-                    className="flex items-center gap-3 border-b border-outline-variant/30 px-4 py-3 text-sm font-medium text-primary transition-colors hover:bg-surface-container-low"
-                  >
-                    <MaterialIcon name="location_on" />
-                    Tous les matériels — Agadir
-                  </Link>
-                  {seoCategories.map((category) => (
-                    <Link
-                      key={category.slug}
-                      href={`/${category.slug}`}
-                      className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container-low hover:text-primary"
-                    >
-                      <MaterialIcon name={category.icon} />
-                      {category.label}
-                    </Link>
-                  ))}
+                  <MaterialDropdownLinks pathname={pathname} />
                 </div>
               </div>
             </div>
@@ -149,25 +177,29 @@ export default function Navbar() {
               );
             })}
 
-            {hashLinks.map((link) => {
-              const hash = `#${link.hash}`;
-              return (
-                <a
-                  key={link.hash}
-                  href={hash}
-                  onClick={(e) => handleHashLink(e, hash)}
-                  className="rounded-lg px-4 py-2 text-sm font-medium text-on-surface-variant transition-colors hover:bg-surface-container hover:text-primary"
-                >
-                  {link.label}
-                </a>
-              );
-            })}
+            {hashLinks.map((link) => (
+              <Link
+                key={link.hash}
+                href={link.href}
+                onClick={(e) => handleHashLink(e, link.href, link.hash)}
+                className="rounded-lg px-4 py-2 text-sm font-medium text-on-surface-variant transition-colors hover:bg-surface-container hover:text-primary"
+              >
+                {link.label}
+              </Link>
+            ))}
           </nav>
         </div>
 
         <div className="flex items-center gap-3">
           <a
-            href={`mailto:${CONTACT_EMAIL}?subject=Accès%20Mon%20Espace%20MediDomicile`}
+            href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20des%20informations.`}
+            className="hidden items-center gap-2 rounded-full bg-status-success px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:brightness-110 sm:inline-flex"
+          >
+            <MaterialIcon name="chat" className="text-lg" />
+            WhatsApp
+          </a>
+          <a
+            href={`mailto:${CONTACT_EMAIL}?subject=Acc%C3%A8s%20Mon%20Espace%20SOS%20Sant%C3%A9`}
             className="hidden rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-all hover:bg-primary-container sm:inline-flex"
           >
             Mon Espace
@@ -197,33 +229,14 @@ export default function Navbar() {
         )}
       >
         <nav className="flex flex-col p-4">
-          <Link
-            href="/location-materiel-medical-agadir"
-            onClick={() => setMobileMenuOpen(false)}
-            className={classNames(
-              "rounded-lg px-4 py-3 text-base font-medium transition-colors",
-              pathname === "/location-materiel-medical-agadir"
-                ? "bg-primary/10 text-primary"
-                : "text-on-surface hover:bg-surface-container hover:text-primary"
-            )}
-          >
-            Tous les matériels
-          </Link>
-          {seoCategories.map((category) => (
-            <Link
-              key={category.slug}
-              href={`/${category.slug}`}
-              onClick={() => setMobileMenuOpen(false)}
-              className={classNames(
-                "rounded-lg px-4 py-3 text-base font-medium transition-colors",
-                pathname === `/${category.slug}`
-                  ? "bg-primary/10 text-primary"
-                  : "text-on-surface hover:bg-surface-container hover:text-primary"
-              )}
-            >
-              {category.label}
-            </Link>
-          ))}
+          <p className="px-4 pb-1 text-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+            Matériel
+          </p>
+          <MaterialDropdownLinks
+            pathname={pathname}
+            onNavigate={() => setMobileMenuOpen(false)}
+            className="mb-2"
+          />
           {pageLinks.map((link) => (
             <Link
               key={link.href}
@@ -239,22 +252,26 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          {hashLinks.map((link) => {
-            const hash = `#${link.hash}`;
-            return (
-              <a
-                key={link.hash}
-                href={hash}
-                onClick={(e) => handleHashLink(e, hash)}
-                className="rounded-lg px-4 py-3 text-base font-medium text-on-surface transition-colors hover:bg-surface-container hover:text-primary"
-              >
-                {link.label}
-              </a>
-            );
-          })}
+          {hashLinks.map((link) => (
+            <Link
+              key={link.hash}
+              href={link.href}
+              onClick={(e) => handleHashLink(e, link.href, link.hash)}
+              className="rounded-lg px-4 py-3 text-base font-medium text-on-surface transition-colors hover:bg-surface-container hover:text-primary"
+            >
+              {link.label}
+            </Link>
+          ))}
           <a
-            href={`mailto:${CONTACT_EMAIL}?subject=Accès%20Mon%20Espace%20MediDomicile`}
-            className="mt-2 rounded-lg bg-primary px-4 py-3 text-center text-base font-semibold text-on-primary"
+            href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20des%20informations.`}
+            className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-status-success px-4 py-3 text-base font-semibold text-white"
+          >
+            <MaterialIcon name="chat" />
+            WhatsApp
+          </a>
+          <a
+            href={`mailto:${CONTACT_EMAIL}?subject=Acc%C3%A8s%20Mon%20Espace%20SOS%20Sant%C3%A9`}
+            className="rounded-lg bg-primary px-4 py-3 text-center text-base font-semibold text-on-primary"
           >
             Mon Espace
           </a>

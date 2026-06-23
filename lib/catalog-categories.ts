@@ -1,0 +1,36 @@
+export const catalogCategories = [
+  { label: "Tous les matériels", value: "all", icon: null, param: "all" },
+  {
+    label: "Mobilier Médical",
+    value: "Mobilier Médical",
+    icon: "accessible",
+    param: "mobilier-medical",
+  },
+  {
+    label: "Respiratoire",
+    value: "Respiratoire",
+    icon: "air",
+    param: "respiratoire",
+  },
+  { label: "Confort", value: "Confort", icon: "bed", param: "confort" },
+  {
+    label: "Diagnostic",
+    value: "Diagnostic",
+    icon: "monitoring",
+    param: "diagnostic",
+  },
+] as const;
+
+export const categoryParamToValue: Record<string, string> = {
+  all: "all",
+  mobilite: "Mobilier Médical",
+  "mobilier-medical": "Mobilier Médical",
+  respiratoire: "Respiratoire",
+  confort: "Confort",
+  diagnostic: "Diagnostic",
+};
+
+export function categoryValueFromParam(param: string | null): string {
+  if (!param) return "all";
+  return categoryParamToValue[param] ?? "all";
+}

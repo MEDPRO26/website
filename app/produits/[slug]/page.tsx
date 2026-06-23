@@ -6,7 +6,7 @@ import { buildGraph, productBreadcrumbSchema, productSchema } from "@/lib/schema
 import ProductDetail from "./product-detail";
 
 const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://medidomicile.ma"
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sossante.ma"
 ).replace(/\/$/, "");
 
 type PageProps = {

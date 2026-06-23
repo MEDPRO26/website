@@ -18,13 +18,13 @@ const sourceSerif4 = Source_Serif_4({
 });
 
 const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://medidomicile.ma"
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sossante.ma"
 ).replace(/\/$/, "");
-const siteName = "MediDomicile";
+const siteName = "SOS Santé";
 const title =
-  "Location de matériel médical à Agadir et au Maroc | MediDomicile";
+  "Location de matériel médical à Agadir et au Maroc | SOS Santé";
 const description =
-  "Louez du matériel médical à Agadir et partout au Maroc avec MediDomicile : lits médicalisés, fauteuils roulants, concentrateurs d'oxygène. Livraison, installation et désinfection incluses. Devis gratuit en 15 min.";
+  "Louez du matériel médical à Agadir et partout au Maroc avec SOS Santé : lits médicalisés, fauteuils roulants, concentrateurs d'oxygène. Livraison, installation et désinfection incluses. Devis gratuit en 15 min.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     "aide à domicile Agadir",
     "maintien à domicile Maroc",
     "location matelas anti escarres Agadir",
-    "MediDomicile",
+    "SOS Santé",
   ],
   authors: [{ name: siteName }],
   creator: siteName,
@@ -66,7 +66,7 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "MediDomicile, location de matériel médical et aide à domicile au Maroc",
+        alt: "SOS Santé, location de matériel médical et aide à domicile au Maroc",
       },
     ],
   },

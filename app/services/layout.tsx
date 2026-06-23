@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
-const title = "Soins et aide à domicile à Agadir | MediDomicile";
+const title = "Soins et aide à domicile à Agadir | SOS Santé";
 const description =
-  "MediDomicile vous met en relation avec des infirmiers, aide-soignants et kinésithérapeutes qualifiés pour des soins à domicile à Agadir et au Maroc.";
+  "SOS Santé vous met en relation avec des infirmiers, aide-soignants et kinésithérapeutes qualifiés pour des soins à domicile à Agadir et au Maroc.";
 
 export const metadata: Metadata = {
   title,

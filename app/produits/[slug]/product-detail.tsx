@@ -8,7 +8,13 @@ import Navbar from "@/components/navbar";
 import RelatedProducts from "@/components/related-products";
 import CityLinks from "@/components/city-links";
 import {
+  activeDeliveryCityLabel,
+  activeDeliveryCities,
+  DEFAULT_DELIVERY_CITY,
+} from "@/lib/delivery-cities";
+import {
   CONTACT_EMAIL,
+  PRICE_ON_REQUEST,
   WHATSAPP_NUMBER,
   type Product,
 } from "@/lib/products";
@@ -41,8 +47,8 @@ export default function ProductDetail({ product }: { product: Product }) {
     "idle"
   );
   const [formData, setFormData] = useState({
-    startDate: "",
-    duration: "7",
+    deliveryCity: DEFAULT_DELIVERY_CITY,
+    quantity: "1",
     phone: "",
     message: "",
   });
@@ -85,16 +91,16 @@ export default function ProductDetail({ product }: { product: Product }) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.phone || !formData.startDate) {
+    if (!formData.phone) {
       setFormStatus("error");
       return;
     }
 
     const subject = encodeURIComponent(
-      `Disponibilité ${product.name} - ${product.city}`
+      `Devis achat ${product.name} - ${formData.deliveryCity}`
     );
     const body = encodeURIComponent(
-      `Bonjour MediDomicile,\n\nJe souhaite louer : ${product.name}\nVille : ${product.city}\nDate début : ${formData.startDate}\nDurée : ${formData.duration} jours\nTéléphone : ${formData.phone}${formData.message ? `\n\nMessage : ${formData.message}` : ""}\n\nMerci de confirmer la disponibilité.\n\nCordialement,`
+      `Bonjour SOS Santé,\n\nJe souhaite acheter : ${product.name}\nVille de livraison : ${formData.deliveryCity}\nQuantité : ${formData.quantity}\nTéléphone : ${formData.phone}${formData.message ? `\n\nMessage : ${formData.message}` : ""}\n\nMerci de me communiquer le prix et la disponibilité.\n\nCordialement,`
     );
 
     window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
@@ -102,7 +108,7 @@ export default function ProductDetail({ product }: { product: Product }) {
   };
 
   const whatsappText = encodeURIComponent(
-    `Bonjour MediDomicile, je souhaite louer un ${product.name} à ${product.city}.`
+    `Bonjour SOS Santé, je souhaite acheter un ${product.name} à ${formData.deliveryCity}.`
   );
 
   return (
@@ -131,10 +137,10 @@ export default function ProductDetail({ product }: { product: Product }) {
               <li className="flex items-center gap-2">
                 <MaterialIcon name="chevron_right" className="text-sm" />
                 <Link
-                  href="/#materiels"
+                  href="/vente"
                   className="transition-colors hover:text-primary"
                 >
-                  Location Matériel
+                  Vente
                 </Link>
               </li>
               <li className="flex items-center gap-2">
@@ -163,11 +169,11 @@ export default function ProductDetail({ product }: { product: Product }) {
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-status-success opacity-75" />
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-status-success" />
                   </span>
-                  Disponible à {product.city}
+                  Livraison : {activeDeliveryCityLabel}
                 </span>
               </div>
               <h1 className="font-heading text-3xl font-bold leading-tight text-on-surface sm:text-4xl md:text-5xl">
-                Location de {product.name.toLowerCase()} à {product.city}
+                Achat de {product.name.toLowerCase()} — {formData.deliveryCity}
               </h1>
               <p className="mt-3 text-base leading-relaxed text-on-surface-variant sm:text-lg">
                 {product.tagline}
@@ -183,11 +189,11 @@ export default function ProductDetail({ product }: { product: Product }) {
                   <div className="rounded-3xl border border-surface-container-high bg-white p-5 shadow-lg sm:p-8">
                     <div className="mb-5">
                       <p className="font-heading text-2xl font-bold leading-none text-primary sm:text-3xl">
-                        Tarif sur demande
+                        {PRICE_ON_REQUEST}
                       </p>
                       <p className="mt-2 text-sm leading-relaxed text-on-surface-variant sm:text-base">
                         Renseignez vos besoins, un conseiller vous rappelle pour
-                        finaliser votre location.
+                        finaliser votre achat.
                       </p>
                     </div>
 
@@ -208,8 +214,8 @@ export default function ProductDetail({ product }: { product: Product }) {
                           onClick={() => {
                             setFormStatus("idle");
                             setFormData({
-                              startDate: "",
-                              duration: "7",
+                              deliveryCity: DEFAULT_DELIVERY_CITY,
+                              quantity: "1",
                               phone: "",
                               message: "",
                             });
@@ -231,61 +237,52 @@ export default function ProductDetail({ product }: { product: Product }) {
                           <div className="relative">
                             <MaterialIcon
                               name="location_on"
-                              className="absolute left-3 top-1/2 -translate-y-1/2 text-primary"
+                              className="absolute left-3 top-1/2 z-10 -translate-y-1/2 text-primary"
                             />
-                            <input
+                            <select
                               id="city"
-                              readOnly
-                              value={product.city}
-                              className="w-full rounded-xl border-0 bg-surface-container-low py-3 pl-10 pr-4 text-sm font-semibold text-on-surface"
+                              value={formData.deliveryCity}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  deliveryCity: e.target.value,
+                                })
+                              }
+                              className="w-full appearance-none rounded-xl border-0 bg-surface-container-low py-3 pl-10 pr-10 text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            >
+                              {activeDeliveryCities.map((city) => (
+                                <option key={city.slug} value={city.name}>
+                                  {city.name}
+                                </option>
+                              ))}
+                            </select>
+                            <MaterialIcon
+                              name="expand_more"
+                              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant"
                             />
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label
-                              htmlFor="start-date"
-                              className="mb-1.5 block text-sm font-medium text-on-surface-variant"
-                            >
-                              Date début
-                            </label>
-                            <input
-                              id="start-date"
-                              type="date"
-                              required
-                              value={formData.startDate}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  startDate: e.target.value,
-                                })
-                              }
-                              className="w-full rounded-xl border border-outline-variant px-4 py-3 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                            />
-                          </div>
-                          <div>
-                            <label
-                              htmlFor="duration"
-                              className="mb-1.5 block text-sm font-medium text-on-surface-variant"
-                            >
-                              Durée (jours)
-                            </label>
-                            <input
-                              id="duration"
-                              type="number"
-                              min={1}
-                              value={formData.duration}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  duration: e.target.value,
-                                })
-                              }
-                              placeholder="7"
-                              className="w-full rounded-xl border border-outline-variant px-4 py-3 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                            />
-                          </div>
+                        <div>
+                          <label
+                            htmlFor="quantity"
+                            className="mb-1.5 block text-sm font-medium text-on-surface-variant"
+                          >
+                            Quantité
+                          </label>
+                          <input
+                            id="quantity"
+                            type="number"
+                            min={1}
+                            value={formData.quantity}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                quantity: e.target.value,
+                              })
+                            }
+                            className="w-full rounded-xl border border-outline-variant px-4 py-3 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          />
                         </div>
 
                         <div>
@@ -328,7 +325,7 @@ export default function ProductDetail({ product }: { product: Product }) {
                                 message: e.target.value,
                               })
                             }
-                            placeholder="Durée, adresse, besoins spécifiques..."
+                            placeholder="Adresse, besoins spécifiques..."
                             className="w-full resize-none rounded-xl border border-outline-variant px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                           />
                         </div>
@@ -339,7 +336,7 @@ export default function ProductDetail({ product }: { product: Product }) {
                             className="flex items-center gap-2 rounded-lg bg-status-error/10 px-3 py-2 text-sm font-medium text-status-error"
                           >
                             <MaterialIcon name="error" />
-                            Veuillez remplir la date et le téléphone.
+                            Veuillez renseigner votre téléphone.
                           </p>
                         )}
 
@@ -347,7 +344,7 @@ export default function ProductDetail({ product }: { product: Product }) {
                           type="submit"
                           className="w-full rounded-xl bg-primary py-3.5 text-base font-semibold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] hover:bg-primary-container active:scale-95"
                         >
-                          Vérifier la disponibilité
+                          Demander un devis d&apos;achat
                         </button>
                       </form>
                     )}
@@ -548,7 +545,7 @@ export default function ProductDetail({ product }: { product: Product }) {
               {/* Use cases */}
               <section className="mt-10 rounded-3xl bg-primary-container/10 p-6 sm:mt-12 sm:p-8">
                 <h2 className="font-heading mb-6 text-xl font-semibold text-primary sm:text-2xl">
-                  Dans quels cas louer ?
+                  Dans quels cas l&apos;utiliser ?
                 </h2>
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
                   {product.useCases.map((useCase) => (
@@ -576,7 +573,7 @@ export default function ProductDetail({ product }: { product: Product }) {
               {/* Trust signals */}
               <section className="mt-10 sm:mt-12">
                 <h2 className="font-heading mb-6 text-xl font-semibold text-primary sm:text-2xl">
-                  Pourquoi louer avec MediDomicile ?
+                  Pourquoi acheter chez SOS Santé ?
                 </h2>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {[
@@ -587,8 +584,8 @@ export default function ProductDetail({ product }: { product: Product }) {
                     },
                     {
                       icon: "cleaning_services",
-                      title: "Matériel désinfecté",
-                      text: "Protocole de nettoyage rigoureux avant chaque location.",
+                      title: "Matériel contrôlé",
+                      text: "Matériel neuf ou reconditionné, contrôlé et certifié.",
                     },
                     {
                       icon: "support_agent",
@@ -627,7 +624,7 @@ export default function ProductDetail({ product }: { product: Product }) {
           {product.related.length > 0 && (
             <section className="mt-14 sm:mt-20">
               <h2 className="font-heading mb-8 text-xl font-semibold text-on-surface sm:text-2xl">
-                Produits fréquemment loués ensemble
+                Produits fréquemment achetés ensemble
               </h2>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {product.related.map((related) => (
@@ -652,8 +649,8 @@ export default function ProductDetail({ product }: { product: Product }) {
                       <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-on-surface-variant">
                         {related.description}
                       </p>
-                      <span className="font-heading text-sm font-bold text-primary sm:text-base">
-                        {related.priceLabel}
+                      <span className="font-heading text-sm font-bold text-secondary sm:text-base">
+                        {PRICE_ON_REQUEST}
                       </span>
                     </div>
                   </Link>
@@ -666,9 +663,7 @@ export default function ProductDetail({ product }: { product: Product }) {
             currentSlug={product.slug}
             category={product.category}
           />
-          <CityLinks
-            title="Location de ce matériel dans d’autres villes"
-          />
+          <CityLinks title="Livraison de ce matériel dans d'autres villes" />
         </div>
       </main>
 
@@ -678,7 +673,8 @@ export default function ProductDetail({ product }: { product: Product }) {
             <Logo href="/" size="lg" className="mb-4" />
             <p className="text-sm leading-relaxed text-on-surface-variant sm:text-base">
               Solutions professionnelles de santé à domicile au Maroc.
-              Location de matériel médical à Agadir et dans tout le royaume.
+              Location et vente de matériel médical à Agadir et dans tout le
+              royaume.
             </p>
           </div>
           <div>
@@ -688,10 +684,10 @@ export default function ProductDetail({ product }: { product: Product }) {
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="/"
+                  href="/vente"
                   className="text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
                 >
-                  Location Matériel
+                  Vente
                 </Link>
               </li>
               <li>

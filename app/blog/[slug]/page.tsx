@@ -6,8 +6,7 @@ import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import { blogPosts, getBlogPostBySlug } from "@/lib/blog";
-import { products } from "@/lib/products";
-import { CONTACT_EMAIL, WHATSAPP_NUMBER } from "@/lib/products";
+import { CONTACT_EMAIL, products, WHATSAPP_NUMBER } from "@/lib/products";
 import {
   blogPostingSchema,
   breadcrumbSchema,
@@ -15,7 +14,7 @@ import {
 } from "@/lib/schema";
 
 const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://medidomicile.ma"
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sossante.ma"
 ).replace(/\/$/, "");
 
 type PageProps = {
@@ -50,7 +49,7 @@ export async function generateMetadata({
       url: `/blog/${slug}`,
       type: "article",
       locale: "fr_MA",
-      siteName: "MediDomicile",
+      siteName: "SOS Santé",
       images: [{ url: `${siteUrl}${post.image}`, alt: post.alt }],
       authors: [post.author],
       publishedTime: post.publishedAt,
@@ -212,7 +211,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             {/* FAQ */}
             {post.faqs && post.faqs.length > 0 && (
               <div className="mt-12">
-                <h2 className="font-heading mb-6 text-2xl font-semibold text-primary">
+                <h2 className="font-heading mb-6 text-2xl font-semibold text-secondary">
                   Questions fréquentes
                 </h2>
                 <div className="space-y-3">
@@ -309,7 +308,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             </p>
             <div className="flex flex-col justify-center gap-3 sm:flex-row">
               <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20MediDomicile%2C%20je%20souhaite%20louer%20du%20matériel%20médical.`}
+                href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20louer%20du%20matériel%20médical.`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-primary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
               >
                 <MaterialIcon name="chat" />

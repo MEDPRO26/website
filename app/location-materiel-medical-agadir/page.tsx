@@ -4,7 +4,7 @@ import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
-import { products } from "@/lib/products";
+import { products, WHATSAPP_NUMBER } from "@/lib/products";
 import { agadirHub, seoCategories } from "@/lib/seo-data";
 import {
   breadcrumbSchema,
@@ -16,7 +16,7 @@ import {
 } from "@/lib/schema";
 
 const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://medidomicile.ma"
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sossante.ma"
 ).replace(/\/$/, "");
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -33,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
       url: "/location-materiel-medical-agadir",
       type: "website",
       locale: "fr_MA",
-      siteName: "MediDomicile",
+      siteName: "SOS Santé",
       images: [{ url: `${siteUrl}/medidomicile-hero.jpg` }],
     },
   };
@@ -108,7 +108,7 @@ export default function AgadirHubPage() {
                 <span className="material-symbols-outlined text-lg">arrow_forward</span>
               </a>
               <a
-                href={`https://wa.me/212000000000?text=Bonjour%20MediDomicile%2C%20je%20souhaite%20louer%20du%20matériel%20médical%20à%20Agadir.`}
+                href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20louer%20du%20matériel%20médical%20à%20Agadir.`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-primary bg-white/60 px-6 py-3.5 text-base font-semibold text-primary backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-primary/5"
               >
                 <span className="material-symbols-outlined">chat</span>
@@ -236,13 +236,13 @@ export default function AgadirHubPage() {
                     {product.description}
                   </p>
                   <div className="flex items-center justify-between border-t border-surface-container pt-4">
-                    <span className="font-heading text-sm font-bold text-primary sm:text-base">
+                    <span className="font-heading text-sm font-bold text-secondary sm:text-base">
                       Tarif sur demande
                     </span>
                     <Link
                       href={`/produits/${product.slug}`}
                       aria-label={`Voir ${product.name}`}
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary-container text-on-primary-container transition-all hover:scale-110 hover:bg-primary hover:text-on-primary"
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary transition-all hover:scale-110 hover:bg-primary-container"
                     >
                       <span className="material-symbols-outlined">arrow_forward</span>
                     </Link>
@@ -258,7 +258,7 @@ export default function AgadirHubPage() {
       <section className="px-4 py-14 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-3xl">
           <h2 className="font-heading mb-6 text-2xl font-semibold text-primary sm:text-3xl">
-            Pourquoi louer du matériel médical à Agadir avec MediDomicile ?
+            Pourquoi louer du matériel médical à Agadir avec SOS Santé ?
           </h2>
           <div className="font-body space-y-4 text-base leading-relaxed text-on-surface-variant sm:text-lg">
             {agadirHub.longDescription.split("\n\n").map((paragraph, index) => (
@@ -275,7 +275,7 @@ export default function AgadirHubPage() {
             <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
               FAQ
             </span>
-            <h2 className="font-heading text-2xl font-semibold text-primary sm:text-3xl md:text-4xl">
+            <h2 className="font-heading text-2xl font-semibold text-secondary sm:text-3xl md:text-4xl">
               Questions fréquentes à Agadir
             </h2>
           </div>
@@ -312,14 +312,14 @@ export default function AgadirHubPage() {
           </p>
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
             <a
-              href={`https://wa.me/212000000000?text=Bonjour%20MediDomicile%2C%20je%20souhaite%20louer%20du%20matériel%20médical%20à%20Agadir.`}
+              href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20louer%20du%20matériel%20médical%20à%20Agadir.`}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-primary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
             >
               <span className="material-symbols-outlined">chat</span>
               WhatsApp
             </a>
             <a
-              href={`mailto:contact@medidomicile.ma?subject=Demande%20de%20devis%20matériel%20médical%20Agadir`}
+              href={`mailto:contact@sossante.ma?subject=Demande%20de%20devis%20matériel%20médical%20Agadir`}
               className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white px-8 py-4 text-base font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-white/10"
             >
               <span className="material-symbols-outlined">mail</span>

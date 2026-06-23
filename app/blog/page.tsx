@@ -13,11 +13,11 @@ import {
 } from "@/lib/schema";
 
 const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://medidomicile.ma"
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sossante.ma"
 ).replace(/\/$/, "");
 
 export const metadata: Metadata = {
-  title: "Blog matériel médical & aide à domicile | MediDomicile",
+  title: "Blog matériel médical & aide à domicile | SOS Santé",
   description:
     "Conseils et guides sur la location de matériel médical à Agadir et au Maroc : lits médicalisés, fauteuils roulants, oxygène, matelas anti-escarres.",
   keywords: [
@@ -30,13 +30,13 @@ export const metadata: Metadata = {
     canonical: "/blog",
   },
   openGraph: {
-    title: "Blog matériel médical & aide à domicile | MediDomicile",
+    title: "Blog matériel médical & aide à domicile | SOS Santé",
     description:
       "Guides et conseils pour choisir et louer du matériel médical à domicile.",
     url: "/blog",
     type: "website",
     locale: "fr_MA",
-    siteName: "MediDomicile",
+    siteName: "SOS Santé",
     images: [{ url: `${siteUrl}/medidomicile-hero.jpg` }],
   },
 };

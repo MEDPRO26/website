@@ -6,7 +6,12 @@ import { useState } from "react";
 import JsonLd from "@/components/json-ld";
 import Logo from "@/components/logo";
 import Navbar from "@/components/navbar";
-import { CONTACT_EMAIL, WHATSAPP_NUMBER } from "@/lib/products";
+import {
+  CONTACT_EMAIL,
+  PHONE_DISPLAY,
+  PHONE_NUMBER,
+  WHATSAPP_NUMBER,
+} from "@/lib/products";
 import {
   breadcrumbSchema,
   buildGraph,
@@ -107,6 +112,8 @@ const careTypes = [
   "Garde-malade",
 ];
 
+const serviceCities = ["Agadir", "Rabat"];
+
 const servicesSchema = buildGraph(
   webPageSchema(
     "/services",
@@ -159,6 +166,7 @@ export default function ServicesPage() {
   const [formData, setFormData] = useState({
     careType: "Infirmier",
     city: "",
+    neighborhood: "",
     name: "",
     phone: "",
     message: "",
@@ -174,8 +182,11 @@ export default function ServicesPage() {
     const subject = encodeURIComponent(
       `Demande de service - ${formData.careType}`
     );
+    const locationLine = formData.neighborhood
+      ? `${formData.city}, ${formData.neighborhood}`
+      : formData.city;
     const body = encodeURIComponent(
-      `Bonjour MediDomicile,\n\nType de soin : ${formData.careType}\nVille / Quartier : ${formData.city}\nNom : ${formData.name}\nTéléphone : ${formData.phone}\n\n${formData.message || "Merci de me recontacter rapidement."}\n\nCordialement,`
+      `Bonjour SOS Santé,\n\nType de soin : ${formData.careType}\nVille : ${formData.city}\nQuartier : ${formData.neighborhood || "Non précisé"}\nLocalisation : ${locationLine}\nNom : ${formData.name}\nTéléphone : ${formData.phone}\n\n${formData.message || "Merci de me recontacter rapidement."}\n\nCordialement,`
     );
 
     window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
@@ -217,7 +228,7 @@ export default function ServicesPage() {
               <MaterialIcon name="verified" className="text-base" />
               Accompagnement Professionnel
             </div>
-            <h1 className="font-heading mb-5 text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl md:text-5xl lg:text-6xl">
+            <h1 className="font-heading mb-5 text-3xl font-bold leading-tight tracking-tight text-secondary sm:text-4xl md:text-5xl lg:text-6xl">
               Services de soins et aide à domicile
             </h1>
             <p className="font-body mx-auto mb-8 max-w-2xl text-base leading-relaxed text-on-surface-variant sm:text-lg md:text-xl">
@@ -238,8 +249,8 @@ export default function ServicesPage() {
                 <MaterialIcon name="arrow_forward" />
               </a>
               <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20MediDomicile%2C%20je%20souhaite%20un%20service%20de%20soins%20à%20domicile.`}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-primary bg-white/60 px-8 py-4 text-base font-semibold text-primary backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-primary/5"
+                href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20un%20service%20de%20soins%20à%20domicile.`}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-secondary bg-white/60 px-8 py-4 text-base font-semibold text-secondary backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-secondary/10"
               >
                 <MaterialIcon name="chat" />
                 WhatsApp Express
@@ -272,7 +283,7 @@ export default function ServicesPage() {
             <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
               Nos expertises
             </span>
-            <h2 className="font-heading mb-4 text-2xl font-semibold text-on-surface sm:text-3xl md:text-4xl">
+            <h2 className="font-heading mb-4 text-2xl font-semibold text-secondary sm:text-3xl md:text-4xl">
               Spécialités à domicile
             </h2>
             <p className="font-body mx-auto max-w-2xl text-base text-on-surface-variant sm:text-lg">
@@ -363,7 +374,7 @@ export default function ServicesPage() {
               <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
                 Pourquoi nous faire confiance
               </span>
-              <h2 className="font-heading mb-6 text-2xl font-semibold text-primary sm:text-3xl md:text-4xl">
+              <h2 className="font-heading mb-6 text-2xl font-semibold text-secondary sm:text-3xl md:text-4xl">
                 Des partenaires soigneusement sélectionnés
               </h2>
               <div className="space-y-6 sm:space-y-8">
@@ -401,7 +412,7 @@ export default function ServicesPage() {
               <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
                 Prendre contact
               </span>
-              <h2 className="font-heading mb-4 text-2xl font-semibold text-primary sm:text-3xl md:text-4xl">
+              <h2 className="font-heading mb-4 text-2xl font-semibold text-secondary sm:text-3xl md:text-4xl">
                 Demande de service rapide
               </h2>
               <p className="font-body mb-6 text-sm leading-relaxed text-on-surface-variant sm:text-base">
@@ -418,7 +429,7 @@ export default function ServicesPage() {
                     Ligne d&apos;urgence
                   </p>
                   <p className="font-heading text-lg font-semibold text-on-surface sm:text-xl">
-                    +212 5 22 XX XX XX
+                    {PHONE_DISPLAY}
                   </p>
                 </div>
               </div>
@@ -428,7 +439,7 @@ export default function ServicesPage() {
                   Vous préférez WhatsApp ?
                 </p>
                 <a
-                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20MediDomicile%2C%20je%20souhaite%20un%20service%20de%20soins%20à%20domicile.`}
+                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20un%20service%20de%20soins%20à%20domicile.`}
                   className="inline-flex items-center gap-2 rounded-xl border-2 border-status-success px-5 py-3 text-sm font-semibold text-status-success transition-all hover:bg-status-success hover:text-white"
                 >
                   <MaterialIcon name="chat" />
@@ -456,6 +467,7 @@ export default function ServicesPage() {
                     setFormData({
                       careType: "Infirmier",
                       city: "",
+                      neighborhood: "",
                       name: "",
                       phone: "",
                       message: "",
@@ -498,17 +510,40 @@ export default function ServicesPage() {
                     htmlFor="city"
                     className="text-sm font-medium text-on-surface"
                   >
-                    Ville / Quartier <span className="text-status-error">*</span>
+                    Ville <span className="text-status-error">*</span>
                   </label>
-                  <input
+                  <select
                     id="city"
-                    type="text"
                     required
                     value={formData.city}
                     onChange={(e) =>
                       setFormData({ ...formData, city: e.target.value })
                     }
-                    placeholder="Ex: Agadir, Hay Mohammadi"
+                    className="h-[52px] rounded-xl border border-outline-variant bg-surface-bright px-4 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 sm:text-base"
+                  >
+                    <option value="">Choisir une ville</option>
+                    {serviceCities.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label
+                    htmlFor="neighborhood"
+                    className="text-sm font-medium text-on-surface"
+                  >
+                    Quartier
+                  </label>
+                  <input
+                    id="neighborhood"
+                    type="text"
+                    value={formData.neighborhood}
+                    onChange={(e) =>
+                      setFormData({ ...formData, neighborhood: e.target.value })
+                    }
+                    placeholder="Ex: Hay Mohammadi"
                     className="h-[52px] rounded-xl border border-outline-variant bg-surface-bright px-4 text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 sm:text-base"
                   />
                 </div>
@@ -599,7 +634,7 @@ export default function ServicesPage() {
             <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
               FAQ
             </span>
-            <h2 className="font-heading text-2xl font-semibold text-on-surface sm:text-3xl md:text-4xl">
+            <h2 className="font-heading text-2xl font-semibold text-secondary sm:text-3xl md:text-4xl">
               Questions fréquentes
             </h2>
           </div>
@@ -621,7 +656,7 @@ export default function ServicesPage() {
                     aria-expanded={isOpen}
                     className="flex w-full cursor-pointer items-center justify-between p-4 text-left sm:p-5"
                   >
-                    <span className="font-heading pr-4 text-base font-semibold text-on-surface sm:text-lg">
+                    <span className="font-heading pr-4 text-base font-semibold text-primary sm:text-lg">
                       {faq.question}
                     </span>
                     <span
@@ -637,7 +672,7 @@ export default function ServicesPage() {
                     style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
                   >
                     <div className="overflow-hidden">
-                      <p className="border-t border-outline-variant/30 px-4 pb-4 pt-3 font-body text-sm leading-relaxed text-on-surface-variant sm:px-5 sm:pb-5 sm:pt-4 sm:text-base">
+                      <p className="border-t border-outline-variant/30 px-4 pb-4 pt-3 font-body text-sm leading-relaxed text-secondary sm:px-5 sm:pb-5 sm:pt-4 sm:text-base">
                         {faq.answer}
                       </p>
                     </div>
@@ -660,14 +695,14 @@ export default function ServicesPage() {
             </p>
             <div className="flex flex-col justify-center gap-3 sm:flex-row">
               <a
-                href={`tel:+212522000000`}
+                href={`tel:${PHONE_NUMBER}`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-primary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
               >
                 <MaterialIcon name="phone_in_talk" />
                 Appeler maintenant
               </a>
               <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20MediDomicile%2C%20j'ai%20besoin%20d'un%20soin%20urgent%20à%20domicile.`}
+                href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20j'ai%20besoin%20d'un%20soin%20urgent%20à%20domicile.`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white px-8 py-4 text-base font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-white/10"
               >
                 <MaterialIcon name="chat" />
@@ -823,7 +858,7 @@ export default function ServicesPage() {
 
       {/* Desktop WhatsApp FAB */}
       <a
-        href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20MediDomicile%2C%20je%20souhaite%20un%20service%20de%20soins%20à%20domicile.`}
+        href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20un%20service%20de%20soins%20à%20domicile.`}
         aria-label="Contacter sur WhatsApp"
         className="fixed bottom-8 right-8 z-50 hidden h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-2xl shadow-[#25D366]/30 transition-all hover:scale-110 hover:shadow-xl active:scale-95 md:flex"
       >

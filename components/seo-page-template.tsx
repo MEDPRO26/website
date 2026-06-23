@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
+import CityLinks from "@/components/city-links";
 import Navbar from "@/components/navbar";
 import { CONTACT_EMAIL, WHATSAPP_NUMBER, type Product } from "@/lib/products";
 import { seoCategories, seoCities, type SeoCategory, type SeoCity } from "@/lib/seo-data";
@@ -115,13 +116,13 @@ function ProductCard({ product }: { product: Product }) {
           {product.description}
         </p>
         <div className="flex items-center justify-between border-t border-surface-container pt-4">
-          <span className="font-heading text-sm font-bold text-primary sm:text-base">
+          <span className="font-heading text-sm font-bold text-secondary sm:text-base">
             Tarif sur demande
           </span>
           <Link
             href={`/produits/${product.slug}`}
             aria-label={`Voir ${product.name}`}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary-container text-on-primary-container transition-all hover:scale-110 hover:bg-primary hover:text-on-primary"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary transition-all hover:scale-110 hover:bg-primary-container"
           >
             <MaterialIcon name="arrow_forward" />
           </Link>
@@ -144,7 +145,7 @@ function CtaSection({ title }: { title: string }) {
         </p>
         <div className="flex flex-col justify-center gap-3 sm:flex-row">
           <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20MediDomicile%2C%20je%20souhaite%20louer%20du%20matériel%20médical.`}
+            href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20louer%20du%20matériel%20médical.`}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-primary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
           >
             <MaterialIcon name="chat" />
@@ -270,7 +271,7 @@ export function SeoCategoryPage({
             <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
               FAQ
             </span>
-            <h2 className="font-heading text-2xl font-semibold text-primary sm:text-3xl md:text-4xl">
+            <h2 className="font-heading text-2xl font-semibold text-secondary sm:text-3xl md:text-4xl">
               Questions fréquentes
             </h2>
           </div>
@@ -278,37 +279,9 @@ export function SeoCategoryPage({
         </div>
       </section>
 
-      {/* City links */}
-      <section className="border-t border-outline-variant/30 bg-surface-container-low px-4 py-14 sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-7xl">
-          <h2 className="font-heading mb-6 text-xl font-semibold text-primary sm:text-2xl md:text-3xl">
-            Louer du matériel de {category.label.toLowerCase()} dans d’autres
-            villes
-          </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {seoCities.slice(0, 3).map((city) => (
-              <Link
-                key={city.slug}
-                href={`/${city.slug}`}
-                className="group flex items-center justify-between rounded-2xl border border-outline-variant/30 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-primary/20 hover:shadow-md"
-              >
-                <div>
-                  <h3 className="font-heading text-lg font-semibold text-primary">
-                    {city.name}
-                  </h3>
-                  <p className="text-sm text-on-surface-variant">
-                    {city.deliveryText}
-                  </p>
-                </div>
-                <MaterialIcon
-                  name="arrow_forward"
-                  className="text-primary transition-transform group-hover:translate-x-1"
-                />
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      <CityLinks
+        title={`Livraison de matériel de ${category.label.toLowerCase()} par ville`}
+      />
 
       <CtaSection title={`Louer du matériel de ${category.label.toLowerCase()}`} />
       </main>
@@ -430,7 +403,7 @@ export function SeoCityPage({
             <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
               FAQ
             </span>
-            <h2 className="font-heading text-2xl font-semibold text-primary sm:text-3xl md:text-4xl">
+            <h2 className="font-heading text-2xl font-semibold text-secondary sm:text-3xl md:text-4xl">
               Questions fréquentes à {city.name}
             </h2>
           </div>

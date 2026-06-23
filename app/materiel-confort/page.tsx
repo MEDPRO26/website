@@ -22,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
       url: `/${categorySlug}`,
       type: "website",
       locale: "fr_MA",
-      siteName: "MediDomicile",
+      siteName: "SOS Santé",
     },
   };
 }

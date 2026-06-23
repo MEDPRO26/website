@@ -4,7 +4,7 @@ import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
-import { CONTACT_EMAIL, products, WHATSAPP_NUMBER } from "@/lib/products";
+import { CONTACT_EMAIL, getCatalogProducts, WHATSAPP_NUMBER } from "@/lib/products";
 import {
   breadcrumbSchema,
   buildGraph,
@@ -12,13 +12,21 @@ import {
   offerCatalogSchema,
   webPageSchema,
 } from "@/lib/schema";
+import {
+  careServicePricing,
+  includedServices,
+  materialPricing,
+  type PricingRow,
+} from "@/lib/tarifs";
 
 const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://medidomicile.ma"
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sossante.ma"
 ).replace(/\/$/, "");
 
+const catalogProducts = getCatalogProducts();
+
 export const metadata: Metadata = {
-  title: "Tarifs location matériel médical Agadir | MediDomicile",
+  title: "Tarifs location matériel médical Agadir | SOS Santé",
   description:
     "Consultez nos tarifs de location de matériel médical à Agadir : lit médicalisé, fauteuil roulant, concentrateur d'oxygène, matelas anti-escarres. Devis gratuit.",
   keywords: [
@@ -31,13 +39,13 @@ export const metadata: Metadata = {
     canonical: "/tarifs",
   },
   openGraph: {
-    title: "Tarifs location matériel médical Agadir | MediDomicile",
+    title: "Tarifs location matériel médical Agadir | SOS Santé",
     description:
       "Tarifs transparents pour la location de matériel médical à Agadir et au Maroc.",
     url: "/tarifs",
     type: "website",
     locale: "fr_MA",
-    siteName: "MediDomicile",
+    siteName: "SOS Santé",
     images: [{ url: `${siteUrl}/medidomicile-hero.jpg` }],
   },
 };
@@ -56,64 +64,54 @@ function MaterialIcon({
   );
 }
 
-const pricingCategories = [
-  {
-    category: "Confort",
-    icon: "bed",
-    items: [
-      {
-        name: "Lit médicalisé électrique",
-        price: "À partir de 150 DH/jour",
-        note: "Tarif dégressif à la semaine et au mois",
-      },
-      {
-        name: "Matelas à air anti-escarres",
-        price: "À partir de 50 DH/jour",
-        note: "Compresseur silencieux inclus",
-      },
-    ],
-  },
-  {
-    category: "Mobilité",
-    icon: "accessible",
-    items: [
-      {
-        name: "Fauteuil roulant léger",
-        price: "À partir de 40 DH/jour",
-        note: "Pliable et transportable",
-      },
-      {
-        name: "Rollator 4 roues",
-        price: "À partir de 30 DH/jour",
-        note: "Avec siège et panier",
-      },
-      {
-        name: "Soulève-malade électrique",
-        price: "À partir de 80 DH/jour",
-        note: "Pour transfert sécurisé",
-      },
-    ],
-  },
-  {
-    category: "Respiratoire",
-    icon: "air",
-    items: [
-      {
-        name: "Concentrateur d'oxygène",
-        price: "À partir de 100 DH/jour",
-        note: "Débit réglable, tubulure incluse",
-      },
-    ],
-  },
-];
-
-const includedServices = [
-  "Livraison et installation à Agadir",
-  "Désinfection complète du matériel",
-  "Entretien et vérification technique",
-  "Conseil personnalisé par téléphone",
-  "Assistance pendant toute la location",
-];
+function PricingTable({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: PricingRow[];
+}) {
+  return (
+    <div className="overflow-hidden rounded-3xl border border-outline-variant/30 bg-white shadow-sm">
+      <div className="border-b border-outline-variant/20 px-6 py-6 sm:px-8 sm:py-7">
+        <h2 className="font-heading text-xl font-semibold text-primary sm:text-2xl">
+          {title}
+        </h2>
+        <div className="mx-auto mt-3 h-1 w-12 rounded-full bg-primary sm:mx-0" />
+      </div>
+      <ul>
+        {rows.map((row, index) => (
+          <li
+            key={row.name}
+            className={`flex flex-col gap-3 px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-8 sm:py-6 ${
+              index < rows.length - 1 ? "border-b border-outline-variant/20" : ""
+            }`}
+          >
+            <div className="min-w-0 flex-1">
+              <p className="font-heading text-base font-semibold text-primary sm:text-lg">
+                {row.name}
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-on-surface-variant">
+                {row.description}
+              </p>
+              {row.note ? (
+                <p className="mt-1 text-xs text-on-surface-variant/80 sm:text-sm">
+                  {row.note}
+                </p>
+              ) : null}
+            </div>
+            <div className="shrink-0 text-left sm:text-right">
+              <p className="font-heading text-base font-bold text-primary sm:text-lg">
+                {row.price}
+              </p>
+              <p className="text-sm text-on-surface-variant">{row.unit}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 const tarifsSchema = buildGraph(
   webPageSchema(
@@ -128,19 +126,25 @@ const tarifsSchema = buildGraph(
   offerCatalogSchema(
     "Tarifs de location de matériel médical",
     "/tarifs",
-    pricingCategories.flatMap((cat) =>
-      cat.items.map((item) => ({
+    [
+      ...materialPricing.map((item) => ({
         name: item.name,
         price: item.price,
-        description: item.note,
-        category: cat.category,
-      }))
-    )
+        description: item.note ?? item.description,
+        category: "Matériel médical",
+      })),
+      ...careServicePricing.map((item) => ({
+        name: item.name,
+        price: item.price,
+        description: item.note ?? item.description,
+        category: "Services de soins",
+      })),
+    ]
   ),
   itemListSchema(
     "Produits en location",
     "/tarifs",
-    products.map((product) => ({
+    catalogProducts.map((product) => ({
       name: product.name,
       url: `/produits/${product.slug}`,
     }))
@@ -179,55 +183,26 @@ export default function TarifsPage() {
               Tarifs de location de matériel médical à Agadir
             </h1>
             <p className="font-body mx-auto max-w-2xl text-base leading-relaxed text-on-surface-variant sm:text-lg md:text-xl">
-              Découvrez nos tarifs indicatifs pour la location de matériel
-              médical à domicile. Chaque devis est personnalisé selon la durée,
-              le matériel et la zone de livraison.
+              Consultez nos tarifs indicatifs pour la location de matériel
+              médical et les soins à domicile. Chaque devis est personnalisé
+              selon la durée, le matériel et la zone de livraison.
             </p>
           </div>
         </section>
 
-        {/* Pricing cards */}
-        <section className="px-4 py-10 sm:px-6 sm:py-14">
-          <div className="mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-              {pricingCategories.map((cat) => (
-                <div
-                  key={cat.category}
-                  className="rounded-3xl border border-outline-variant/30 bg-surface-base p-6 shadow-sm sm:p-8"
-                >
-                  <div className="mb-6 flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                      <MaterialIcon name={cat.icon} className="text-2xl" />
-                    </div>
-                    <h2 className="font-heading text-xl font-semibold text-primary">
-                      {cat.category}
-                    </h2>
-                  </div>
-                  <div className="space-y-4">
-                    {cat.items.map((item) => (
-                      <div
-                        key={item.name}
-                        className="rounded-2xl border border-outline-variant/20 bg-surface-container-low p-4"
-                      >
-                        <div className="mb-1 flex items-center justify-between">
-                          <span className="font-heading font-semibold text-on-surface">
-                            {item.name}
-                          </span>
-                        </div>
-                        <p className="font-heading text-lg font-bold text-primary">
-                          {item.price}
-                        </p>
-                        <p className="text-sm text-on-surface-variant">
-                          {item.note}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Pricing tables */}
+        <section className="px-4 py-6 sm:px-6 sm:py-10">
+          <div className="mx-auto flex max-w-7xl flex-col gap-8">
+            <PricingTable
+              title="Location de matériel médical"
+              rows={materialPricing}
+            />
+            <PricingTable
+              title="Services de soins à domicile"
+              rows={careServicePricing}
+            />
 
-            <div className="mt-8 rounded-3xl border border-primary/10 bg-primary/5 p-6 text-center sm:p-8">
+            <div className="rounded-3xl border border-primary/10 bg-primary/5 p-6 text-center sm:p-8">
               <p className="font-body text-base text-on-surface-variant sm:text-lg">
                 Les tarifs affichés sont indicatifs et peuvent varier selon la
                 durée de location, la zone de livraison et les options choisies.
@@ -249,7 +224,7 @@ export default function TarifsPage() {
                   Ce qui est inclus dans chaque location
                 </h2>
                 <p className="font-body mb-6 text-base leading-relaxed text-on-surface-variant sm:text-lg">
-                  Chez MediDomicile, nous ne louons pas seulement du matériel.
+                  Chez SOS Santé, nous ne louons pas seulement du matériel.
                   Nous vous accompagnons avec un service complet pour votre
                   tranquillité.
                 </p>
@@ -281,22 +256,33 @@ export default function TarifsPage() {
           </div>
         </section>
 
-        {/* Products with prices */}
+        {/* Catalogue */}
         <section className="px-4 py-14 sm:px-6 sm:py-20">
           <div className="mx-auto max-w-7xl">
-            <div className="mb-8 text-center">
-              <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
-                Catalogue
-              </span>
-              <h2 className="font-heading text-2xl font-semibold text-primary sm:text-3xl md:text-4xl">
-                Nos produits en location
-              </h2>
+            <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+              <div>
+                <h2 className="font-heading text-2xl font-semibold text-primary sm:text-3xl">
+                  Matériel disponible à la location
+                </h2>
+                <p className="font-body mt-2 max-w-2xl text-sm leading-relaxed text-on-surface-variant sm:text-base">
+                  Découvrez une sélection de notre catalogue. Livraison et
+                  installation à Agadir.
+                </p>
+              </div>
+              <Link
+                href="/location-materiel-medical-agadir"
+                className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-primary transition-all hover:gap-2 sm:text-base"
+              >
+                Voir tout le catalogue
+                <MaterialIcon name="arrow_forward" className="text-base" />
+              </Link>
             </div>
+
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {products.map((product) => (
+              {catalogProducts.map((product) => (
                 <article
                   key={product.slug}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-surface-container-high bg-white shadow-sm transition-all hover:-translate-y-2 hover:shadow-xl"
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-surface-container-high bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
                 >
                   <Link
                     href={`/produits/${product.slug}`}
@@ -322,17 +308,18 @@ export default function TarifsPage() {
                       </h3>
                     </Link>
                     <p className="font-body mb-5 flex-1 text-sm leading-relaxed text-on-surface-variant sm:text-base">
-                      {product.description}
+                      {product.tagline}
                     </p>
                     <div className="flex items-center justify-between border-t border-surface-container pt-4">
-                      <span className="font-heading text-sm font-bold text-primary sm:text-base">
-                        Tarif sur demande
+                      <span className="font-heading text-sm font-bold text-secondary sm:text-base">
+                        {product.priceLabel}
                       </span>
                       <Link
                         href={`/produits/${product.slug}`}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary-container text-on-primary-container transition-all hover:scale-110 hover:bg-primary hover:text-on-primary"
+                        aria-label={`Louer ${product.name}`}
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-on-primary transition-all hover:scale-110 hover:bg-primary-container"
                       >
-                        <MaterialIcon name="arrow_forward" />
+                        <MaterialIcon name="add_shopping_cart" className="text-xl" />
                       </Link>
                     </div>
                   </div>
@@ -354,7 +341,7 @@ export default function TarifsPage() {
             </p>
             <div className="flex flex-col justify-center gap-3 sm:flex-row">
               <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20MediDomicile%2C%20je%20souhaite%20un%20devis%20pour%20la%20location%20de%20matériel%20médical.`}
+                href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20un%20devis%20pour%20la%20location%20de%20matériel%20médical.`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-primary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
               >
                 <MaterialIcon name="chat" />
@@ -371,6 +358,14 @@ export default function TarifsPage() {
           </div>
         </section>
       </main>
+
+      <a
+        href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20un%20devis%20pour%20la%20location%20de%20matériel%20médical.`}
+        aria-label="Contacter sur WhatsApp"
+        className="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-status-success text-white shadow-lg shadow-status-success/30 transition-transform hover:scale-110 md:bottom-6"
+      >
+        <MaterialIcon name="chat" className="text-2xl" />
+      </a>
     </>
   );
 }

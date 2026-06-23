@@ -15,7 +15,7 @@ export default function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
       "@type": "ListItem",
       position: index + 1,
       name: item.label,
-      item: item.href ? `https://medidomicile.ma${item.href}` : undefined,
+      item: item.href ? `https://sossante.ma${item.href}` : undefined,
     })),
   };
 

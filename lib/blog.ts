@@ -5,15 +5,15 @@ export const blogPosts = [
     excerpt:
       "Découvrez comment choisir un lit médicalisé adapté aux besoins du patient, les options disponibles à Agadir et les tarifs de location.",
     metaTitle:
-      "Louer un lit médicalisé à Agadir : guide, tarifs et conseils | MediDomicile",
+      "Louer un lit médicalisé à Agadir : guide, tarifs et conseils | SOS Santé",
     metaDescription:
       "Guide pratique pour la location de lit médicalisé à Agadir. Tarifs, options électriques/manuelles, livraison et conseils d’utilisation.",
     category: "Guide",
-    author: "MediDomicile",
+    author: "SOS Santé",
     publishedAt: "2026-06-20",
     modifiedAt: "2026-06-20",
     readTime: "6 min",
-    image: "/products/lit-medicalise-electrique.png",
+    image: "/products/concentrateur-oxygene-5l.webp",
     alt: "Lit médicalisé électrique livré à domicile à Agadir",
     sections: [
       {
@@ -50,7 +50,7 @@ export const blogPosts = [
       },
       {
         type: "tip",
-        title: "Conseil MediDomicile",
+        title: "Conseil SOS Santé",
         content:
           "Pensez à associer votre lit à un matelas anti-escarres pour préserver la peau du patient en cas d’immobilité prolongée.",
       },
@@ -64,7 +64,7 @@ export const blogPosts = [
       {
         question: "Livrez-vous le lit médicalisé à domicile ?",
         answer:
-          "Oui, MediDomicile assure la livraison, l’installation et la reprise du lit médicalisé à Agadir et aux alentours.",
+          "Oui, SOS Santé assure la livraison, l’installation et la reprise du lit médicalisé à Agadir et aux alentours.",
       },
       {
         question: "Peut-on louer un lit médicalisé pour une courte durée ?",
@@ -72,7 +72,7 @@ export const blogPosts = [
           "Oui, la location est possible à la semaine ou au mois selon vos besoins médicaux.",
       },
     ],
-    relatedProducts: ["lit-medicalise-electrique", "matelas-anti-escarres"],
+    relatedProducts: ["concentrateur-oxygene-5l", "concentrateur-5l-silencieux-nebuliseur"],
   },
   {
     slug: "choisir-fauteuil-roulant-agadir",
@@ -80,15 +80,15 @@ export const blogPosts = [
     excerpt:
       "Pliant, confort, électrique : comparez les types de fauteuils roulants et trouvez celui qui correspond à votre mobilité.",
     metaTitle:
-      "Choisir un fauteuil roulant à Agadir : pliant, électrique ou confort | MediDomicile",
+      "Choisir un fauteuil roulant à Agadir : pliant, électrique ou confort | SOS Santé",
     metaDescription:
       "Guide de choix d’un fauteuil roulant à Agadir. Comparez les modèles pliants, électriques et confort, et louez-le avec livraison à domicile.",
     category: "Guide",
-    author: "MediDomicile",
+    author: "SOS Santé",
     publishedAt: "2026-06-18",
     modifiedAt: "2026-06-18",
     readTime: "5 min",
-    image: "/products/fauteuil-roulant-pliant.png",
+    image: "/products/inogen-rove-g6.webp",
     alt: "Fauteuil roulant pliant léger à louer à Agadir",
     sections: [
       {
@@ -138,13 +138,13 @@ export const blogPosts = [
       {
         question: "Proposez-vous des fauteuils roulants électriques ?",
         answer:
-          "Oui, MediDomicile propose des fauteuils roulants électriques en location à Agadir.",
+          "Oui, SOS Santé propose des fauteuils roulants électriques en location à Agadir.",
       },
     ],
     relatedProducts: [
-      "fauteuil-roulant-pliant",
-      "fauteuil-roulant-electrique",
-      "fauteuil-roulant-confort",
+      "inogen-rove-g6",
+      "concentrateur-oxygene-5l",
+      "spirometre-peak-flow",
     ],
   },
   {
@@ -153,15 +153,15 @@ export const blogPosts = [
     excerpt:
       "Tout savoir sur le concentrateur d’oxygène : fonctionnement, entretien, coût de location et livraison à domicile à Agadir.",
     metaTitle:
-      "Concentrateur d’oxygène à Agadir : location, prix et conseils | MediDomicile",
+      "Concentrateur d’oxygène à Agadir : location, prix et conseils | SOS Santé",
     metaDescription:
       "Louez un concentrateur d’oxygène à Agadir avec livraison et maintenance. Découvrez les avantages, l’entretien et les tarifs de location.",
     category: "Conseil",
-    author: "MediDomicile",
+    author: "SOS Santé",
     publishedAt: "2026-06-15",
     modifiedAt: "2026-06-15",
     readTime: "5 min",
-    image: "/products/concentrateur-oxygene.png",
+    image: "/products/concentrateur-oxygene-5l.webp",
     alt: "Concentrateur d’oxygène stationnaire pour utilisation à domicile",
     sections: [
       {
@@ -189,7 +189,7 @@ export const blogPosts = [
       {
         type: "paragraph",
         content:
-          "MediDomicile livre et installe le concentrateur d’oxygène à votre domicile à Agadir. Nous vous expliquons le fonctionnement et assurons le suivi technique.",
+          "SOS Santé livre et installe le concentrateur d’oxygène à votre domicile à Agadir. Nous vous expliquons le fonctionnement et assurons le suivi technique.",
       },
       {
         type: "tip",
@@ -210,7 +210,7 @@ export const blogPosts = [
           "Oui, nous assurons une livraison rapide du concentrateur d’oxygène à Agadir et aux environs.",
       },
     ],
-    relatedProducts: ["concentrateur-oxygene", "bouteille-oxygene-medicale"],
+    relatedProducts: ["concentrateur-oxygene-5l", "concentrateur-oxygene-10l-optimium"],
   },
   {
     slug: "aide-domicile-agadir-soins-infirmiers",
@@ -218,11 +218,11 @@ export const blogPosts = [
     excerpt:
       "Pansements, perfusions, injections, prise de sang : découvrez quand et comment bénéficier de soins infirmiers à domicile.",
     metaTitle:
-      "Soins infirmiers à domicile à Agadir : quand faire appel ? | MediDomicile",
+      "Soins infirmiers à domicile à Agadir : quand faire appel ? | SOS Santé",
     metaDescription:
       "Infirmiers diplômés à domicile à Agadir : pansements, perfusions, soins post-opératoires. Réservez un soin infirmier rapidement.",
     category: "Service",
-    author: "MediDomicile",
+    author: "SOS Santé",
     publishedAt: "2026-06-12",
     modifiedAt: "2026-06-12",
     readTime: "4 min",
@@ -261,7 +261,7 @@ export const blogPosts = [
         type: "tip",
         title: "Disponibilité",
         content:
-          "MediDomicile propose des interventions 7j/7 à Agadir sur rendez-vous, y compris en urgence selon disponibilité.",
+          "SOS Santé propose des interventions 7j/7 à Agadir sur rendez-vous, y compris en urgence selon disponibilité.",
       },
     ],
     faqs: [
@@ -276,7 +276,7 @@ export const blogPosts = [
           "Oui, tous nos professionnels de santé sont diplômés et expérimentés en soins à domicile.",
       },
     ],
-    relatedProducts: ["lit-medicalise-electrique", "matelas-anti-escarres"],
+    relatedProducts: ["concentrateur-oxygene-5l", "concentrateur-5l-silencieux-nebuliseur"],
   },
   {
     slug: "location-materiel-medical-conge-hopital",
@@ -284,11 +284,11 @@ export const blogPosts = [
     excerpt:
         "Retour à domicile après une hospitalisation : découvrez le matériel médical indispensable pour assurer confort et sécurité.",
     metaTitle:
-        "Matériel médical sortie d’hôpital à Agadir | Location rapide | MediDomicile",
+        "Matériel médical sortie d’hôpital à Agadir | Location rapide | SOS Santé",
     metaDescription:
         "Louez le matériel nécessaire à une sortie d’hôpital à Agadir : lit médicalisé, fauteuil roulant, oxygène, matelas anti-escarres. Livraison 7j/7.",
     category: "Guide",
-    author: "MediDomicile",
+    author: "SOS Santé",
     publishedAt: "2026-06-10",
     modifiedAt: "2026-06-10",
     readTime: "5 min",
@@ -320,7 +320,7 @@ export const blogPosts = [
       {
         type: "paragraph",
         content:
-          "Contactez MediDomicile dès que la date de sortie est connue. Nous préparons votre matériel et assurons la livraison le jour J.",
+          "Contactez SOS Santé dès que la date de sortie est connue. Nous préparons votre matériel et assurons la livraison le jour J.",
       },
       {
         type: "tip",
@@ -342,10 +342,10 @@ export const blogPosts = [
       },
     ],
     relatedProducts: [
-      "lit-medicalise-electrique",
-      "fauteuil-roulant-pliant",
-      "matelas-anti-escarres",
-      "concentrateur-oxygene",
+      "concentrateur-oxygene-5l",
+      "inogen-rove-g6",
+      "concentrateur-5l-silencieux-nebuliseur",
+      "manodetendeur-barboteur-ox2",
     ],
   },
   {
@@ -354,11 +354,11 @@ export const blogPosts = [
     excerpt:
         "Auxiliaire de vie, aide-ménagère, accompagnement : pourquoi l’aide à domicile améliore le quotidien des seniors à Agadir.",
     metaTitle:
-        "Aide à domicile personnes âgées à Agadir | MediDomicile",
+        "Aide à domicile personnes âgées à Agadir | SOS Santé",
     metaDescription:
         "Découvrez les avantages de l’aide à domicile pour les seniors à Agadir : autonomie, sécurité, compagnie et soins personnalisés.",
     category: "Conseil",
-    author: "MediDomicile",
+    author: "SOS Santé",
     publishedAt: "2026-06-08",
     modifiedAt: "2026-06-08",
     readTime: "4 min",
@@ -391,7 +391,7 @@ export const blogPosts = [
       {
         type: "paragraph",
         content:
-          "Chaque situation est unique. MediDomicile évalue les besoins de la personne âgée pour proposer un intervenant qualifié et un planning personnalisé.",
+          "Chaque situation est unique. SOS Santé évalue les besoins de la personne âgée pour proposer un intervenant qualifié et un planning personnalisé.",
       },
       {
         type: "tip",
@@ -412,7 +412,7 @@ export const blogPosts = [
           "Oui, nous proposons des interventions ponctuelles ou régulières selon vos besoins.",
       },
     ],
-    relatedProducts: ["lit-medicalise-electrique", "deambulateur"],
+    relatedProducts: ["concentrateur-oxygene-5l", "beurer-nebuliseur-ih-21"],
   },
 ];
 

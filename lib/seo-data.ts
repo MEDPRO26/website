@@ -31,8 +31,8 @@ export type SeoCity = {
 export const seoCategories: SeoCategory[] = [
   {
     slug: "materiel-mobilite",
-    label: "Mobilité",
-    value: "Mobilité",
+    label: "Mobilier Médical",
+    value: "Mobilier Médical",
     icon: "accessible",
     title: "Location de matériel de mobilité à Agadir",
     description:
@@ -157,7 +157,7 @@ export const seoCities: SeoCity[] = [
     title: "Location de matériel médical à Casablanca",
     description:
       "Louez du matériel médical à Casablanca avec livraison à domicile. Lits médicalisés, fauteuils roulants, oxygène médical et plus encore.",
-    longDescription: `MediDomicile étend son service de location de matériel médical à Casablanca et sa région. Que vous soyez à Bourgogne, Anfa, Ain Diab, Sidi Maarouf ou ailleurs dans la métropole, nous livrons et installons le matériel nécessaire au maintien à domicile.
+    longDescription: `SOS Santé étend son service de location de matériel médical à Casablanca et sa région. Que vous soyez à Bourgogne, Anfa, Ain Diab, Sidi Maarouf ou ailleurs dans la métropole, nous livrons et installons le matériel nécessaire au maintien à domicile.
 
 Nos délais de livraison à Casablanca sont généralement de 24 à 48 heures selon la disponibilité du matériel. Chaque équipement est contrôlé, nettoyé et désinfecté avant expédition. Contactez-nous pour un devis personnalisé et une mise à disposition rapide.`,
     metaTitle: "Location matériel médical Casablanca | Livraison à domicile",
@@ -191,7 +191,7 @@ Nos délais de livraison à Casablanca sont généralement de 24 à 48 heures se
     title: "Location de matériel médical à Marrakech",
     description:
       "Location de matériel médical à Marrakech et sa région. Livraison rapide de lits, fauteuils roulants et matériel respiratoire.",
-    longDescription: `Vous cherchez à louer du matériel médical à Marrakech ? MediDomicile vous accompagne avec une gamme complète : lits médicalisés, fauteuils roulants, concentrateurs d’oxygène, matelas anti-escarres et rollators. Nous desservons le centre-ville, Guéliz, Hivernage, Sidi Ghanem et les environs.
+    longDescription: `Vous cherchez à louer du matériel médical à Marrakech ? SOS Santé vous accompagne avec une gamme complète : lits médicalisés, fauteuils roulants, concentrateurs d’oxygène, matelas anti-escarres et rollators. Nous desservons le centre-ville, Guéliz, Hivernage, Sidi Ghanem et les environs.
 
 Nos équipements sont livrés dans des délais courts et installés par nos soins. Profitez d’un service réactif et d’un conseil personnalisé pour choisir le matériel adapté à votre besoin de santé à domicile.`,
     metaTitle: "Location matériel médical Marrakech | Livraison à domicile",
@@ -225,7 +225,7 @@ Nos équipements sont livrés dans des délais courts et installés par nos soin
     title: "Location de matériel médical à Rabat",
     description:
       "Location de matériel médical à Rabat et Salé. Livraison à domicile de matériel de confort, mobilité et respiratoire.",
-    longDescription: `MediDomicile propose la location de matériel médical à Rabat, Salé, Temara et les communes avoisinantes. Notre service s’adresse aux familles, aux aidants et aux structures de soins qui recherchent un équipement fiable pour le maintien à domicile.
+    longDescription: `SOS Santé propose la location de matériel médical à Rabat, Salé, Temara et les communes avoisinantes. Notre service s’adresse aux familles, aux aidants et aux structures de soins qui recherchent un équipement fiable pour le maintien à domicile.
 
 Nous assurons la livraison, l’installation et la récupération du matériel à Rabat. Tous nos produits sont vérifiés et désinfectés selon les normes en vigueur. Demandez votre devis gratuit et recevez une réponse sous 15 minutes.`,
     metaTitle: "Location matériel médical Rabat | Livraison Rabat-Salé",
@@ -292,7 +292,7 @@ Notre catalogue comprend des lits médicalisés, fauteuils roulants, concentrate
     title: "Location de matériel médical à Fès",
     description:
       "Location de matériel médical à Fès et Meknès. Livraison rapide de matériel de mobilité, confort et respiratoire.",
-    longDescription: `MediDomicile propose la location de matériel médical à Fès, Meknès et les villes environnantes. Notre service couvre les besoins en matériel de mobilité, de confort et respiratoire pour le maintien à domicile.
+    longDescription: `SOS Santé propose la location de matériel médical à Fès, Meknès et les villes environnantes. Notre service couvre les besoins en matériel de mobilité, de confort et respiratoire pour le maintien à domicile.
 
 Nous livrons et installons le matériel directement chez vous à Fès. Tous nos équipements sont vérifiés, entretenus et désinfectés. Demandez un devis personnalisé et recevez une réponse rapide.`,
     metaTitle: "Location matériel médical Fès | Livraison Fès-Meknès",
@@ -326,7 +326,7 @@ export const agadirHub = {
   title: "Location de matériel médical à Agadir",
   description:
     "Location de matériel médical à Agadir et dans la région Souss-Massa. Lits, fauteuils roulants, oxygène, matelas anti-escarres. Livraison incluse.",
-  longDescription: `MediDomicile est votre partenaire de confiance pour la location de matériel médical à Agadir. Nous desservons tous les quartiers de la ville : Hay Mohammadi, Taddart, Dakhla, Les Amicales, Islane, le secteur touristique, Anza, Aït Melloul et bien d’autres.
+  longDescription: `SOS Santé est votre partenaire de confiance pour la location de matériel médical à Agadir. Nous desservons tous les quartiers de la ville : Hay Mohammadi, Taddart, Dakhla, Les Amicales, Islane, le secteur touristique, Anza, Aït Melloul et bien d’autres.
 
 Notre catalogue comprend des lits médicalisés électriques, des fauteuils roulants légers, des concentrateurs d’oxygène, des matelas à air anti-escarres, des rollators et des soulève-malade. Chaque équipement est livré, installé et vérifié par nos soins. La livraison et l’installation sont incluses à Agadir.
 

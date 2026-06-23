@@ -1,3 +1,10 @@
+export const SITE_NAME = "SOS Santé";
+export const SITE_URL_DEFAULT = "https://sossante.ma";
+
+/** Logo brand colors */
+export const BRAND_BLUE = "#32A0F3";
+export const BRAND_GRAY = "#747782";
+
 export const LOGO = {
   default: "/sos sante bg trans.webp",
   white: "/sos sante bg white.webp",

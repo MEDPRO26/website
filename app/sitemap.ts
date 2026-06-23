@@ -4,7 +4,7 @@ import { seoCategories, seoCities } from "@/lib/seo-data";
 import { blogPosts } from "@/lib/blog";
 
 const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://medidomicile.ma"
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sossante.ma"
 ).replace(/\/$/, "");
 
 const images = [
@@ -45,6 +45,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     createSitemapEntry("/location-materiel-medical-agadir", 0.95, [
       "/medidomicile-hero.jpg",
     ]),
+    createSitemapEntry("/vente", 0.95, ["/medidomicile-hero.jpg"]),
     ...seoCategories.map((category) =>
       createSitemapEntry(`/${category.slug}`, 0.9)
     ),

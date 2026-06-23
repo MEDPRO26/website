@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import HeroScrollSection from "@/components/hero-scroll-section";
+import JsonLd from "@/components/json-ld";
 import Logo from "@/components/logo";
 import Navbar from "@/components/navbar";
 import {
@@ -10,8 +12,12 @@ import {
   getCatalogProducts,
   WHATSAPP_NUMBER,
 } from "@/lib/products";
-import { seoCategories, seoCities } from "@/lib/seo-data";
-import JsonLd from "@/components/json-ld";
+import { catalogCategories } from "@/lib/catalog-categories";
+import { seoCategories } from "@/lib/seo-data";
+import {
+  activeDeliveryCityLabel,
+  getCoverageAreas,
+} from "@/lib/delivery-cities";
 import {
   buildGraph,
   breadcrumbSchema,
@@ -25,18 +31,36 @@ import {
 
 const products = getCatalogProducts();
 
-const categories = [
-  { label: "Tous les matériels", value: "all", icon: null },
-  { label: "Mobilité", value: "Mobilité", icon: "accessible" },
-  { label: "Respiratoire", value: "Respiratoire", icon: "air" },
-  { label: "Confort", value: "Confort", icon: "bed" },
-];
+const categories = catalogCategories;
 
 const trustBadges = [
   { icon: "verified", label: "Matériel certifié", sub: "Normes médicales" },
-  { icon: "local_shipping", label: "Livraison incluse", sub: "Agadir & Maroc" },
+  { icon: "local_shipping", label: "Livraison incluse", sub: "Grandes villes du Maroc" },
   { icon: "cleaning_services", label: "Désinfection", sub: "Avant chaque location" },
   { icon: "support_agent", label: "Conseil gratuit", sub: "Réponse en 15 min" },
+];
+
+const heroGalleryImages = [
+  {
+    src: "/products/concentrateur-oxygene-5l.webp",
+    alt: "Concentrateur d'oxygène 5L pour oxygénothérapie à domicile",
+  },
+  {
+    src: "/products/concentrateur-5l-silencieux-nebuliseur.webp",
+    alt: "Concentrateur 5L silencieux avec nébuliseur",
+  },
+  {
+    src: "/products/inogen-rove-g6.webp",
+    alt: "Concentrateur d'oxygène portable Inogen Rove G6",
+  },
+  {
+    src: "/products/beurer-nebuliseur-ih-21.webp",
+    alt: "Nébuliseur électrique Beurer IH 21",
+  },
+  {
+    src: "/products/rossmax-nebuliseur-na100.webp",
+    alt: "Nébuliseur à piston Rossmax NA100",
+  },
 ];
 
 const whyChooseUs = [
@@ -62,20 +86,7 @@ const whyChooseUs = [
   },
 ];
 
-const coverageAreas = {
-  primary: "Agadir",
-  neighborhoods: [
-    "Hay Mohammadi",
-    "Taddart",
-    "Dakhla",
-    "Les Amicales",
-    "Islane",
-    "Secteur Touristique",
-    "Anza",
-    "Aït Melloul",
-  ],
-  cities: ["Casablanca", "Marrakech", "Rabat", "Tanger", "Fès", "Essaouira"],
-};
+const coverageAreas = getCoverageAreas();
 
 const rentalSteps = [
   {
@@ -112,14 +123,14 @@ const faqs = [
       "Absolument. Chaque équipement subit un protocole de nettoyage et de désinfection rigoureux aux normes médicales avant chaque nouvelle location. Cette étape est essentielle pour garantir la sécurité et l'hygiène des patients.",
   },
   {
-    question: "Comment louer du matériel médical avec MediDomicile ?",
+    question: "Comment louer du matériel médical avec SOS Santé ?",
     answer:
       "Rien de plus simple : sélectionnez votre matériel sur notre catalogue, remplissez le formulaire de demande ou contactez-nous par WhatsApp. Un conseiller vous rappelle sous 15 minutes pour confirmer la disponibilité, les tarifs et organiser la livraison.",
   },
   {
-    question: "Quels types de matériel médical peut-on louer ?",
+    question: "Quels types de matériel médical proposez-vous à la vente ?",
     answer:
-      "Nous proposons une large gamme de matériel médical à domicile : lits médicalisés électriques, fauteuils roulants, concentrateurs d'oxygène, matelas à air anti-escarres, rollators et soulève-malade. Tous nos produits sont adaptés au maintien à domicile.",
+      "Notre catalogue respiratoire comprend des concentrateurs d'oxygène (5L, 10L, portables), nébuliseurs, kits de nébulisation, masques à oxygène, manodétendeurs, aspirateurs chirurgicaux et spiromètres. Tous nos produits sont adaptés à l'usage à domicile.",
   },
   {
     question: "Intervenez-vous uniquement à Agadir ou dans tout le Maroc ?",
@@ -206,7 +217,7 @@ export default function Home() {
       `Demande de location - ${formData.materiel}`
     );
     const body = encodeURIComponent(
-      `Bonjour MediDomicile,\n\nJe souhaite louer le matériel suivant : ${formData.materiel}\n\nNom : ${formData.nom}\nTéléphone : ${formData.telephone}\n\n${formData.message || "Merci de me recontacter rapidement."}\n\nCordialement,`
+      `Bonjour SOS Santé,\n\nJe souhaite louer le matériel suivant : ${formData.materiel}\n\nNom : ${formData.nom}\nTéléphone : ${formData.telephone}\n\n${formData.message || "Merci de me recontacter rapidement."}\n\nCordialement,`
     );
 
     window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
@@ -220,98 +231,33 @@ export default function Home() {
     }
   };
 
+  useEffect(() => {
+    const scrollToHash = () => {
+      const id = window.location.hash.replace("#", "");
+      if (!id) return;
+      const element = document.getElementById(id);
+      if (element) {
+        window.requestAnimationFrame(() => {
+          element.scrollIntoView({ behavior: "smooth" });
+        });
+      }
+    };
+
+    scrollToHash();
+    window.addEventListener("hashchange", scrollToHash);
+    return () => window.removeEventListener("hashchange", scrollToHash);
+  }, []);
+
   return (
     <>
       <JsonLd data={homeSchema} />
       <Navbar />
 
       <main className="flex-1 pb-20 pt-16 md:pb-0 md:pt-20">
-        {/* Hero Section */}
-        <section
-          id="accueil"
-          className="relative overflow-hidden px-4 py-12 sm:px-6 sm:py-16 lg:py-24"
-        >
-          {/* Gradient mesh background */}
-          <div className="absolute inset-0 -z-10">
-            <div className="absolute -left-[20%] -top-[20%] h-[70%] w-[70%] rounded-full bg-primary/5 blur-[100px]" />
-            <div className="absolute -bottom-[10%] -right-[10%] h-[60%] w-[60%] rounded-full bg-secondary/5 blur-[100px]" />
-            <div className="absolute left-1/3 top-1/3 h-[40%] w-[40%] rounded-full bg-primary-fixed/20 blur-[80px]" />
-          </div>
-
-          <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-14">
-            <div className="animate-fade-in-up order-2 lg:order-1">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary">
-                <MaterialIcon name="verified" className="text-base" />
-                <span>Matériel médical certifié au Maroc</span>
-              </div>
-              <h1 className="font-heading mb-5 text-3xl font-bold leading-[1.12] tracking-tight text-primary sm:text-4xl md:text-5xl lg:text-6xl">
-                Location de matériel médical à{" "}
-                <span className="text-primary-container">Agadir</span> et
-                livraison au Maroc
-              </h1>
-              <p className="font-body mb-8 max-w-xl text-base leading-relaxed text-on-surface-variant sm:text-lg">
-                Louez du matériel médical à domicile à Agadir : lits
-                médicalisés, fauteuils roulants, concentrateurs d&apos;oxygène,
-                matelas anti-escarres. Livraison, installation et désinfection
-                incluses. Devis gratuit en 15 minutes.
-              </p>
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <a
-                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20MediDomicile%2C%20j'ai%20besoin%20d'aide%20pour%20choisir%20un%20matériel%20médical.`}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-base font-semibold text-on-primary shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary-container hover:shadow-xl"
-                >
-                  <MaterialIcon name="chat" />
-                  Besoin d&apos;aide ?
-                </a>
-                <a
-                  href="#materiels"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    scrollToSection("materiels");
-                  }}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-primary bg-white/60 px-6 py-3.5 text-base font-semibold text-primary backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-primary/5"
-                >
-                  Voir le catalogue
-                  <MaterialIcon name="arrow_forward" className="text-lg" />
-                </a>
-              </div>
-
-              {/* Mini trust bar in hero */}
-              <div className="mt-8 flex flex-wrap items-center gap-4 text-sm text-on-surface-variant">
-                <span className="inline-flex items-center gap-1.5">
-                  <MaterialIcon
-                    name="check_circle"
-                    className="text-status-success"
-                  />
-                  Disponible 24h/7j
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <MaterialIcon
-                    name="check_circle"
-                    className="text-status-success"
-                  />
-                  Devis gratuit
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <MaterialIcon
-                    name="check_circle"
-                    className="text-status-success"
-                  />
-                  Sans engagement
-                </span>
-              </div>
-            </div>
-
-            <div className="animate-fade-in-up stagger-1 relative order-1 aspect-[4/3] overflow-hidden rounded-3xl shadow-2xl lg:order-2 lg:aspect-square">
-              <Image
-                src="/medidomicile-hero.jpg"
-                alt="Lit médicalisé électrique et fauteuil roulant dans un salon lumineux pour location à domicile à Agadir"
-                fill
-                priority
-                sizes="(min-width: 1024px) 50vw, 100vw"
-                className="object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+        <HeroScrollSection
+          images={heroGalleryImages}
+          galleryOverlay={
+            <>
               <div className="absolute bottom-4 left-4 right-4 flex items-center gap-3 rounded-2xl bg-white/95 p-3 shadow-lg backdrop-blur-md sm:bottom-6 sm:left-6 sm:right-auto sm:p-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-container/20 text-primary">
                   <MaterialIcon name="verified" className="text-xl" />
@@ -325,7 +271,6 @@ export default function Home() {
                   </p>
                 </div>
               </div>
-              {/* Floating badge */}
               <div className="absolute right-4 top-4 hidden animate-float rounded-2xl bg-white/95 px-4 py-3 shadow-lg backdrop-blur-md sm:block">
                 <p className="font-heading text-lg font-bold text-primary">
                   +1000
@@ -334,9 +279,71 @@ export default function Home() {
                   familles accompagnées
                 </p>
               </div>
+            </>
+          }
+        >
+          <div className="animate-fade-in-up">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary">
+              <MaterialIcon name="verified" className="text-base" />
+              <span>Matériel médical certifié au Maroc</span>
+            </div>
+            <h1 className="font-heading mb-5 text-3xl font-bold leading-[1.12] tracking-tight text-secondary sm:text-4xl md:text-5xl lg:text-6xl">
+              Location et vente de{" "}
+              <span className="text-primary">matériel médical</span>, Services
+              de <span className="text-primary">soins</span> et{" "}
+              <span className="text-primary">aide</span> au Maroc
+            </h1>
+            <p className="font-body mb-8 max-w-xl text-base leading-relaxed text-on-surface-variant sm:text-lg">
+              Achetez du matériel médical à domicile à Agadir : lits
+              médicalisés, fauteuils roulants, concentrateurs d&apos;oxygène,
+              matelas anti-escarres. Livraison et installation incluses.
+              Devis gratuit en 15 minutes.
+            </p>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <a
+                href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20j'ai%20besoin%20d'aide%20pour%20choisir%20un%20matériel%20médical.`}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-base font-semibold text-on-primary shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary-container hover:shadow-xl"
+              >
+                <MaterialIcon name="chat" />
+                Besoin d&apos;aide ?
+              </a>
+              <a
+                href="#materiels"
+                onClick={(e) => {
+                  e.preventDefault();
+                  scrollToSection("materiels");
+                }}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-secondary bg-white/60 px-6 py-3.5 text-base font-semibold text-secondary backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-secondary/10"
+              >
+                  Voir le catalogue vente
+                <MaterialIcon name="arrow_forward" className="text-lg" />
+              </a>
+            </div>
+            <div className="mt-8 flex flex-wrap items-center gap-4 text-sm text-on-surface-variant">
+              <span className="inline-flex items-center gap-1.5">
+                <MaterialIcon
+                  name="check_circle"
+                  className="text-status-success"
+                />
+                Disponible 24h/7j
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <MaterialIcon
+                  name="check_circle"
+                  className="text-status-success"
+                />
+                Devis gratuit
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <MaterialIcon
+                  name="check_circle"
+                  className="text-status-success"
+                />
+                Sans engagement
+              </span>
             </div>
           </div>
-        </section>
+        </HeroScrollSection>
 
         {/* Trust Bar */}
         <section className="border-y border-outline-variant/40 bg-surface-container-low/60 px-4 py-6 backdrop-blur-sm sm:px-6">
@@ -366,10 +373,10 @@ export default function Home() {
         <section className="px-4 py-10 sm:px-6 sm:py-12">
           <div className="mx-auto max-w-7xl">
             <div className="mb-6 text-center">
-              <span className="mb-2 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
+              <span className="mb-2 inline-block text-sm font-semibold uppercase tracking-wider text-secondary">
                 Explorer par catégorie
               </span>
-              <h2 className="font-heading text-2xl font-semibold text-primary sm:text-3xl">
+              <h2 className="font-heading text-2xl font-semibold text-secondary sm:text-3xl">
                 Quel type de matériel cherchez-vous ?
               </h2>
             </div>
@@ -384,7 +391,7 @@ export default function Home() {
                     <MaterialIcon name={category.icon} className="text-2xl" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-heading text-lg font-semibold text-primary">
+                    <h3 className="font-heading text-lg font-semibold text-secondary">
                       {category.label}
                     </h3>
                     <p className="text-sm text-on-surface-variant line-clamp-1">
@@ -393,7 +400,7 @@ export default function Home() {
                   </div>
                   <MaterialIcon
                     name="arrow_forward"
-                    className="text-primary transition-transform group-hover:translate-x-1"
+                    className="text-secondary transition-transform group-hover:translate-x-1"
                   />
                 </Link>
               ))}
@@ -420,8 +427,8 @@ export default function Home() {
                   aria-selected={activeCategory === category.value}
                   className={`inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-medium transition-all ${
                     activeCategory === category.value
-                      ? "bg-primary text-on-primary shadow-md shadow-primary/20"
-                      : "border border-outline-variant bg-white text-on-surface-variant hover:border-primary hover:text-primary"
+                      ? "bg-secondary text-on-secondary shadow-md shadow-secondary/20"
+                      : "border border-outline-variant bg-white text-on-surface-variant hover:border-secondary hover:text-secondary"
                   }`}
                 >
                   {category.icon && (
@@ -437,7 +444,7 @@ export default function Home() {
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant"
               />
               <label htmlFor="materiel-search" className="sr-only">
-                Rechercher un matériel médical à louer
+                Rechercher un matériel médical à acheter
               </label>
               <input
                 id="materiel-search"
@@ -466,10 +473,10 @@ export default function Home() {
           <div className="mx-auto max-w-7xl">
             <div className="mb-8 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
               <div>
-                <span className="mb-2 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
-                  Notre catalogue
+                <span className="mb-2 inline-block text-sm font-semibold uppercase tracking-wider text-secondary">
+                  Catalogue vente
                 </span>
-                <h2 className="font-heading text-xl font-semibold text-primary sm:text-2xl md:text-3xl">
+                <h2 className="font-heading text-xl font-semibold text-secondary sm:text-2xl md:text-3xl">
                   {activeCategoryLabel}
                 </h2>
               </div>
@@ -513,13 +520,13 @@ export default function Home() {
                         {product.description}
                       </p>
                       <div className="flex items-center justify-between border-t border-surface-container pt-4">
-                        <span className="font-heading text-sm font-bold text-primary sm:text-base">
-                          Tarif sur demande
+                        <span className="font-heading text-sm font-bold text-secondary sm:text-base">
+                          {product.priceLabel}
                         </span>
                         <Link
                           href={`/produits/${product.slug}`}
                           aria-label={`Voir les détails de ${product.name}`}
-                          className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary-container text-on-primary-container transition-all hover:scale-110 hover:bg-primary hover:text-on-primary"
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary transition-all hover:scale-110 hover:bg-primary-container"
                         >
                           <MaterialIcon name="arrow_forward" />
                         </Link>
@@ -559,10 +566,10 @@ export default function Home() {
         <section className="overflow-hidden bg-surface-container-low px-4 py-14 sm:px-6 sm:py-20 lg:py-24">
           <div className="mx-auto max-w-7xl">
             <div className="mb-10 text-center md:mb-14">
-              <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
+              <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-secondary">
                 Pourquoi nous choisir
               </span>
-              <h2 className="font-heading mb-4 text-2xl font-semibold text-primary sm:text-3xl md:text-4xl">
+              <h2 className="font-heading mb-4 text-2xl font-semibold text-secondary sm:text-3xl md:text-4xl">
                 Un service pensé pour votre tranquillité
               </h2>
               <p className="font-body mx-auto max-w-2xl text-base text-on-surface-variant sm:text-lg">
@@ -577,10 +584,10 @@ export default function Home() {
                   className="animate-fade-in-up rounded-3xl border border-outline-variant/30 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
                   style={{ animationDelay: `${index * 80}ms` }}
                 >
-                  <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-container/15 text-primary">
+                  <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-on-primary shadow-md shadow-primary/10">
                     <MaterialIcon name={item.icon} className="text-[28px]" />
                   </div>
-                  <h3 className="font-heading mb-2 text-lg font-semibold text-primary">
+                  <h3 className="font-heading mb-2 text-lg font-semibold text-secondary">
                     {item.title}
                   </h3>
                   <p className="font-body text-sm leading-relaxed text-on-surface-variant sm:text-base">
@@ -597,16 +604,21 @@ export default function Home() {
           <div className="mx-auto max-w-7xl">
             <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
               <div>
-                <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
+                <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-secondary">
                   Zones desservies
                 </span>
-                <h2 className="font-heading mb-4 text-2xl font-semibold text-primary sm:text-3xl md:text-4xl">
-                  Location de matériel médical à Agadir et au Maroc
+                <h2 className="font-heading mb-4 text-2xl font-semibold text-secondary sm:text-3xl md:text-4xl">
+                  Grandes villes du Maroc
                 </h2>
                 <p className="font-body mb-6 text-base leading-relaxed text-on-surface-variant sm:text-lg">
-                  Notre base logistique à Agadir nous permet de livrer rapidement
-                  dans tous les quartiers de la ville. Nous expédions également
-                  vers les principales villes du Maroc avec des délais adaptés.
+                  Nous livrons actuellement à {activeDeliveryCityLabel}.
+                  {coverageAreas.comingSoon.length > 0 && (
+                    <>
+                      {" "}
+                      {coverageAreas.comingSoon.join(", ")} arrivent
+                      prochainement.
+                    </>
+                  )}
                 </p>
                 <a
                   href="#contact"
@@ -622,43 +634,37 @@ export default function Home() {
               </div>
 
               <div className="grid gap-5">
-                <Link
-                  href="/location-materiel-medical-agadir"
-                  className="group block rounded-3xl border border-primary/10 bg-primary/5 p-6 transition-all hover:-translate-y-1 hover:border-primary/30 hover:shadow-md"
-                >
+                <div className="rounded-3xl border border-primary/10 bg-primary/5 p-6">
                   <h3 className="font-heading mb-4 flex items-center gap-2 text-lg font-semibold text-primary">
                     <MaterialIcon name="location_on" />
-                    Agadir et environs
-                    <MaterialIcon
-                      name="arrow_forward"
-                      className="ml-auto text-primary opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100"
-                    />
+                    Villes desservies
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {coverageAreas.neighborhoods.map((area) => (
-                      <span
-                        key={area}
-                        className="rounded-full bg-white px-3 py-1.5 text-sm text-on-surface shadow-sm"
-                      >
-                        {area}
-                      </span>
-                    ))}
-                  </div>
-                </Link>
-                <div className="rounded-3xl border border-outline-variant/30 bg-surface-base p-6">
-                  <h3 className="font-heading mb-4 flex items-center gap-2 text-lg font-semibold text-primary">
-                    <MaterialIcon name="map" />
-                    Livraison dans tout le Maroc
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {seoCities.slice(0, 5).map((city) => (
+                    {coverageAreas.active.map((city) => (
                       <Link
                         key={city.slug}
                         href={`/${city.slug}`}
-                        className="rounded-full bg-surface-container-low px-3 py-1.5 text-sm text-on-surface transition-colors hover:bg-primary hover:text-on-primary"
+                        className="rounded-full bg-white px-3 py-1.5 text-sm font-medium text-on-surface shadow-sm transition-colors hover:bg-primary hover:text-on-primary"
                       >
                         {city.name}
                       </Link>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-3xl border border-outline-variant/30 bg-surface-base p-6">
+                  <h3 className="font-heading mb-4 flex items-center gap-2 text-lg font-semibold text-primary">
+                    <MaterialIcon name="schedule" />
+                    Prochainement
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {coverageAreas.comingSoon.map((city) => (
+                      <span
+                        key={city}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-surface-container-low px-3 py-1.5 text-sm text-on-surface-variant"
+                      >
+                        <MaterialIcon name="schedule" className="text-base" />
+                        {city}
+                      </span>
                     ))}
                   </div>
                 </div>
@@ -674,10 +680,10 @@ export default function Home() {
         >
           <div className="mx-auto max-w-7xl">
             <div className="mb-10 text-center md:mb-14">
-              <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
+              <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-secondary">
                 Comment ça marche
               </span>
-              <h2 className="font-heading mb-4 text-2xl font-semibold text-primary sm:text-3xl md:text-4xl">
+              <h2 className="font-heading mb-4 text-2xl font-semibold text-secondary sm:text-3xl md:text-4xl">
                 Louer en 3 étapes simples
               </h2>
               <p className="font-body mx-auto max-w-2xl text-base text-on-surface-variant sm:text-lg">
@@ -694,10 +700,10 @@ export default function Home() {
                   className="animate-fade-in-up relative z-10 flex flex-col items-center rounded-3xl border border-surface-container bg-white p-6 text-center shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
                   style={{ animationDelay: `${(index + 1) * 100}ms` }}
                 >
-                  <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-container text-on-primary-container shadow-md shadow-primary/10">
+                  <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-on-primary shadow-md shadow-primary/10">
                     <MaterialIcon name={step.icon} className="text-[28px]" />
                   </div>
-                  <h3 className="font-heading mb-2 text-xl font-semibold text-primary">
+                  <h3 className="font-heading mb-2 text-xl font-semibold text-secondary">
                     {step.title}
                   </h3>
                   <p className="font-body text-sm leading-relaxed text-on-surface-variant sm:text-base">
@@ -713,10 +719,10 @@ export default function Home() {
         <section id="faq" className="px-4 py-14 sm:px-6 sm:py-20">
           <div className="mx-auto max-w-3xl">
             <div className="mb-8 text-center md:mb-12">
-              <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
+              <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-secondary">
                 FAQ
               </span>
-              <h2 className="font-heading text-2xl font-semibold text-primary sm:text-3xl md:text-4xl">
+              <h2 className="font-heading text-2xl font-semibold text-secondary sm:text-3xl md:text-4xl">
                 Questions fréquentes sur la location
               </h2>
               <p className="font-body mx-auto mt-3 max-w-xl text-base text-on-surface-variant">
@@ -748,7 +754,7 @@ export default function Home() {
                         {faq.question}
                       </span>
                       <span
-                        className={`shrink-0 rounded-full bg-primary-container/15 p-1 text-primary transition-transform duration-300 ${
+                        className={`shrink-0 rounded-full bg-primary/15 p-1 text-primary transition-transform duration-300 ${
                           isOpen ? "rotate-180" : ""
                         }`}
                       >
@@ -762,7 +768,7 @@ export default function Home() {
                       }}
                     >
                       <div className="overflow-hidden">
-                        <div className="border-t border-surface-container p-4 pt-0 font-body text-sm leading-relaxed text-on-surface-variant sm:p-5 sm:text-base">
+                        <div className="border-t border-surface-container p-4 pt-0 font-body text-sm leading-relaxed text-secondary sm:p-5 sm:text-base">
                           <p className="pt-3 sm:pt-4">{faq.answer}</p>
                         </div>
                       </div>
@@ -776,7 +782,7 @@ export default function Home() {
 
         {/* CTA / Contact Section */}
         <section id="contact" className="px-4 pb-14 sm:px-6 sm:pb-20">
-          <div className="mx-auto flex max-w-7xl flex-col items-center gap-8 overflow-hidden rounded-[32px] bg-primary p-6 shadow-2xl shadow-primary/20 sm:p-10 md:flex-row md:p-14 lg:p-16">
+          <div className="mx-auto flex max-w-7xl flex-col items-center gap-8 overflow-hidden rounded-[32px] bg-secondary p-6 shadow-2xl shadow-secondary/20 sm:p-10 md:flex-row md:p-14 lg:p-16">
             <div className="relative z-10 flex-1 text-center md:text-left">
               <h2 className="font-heading mb-4 text-2xl font-bold text-white sm:text-3xl md:text-4xl lg:text-5xl">
                 Besoin d&apos;un devis gratuit ?
@@ -788,7 +794,7 @@ export default function Home() {
               </p>
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-center md:justify-start">
                 <a
-                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20MediDomicile%2C%20je%20souhaite%20louer%20du%20matériel%20médical.`}
+                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20louer%20du%20matériel%20médical.`}
                   className="inline-flex items-center justify-center gap-2 rounded-2xl bg-status-success px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-black/10 transition-all hover:-translate-y-0.5 hover:brightness-110"
                 >
                   <MaterialIcon name="chat" />
@@ -796,7 +802,7 @@ export default function Home() {
                 </a>
                 <a
                   href={`mailto:${CONTACT_EMAIL}?subject=Demande%20de%20devis%20matériel%20médical`}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3.5 text-base font-semibold text-primary transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3.5 text-base font-semibold text-secondary transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
                 >
                   <MaterialIcon name="mail" />
                   Nous envoyer un email
@@ -828,7 +834,7 @@ export default function Home() {
                         message: "",
                       });
                     }}
-                    className="rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-surface-container-low"
+                    className="rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-secondary transition-colors hover:bg-surface-container-low"
                   >
                     Nouvelle demande
                   </button>
@@ -933,7 +939,7 @@ export default function Home() {
                   )}
                   <button
                     type="submit"
-                    className="w-full rounded-xl bg-primary-container py-3.5 text-base font-semibold text-on-primary-container shadow-lg shadow-black/10 transition-all hover:scale-[1.02] hover:brightness-105 active:scale-[0.98]"
+                    className="w-full rounded-xl bg-white py-3.5 text-base font-semibold text-secondary shadow-lg shadow-black/10 transition-all hover:scale-[1.02] hover:bg-surface-container-low active:scale-[0.98]"
                   >
                     Envoyer ma demande
                   </button>
