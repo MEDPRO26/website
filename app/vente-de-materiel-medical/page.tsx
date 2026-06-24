@@ -318,13 +318,22 @@ function VenteCatalogContent() {
               Contactez-nous pour connaître la disponibilité et le prix de
               vente de votre matériel médical.
             </p>
-            <a
-              href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20acheter%20du%20mat%C3%A9riel%20m%C3%A9dical.`}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-secondary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
-            >
-              <MaterialIcon name="chat" />
-              WhatsApp
-            </a>
+            <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <a
+                href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20acheter%20du%20mat%C3%A9riel%20m%C3%A9dical.`}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-secondary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
+              >
+                <MaterialIcon name="chat" />
+                WhatsApp
+              </a>
+              <Link
+                href="/#contact"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white/80 bg-transparent px-8 py-4 text-base font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-white/10"
+              >
+                <MaterialIcon name="edit_note" />
+                Remplir le formulaire
+              </Link>
+            </div>
           </div>
         </section>
       </main>

@@ -175,7 +175,7 @@ export default function HeroScrollSection({
 
             {activeIndex < images.length - 1 && (
               <>
-                <div className="pointer-events-none absolute bottom-10 left-[51%] z-30 hidden -translate-x-1/2 lg:block">
+                <div className="pointer-events-none absolute -bottom-16 left-[51%] z-30 hidden -translate-x-1/2 lg:block">
                   <ScrollHint overlay />
                 </div>
                 <div className="order-3 flex justify-center py-1 lg:hidden">

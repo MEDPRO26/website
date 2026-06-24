@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
-import { products } from "@/lib/products";
-import { seoCategories, seoCities } from "@/lib/seo-data";
 import { HERO_IMAGE } from "@/lib/brand";
 import { blogPosts } from "@/lib/blog";
+import { allowIndexing } from "@/lib/indexing";
+import { products } from "@/lib/products";
+import { seoCategories, seoCities } from "@/lib/seo-data";
 import { VENTE_PAGE_PATH } from "@/lib/routes";
 
 const siteUrl = (
@@ -38,6 +39,10 @@ function createSitemapEntry(
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  if (!allowIndexing) {
+    return [];
+  }
+
   return [
     createSitemapEntry("/", 1, images),
     createSitemapEntry("/services", 0.9, [

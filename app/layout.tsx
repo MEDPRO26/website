@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Source_Serif_4 } from "next/font/google";
 import { LOGO } from "@/lib/brand";
+import { getRobotsMetadata } from "@/lib/indexing";
 import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -76,17 +77,7 @@ export const metadata: Metadata = {
     description,
     images: ["/og-image.png"],
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-      "max-video-preview": -1,
-    },
-  },
+  robots: getRobotsMetadata(),
   category: "healthcare marketplace",
   icons: {
     icon: LOGO.default,
