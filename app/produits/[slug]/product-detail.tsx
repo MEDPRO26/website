@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import FooterContact, { FooterCopyright } from "@/components/footer-contact";
+import FooterLegalLinks from "@/components/footer-legal-links";
 import Logo from "@/components/logo";
 import Navbar from "@/components/navbar";
 import RelatedProducts from "@/components/related-products";
@@ -14,6 +15,7 @@ import {
   DEFAULT_DELIVERY_CITY,
 } from "@/lib/delivery-cities";
 import { SITE_FULL_NAME } from "@/lib/brand";
+import { formatProductAchatHeading } from "@/lib/french";
 import { VENTE_PAGE_PATH } from "@/lib/routes";
 import {
   CONTACT_EMAIL,
@@ -176,7 +178,10 @@ export default function ProductDetail({ product }: { product: Product }) {
                 </span>
               </div>
               <h1 className="font-heading text-3xl font-bold leading-tight text-on-surface sm:text-4xl md:text-5xl">
-                Achat de {product.name.toLowerCase()} — {formData.deliveryCity}
+                {formatProductAchatHeading(
+                  product.name,
+                  formData.deliveryCity
+                )}
               </h1>
               <p className="mt-3 text-base leading-relaxed text-on-surface-variant sm:text-lg">
                 {product.tagline}
@@ -706,29 +711,7 @@ export default function ProductDetail({ product }: { product: Product }) {
               </li>
             </ul>
           </div>
-          <div>
-            <h4 className="font-heading mb-3 text-sm font-bold uppercase tracking-wider text-primary sm:mb-4">
-              Assistance
-            </h4>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/#faq"
-                  className="text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
-                >
-                  Aide & FAQ
-                </Link>
-              </li>
-              <li>
-                <a
-                  href={`mailto:${CONTACT_EMAIL}`}
-                  className="text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
-                >
-                  Contact
-                </a>
-              </li>
-            </ul>
-          </div>
+          <FooterLegalLinks heading="Légal" />
           <FooterContact title="Contact Agadir" />
           <FooterCopyright />
         </div>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
-import { HERO_IMAGE } from "@/lib/brand";
+import { HERO_IMAGE, SITE_URL_DEFAULT } from "@/lib/brand";
 import { products, WHATSAPP_NUMBER } from "@/lib/products";
 import { agadirHub, seoCategories } from "@/lib/seo-data";
 import {
@@ -17,7 +17,7 @@ import {
 } from "@/lib/schema";
 
 const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sossante.ma"
+  process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL_DEFAULT
 ).replace(/\/$/, "");
 
 export async function generateMetadata(): Promise<Metadata> {

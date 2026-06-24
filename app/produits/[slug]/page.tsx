@@ -2,11 +2,13 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import JsonLd from "@/components/json-ld";
 import { getProductBySlug, products } from "@/lib/products";
+import { SITE_URL_DEFAULT } from "@/lib/brand";
+import { formatAchatSeoTitle } from "@/lib/french";
 import { buildGraph, productBreadcrumbSchema, productSchema } from "@/lib/schema";
 import ProductDetail from "./product-detail";
 
 const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sossante.ma"
+  process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL_DEFAULT
 ).replace(/\/$/, "");
 
 type PageProps = {
@@ -24,14 +26,16 @@ export async function generateMetadata({
   const product = getProductBySlug(slug);
   if (!product) return {};
 
+  const title = formatAchatSeoTitle(product.seoTitle);
+
   return {
-    title: product.seoTitle,
+    title,
     description: product.seoDescription,
     alternates: {
       canonical: `/produits/${slug}`,
     },
     openGraph: {
-      title: product.seoTitle,
+      title,
       description: product.seoDescription,
       url: `/produits/${slug}`,
       images: [{ url: `${siteUrl}${product.image}`, alt: product.alt }],

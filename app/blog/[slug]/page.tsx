@@ -7,6 +7,7 @@ import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import { blogPosts, getBlogPostBySlug } from "@/lib/blog";
 import { CONTACT_EMAIL, products, WHATSAPP_NUMBER } from "@/lib/products";
+import { SITE_URL_DEFAULT } from "@/lib/brand";
 import {
   blogPostingSchema,
   breadcrumbSchema,
@@ -14,7 +15,7 @@ import {
 } from "@/lib/schema";
 
 const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sossante.ma"
+  process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL_DEFAULT
 ).replace(/\/$/, "");
 
 type PageProps = {

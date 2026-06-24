@@ -34,3 +34,12 @@ export function categoryValueFromParam(param: string | null): string {
   if (!param) return "all";
   return categoryParamToValue[param] ?? "all";
 }
+
+export function isValidCategoryParam(param: string): boolean {
+  return param in categoryParamToValue && param !== "all";
+}
+
+export const venteCategoryParams = catalogCategories
+  .filter((category) => category.param !== "all")
+  .map((category) => category.param);
+

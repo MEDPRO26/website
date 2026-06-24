@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SITE_URL_DEFAULT } from "@/lib/brand";
 
 export type BreadcrumbItem = {
   label: string;
@@ -15,7 +16,7 @@ export default function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
       "@type": "ListItem",
       position: index + 1,
       name: item.label,
-      item: item.href ? `https://sossante.ma${item.href}` : undefined,
+      item: item.href ? `${SITE_URL_DEFAULT}${item.href}` : undefined,
     })),
   };
 

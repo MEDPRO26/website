@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
+import { SITE_URL_DEFAULT } from "@/lib/brand";
 import { allowIndexing } from "@/lib/indexing";
 
 const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sossante.ma"
+  process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL_DEFAULT
 ).replace(/\/$/, "");
 
 export default function robots(): MetadataRoute.Robots {

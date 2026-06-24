@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import FooterContact, { FooterCopyright } from "@/components/footer-contact";
+import FooterLegalLinks from "@/components/footer-legal-links";
 import JsonLd from "@/components/json-ld";
 import Logo from "@/components/logo";
 import Navbar from "@/components/navbar";
@@ -409,7 +410,23 @@ export default function ServicesPage() {
           id="request-form"
           className="mx-auto max-w-7xl px-4 py-14 sm:px-6 md:py-20"
         >
-          <div className="grid grid-cols-1 gap-8 overflow-hidden rounded-[32px] bg-surface-base p-6 shadow-xl shadow-primary/5 sm:p-10 lg:grid-cols-12 lg:gap-10 lg:p-16">
+          <div className="relative">
+            <div
+              className="absolute inset-0 z-10 flex items-center justify-center rounded-[32px] bg-white/20 backdrop-blur-[1px]"
+              role="status"
+              aria-label="Service bientôt disponible"
+            >
+              <div className="mx-4 rounded-2xl border border-outline-variant/40 bg-white/95 px-8 py-5 text-center shadow-lg">
+                <span className="mb-2 inline-flex items-center justify-center rounded-full bg-primary/10 p-2 text-primary">
+                  <MaterialIcon name="schedule" className="text-2xl" />
+                </span>
+                <p className="font-heading text-xl font-semibold text-secondary sm:text-2xl">
+                  Service bientôt disponible
+                </p>
+              </div>
+            </div>
+
+            <div className="pointer-events-none grid grid-cols-1 gap-8 overflow-hidden rounded-[32px] bg-surface-base p-6 opacity-45 shadow-xl shadow-primary/5 select-none sm:p-10 lg:grid-cols-12 lg:gap-10 lg:p-16">
             <div className="lg:col-span-5">
               <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
                 Prendre contact
@@ -624,6 +641,7 @@ export default function ServicesPage() {
                 </div>
               </form>
             )}
+            </div>
           </div>
         </section>
 
@@ -759,41 +777,14 @@ export default function ServicesPage() {
               </li>
             </ul>
           </div>
-          <div>
-            <h4 className="font-heading mb-3 text-sm font-bold uppercase tracking-wider text-primary sm:mb-4">
-              Légal
-            </h4>
-            <ul className="space-y-2">
-              <li>
-                <a
-                  href="#"
-                  className="text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
-                >
-                  Confidentialité
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
-                >
-                  Conditions Générales
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#request-form"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    scrollToSection("request-form");
-                  }}
-                  className="text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
-                >
-                  Contact
-                </a>
-              </li>
-            </ul>
-          </div>
+          <FooterLegalLinks
+            heading="Légal"
+            onContactClick={(e) => {
+              e.preventDefault();
+              scrollToSection("request-form");
+            }}
+            contactHref="#request-form"
+          />
           <FooterContact />
           <FooterCopyright />
         </div>

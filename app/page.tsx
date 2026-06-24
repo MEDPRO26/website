@@ -8,6 +8,7 @@ import CatalogPagination, {
   CATALOG_PRODUCTS_PER_PAGE,
 } from "@/components/catalog-pagination";
 import FooterContact, { FooterCopyright } from "@/components/footer-contact";
+import FooterLegalLinks from "@/components/footer-legal-links";
 import JsonLd from "@/components/json-ld";
 import Logo from "@/components/logo";
 import Navbar from "@/components/navbar";
@@ -1062,41 +1063,13 @@ export default function Home() {
               ))}
             </ul>
           </div>
-          <div>
-            <h4 className="font-heading mb-3 text-sm font-bold uppercase tracking-wider text-primary sm:mb-4">
-              Support
-            </h4>
-            <ul className="space-y-2">
-              <li>
-                <a
-                  href="#"
-                  className="text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
-                >
-                  Conditions Générales
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
-                >
-                  Confidentialité
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#contact"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    scrollToSection("contact");
-                  }}
-                  className="text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
-                >
-                  Contact
-                </a>
-              </li>
-            </ul>
-          </div>
+          <FooterLegalLinks
+            onContactClick={(e) => {
+              e.preventDefault();
+              scrollToSection("contact");
+            }}
+            contactHref="#contact"
+          />
           <FooterContact />
           <FooterCopyright />
         </div>

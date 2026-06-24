@@ -5,7 +5,7 @@ import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import { blogPosts } from "@/lib/blog";
-import { HERO_IMAGE } from "@/lib/brand";
+import { HERO_IMAGE, SITE_URL_DEFAULT } from "@/lib/brand";
 import {
   breadcrumbSchema,
   buildGraph,
@@ -14,7 +14,7 @@ import {
 } from "@/lib/schema";
 
 const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sossante.ma"
+  process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL_DEFAULT
 ).replace(/\/$/, "");
 
 export const metadata: Metadata = {

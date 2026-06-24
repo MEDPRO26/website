@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Source_Serif_4 } from "next/font/google";
-import { LOGO } from "@/lib/brand";
+import { LOGO, SITE_URL_DEFAULT } from "@/lib/brand";
 import { getRobotsMetadata } from "@/lib/indexing";
 import "./globals.css";
 
@@ -19,7 +19,7 @@ const sourceSerif4 = Source_Serif_4({
 });
 
 const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sossante.ma"
+  process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL_DEFAULT
 ).replace(/\/$/, "");
 const siteName = "SOS Santé";
 const title =

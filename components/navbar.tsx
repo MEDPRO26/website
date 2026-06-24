@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Logo from "@/components/logo";
 import { CONTACT_EMAIL, WHATSAPP_NUMBER } from "@/lib/products";
-import { VENTE_PAGE_PATH } from "@/lib/routes";
+import { isVenteCatalogPath, VENTE_PAGE_PATH } from "@/lib/routes";
 
 function MaterialIcon({
   name,
@@ -104,7 +104,7 @@ export default function Navbar() {
 
   const isMaterialActive =
     pathname === "/" ||
-    pathname === VENTE_PAGE_PATH ||
+    isVenteCatalogPath(pathname) ||
     pathname === "/location-materiel-medical-agadir" ||
     pathname.startsWith("/produits");
 
