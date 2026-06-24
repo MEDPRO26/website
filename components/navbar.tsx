@@ -31,6 +31,7 @@ const pageLinks = [
   { label: "Services", href: "/services" },
   { label: "Tarifs", href: "/tarifs" },
   { label: "Blog", href: "/blog" },
+  { label: "À propos", href: "/a-propos" },
   { label: "Contact", href: "/contact" },
 ];
 
