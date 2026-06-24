@@ -417,7 +417,7 @@ export function SeoCityPage({
           <h2 className="font-heading mb-6 text-xl font-semibold text-primary sm:text-2xl md:text-3xl">
             Catégories de matériel médical à {city.name}
           </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {seoCategories.map((category) => (
               <Link
                 key={category.slug}

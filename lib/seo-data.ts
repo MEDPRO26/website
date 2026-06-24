@@ -147,6 +147,46 @@ Tous nos équipements sont livrés, installés et vérifiés par nos soins à Ag
       },
     ],
   },
+  {
+    slug: "materiel-diagnostic",
+    label: "Diagnostic",
+    value: "Diagnostic",
+    icon: "monitoring",
+    title: "Matériel de diagnostic médical à Agadir",
+    description:
+      "ECG, tensiomètres, oxymètres et équipements de diagnostic à Agadir et au Maroc.",
+    longDescription: `Notre gamme de matériel de diagnostic regroupe les équipements essentiels pour l'examen clinique en cabinet ou à domicile : électrocardiographes, tensiomètres, oxymètres de doigt, thermomètres, stéthoscopes, otoscopes et moniteurs multiparamétriques.
+
+Chaque appareil est sélectionné pour sa fiabilité et son usage professionnel. Contactez-nous pour connaître les modèles disponibles, obtenir un devis et organiser la livraison à Agadir et dans tout le Maroc.`,
+    metaTitle:
+      "Matériel diagnostic médical Agadir | ECG, tensiomètre, oxymètre",
+    metaDescription:
+      "Achetez du matériel de diagnostic à Agadir : ECG, tensiomètre, oxymètre, thermomètre. Devis gratuit et conseil avec SOS Santé.",
+    keywords: [
+      "matériel diagnostic médical Agadir",
+      "ECG Agadir",
+      "tensiomètre Agadir",
+      "oxymètre de doigt Maroc",
+      "équipement diagnostic cabinet médical",
+    ],
+    faqs: [
+      {
+        question: "Quels appareils de diagnostic proposez-vous ?",
+        answer:
+          "Nous proposons notamment des ECG, tensiomètres, oxymètres, thermomètres, stéthoscopes, otoscopes, négatoscopes et moniteurs multiparamétriques. Contactez-nous pour connaître les modèles disponibles.",
+      },
+      {
+        question: "Livrez-vous le matériel de diagnostic à Agadir ?",
+        answer:
+          "Oui, nous organisons la livraison à Agadir et dans d'autres villes du Maroc selon le produit et votre localisation. Les délais vous sont communiqués lors du devis.",
+      },
+      {
+        question: "Comment obtenir un devis pour un appareil de diagnostic ?",
+        answer:
+          "Remplissez notre formulaire de contact, consultez la fiche produit ou écrivez-nous sur WhatsApp. Un conseiller vous répond avec un devis personnalisé.",
+      },
+    ],
+  },
 ];
 
 export const seoCities: SeoCity[] = [
@@ -282,39 +322,6 @@ Notre catalogue comprend des lits médicalisés, fauteuils roulants, concentrate
         question: "Quel matériel médical peut-on louer à Tanger ?",
         answer:
           "Nous proposons à Tanger lits médicalisés, fauteuils roulants, concentrateurs d’oxygène, matelas anti-escarres et rollators.",
-      },
-    ],
-  },
-  {
-    slug: "location-materiel-medical-fes",
-    name: "Fès",
-    region: "Fès-Meknès",
-    title: "Location de matériel médical à Fès",
-    description:
-      "Location de matériel médical à Fès et Meknès. Livraison rapide de matériel de mobilité, confort et respiratoire.",
-    longDescription: `SOS Santé propose la location de matériel médical à Fès, Meknès et les villes environnantes. Notre service couvre les besoins en matériel de mobilité, de confort et respiratoire pour le maintien à domicile.
-
-Nous livrons et installons le matériel directement chez vous à Fès. Tous nos équipements sont vérifiés, entretenus et désinfectés. Demandez un devis personnalisé et recevez une réponse rapide.`,
-    metaTitle: "Location matériel médical Fès | Livraison Fès-Meknès",
-    metaDescription:
-      "Louez du matériel médical à Fès et Meknès. Lit médicalisé, fauteuil roulant, oxygène. Livraison et installation. Devis rapide.",
-    keywords: [
-      "location matériel médical Fès",
-      "lit médicalisé Fès",
-      "fauteuil roulant Fès",
-      "oxygène médical Fès",
-    ],
-    deliveryText: "Livraison à Fès, Meknès et environs sous 48-72h.",
-    faqs: [
-      {
-        question: "Pouvez-vous livrer du matériel médical à Fès ?",
-        answer:
-          "Oui, nous assurons la livraison de matériel médical à Fès, Meknès et les villes voisines. Contactez-nous pour connaître les délais exacts.",
-      },
-      {
-        question: "Quels sont les délais de livraison à Fès ?",
-        answer:
-          "Les délais de livraison à Fès sont généralement de 48 à 72 heures selon le matériel demandé et la zone de livraison.",
       },
     ],
   },

@@ -5,6 +5,7 @@ import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import { blogPosts } from "@/lib/blog";
+import { HERO_IMAGE } from "@/lib/brand";
 import {
   breadcrumbSchema,
   buildGraph,
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fr_MA",
     siteName: "SOS Santé",
-    images: [{ url: `${siteUrl}/medidomicile-hero.jpg` }],
+    images: [{ url: `${siteUrl}${HERO_IMAGE}` }],
   },
 };
 
@@ -58,7 +59,7 @@ function MaterialIcon({
 const blogSchema = buildGraph(
   webPageSchema(
     "/blog",
-    "Blog matériel médical & aide à domicile | MediDomicile",
+    "Blog matériel médical & aide à domicile | SOS Santé",
     "Conseils et guides sur la location de matériel médical à Agadir et au Maroc : lits médicalisés, fauteuils roulants, oxygène, matelas anti-escarres."
   ),
   breadcrumbSchema([

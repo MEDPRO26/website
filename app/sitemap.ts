@@ -1,14 +1,16 @@
 import type { MetadataRoute } from "next";
 import { products } from "@/lib/products";
 import { seoCategories, seoCities } from "@/lib/seo-data";
+import { HERO_IMAGE } from "@/lib/brand";
 import { blogPosts } from "@/lib/blog";
+import { VENTE_PAGE_PATH } from "@/lib/routes";
 
 const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://sossante.ma"
 ).replace(/\/$/, "");
 
 const images = [
-  "/medidomicile-hero.jpg",
+  HERO_IMAGE,
   "/og-image.png",
   "/services/soins-domicile.jpg",
   "/services/hero-bg.jpg",
@@ -43,9 +45,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       "/services/hero-bg.jpg",
     ]),
     createSitemapEntry("/location-materiel-medical-agadir", 0.95, [
-      "/medidomicile-hero.jpg",
+      HERO_IMAGE,
     ]),
-    createSitemapEntry("/vente", 0.95, ["/medidomicile-hero.jpg"]),
+    createSitemapEntry(VENTE_PAGE_PATH, 0.95, [HERO_IMAGE]),
     ...seoCategories.map((category) =>
       createSitemapEntry(`/${category.slug}`, 0.9)
     ),
@@ -53,9 +55,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...products.map((product) =>
       createSitemapEntry(`/produits/${product.slug}`, 0.85, [product.image])
     ),
-    createSitemapEntry("/tarifs", 0.9, ["/medidomicile-hero.jpg"]),
-    createSitemapEntry("/contact", 0.9, ["/medidomicile-hero.jpg"]),
-    createSitemapEntry("/blog", 0.9, ["/medidomicile-hero.jpg"]),
+    createSitemapEntry("/contact", 0.9, [HERO_IMAGE]),
+    createSitemapEntry("/blog", 0.9, [HERO_IMAGE]),
     ...blogPosts.map((post) =>
       createSitemapEntry(`/blog/${post.slug}`, 0.8, [post.image])
     ),

@@ -1,18 +1,18 @@
-import { LOGO } from "@/lib/brand";
+import { LOGO, SITE_NAME, SITE_URL_DEFAULT } from "@/lib/brand";
 import type { Product } from "@/lib/products";
-import { CONTACT_EMAIL, products, WHATSAPP_NUMBER } from "@/lib/products";
+import { CONTACT_EMAIL, PHONE_NUMBER, products, WHATSAPP_NUMBER } from "@/lib/products";
 
 const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://medidomicile.ma"
+  process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL_DEFAULT
 ).replace(/\/$/, "");
 
-export const contactPhone = "+212-522-XX-XX-XX";
+export const contactPhone = PHONE_NUMBER;
 
 export function websiteSchema() {
   return {
     "@type": "WebSite",
     "@id": `${siteUrl}/#website`,
-    name: "MediDomicile",
+    name: SITE_NAME,
     url: siteUrl,
     inLanguage: "fr-MA",
     publisher: { "@id": `${siteUrl}/#organization` },
@@ -23,7 +23,7 @@ export function organizationSchema() {
   return {
     "@type": "Organization",
     "@id": `${siteUrl}/#organization`,
-    name: "MediDomicile",
+    name: SITE_NAME,
     url: siteUrl,
     logo: `${siteUrl}${LOGO.default}`,
     areaServed: [
@@ -63,7 +63,7 @@ export function localBusinessSchema(
   return {
     "@type": "LocalBusiness",
     "@id": `${siteUrl}/#localbusiness`,
-    name: overrides.name ?? "MediDomicile",
+    name: overrides.name ?? SITE_NAME,
     description:
       overrides.description ??
       "Location de matériel médical à Agadir et livraison au Maroc. Lits médicalisés, fauteuils roulants, concentrateurs d'oxygène.",
@@ -165,7 +165,7 @@ export function productSchema(product: Product, slug: string) {
     category: product.category,
     brand: {
       "@type": "Brand",
-      name: "MediDomicile",
+      name: SITE_NAME,
     },
     sku: product.slug,
     mpn: product.slug,
@@ -184,7 +184,7 @@ export function productSchema(product: Product, slug: string) {
         valueAddedTaxIncluded: true,
       },
       itemOffered: { "@id": `${siteUrl}/produits/${slug}#product` },
-      seller: { "@type": "Organization", name: "MediDomicile" },
+      seller: { "@type": "Organization", name: SITE_NAME },
       areaServed: { "@type": "City", name: product.city },
       url: `${siteUrl}/produits/${slug}`,
     },

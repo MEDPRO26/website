@@ -4,6 +4,7 @@ import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
+import { HERO_IMAGE } from "@/lib/brand";
 import { products, WHATSAPP_NUMBER } from "@/lib/products";
 import { agadirHub, seoCategories } from "@/lib/seo-data";
 import {
@@ -34,7 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
       locale: "fr_MA",
       siteName: "SOS Santé",
-      images: [{ url: `${siteUrl}/medidomicile-hero.jpg` }],
+      images: [{ url: `${siteUrl}${HERO_IMAGE}` }],
     },
   };
 }
@@ -118,7 +119,7 @@ export default function AgadirHubPage() {
           </div>
           <div className="relative aspect-[4/3] overflow-hidden rounded-3xl shadow-2xl lg:aspect-square">
             <Image
-              src="/medidomicile-hero.jpg"
+              src={HERO_IMAGE}
               alt="Location de matériel médical à Agadir avec livraison à domicile"
               fill
               priority
@@ -164,7 +165,7 @@ export default function AgadirHubPage() {
               Matériel médical par catégorie
             </h2>
           </div>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {seoCategories.map((category) => (
               <Link
                 key={category.slug}

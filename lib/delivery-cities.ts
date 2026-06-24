@@ -14,18 +14,18 @@ export const deliveryCities: DeliveryCity[] = [
     active: true,
   },
   {
-    name: "Marrakech",
-    slug: "location-materiel-medical-marrakech",
-    deliveryText:
-      "Livraison rapide à Marrakech centre, Guéliz, Hivernage et environs.",
-    active: false,
-  },
-  {
     name: "Rabat",
     slug: "location-materiel-medical-rabat",
     deliveryText:
       "Livraison à Rabat, Salé, Temara et environs sous 24–48h.",
     active: true,
+  },
+  {
+    name: "Marrakech",
+    slug: "location-materiel-medical-marrakech",
+    deliveryText:
+      "Livraison rapide à Marrakech centre, Guéliz, Hivernage et environs.",
+    active: false,
   },
   {
     name: "Casablanca",

@@ -3,9 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import FooterContact, { FooterCopyright } from "@/components/footer-contact";
 import JsonLd from "@/components/json-ld";
 import Logo from "@/components/logo";
 import Navbar from "@/components/navbar";
+import { SITE_FULL_NAME } from "@/lib/brand";
 import {
   CONTACT_EMAIL,
   PHONE_DISPLAY,
@@ -117,8 +119,8 @@ const serviceCities = ["Agadir", "Rabat"];
 const servicesSchema = buildGraph(
   webPageSchema(
     "/services",
-    "Soins et aide à domicile à Agadir | MediDomicile",
-    "MediDomicile vous met en relation avec des infirmiers, aide-soignants et kinésithérapeutes qualifiés pour des soins à domicile."
+    "Soins et aide à domicile à Agadir | SOS Santé",
+    "SOS Santé vous met en relation avec des infirmiers, aide-soignants et kinésithérapeutes qualifiés pour des soins à domicile."
   ),
   breadcrumbSchema([
     { name: "Accueil", item: "/" },
@@ -336,7 +338,7 @@ export default function ServicesPage() {
                   }}
                   className={`mt-auto inline-flex items-center gap-1.5 font-heading text-sm font-semibold ${service.theme.link} transition-all hover:gap-2.5`}
                 >
-                  Voir les tarifs
+                  Demander le service
                   <MaterialIcon name="chevron_right" className="text-lg" />
                 </a>
               </article>
@@ -718,6 +720,9 @@ export default function ServicesPage() {
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
           <div className="sm:col-span-2 md:col-span-1">
             <Logo href="/" size="lg" className="mb-4" />
+            <p className="font-heading mb-2 text-sm font-semibold text-on-surface sm:text-base">
+              {SITE_FULL_NAME}
+            </p>
             <p className="font-body text-sm leading-relaxed text-on-surface-variant sm:text-base">
               Votre partenaire de confiance pour une santé sereine à domicile
               partout au Maroc.
@@ -789,35 +794,8 @@ export default function ServicesPage() {
               </li>
             </ul>
           </div>
-          <div>
-            <h4 className="font-heading mb-3 text-sm font-bold uppercase tracking-wider text-primary sm:mb-4">
-              Suivez-nous
-            </h4>
-            <div className="flex gap-3">
-              <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}`}
-                aria-label="WhatsApp"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary transition-transform hover:scale-110"
-              >
-                <MaterialIcon name="chat" />
-              </a>
-              <a
-                href={`mailto:${CONTACT_EMAIL}`}
-                aria-label="Email"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary transition-transform hover:scale-110"
-              >
-                <MaterialIcon name="mail" />
-              </a>
-            </div>
-            <p className="mt-4 text-xs text-on-surface-variant/70">
-              © 2026 SOS Santé — Solutions de santé à domicile. Tous droits
-              réservés.
-            </p>
-          </div>
-          <div className="border-t border-outline-variant pt-6 text-center text-xs text-on-surface-variant sm:text-sm md:col-span-4">
-            © 2026 SOS Santé — Solutions de santé à domicile. Tous droits
-            réservés.
-          </div>
+          <FooterContact />
+          <FooterCopyright />
         </div>
       </footer>
 

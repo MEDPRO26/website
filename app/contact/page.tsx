@@ -2,20 +2,25 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb";
 import Navbar from "@/components/navbar";
-import { CONTACT_EMAIL, WHATSAPP_NUMBER } from "@/lib/products";
+import { HERO_IMAGE, SITE_NAME, SITE_URL_DEFAULT } from "@/lib/brand";
+import {
+  activeDeliveryCities,
+  activeDeliveryCityLabel,
+  DEFAULT_DELIVERY_CITY,
+  deliveryCities,
+} from "@/lib/delivery-cities";
+import { CONTACT_EMAIL, PHONE_DISPLAY, PHONE_NUMBER, WHATSAPP_NUMBER } from "@/lib/products";
 
 const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://medidomicile.ma"
+  process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL_DEFAULT
 ).replace(/\/$/, "");
 
-const contactPhone = "+212-522-XX-XX-XX";
-
 export const metadata: Metadata = {
-  title: "Contact MediDomicile | Devis matériel médical & soins à domicile Agadir",
+  title: `Contact ${SITE_NAME} | Devis matériel médical & soins à domicile Agadir`,
   description:
-    "Contactez MediDomicile pour un devis gratuit de location de matériel médical ou de services d'aide à domicile à Agadir. Réponse sous 15 minutes.",
+    `Contactez ${SITE_NAME} pour un devis gratuit de location de matériel médical ou de services d'aide à domicile à Agadir. Réponse sous 15 minutes.`,
   keywords: [
-    "contact MediDomicile",
+    `contact ${SITE_NAME}`,
     "devis matériel médical Agadir",
     "location matériel médical contact",
     "soins à domicile Agadir contact",
@@ -24,14 +29,14 @@ export const metadata: Metadata = {
     canonical: "/contact",
   },
   openGraph: {
-    title: "Contact MediDomicile | Devis matériel médical & soins à domicile Agadir",
+    title: `Contact ${SITE_NAME} | Devis matériel médical & soins à domicile Agadir`,
     description:
-      "Contactez MediDomicile par WhatsApp, email ou téléphone. Devis gratuit sous 15 minutes.",
+      `Contactez ${SITE_NAME} par WhatsApp, email ou téléphone. Devis gratuit sous 15 minutes.`,
     url: "/contact",
     type: "website",
     locale: "fr_MA",
-    siteName: "MediDomicile",
-    images: [{ url: `${siteUrl}/medidomicile-hero.jpg` }],
+    siteName: SITE_NAME,
+    images: [{ url: `${siteUrl}${HERO_IMAGE}` }],
   },
 };
 
@@ -54,7 +59,7 @@ const contactChannels = [
     icon: "chat",
     title: "WhatsApp",
     value: "Disponible 7j/7",
-    href: `https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20MediDomicile%2C%20je%20souhaite%20un%20devis%20ou%20plus%20d'informations.`,
+    href: `https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20un%20devis%20ou%20plus%20d'informations.`,
     cta: "Discuter sur WhatsApp",
     color: "bg-[#25D366]/10 text-[#25D366]",
   },
@@ -62,15 +67,15 @@ const contactChannels = [
     icon: "mail",
     title: "Email",
     value: CONTACT_EMAIL,
-    href: `mailto:${CONTACT_EMAIL}?subject=Demande%20de%20contact%20MediDomicile`,
+    href: `mailto:${CONTACT_EMAIL}?subject=Demande%20de%20contact%20SOS%20Sant%C3%A9`,
     cta: "Nous envoyer un email",
     color: "bg-primary/10 text-primary",
   },
   {
     icon: "phone_in_talk",
     title: "Téléphone",
-    value: contactPhone,
-    href: `tel:${contactPhone.replace(/\s/g, "")}`,
+    value: PHONE_DISPLAY,
+    href: `tel:${PHONE_NUMBER}`,
     cta: "Appeler maintenant",
     color: "bg-secondary/10 text-secondary",
   },
@@ -92,9 +97,9 @@ function ContactJsonLd() {
         "@type": "ContactPage",
         "@id": `${siteUrl}/contact#webpage`,
         url: `${siteUrl}/contact`,
-        name: "Contact MediDomicile | Devis matériel médical & soins à domicile Agadir",
+        name: `Contact ${SITE_NAME} | Devis matériel médical & soins à domicile Agadir`,
         description:
-          "Contactez MediDomicile pour un devis gratuit de location de matériel médical ou de services d'aide à domicile à Agadir.",
+          `Contactez ${SITE_NAME} pour un devis gratuit de location de matériel médical ou de services d'aide à domicile à Agadir.`,
         inLanguage: "fr-MA",
         isPartOf: { "@id": `${siteUrl}/#website` },
       },
@@ -119,11 +124,11 @@ function ContactJsonLd() {
       {
         "@type": "LocalBusiness",
         "@id": `${siteUrl}/contact#localbusiness`,
-        name: "MediDomicile",
+        name: SITE_NAME,
         description:
           "Location de matériel médical et services d'aide à domicile à Agadir et au Maroc.",
         url: siteUrl,
-        telephone: contactPhone,
+        telephone: PHONE_NUMBER,
         email: CONTACT_EMAIL,
         address: {
           "@type": "PostalAddress",
@@ -136,7 +141,7 @@ function ContactJsonLd() {
         ],
         contactPoint: {
           "@type": "ContactPoint",
-          telephone: contactPhone,
+          telephone: PHONE_NUMBER,
           contactType: "Service client",
           availableLanguage: ["French", "Arabic"],
           areaServed: "MA",
@@ -185,7 +190,7 @@ export default function ContactPage() {
               À votre écoute 7j/7
             </div>
             <h1 className="font-heading mb-5 text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl md:text-5xl lg:text-6xl">
-              Contactez MediDomicile
+              Contactez {SITE_NAME}
             </h1>
             <p className="font-body mx-auto max-w-2xl text-base leading-relaxed text-on-surface-variant sm:text-lg md:text-xl">
               Une question, un devis ou une urgence ? Notre équipe vous répond
@@ -281,20 +286,43 @@ export default function ContactPage() {
                     />
                   </div>
                 </div>
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="mb-1.5 block text-sm font-medium text-on-surface"
-                  >
-                    Email
-                  </label>
-                  <input
-                    id="email"
-                    name="Email"
-                    type="email"
-                    placeholder="votre@email.com"
-                    className="w-full rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  />
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="mb-1.5 block text-sm font-medium text-on-surface"
+                    >
+                      Email
+                    </label>
+                    <input
+                      id="email"
+                      name="Email"
+                      type="email"
+                      placeholder="votre@email.com"
+                      className="w-full rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="city"
+                      className="mb-1.5 block text-sm font-medium text-on-surface"
+                    >
+                      Ville <span className="text-status-error">*</span>
+                    </label>
+                    <select
+                      id="city"
+                      name="Ville"
+                      required
+                      defaultValue={DEFAULT_DELIVERY_CITY}
+                      className="w-full rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    >
+                      {activeDeliveryCities.map((city) => (
+                        <option key={city.slug} value={city.name}>
+                          {city.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <div>
                   <label
@@ -373,24 +401,28 @@ export default function ContactPage() {
                   Zone d’intervention
                 </h3>
                 <p className="font-body mb-4 text-on-surface-variant">
-                  Notre siège est à Agadir. Nous livrons du matériel médical et
-                  assurons des soins à domicile dans toute la ville et partout
-                  au Maroc.
+                  Nous livrons du matériel médical et assurons des soins à
+                  domicile à {activeDeliveryCityLabel}. Les autres villes
+                  ci-dessous seront disponibles prochainement.
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {["Agadir", "Casablanca", "Marrakech", "Rabat", "Tanger", "Fès"].map(
-                    (city) => (
+                  {deliveryCities.map((city) =>
+                    city.active ? (
                       <Link
-                        key={city}
-                        href={
-                          city === "Agadir"
-                            ? "/location-materiel-medical-agadir"
-                            : `/location-materiel-medical-${city.toLowerCase()}`
-                        }
+                        key={city.slug}
+                        href={`/${city.slug}`}
                         className="rounded-full bg-surface-container-low px-3 py-1.5 text-sm text-on-surface transition-colors hover:bg-primary hover:text-on-primary"
                       >
-                        {city}
+                        {city.name}
                       </Link>
+                    ) : (
+                      <span
+                        key={city.slug}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-surface-container-low px-3 py-1.5 text-sm text-on-surface-variant"
+                      >
+                        <MaterialIcon name="schedule" className="text-base" />
+                        {city.name} · Bientôt disponible
+                      </span>
                     )
                   )}
                 </div>

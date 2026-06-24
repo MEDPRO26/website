@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import FooterContact, { FooterCopyright } from "@/components/footer-contact";
 import Logo from "@/components/logo";
 import Navbar from "@/components/navbar";
 import RelatedProducts from "@/components/related-products";
@@ -12,6 +13,8 @@ import {
   activeDeliveryCities,
   DEFAULT_DELIVERY_CITY,
 } from "@/lib/delivery-cities";
+import { SITE_FULL_NAME } from "@/lib/brand";
+import { VENTE_PAGE_PATH } from "@/lib/routes";
 import {
   CONTACT_EMAIL,
   PRICE_ON_REQUEST,
@@ -137,7 +140,7 @@ export default function ProductDetail({ product }: { product: Product }) {
               <li className="flex items-center gap-2">
                 <MaterialIcon name="chevron_right" className="text-sm" />
                 <Link
-                  href="/vente"
+                  href={VENTE_PAGE_PATH}
                   className="transition-colors hover:text-primary"
                 >
                   Vente
@@ -671,6 +674,9 @@ export default function ProductDetail({ product }: { product: Product }) {
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
           <div className="sm:col-span-2 md:col-span-1">
             <Logo href="/" size="lg" className="mb-4" />
+            <p className="font-heading mb-2 text-sm font-semibold text-on-surface sm:text-base">
+              {SITE_FULL_NAME}
+            </p>
             <p className="text-sm leading-relaxed text-on-surface-variant sm:text-base">
               Solutions professionnelles de santé à domicile au Maroc.
               Location et vente de matériel médical à Agadir et dans tout le
@@ -684,7 +690,7 @@ export default function ProductDetail({ product }: { product: Product }) {
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="/vente"
+                  href={VENTE_PAGE_PATH}
                   className="text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
                 >
                   Vente
@@ -723,24 +729,8 @@ export default function ProductDetail({ product }: { product: Product }) {
               </li>
             </ul>
           </div>
-          <div>
-            <h4 className="font-heading mb-3 text-sm font-bold uppercase tracking-wider text-primary sm:mb-4">
-              Contact Agadir
-            </h4>
-            <p className="text-sm text-on-surface-variant sm:text-base">
-              Agadir, Maroc
-            </p>
-            <a
-              href={`mailto:${CONTACT_EMAIL}`}
-              className="text-sm font-bold text-primary transition-colors hover:text-primary-container sm:text-base"
-            >
-              {CONTACT_EMAIL}
-            </a>
-          </div>
-          <div className="border-t border-outline-variant pt-6 text-center text-xs text-on-surface-variant sm:text-sm md:col-span-4">
-            © 2026 SOS Santé — Solutions de santé à domicile. Tous droits
-            réservés.
-          </div>
+          <FooterContact title="Contact Agadir" />
+          <FooterCopyright />
         </div>
       </footer>
 

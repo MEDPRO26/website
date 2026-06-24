@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Logo from "@/components/logo";
 import { CONTACT_EMAIL, WHATSAPP_NUMBER } from "@/lib/products";
+import { VENTE_PAGE_PATH } from "@/lib/routes";
 
 function MaterialIcon({
   name,
@@ -29,7 +30,6 @@ function classNames(...classes: (string | false | null | undefined)[]) {
 
 const pageLinks = [
   { label: "Services", href: "/services" },
-  { label: "Tarifs", href: "/tarifs" },
   { label: "Blog", href: "/blog" },
   { label: "Contact", href: "/contact" },
 ];
@@ -64,11 +64,11 @@ function MaterialDropdownLinks({
         Vente
       </p>
       <Link
-        href="/vente"
+        href={VENTE_PAGE_PATH}
         onClick={onNavigate}
         className={classNames(
           "flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors",
-          pathname === "/vente"
+          pathname === VENTE_PAGE_PATH
             ? "bg-primary/10 text-primary"
             : "text-on-surface hover:bg-surface-container-low hover:text-primary"
         )}
@@ -104,7 +104,7 @@ export default function Navbar() {
 
   const isMaterialActive =
     pathname === "/" ||
-    pathname === "/vente" ||
+    pathname === VENTE_PAGE_PATH ||
     pathname === "/location-materiel-medical-agadir" ||
     pathname.startsWith("/produits");
 

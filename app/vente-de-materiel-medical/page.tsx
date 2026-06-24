@@ -5,12 +5,16 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Breadcrumb from "@/components/breadcrumb";
+import CatalogPagination, {
+  CATALOG_PRODUCTS_PER_PAGE,
+} from "@/components/catalog-pagination";
 import Navbar from "@/components/navbar";
 import {
   catalogCategories,
   categoryValueFromParam,
 } from "@/lib/catalog-categories";
 import { getCatalogProducts, WHATSAPP_NUMBER } from "@/lib/products";
+import { VENTE_PAGE_PATH } from "@/lib/routes";
 
 const products = getCatalogProducts();
 
@@ -36,6 +40,7 @@ function VenteCatalogContent() {
 
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     setActiveCategory(categoryValueFromParam(categoryParam));
@@ -56,13 +61,41 @@ function VenteCatalogContent() {
     });
   }, [activeCategory, searchQuery]);
 
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredProducts.length / CATALOG_PRODUCTS_PER_PAGE)
+  );
+
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * CATALOG_PRODUCTS_PER_PAGE;
+    return filteredProducts.slice(start, start + CATALOG_PRODUCTS_PER_PAGE);
+  }, [filteredProducts, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCategory, searchQuery]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+    document.getElementById("catalogue")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   const activeCategoryLabel =
     catalogCategories.find((c) => c.value === activeCategory)?.label ??
     "Tous les matériels";
 
   const handleCategoryChange = (value: string, param: string) => {
     setActiveCategory(value);
-    const nextUrl = param === "all" ? "/vente" : `/vente?cat=${param}`;
+    const nextUrl =
+      param === "all"
+        ? VENTE_PAGE_PATH
+        : `${VENTE_PAGE_PATH}?cat=${param}`;
     router.replace(nextUrl, { scroll: false });
   };
 
@@ -75,7 +108,7 @@ function VenteCatalogContent() {
             <Breadcrumb
               items={[
                 { label: "Accueil", href: "/" },
-                { label: "Vente" },
+                { label: "Vente de matériel médical" },
               ]}
             />
           </div>
@@ -167,7 +200,7 @@ function VenteCatalogContent() {
 
         <section className="px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
           <div className="mx-auto max-w-7xl">
-            <div className="mb-8 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <span className="mb-2 inline-block text-sm font-semibold uppercase tracking-wider text-secondary">
                   Catalogue vente
@@ -176,15 +209,23 @@ function VenteCatalogContent() {
                   {activeCategoryLabel}
                 </h2>
               </div>
-              <span className="rounded-full bg-surface-container px-3 py-1 text-sm text-on-surface-variant">
-                {filteredProducts.length} résultat
-                {filteredProducts.length > 1 ? "s" : ""}
-              </span>
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                <CatalogPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={goToPage}
+                />
+                <span className="rounded-full bg-surface-container px-3 py-1 text-sm text-on-surface-variant">
+                  {filteredProducts.length} résultat
+                  {filteredProducts.length > 1 ? "s" : ""}
+                </span>
+              </div>
             </div>
 
             {filteredProducts.length > 0 ? (
+              <>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredProducts.map((product) => (
+                {paginatedProducts.map((product) => (
                   <article
                     key={product.slug}
                     className="group flex flex-col overflow-hidden rounded-2xl border border-surface-container-high bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
@@ -231,6 +272,14 @@ function VenteCatalogContent() {
                   </article>
                 ))}
               </div>
+              <div className="mt-10 flex justify-center">
+                <CatalogPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={goToPage}
+                />
+              </div>
+              </>
             ) : (
               <div className="rounded-3xl border border-dashed border-outline-variant bg-surface-container-low p-10 text-center">
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant">
@@ -248,7 +297,8 @@ function VenteCatalogContent() {
                   onClick={() => {
                     setActiveCategory("all");
                     setSearchQuery("");
-                    router.replace("/vente", { scroll: false });
+                    setCurrentPage(1);
+                    router.replace(VENTE_PAGE_PATH, { scroll: false });
                   }}
                   className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-container"
                 >

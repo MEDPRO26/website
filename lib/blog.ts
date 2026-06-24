@@ -1,3 +1,5 @@
+import { HERO_IMAGE } from "@/lib/brand";
+
 export const blogPosts = [
   {
     slug: "guide-location-lit-medicalise-agadir",
@@ -226,7 +228,7 @@ export const blogPosts = [
     publishedAt: "2026-06-12",
     modifiedAt: "2026-06-12",
     readTime: "4 min",
-    image: "/medidomicile-hero.jpg",
+    image: HERO_IMAGE,
     alt: "Infirmière à domicile à Agadir pour soins médicaux",
     sections: [
       {
@@ -292,7 +294,7 @@ export const blogPosts = [
     publishedAt: "2026-06-10",
     modifiedAt: "2026-06-10",
     readTime: "5 min",
-    image: "/medidomicile-hero.jpg",
+    image: HERO_IMAGE,
     alt: "Matériel médical livré à domicile pour une sortie d’hôpital à Agadir",
     sections: [
       {
@@ -362,7 +364,7 @@ export const blogPosts = [
     publishedAt: "2026-06-08",
     modifiedAt: "2026-06-08",
     readTime: "4 min",
-    image: "/medidomicile-hero.jpg",
+    image: HERO_IMAGE,
     alt: "Aide à domicile pour personne âgée à Agadir",
     sections: [
       {

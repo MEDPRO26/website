@@ -12,9 +12,9 @@ export type { Product, ProductSpec, ProductUseCase, RelatedProduct };
 
 export const CONTACT_EMAIL = "contact@sossante.ma";
 export { PRICE_ON_REQUEST } from "@/lib/respiratory-products";
-export const WHATSAPP_NUMBER = "212680875889";
-export const PHONE_NUMBER = "+212680875889";
-export const PHONE_DISPLAY = "+212 6 80 87 58 89";
+export const WHATSAPP_NUMBER = "212700975888";
+export const PHONE_NUMBER = "+212700975888";
+export const PHONE_DISPLAY = "07 00 97 58 88";
 
 export const products: Product[] = [
   ...respiratoryProducts,

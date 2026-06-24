@@ -4,9 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import HeroScrollSection from "@/components/hero-scroll-section";
+import CatalogPagination, {
+  CATALOG_PRODUCTS_PER_PAGE,
+} from "@/components/catalog-pagination";
+import FooterContact, { FooterCopyright } from "@/components/footer-contact";
 import JsonLd from "@/components/json-ld";
 import Logo from "@/components/logo";
 import Navbar from "@/components/navbar";
+import { SITE_FULL_NAME } from "@/lib/brand";
+import { VENTE_PAGE_PATH } from "@/lib/routes";
 import {
   CONTACT_EMAIL,
   getCatalogProducts,
@@ -135,7 +141,7 @@ const faqs = [
   {
     question: "Intervenez-vous uniquement à Agadir ou dans tout le Maroc ?",
     answer:
-      "Notre siège et notre zone de livraison prioritaire se situent à Agadir, mais nous livrons dans tout le Maroc : Casablanca, Marrakech, Rabat, Tanger, Fès, Essaouira et autres villes sur demande. Contactez-nous pour connaître les délais et frais selon votre ville.",
+      "Notre siège et notre zone de livraison prioritaire se situent à Agadir, mais nous livrons dans tout le Maroc : Casablanca, Marrakech, Rabat, Tanger, Essaouira et autres villes sur demande. Contactez-nous pour connaître les délais et frais selon votre ville.",
   },
 ];
 
@@ -159,7 +165,7 @@ const homeSchema = buildGraph(
   websiteSchema(),
   webPageSchema(
     "/",
-    "Location de matériel médical à Agadir et au Maroc | MediDomicile",
+    "Location de matériel médical à Agadir et au Maroc | SOS Santé",
     "Louez du matériel médical à Agadir et au Maroc. Lits médicalisés, fauteuils roulants, oxygène. Livraison, installation et désinfection incluses."
   ),
   breadcrumbSchema([{ name: "Accueil", item: "/" }]),
@@ -177,6 +183,7 @@ const homeSchema = buildGraph(
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [formStatus, setFormStatus] = useState<"idle" | "success" | "error">(
     "idle"
@@ -201,6 +208,31 @@ export default function Home() {
       return matchesCategory && matchesSearch;
     });
   }, [activeCategory, searchQuery]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredProducts.length / CATALOG_PRODUCTS_PER_PAGE)
+  );
+
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * CATALOG_PRODUCTS_PER_PAGE;
+    return filteredProducts.slice(start, start + CATALOG_PRODUCTS_PER_PAGE);
+  }, [filteredProducts, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCategory, searchQuery]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+    scrollToSection("materiels");
+  };
 
   const activeCategoryLabel =
     categories.find((c) => c.value === activeCategory)?.label ||
@@ -380,7 +412,7 @@ export default function Home() {
                 Quel type de matériel cherchez-vous ?
               </h2>
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {seoCategories.map((category) => (
                 <Link
                   key={category.slug}
@@ -471,7 +503,7 @@ export default function Home() {
         {/* Products Grid */}
         <section className="px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
           <div className="mx-auto max-w-7xl">
-            <div className="mb-8 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+            <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <span className="mb-2 inline-block text-sm font-semibold uppercase tracking-wider text-secondary">
                   Catalogue vente
@@ -480,15 +512,29 @@ export default function Home() {
                   {activeCategoryLabel}
                 </h2>
               </div>
-              <span className="rounded-full bg-surface-container px-3 py-1 text-sm text-on-surface-variant">
-                {filteredProducts.length} résultat
-                {filteredProducts.length > 1 ? "s" : ""}
-              </span>
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                <Link
+                  href={VENTE_PAGE_PATH}
+                  className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-primary bg-white px-4 py-2.5 text-sm font-medium text-primary transition-all hover:bg-primary/5"
+                >
+                  Visiter la page de catalogue
+                </Link>
+                <CatalogPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={goToPage}
+                />
+                <span className="rounded-full bg-surface-container px-3 py-1 text-sm text-on-surface-variant">
+                  {filteredProducts.length} résultat
+                  {filteredProducts.length > 1 ? "s" : ""}
+                </span>
+              </div>
             </div>
 
             {filteredProducts.length > 0 ? (
+              <>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredProducts.map((product) => (
+                {paginatedProducts.map((product) => (
                   <article
                     key={product.slug}
                     className="group flex flex-col overflow-hidden rounded-2xl border border-surface-container-high bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
@@ -535,6 +581,20 @@ export default function Home() {
                   </article>
                 ))}
               </div>
+              <div className="mt-10 flex flex-col items-center gap-4">
+                <CatalogPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={goToPage}
+                />
+                <Link
+                  href={VENTE_PAGE_PATH}
+                  className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-primary bg-white px-4 py-2.5 text-sm font-medium text-primary transition-all hover:bg-primary/5"
+                >
+                  Visiter la page de catalogue
+                </Link>
+              </div>
+              </>
             ) : (
               <div className="rounded-3xl border border-dashed border-outline-variant bg-surface-container-low p-10 text-center">
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant">
@@ -952,12 +1012,15 @@ export default function Home() {
 
       {/* Footer */}
       <footer
-        id="tarifs"
+        id="footer"
         className="bg-surface-container-highest px-4 pb-24 pt-14 sm:px-6 sm:pb-14 md:pb-14 lg:pt-20"
       >
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
           <div className="sm:col-span-2 md:col-span-1">
             <Logo href="/" size="lg" className="mb-4" />
+            <p className="font-heading mb-2 text-sm font-semibold text-on-surface sm:text-base">
+              {SITE_FULL_NAME}
+            </p>
             <p className="font-body text-sm leading-relaxed text-on-surface-variant sm:text-base">
               Votre partenaire de confiance pour le maintien à domicile au
               Maroc. Location de matériel médical à Agadir et dans tout le
@@ -1034,40 +1097,8 @@ export default function Home() {
               </li>
             </ul>
           </div>
-          <div>
-            <h4 className="font-heading mb-3 text-sm font-bold uppercase tracking-wider text-primary sm:mb-4">
-              Contact
-            </h4>
-            <p className="mb-1 text-sm text-on-surface-variant sm:text-base">
-              Agadir, Maroc
-            </p>
-            <a
-              href={`mailto:${CONTACT_EMAIL}`}
-              className="text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
-            >
-              {CONTACT_EMAIL}
-            </a>
-            <div className="mt-4 flex gap-3">
-              <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}`}
-                aria-label="Contacter sur WhatsApp"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary transition-transform hover:scale-110"
-              >
-                <MaterialIcon name="chat" />
-              </a>
-              <a
-                href={`mailto:${CONTACT_EMAIL}`}
-                aria-label="Envoyer un email"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary transition-transform hover:scale-110"
-              >
-                <MaterialIcon name="mail" />
-              </a>
-            </div>
-          </div>
-          <div className="border-t border-outline-variant pt-6 text-center text-xs text-on-surface-variant sm:text-sm md:col-span-4">
-            © 2026 SOS Santé — Location de matériel médical à Agadir et
-            au Maroc. Tous droits réservés.
-          </div>
+          <FooterContact />
+          <FooterCopyright />
         </div>
       </footer>
 
