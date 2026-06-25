@@ -3,12 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import FooterContact, { FooterCopyright } from "@/components/footer-contact";
-import FooterLegalLinks from "@/components/footer-legal-links";
+import SiteFooter from "@/components/site-footer";
 import JsonLd from "@/components/json-ld";
-import Logo from "@/components/logo";
 import Navbar from "@/components/navbar";
-import { SITE_FULL_NAME } from "@/lib/brand";
 import {
   CONTACT_EMAIL,
   PHONE_DISPLAY,
@@ -733,62 +730,7 @@ export default function ServicesPage() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-surface-container-highest px-4 pb-24 pt-14 sm:px-6 sm:pb-14 md:pb-14 lg:pt-20">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
-          <div className="sm:col-span-2 md:col-span-1">
-            <Logo href="/" size="lg" className="mb-4" />
-            <p className="font-heading mb-2 text-sm font-semibold text-on-surface sm:text-base">
-              {SITE_FULL_NAME}
-            </p>
-            <p className="font-body text-sm leading-relaxed text-on-surface-variant sm:text-base">
-              Votre partenaire de confiance pour une santé sereine à domicile
-              partout au Maroc.
-            </p>
-          </div>
-          <div>
-            <h4 className="font-heading mb-3 text-sm font-bold uppercase tracking-wider text-primary sm:mb-4">
-              Services
-            </h4>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/services"
-                  className="text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
-                >
-                  Soins Infirmiers
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/services"
-                  className="text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
-                >
-                  Aide aux Seniors
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/"
-                  className="text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
-                >
-                  Location Matériel
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <FooterLegalLinks
-            heading="Légal"
-            onContactClick={(e) => {
-              e.preventDefault();
-              scrollToSection("request-form");
-            }}
-            contactHref="#request-form"
-          />
-          <FooterContact />
-          <FooterCopyright />
-        </div>
-      </footer>
+      <SiteFooter />
 
       {/* Mobile bottom nav */}
       <nav

@@ -3,9 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import FooterContact, { FooterCopyright } from "@/components/footer-contact";
-import FooterLegalLinks from "@/components/footer-legal-links";
-import Logo from "@/components/logo";
+import SiteFooter from "@/components/site-footer";
 import Navbar from "@/components/navbar";
 import RelatedProducts from "@/components/related-products";
 import CityLinks from "@/components/city-links";
@@ -14,7 +12,6 @@ import {
   activeDeliveryCities,
   DEFAULT_DELIVERY_CITY,
 } from "@/lib/delivery-cities";
-import { SITE_FULL_NAME } from "@/lib/brand";
 import { formatProductAchatHeading } from "@/lib/french";
 import { VENTE_PAGE_PATH } from "@/lib/routes";
 import {
@@ -675,47 +672,7 @@ export default function ProductDetail({ product }: { product: Product }) {
         </div>
       </main>
 
-      <footer className="bg-surface-container-highest px-4 py-14 sm:px-6 md:py-16">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
-          <div className="sm:col-span-2 md:col-span-1">
-            <Logo href="/" size="lg" className="mb-4" />
-            <p className="font-heading mb-2 text-sm font-semibold text-on-surface sm:text-base">
-              {SITE_FULL_NAME}
-            </p>
-            <p className="text-sm leading-relaxed text-on-surface-variant sm:text-base">
-              Solutions professionnelles de santé à domicile au Maroc.
-              Location et vente de matériel médical à Agadir et dans tout le
-              royaume.
-            </p>
-          </div>
-          <div>
-            <h4 className="font-heading mb-3 text-sm font-bold uppercase tracking-wider text-primary sm:mb-4">
-              Navigation
-            </h4>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href={VENTE_PAGE_PATH}
-                  className="text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
-                >
-                  Vente
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/services"
-                  className="text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
-                >
-                  Soins Infirmiers
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <FooterLegalLinks heading="Légal" />
-          <FooterContact title="Contact Agadir" />
-          <FooterCopyright />
-        </div>
-      </footer>
+      <SiteFooter />
 
       {/* Floating WhatsApp */}
       <a

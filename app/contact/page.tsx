@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb";
 import Navbar from "@/components/navbar";
+import SiteFooter from "@/components/site-footer";
 import { HERO_IMAGE, SITE_NAME, SITE_URL_DEFAULT } from "@/lib/brand";
 import {
   activeDeliveryCities,
@@ -431,6 +432,7 @@ export default function ContactPage() {
           </div>
         </section>
       </main>
+      <SiteFooter />
     </>
   );
 }

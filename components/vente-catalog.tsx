@@ -9,6 +9,7 @@ import CatalogPagination, {
   CATALOG_PRODUCTS_PER_PAGE,
 } from "@/components/catalog-pagination";
 import Navbar from "@/components/navbar";
+import SiteFooter from "@/components/site-footer";
 import {
   catalogCategories,
   categoryValueFromParam,
@@ -129,8 +130,8 @@ export default function VenteCatalog({ categorySlug }: VenteCatalogProps) {
             </h1>
             <p className="font-body mx-auto max-w-2xl text-base leading-relaxed text-on-surface-variant sm:text-lg">
               Parcourez notre catalogue de matériel médical à vendre : mobilité,
-              respiratoire et confort. Livraison dans les grandes villes du
-              Maroc.
+              respiratoire, diagnostic, instruments et confort. Livraison dans
+              les grandes villes du Maroc.
             </p>
           </div>
         </section>
@@ -333,6 +334,7 @@ export default function VenteCatalog({ categorySlug }: VenteCatalogProps) {
           </div>
         </section>
       </main>
+      <SiteFooter />
     </>
   );
 }

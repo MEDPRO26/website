@@ -5,6 +5,7 @@ import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
+import SiteFooter from "@/components/site-footer";
 import { blogPosts, getBlogPostBySlug } from "@/lib/blog";
 import { CONTACT_EMAIL, products, WHATSAPP_NUMBER } from "@/lib/products";
 import { SITE_URL_DEFAULT } from "@/lib/brand";
@@ -326,6 +327,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           </div>
         </section>
       </main>
+      <SiteFooter />
     </>
   );
 }

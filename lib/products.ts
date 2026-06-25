@@ -1,4 +1,5 @@
 import { diagnosticProducts } from "@/lib/diagnostic-products";
+import { instrumentsProducts } from "@/lib/instruments-products";
 import { mobilityProducts } from "@/lib/mobility-products";
 import { respiratoryProducts } from "@/lib/respiratory-products";
 import type {
@@ -20,6 +21,7 @@ export const products: Product[] = [
   ...respiratoryProducts,
   ...mobilityProducts,
   ...diagnosticProducts,
+  ...instrumentsProducts,
 ];
 
 export function getProductBySlug(slug: string): Product | undefined {

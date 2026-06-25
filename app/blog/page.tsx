@@ -4,6 +4,7 @@ import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
+import SiteFooter from "@/components/site-footer";
 import { blogPosts } from "@/lib/blog";
 import { HERO_IMAGE, SITE_URL_DEFAULT } from "@/lib/brand";
 import {
@@ -171,6 +172,7 @@ export default function BlogPage() {
           </div>
         </section>
       </main>
+      <SiteFooter />
     </>
   );
 }

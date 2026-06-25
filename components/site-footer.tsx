@@ -13,9 +13,16 @@ const navigationLinks = [
   { label: "FAQ", href: "/#faq" },
 ];
 
-export default function SiteFooter() {
+type SiteFooterProps = {
+  id?: string;
+};
+
+export default function SiteFooter({ id }: SiteFooterProps) {
   return (
-    <footer className="bg-surface-container-highest px-4 pb-24 pt-14 sm:px-6 sm:pb-14 md:pb-14 lg:pt-20">
+    <footer
+      id={id}
+      className="bg-surface-container-highest px-4 pb-24 pt-14 sm:px-6 sm:pb-14 md:pb-14 lg:pt-20"
+    >
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
         <div className="sm:col-span-2 md:col-span-1">
           <Logo href="/" size="lg" className="mb-4" />

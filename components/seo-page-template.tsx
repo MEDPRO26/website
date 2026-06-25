@@ -7,6 +7,7 @@ import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
 import CityLinks from "@/components/city-links";
 import Navbar from "@/components/navbar";
+import SiteFooter from "@/components/site-footer";
 import { CONTACT_EMAIL, WHATSAPP_NUMBER, type Product } from "@/lib/products";
 import { seoCategories, seoCities, type SeoCategory, type SeoCity } from "@/lib/seo-data";
 import {
@@ -285,6 +286,7 @@ export function SeoCategoryPage({
 
       <CtaSection title={`Louer du matériel de ${category.label.toLowerCase()}`} />
       </main>
+      <SiteFooter />
     </>
   );
 }
@@ -447,6 +449,7 @@ export function SeoCityPage({
 
       <CtaSection title={`Louer du matériel médical à ${city.name}`} />
       </main>
+      <SiteFooter />
     </>
   );
 }

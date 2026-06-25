@@ -19,6 +19,12 @@ export const catalogCategories = [
     icon: "monitoring",
     param: "diagnostic",
   },
+  {
+    label: "Instruments",
+    value: "Instruments",
+    icon: "medical_services",
+    param: "instruments",
+  },
 ] as const;
 
 export const categoryParamToValue: Record<string, string> = {
@@ -28,6 +34,7 @@ export const categoryParamToValue: Record<string, string> = {
   respiratoire: "Respiratoire",
   confort: "Confort",
   diagnostic: "Diagnostic",
+  instruments: "Instruments",
 };
 
 export function categoryValueFromParam(param: string | null): string {

@@ -187,6 +187,46 @@ Chaque appareil est sélectionné pour sa fiabilité et son usage professionnel.
       },
     ],
   },
+  {
+    slug: "materiel-instruments",
+    label: "Instruments",
+    value: "Instruments",
+    icon: "medical_services",
+    title: "Instruments médicaux et chirurgicaux",
+    description:
+      "Pinces, plateaux inox, stérilisateurs et instruments pour cabinets et structures de soins.",
+    longDescription: `Notre catalogue Instruments regroupe du matériel professionnel pour la pratique médicale et chirurgicale : pinces, marteau à réflexes, haricots et plateaux inox, ainsi que des stérilisateurs à air chaud.
+
+Chaque référence est proposée sur devis. Contactez-nous pour connaître la disponibilité, les modèles et organiser la livraison selon votre ville.`,
+    metaTitle:
+      "Instruments médicaux Maroc | Pinces, plateaux inox, stérilisateur",
+    metaDescription:
+      "Achetez des instruments médicaux au Maroc : pinces, marteau à réflexes, plateau inox, stérilisateur. Devis sur demande avec SOS Santé.",
+    keywords: [
+      "instruments médicaux Maroc",
+      "pince chirurgicale Maroc",
+      "plateau inox médical",
+      "stérilisateur air chaud",
+      "marteau réflexes Taylor",
+    ],
+    faqs: [
+      {
+        question: "Quels instruments médicaux proposez-vous ?",
+        answer:
+          "Nous proposons notamment des pinces (Kelly, Bengolea, Foerster, Jean-Louis Faure), un marteau à réflexes Taylor, des haricots et plateaux inox, ainsi que des stérilisateurs à air chaud. La disponibilité varie selon les références.",
+      },
+      {
+        question: "Comment obtenir un devis pour un instrument médical ?",
+        answer:
+          "Consultez la fiche produit, remplissez le formulaire de contact ou écrivez-nous sur WhatsApp. Un conseiller vous répond avec un devis personnalisé.",
+      },
+      {
+        question: "Ces instruments sont-ils destinés aux professionnels ?",
+        answer:
+          "Oui, ils sont destinés à un usage professionnel par du personnel de santé qualifié, selon les protocoles et réglementations applicables.",
+      },
+    ],
+  },
 ];
 
 export const seoCities: SeoCity[] = [

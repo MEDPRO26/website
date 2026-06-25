@@ -7,12 +7,9 @@ import HeroScrollSection from "@/components/hero-scroll-section";
 import CatalogPagination, {
   CATALOG_PRODUCTS_PER_PAGE,
 } from "@/components/catalog-pagination";
-import FooterContact, { FooterCopyright } from "@/components/footer-contact";
-import FooterLegalLinks from "@/components/footer-legal-links";
+import SiteFooter from "@/components/site-footer";
 import JsonLd from "@/components/json-ld";
-import Logo from "@/components/logo";
 import Navbar from "@/components/navbar";
-import { SITE_FULL_NAME } from "@/lib/brand";
 import { VENTE_PAGE_PATH } from "@/lib/routes";
 import {
   CONTACT_EMAIL,
@@ -327,7 +324,7 @@ export default function Home() {
               <span className="text-primary">aide</span> au Maroc
             </h1>
             <p className="font-body mb-8 max-w-xl text-base leading-relaxed text-on-surface-variant sm:text-lg">
-              Achetez du matériel médical à domicile à Agadir : lits
+              Achetez du matériel médical à domicile au Maroc : lits
               médicalisés, fauteuils roulants, concentrateurs d&apos;oxygène,
               matelas anti-escarres. Livraison et installation incluses.
               Devis gratuit en 15 minutes.
@@ -413,7 +410,7 @@ export default function Home() {
                 Quel type de matériel cherchez-vous ?
               </h2>
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               {seoCategories.map((category) => (
                 <Link
                   key={category.slug}
@@ -1011,69 +1008,7 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer
-        id="footer"
-        className="bg-surface-container-highest px-4 pb-24 pt-14 sm:px-6 sm:pb-14 md:pb-14 lg:pt-20"
-      >
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
-          <div className="sm:col-span-2 md:col-span-1">
-            <Logo href="/" size="lg" className="mb-4" />
-            <p className="font-heading mb-2 text-sm font-semibold text-on-surface sm:text-base">
-              {SITE_FULL_NAME}
-            </p>
-            <p className="font-body text-sm leading-relaxed text-on-surface-variant sm:text-base">
-              Votre partenaire de confiance pour le maintien à domicile au
-              Maroc. Location de matériel médical à Agadir et dans tout le
-              royaume.
-            </p>
-          </div>
-          <div>
-            <h4 className="font-heading mb-3 text-sm font-bold uppercase tracking-wider text-primary sm:mb-4">
-              Navigation
-            </h4>
-            <ul className="space-y-2">
-              {[
-                { label: "À propos", href: "accueil", isRoute: false },
-                { label: "Nos Services", href: "/services", isRoute: true },
-                { label: "Location Matériel", href: "materiels", isRoute: false },
-                { label: "FAQ", href: "faq", isRoute: false },
-              ].map((link) => (
-                <li key={link.href}>
-                  {link.isRoute ? (
-                    <Link
-                      href={link.href}
-                      className="text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
-                    >
-                      {link.label}
-                    </Link>
-                  ) : (
-                    <a
-                      href={`#${link.href}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        scrollToSection(link.href);
-                      }}
-                      className="text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
-                    >
-                      {link.label}
-                    </a>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <FooterLegalLinks
-            onContactClick={(e) => {
-              e.preventDefault();
-              scrollToSection("contact");
-            }}
-            contactHref="#contact"
-          />
-          <FooterContact />
-          <FooterCopyright />
-        </div>
-      </footer>
+      <SiteFooter id="footer" />
 
       {/* Mobile Bottom Navigation */}
       <nav
