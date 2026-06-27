@@ -1,0 +1,22 @@
+export * from "@/lib/permissions";
+export * from "@/lib/mock-data";
+
+export { AdminDashboardPage } from "@/components/crm/pages/admin-dashboard";
+export { AdminOrdersPage } from "@/components/crm/pages/admin-orders";
+export { AdminOrdersNewPage } from "@/components/crm/pages/admin-orders-new";
+export { AdminOrderDetailPage } from "@/components/crm/pages/admin-order-detail";
+export { AdminSuppliersPage } from "@/components/crm/pages/admin-suppliers";
+export { AdminSupplierDetailPage } from "@/components/crm/pages/admin-supplier-detail";
+export { AdminCustomersPage } from "@/components/crm/pages/admin-customers";
+export { AdminCommissionsPage } from "@/components/crm/pages/admin-commissions";
+export { AdminComplaintsPage } from "@/components/crm/pages/admin-complaints";
+export { AdminConversationsPage } from "@/components/crm/pages/admin-conversations";
+export { AdminNotificationsPage } from "@/components/crm/pages/admin-notifications";
+export { AdminCmsPage } from "@/components/crm/pages/admin-cms";
+export { AdminUsersPage } from "@/components/crm/pages/admin-users";
+export { AdminSettingsPage } from "@/components/crm/pages/admin-settings";
+export { AdminAuditLogsPage } from "@/components/crm/pages/admin-audit-logs";
+export { SupplierDashboardPage } from "@/components/crm/pages/supplier-dashboard";
+export { SupplierOrdersPage } from "@/components/crm/pages/supplier-orders";
+export { SupplierProfilePage } from "@/components/crm/pages/supplier-profile";
+export { SupplierOrderDetailPage } from "@/components/crm/pages/supplier-order-detail";

@@ -14,6 +14,7 @@ export const BRAND_GRAY = "#747782";
 export const LOGO = {
   default: "/sos sante bg trans.webp",
   white: "/sos sante bg white.webp",
+  crm: "/sossante-crm-logo.png",
 } as const;
 
 export const LOGO_ALT = "SOS Santé — location de matériel médical et soins à domicile";

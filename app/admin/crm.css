@@ -1,0 +1,108 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+ * CRM / Admin design tokens (Stitch-inspired).
+ * Scoped under .crm-app to avoid conflicting with the public site theme.
+ */
+
+.crm-app {
+  --radius: 0.75rem;
+  /* Aligné sur sossante.ma — bleu #32a0f3 · gris #747782 */
+  --background: #f7f8fb;
+  --foreground: #474b56;
+  --card: #ffffff;
+  --card-foreground: #474b56;
+  --popover: #ffffff;
+  --popover-foreground: #474b56;
+  --primary: #32a0f3;
+  --primary-foreground: #ffffff;
+  --secondary: #747782;
+  --secondary-foreground: #ffffff;
+  --muted: #f2f4f7;
+  --muted-foreground: #747782;
+  --accent: #d6ebfc;
+  --accent-foreground: #2890e0;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e6e8ec;
+  --input: #eceef2;
+  --ring: #32a0f3;
+  --brand: #32a0f3;
+  --brand-soft: #d6ebfc;
+  --brand-deep: #2890e0;
+  --success: #22c55e;
+  --success-soft: #dcfce7;
+  --warning: #f59e0b;
+  --warning-soft: #fef3c7;
+  --danger: #ef4444;
+  --danger-soft: #fee2e2;
+  --info: #32a0f3;
+  --info-soft: #d6ebfc;
+  /* Sidebar claire — couleurs marque */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #747782;
+  --sidebar-foreground-strong: #474b56;
+  --sidebar-primary: #32a0f3;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #d6ebfc;
+  --sidebar-accent-foreground: #2890e0;
+  --sidebar-border: #e6e8ec;
+  --sidebar-ring: #32a0f3;
+  --chart-1: #32a0f3;
+  --chart-2: #747782;
+  --chart-3: #22c55e;
+  --chart-4: #f59e0b;
+  --chart-5: #ef4444;
+
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-heading), "Plus Jakarta Sans", system-ui, sans-serif;
+}
+
+.crm-app .bg-background {
+  background-color: var(--background);
+}
+.crm-app .bg-card {
+  background-color: var(--card);
+}
+.crm-app .bg-muted {
+  background-color: var(--muted);
+}
+.crm-app .bg-brand {
+  background-color: var(--brand);
+}
+.crm-app .bg-brand-soft {
+  background-color: var(--brand-soft);
+}
+.crm-app .bg-primary {
+  background-color: var(--primary);
+}
+.crm-app .text-foreground {
+  color: var(--foreground);
+}
+.crm-app .text-muted-foreground {
+  color: var(--muted-foreground);
+}
+.crm-app .text-brand {
+  color: var(--brand);
+}
+.crm-app .text-brand-deep {
+  color: var(--brand-deep);
+}
+.crm-app .text-primary-foreground {
+  color: var(--primary-foreground);
+}
+.crm-app .text-danger {
+  color: var(--danger);
+}
+.crm-app .border-border {
+  border-color: var(--border);
+}
+.crm-app .border-brand\/20 {
+  border-color: color-mix(in oklch, var(--brand) 20%, transparent);
+}
+
+.crm-app * {
+  border-color: var(--border);
+}
