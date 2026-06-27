@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 const title = "Soins et aide à domicile à Agadir | SOS Santé";
 const description =
-  "SOS Santé vous met en relation avec des infirmiers, aide-soignants et kinésithérapeutes qualifiés pour des soins à domicile à Agadir et au Maroc.";
+  "SOS Santé vous met en relation avec des kinésithérapeutes, infirmiers, médecins, aide-soignants et transport médical pour des soins à domicile à Agadir, Rabat et au Maroc.";
 
 export const metadata: Metadata = {
   title,
