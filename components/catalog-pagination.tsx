@@ -1,4 +1,6 @@
 export const CATALOG_PRODUCTS_PER_PAGE = 12;
+/** Homepage preview: 3 rows × 3 columns on desktop */
+export const HOMEPAGE_CATALOG_PRODUCTS_PER_PAGE = 9;
 
 function MaterialIcon({
   name,

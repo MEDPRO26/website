@@ -1,64 +1,47 @@
-export type DeliveryCity = {
-  name: string;
-  slug: string;
-  deliveryText: string;
-  active: boolean;
-};
+export {
+  activeCities,
+  cities,
+  comingSoonCities,
+  DEFAULT_CITY_SLUG,
+  getCityBySlug,
+  type City,
+  type CitySlug,
+} from "@/lib/cities";
 
-export const deliveryCities: DeliveryCity[] = [
-  {
-    name: "Agadir",
-    slug: "location-materiel-medical-agadir",
-    deliveryText:
-      "Livraison et installation incluses à Agadir et environs. Délai sous 24h.",
-    active: true,
-  },
-  {
-    name: "Rabat",
-    slug: "location-materiel-medical-rabat",
-    deliveryText:
-      "Livraison à Rabat, Salé, Temara et environs sous 24–48h.",
-    active: true,
-  },
-  {
-    name: "Marrakech",
-    slug: "location-materiel-medical-marrakech",
-    deliveryText:
-      "Livraison rapide à Marrakech centre, Guéliz, Hivernage et environs.",
-    active: false,
-  },
-  {
-    name: "Casablanca",
-    slug: "location-materiel-medical-casablanca",
-    deliveryText:
-      "Livraison 24–48h à Casablanca et sa métropole. Frais selon distance.",
-    active: false,
-  },
-  {
-    name: "Tanger",
-    slug: "location-materiel-medical-tanger",
-    deliveryText: "Livraison à Tanger et sa région sous 48–72h.",
-    active: false,
-  },
-];
+import { activeCities, comingSoonCities } from "@/lib/cities";
 
-export const activeDeliveryCities = deliveryCities.filter((c) => c.active);
+/** @deprecated Prefer activeCities from lib/cities */
+export const activeDeliveryCities = activeCities.map((city) => ({
+  name: city.name,
+  slug: city.locationSlug,
+  deliveryText: city.deliveryText,
+  active: city.available,
+}));
 
-export const comingSoonDeliveryCities = deliveryCities.filter((c) => !c.active);
+/** @deprecated Prefer comingSoonCities from lib/cities */
+export const comingSoonDeliveryCities = comingSoonCities.map((city) => ({
+  name: city.name,
+  slug: city.locationSlug,
+  deliveryText: city.deliveryText,
+  active: city.available,
+}));
+
+/** @deprecated Use activeCities */
+export const deliveryCities = [...activeDeliveryCities, ...comingSoonDeliveryCities];
 
 export const DEFAULT_DELIVERY_CITY =
   activeDeliveryCities[0]?.name ?? "Agadir";
 
 export const activeDeliveryCityLabel = activeDeliveryCities
-  .map((c) => c.name)
+  .map((city) => city.name)
   .join(" et ");
 
 export function getCoverageAreas() {
   return {
-    active: activeDeliveryCities.map((c) => ({
-      name: c.name,
-      slug: c.slug,
+    active: activeDeliveryCities.map((city) => ({
+      name: city.name,
+      slug: city.slug,
     })),
-    comingSoon: comingSoonDeliveryCities.map((c) => c.name),
+    comingSoon: comingSoonDeliveryCities.map((city) => city.name),
   };
 }

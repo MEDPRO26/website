@@ -8,7 +8,9 @@ import JsonLd from "@/components/json-ld";
 import CityLinks from "@/components/city-links";
 import Navbar from "@/components/navbar";
 import SiteFooter from "@/components/site-footer";
+import { DEFAULT_CITY_SLUG } from "@/lib/cities";
 import { CONTACT_EMAIL, WHATSAPP_NUMBER, type Product } from "@/lib/products";
+import { hubCityPath, venteProductPath } from "@/lib/routes";
 import { seoCategories, seoCities, type SeoCategory, type SeoCity } from "@/lib/seo-data";
 import {
   breadcrumbSchema,
@@ -87,11 +89,18 @@ function FaqAccordion({
   );
 }
 
-function ProductCard({ product }: { product: Product }) {
+function ProductCard({
+  product,
+  citySlug = DEFAULT_CITY_SLUG,
+}: {
+  product: Product;
+  citySlug?: string;
+}) {
+  const productPath = venteProductPath(product.slug, citySlug);
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-surface-container-high bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
       <Link
-        href={`/produits/${product.slug}`}
+        href={productPath}
         className="relative aspect-[4/3] overflow-hidden"
       >
         <Image
@@ -108,7 +117,7 @@ function ProductCard({ product }: { product: Product }) {
         </span>
       </Link>
       <div className="flex flex-1 flex-col p-4 sm:p-5">
-        <Link href={`/produits/${product.slug}`}>
+        <Link href={productPath}>
           <h3 className="font-heading mb-2 text-lg font-semibold text-primary transition-colors hover:text-primary-container sm:text-xl">
             {product.name}
           </h3>
@@ -121,7 +130,7 @@ function ProductCard({ product }: { product: Product }) {
             Tarif sur demande
           </span>
           <Link
-            href={`/produits/${product.slug}`}
+            href={productPath}
             aria-label={`Voir ${product.name}`}
             className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary transition-all hover:scale-110 hover:bg-primary-container"
           >
@@ -172,18 +181,22 @@ export function SeoCategoryPage({
   category: SeoCategory;
   products: Product[];
 }) {
+  const hubPath = hubCityPath(DEFAULT_CITY_SLUG);
   const path = `/${category.slug}`;
   const categorySchema = buildGraph(
     webPageSchema(path, category.metaTitle, category.metaDescription, "CollectionPage"),
     breadcrumbSchema([
       { name: "Accueil", item: "/" },
-      { name: "Matériel médical", item: "/location-materiel-medical-agadir" },
+      { name: "Matériel médical", item: hubPath },
       { name: category.label, item: path },
     ]),
     itemListSchema(
       `Matériel de ${category.label.toLowerCase()} en location`,
       path,
-      products.map((product) => ({ name: product.name, url: `/produits/${product.slug}` }))
+      products.map((product) => ({
+        name: product.name,
+        url: venteProductPath(product.slug, DEFAULT_CITY_SLUG),
+      }))
     ),
     faqSchema(category.faqs, path)
   );
@@ -198,7 +211,7 @@ export function SeoCategoryPage({
                   <Breadcrumb
               items={[
                 { label: "Accueil", href: "/" },
-                { label: "Matériel médical", href: "/location-materiel-medical-agadir" },
+                { label: "Matériel médical", href: hubPath },
                 { label: category.label },
               ]}
             />
@@ -316,7 +329,10 @@ export function SeoCityPage({
     itemListSchema(
       `Matériel médical en location à ${city.name}`,
       path,
-      products.slice(0, 6).map((product) => ({ name: product.name, url: `/produits/${product.slug}` }))
+      products.slice(0, 6).map((product) => ({
+        name: product.name,
+        url: venteProductPath(product.slug, DEFAULT_CITY_SLUG),
+      }))
     ),
     faqSchema(city.faqs, path)
   );

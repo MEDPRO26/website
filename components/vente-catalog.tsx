@@ -4,20 +4,26 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import CitySelector from "@/components/city-selector";
 import Breadcrumb from "@/components/breadcrumb";
 import CatalogPagination, {
   CATALOG_PRODUCTS_PER_PAGE,
 } from "@/components/catalog-pagination";
 import Navbar from "@/components/navbar";
 import SiteFooter from "@/components/site-footer";
+import { getCityBySlug, type CitySlug } from "@/lib/cities";
+import { writeStoredCitySlug } from "@/lib/city-storage";
 import {
   catalogCategories,
   categoryValueFromParam,
 } from "@/lib/catalog-categories";
 import { getCatalogProducts, WHATSAPP_NUMBER } from "@/lib/products";
-import { venteCategoryPath, VENTE_PAGE_PATH } from "@/lib/routes";
-
-const products = getCatalogProducts();
+import {
+  hubCityPath,
+  venteCityPath,
+  venteCategoryPath,
+  venteProductPath,
+} from "@/lib/routes";
 
 function MaterialIcon({
   name,
@@ -34,11 +40,14 @@ function MaterialIcon({
 }
 
 type VenteCatalogProps = {
+  citySlug: CitySlug;
   categorySlug: string | null;
 };
 
-export default function VenteCatalog({ categorySlug }: VenteCatalogProps) {
+export default function VenteCatalog({ citySlug, categorySlug }: VenteCatalogProps) {
   const router = useRouter();
+  const city = getCityBySlug(citySlug)!;
+  const products = useMemo(() => getCatalogProducts(citySlug), [citySlug]);
   const activeCategory = categoryValueFromParam(categorySlug);
   const activeCategoryMeta = catalogCategories.find(
     (category) => category.value === activeCategory
@@ -60,7 +69,7 @@ export default function VenteCatalog({ categorySlug }: VenteCatalogProps) {
         product.tagline.toLowerCase().includes(query);
       return matchesCategory && matchesSearch;
     });
-  }, [activeCategory, searchQuery]);
+  }, [activeCategory, products, searchQuery]);
 
   const totalPages = Math.max(
     1,
@@ -74,7 +83,7 @@ export default function VenteCatalog({ categorySlug }: VenteCatalogProps) {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeCategory, searchQuery]);
+  }, [activeCategory, searchQuery, citySlug]);
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -88,21 +97,42 @@ export default function VenteCatalog({ categorySlug }: VenteCatalogProps) {
   };
 
   const activeCategoryLabel = activeCategoryMeta?.label ?? "Tous les matériels";
+  const activeCategoryParam = activeCategoryMeta?.param ?? "all";
+  const catalogBasePath = venteCityPath(citySlug);
+  const hubPath = hubCityPath(citySlug);
+
+  const handleCityChange = (nextCitySlug: CitySlug) => {
+    if (nextCitySlug === citySlug) return;
+    writeStoredCitySlug(nextCitySlug);
+    router.push(venteCategoryPath(activeCategoryParam, nextCitySlug));
+  };
 
   const breadcrumbItems =
     activeCategory === "all"
       ? [
           { label: "Accueil", href: "/" },
-          { label: "Vente de matériel médical" },
+          {
+            label: `Location et vente à ${city.name}`,
+            href: hubPath,
+          },
+          { label: `Vente matériel médical ${city.name}` },
         ]
       : [
           { label: "Accueil", href: "/" },
           {
-            label: "Vente de matériel médical",
-            href: VENTE_PAGE_PATH,
+            label: `Location et vente à ${city.name}`,
+            href: hubPath,
+          },
+          {
+            label: `Vente ${city.name}`,
+            href: catalogBasePath,
           },
           { label: activeCategoryLabel },
         ];
+
+  const whatsappText = encodeURIComponent(
+    `Bonjour SOS Santé ${city.name}, je souhaite acheter du matériel médical.`
+  );
 
   return (
     <>
@@ -122,17 +152,36 @@ export default function VenteCatalog({ categorySlug }: VenteCatalogProps) {
           <div className="mx-auto max-w-4xl text-center">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary">
               <MaterialIcon name="shopping_bag" className="text-base" />
-              Vente de matériel médical
+              Vente à {city.name}
             </div>
             <h1 className="font-heading mb-5 text-3xl font-bold leading-tight tracking-tight text-secondary sm:text-4xl md:text-5xl">
               Achetez votre{" "}
-              <span className="text-primary">matériel médical</span>
+              <span className="text-primary">matériel médical</span> à {city.name}
             </h1>
             <p className="font-body mx-auto max-w-2xl text-base leading-relaxed text-on-surface-variant sm:text-lg">
-              Parcourez notre catalogue de matériel médical à vendre : mobilité,
-              respiratoire, diagnostic, instruments et confort. Livraison dans
-              les grandes villes du Maroc.
+              Catalogue vente disponible à {city.name}. {city.deliveryText}{" "}
+              <Link
+                href={hubPath}
+                className="font-semibold text-primary underline-offset-2 hover:underline"
+              >
+                Retour à la page {city.name}
+              </Link>
             </p>
+          </div>
+        </section>
+
+        <section className="bg-surface-container-low px-4 py-8 sm:px-6 sm:py-10">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="font-body mb-4 text-sm text-on-surface-variant sm:text-base">
+              Vous consultez le catalogue de {city.name}. Changez de ville si
+              vous souhaitez voir la livraison disponible ailleurs.
+            </p>
+            <CitySelector
+              className="mx-auto w-full max-w-md"
+              variant="prominent"
+              citySlug={citySlug}
+              onCityChange={handleCityChange}
+            />
           </div>
         </section>
 
@@ -149,7 +198,7 @@ export default function VenteCatalog({ categorySlug }: VenteCatalogProps) {
               {catalogCategories.map((category) => (
                 <Link
                   key={category.value}
-                  href={venteCategoryPath(category.param)}
+                  href={venteCategoryPath(category.param, citySlug)}
                   scroll={false}
                   role="tab"
                   aria-selected={activeCategory === category.value}
@@ -201,7 +250,7 @@ export default function VenteCatalog({ categorySlug }: VenteCatalogProps) {
             <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <span className="mb-2 inline-block text-sm font-semibold uppercase tracking-wider text-secondary">
-                  Catalogue vente
+                  Catalogue vente · {city.name}
                 </span>
                 <h2 className="font-heading text-xl font-semibold text-secondary sm:text-2xl md:text-3xl">
                   {activeCategoryLabel}
@@ -229,7 +278,7 @@ export default function VenteCatalog({ categorySlug }: VenteCatalogProps) {
                       className="group flex flex-col overflow-hidden rounded-2xl border border-surface-container-high bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
                     >
                       <Link
-                        href={`/produits/${product.slug}`}
+                        href={venteProductPath(product.slug, citySlug)}
                         className="relative aspect-[4/3] overflow-hidden"
                       >
                         <Image
@@ -246,7 +295,7 @@ export default function VenteCatalog({ categorySlug }: VenteCatalogProps) {
                         </span>
                       </Link>
                       <div className="flex flex-1 flex-col p-4 sm:p-5">
-                        <Link href={`/produits/${product.slug}`}>
+                        <Link href={venteProductPath(product.slug, citySlug)}>
                           <h3 className="font-heading mb-2 text-lg font-semibold text-primary transition-colors hover:text-primary-container sm:text-xl">
                             {product.name}
                           </h3>
@@ -259,7 +308,7 @@ export default function VenteCatalog({ categorySlug }: VenteCatalogProps) {
                             {product.priceLabel}
                           </span>
                           <Link
-                            href={`/produits/${product.slug}`}
+                            href={venteProductPath(product.slug, citySlug)}
                             aria-label={`Voir ${product.name}`}
                             className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary transition-all hover:scale-110 hover:bg-primary-container"
                           >
@@ -295,7 +344,7 @@ export default function VenteCatalog({ categorySlug }: VenteCatalogProps) {
                   onClick={() => {
                     setSearchQuery("");
                     setCurrentPage(1);
-                    router.push(VENTE_PAGE_PATH);
+                    router.push(catalogBasePath);
                   }}
                   className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-container"
                 >
@@ -309,15 +358,15 @@ export default function VenteCatalog({ categorySlug }: VenteCatalogProps) {
         <section className="px-4 pb-14 sm:px-6 sm:pb-20">
           <div className="mx-auto max-w-5xl rounded-[32px] bg-secondary px-6 py-12 text-center text-on-secondary shadow-2xl shadow-secondary/20 sm:px-10 sm:py-16">
             <h2 className="font-heading mb-4 text-2xl font-bold sm:text-3xl">
-              Besoin d&apos;un devis d&apos;achat ?
+              Besoin d&apos;un devis d&apos;achat à {city.name} ?
             </h2>
             <p className="font-body mx-auto mb-8 max-w-xl text-base text-white/90 sm:text-lg">
               Contactez-nous pour connaître la disponibilité et le prix de
-              vente de votre matériel médical.
+              vente de votre matériel médical à {city.name}.
             </p>
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
               <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20acheter%20du%20mat%C3%A9riel%20m%C3%A9dical.`}
+                href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-secondary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
               >
                 <MaterialIcon name="chat" />

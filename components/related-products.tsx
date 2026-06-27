@@ -2,15 +2,20 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import type { CitySlug } from "@/lib/cities";
+import { DEFAULT_CITY_SLUG } from "@/lib/cities";
+import { venteProductPath } from "@/lib/routes";
 import { products } from "@/lib/products";
 
 export default function RelatedProducts({
   currentSlug,
   category,
+  citySlug = DEFAULT_CITY_SLUG,
   title = "Produits similaires",
 }: {
   currentSlug: string;
   category: string;
+  citySlug?: CitySlug;
   title?: string;
 }) {
   const related = products
@@ -26,13 +31,15 @@ export default function RelatedProducts({
           {title}
         </h2>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {related.map((product) => (
+          {related.map((product) => {
+            const productPath = venteProductPath(product.slug, citySlug);
+            return (
             <article
               key={product.slug}
               className="group flex flex-col overflow-hidden rounded-2xl border border-surface-container-high bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
             >
               <Link
-                href={`/produits/${product.slug}`}
+                href={productPath}
                 className="relative aspect-[4/3] overflow-hidden"
               >
                 <Image
@@ -49,7 +56,7 @@ export default function RelatedProducts({
                 </span>
               </Link>
               <div className="flex flex-1 flex-col p-4">
-                <Link href={`/produits/${product.slug}`}>
+                <Link href={productPath}>
                   <h3 className="font-heading mb-2 text-base font-semibold text-primary transition-colors hover:text-primary-container sm:text-lg">
                     {product.name}
                   </h3>
@@ -58,7 +65,7 @@ export default function RelatedProducts({
                   {product.description}
                 </p>
                 <Link
-                  href={`/produits/${product.slug}`}
+                  href={productPath}
                   className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition-all hover:gap-2"
                 >
                   Voir le produit
@@ -66,7 +73,8 @@ export default function RelatedProducts({
                 </Link>
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

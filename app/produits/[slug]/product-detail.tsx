@@ -10,10 +10,10 @@ import CityLinks from "@/components/city-links";
 import {
   activeDeliveryCityLabel,
   activeDeliveryCities,
-  DEFAULT_DELIVERY_CITY,
 } from "@/lib/delivery-cities";
+import { getCityBySlug, DEFAULT_CITY_SLUG, type CitySlug } from "@/lib/cities";
 import { formatProductAchatHeading } from "@/lib/french";
-import { VENTE_PAGE_PATH } from "@/lib/routes";
+import { venteCityPath, venteProductPath } from "@/lib/routes";
 import {
   CONTACT_EMAIL,
   PRICE_ON_REQUEST,
@@ -42,14 +42,22 @@ function classNames(...classes: (string | false | null | undefined)[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-export default function ProductDetail({ product }: { product: Product }) {
+export default function ProductDetail({
+  product,
+  citySlug = DEFAULT_CITY_SLUG,
+}: {
+  product: Product;
+  citySlug?: CitySlug;
+}) {
+  const city = getCityBySlug(citySlug)!;
+  const catalogPath = venteCityPath(citySlug);
   const gallery = product.gallery ?? [product.image];
   const [activeImage, setActiveImage] = useState(0);
   const [formStatus, setFormStatus] = useState<"idle" | "success" | "error">(
     "idle"
   );
   const [formData, setFormData] = useState({
-    deliveryCity: DEFAULT_DELIVERY_CITY,
+    deliveryCity: city.name,
     quantity: "1",
     phone: "",
     message: "",
@@ -139,10 +147,10 @@ export default function ProductDetail({ product }: { product: Product }) {
               <li className="flex items-center gap-2">
                 <MaterialIcon name="chevron_right" className="text-sm" />
                 <Link
-                  href={VENTE_PAGE_PATH}
+                  href={catalogPath}
                   className="transition-colors hover:text-primary"
                 >
-                  Vente
+                  Vente · {city.name}
                 </Link>
               </li>
               <li className="flex items-center gap-2">
@@ -219,7 +227,7 @@ export default function ProductDetail({ product }: { product: Product }) {
                           onClick={() => {
                             setFormStatus("idle");
                             setFormData({
-                              deliveryCity: DEFAULT_DELIVERY_CITY,
+                              deliveryCity: city.name,
                               quantity: "1",
                               phone: "",
                               message: "",
@@ -635,7 +643,7 @@ export default function ProductDetail({ product }: { product: Product }) {
                 {product.related.map((related) => (
                   <Link
                     key={related.slug}
-                    href={`/produits/${related.slug}`}
+                    href={venteProductPath(related.slug, citySlug)}
                     className="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-surface-container-high transition-all hover:-translate-y-1 hover:shadow-lg"
                   >
                     <div className="relative h-48 overflow-hidden sm:h-52">
@@ -667,6 +675,7 @@ export default function ProductDetail({ product }: { product: Product }) {
           <RelatedProducts
             currentSlug={product.slug}
             category={product.category}
+            citySlug={citySlug}
           />
           <CityLinks title="Livraison de ce matériel dans d'autres villes" />
         </div>

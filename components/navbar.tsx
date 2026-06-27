@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Logo from "@/components/logo";
+import { activeCities } from "@/lib/cities";
 import { CONTACT_EMAIL, WHATSAPP_NUMBER } from "@/lib/products";
-import { isVenteCatalogPath, VENTE_PAGE_PATH } from "@/lib/routes";
+import { getCityFromVentePath, isVenteCatalogPath, venteCityPath } from "@/lib/routes";
 
 function MaterialIcon({
   name,
@@ -30,7 +31,6 @@ function classNames(...classes: (string | false | null | undefined)[]) {
 
 const pageLinks = [
   { label: "Services", href: "/services" },
-  { label: "Blog", href: "/blog" },
   { label: "Contact", href: "/contact" },
 ];
 
@@ -63,18 +63,28 @@ function MaterialDropdownLinks({
       <p className="mt-2 border-t border-outline-variant/30 px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-on-surface-variant">
         Vente
       </p>
-      <Link
-        href={VENTE_PAGE_PATH}
-        onClick={onNavigate}
-        className={classNames(
-          "flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors",
-          pathname === VENTE_PAGE_PATH
-            ? "bg-primary/10 text-primary"
-            : "text-on-surface hover:bg-surface-container-low hover:text-primary"
-        )}
-      >
-        Tous les matériels
-      </Link>
+      {activeCities.map((city) => {
+        const href = venteCityPath(city.slug);
+        const active =
+          pathname === href || pathname.startsWith(`${href}/`);
+
+        return (
+          <Link
+            key={city.slug}
+            href={href}
+            onClick={onNavigate}
+            className={classNames(
+              "flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors",
+              active
+                ? "bg-primary/10 text-primary"
+                : "text-on-surface hover:bg-surface-container-low hover:text-primary"
+            )}
+          >
+            <MaterialIcon name="location_on" />
+            {city.name}
+          </Link>
+        );
+      })}
     </div>
   );
 }
@@ -105,8 +115,8 @@ export default function Navbar() {
   const isMaterialActive =
     pathname === "/" ||
     isVenteCatalogPath(pathname) ||
-    pathname === "/location-materiel-medical-agadir" ||
-    pathname.startsWith("/produits");
+    pathname.startsWith("/location-vente-materiel-medical-") ||
+    pathname.startsWith("/location-materiel-medical-");
 
   return (
     <header

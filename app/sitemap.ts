@@ -1,12 +1,16 @@
 import type { MetadataRoute } from "next";
 import { HERO_IMAGE, SITE_URL_DEFAULT } from "@/lib/brand";
+import { activeCities } from "@/lib/cities";
 import { blogPosts } from "@/lib/blog";
 import { allowIndexing } from "@/lib/indexing";
 import { legalPages } from "@/lib/legal-routes";
-import { products } from "@/lib/products";
-import { seoCategories, seoCities } from "@/lib/seo-data";
+import {
+  getActiveVenteCitySlugs,
+  getAllCityProductParams,
+  getProductsByCity,
+} from "@/lib/products";
 import { venteCategoryParams } from "@/lib/catalog-categories";
-import { VENTE_PAGE_PATH, venteCategoryPath } from "@/lib/routes";
+import { hubCityPath, venteCategoryPath, venteCityPath, venteProductPath } from "@/lib/routes";
 
 const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL_DEFAULT
@@ -17,7 +21,7 @@ const images = [
   "/og-image.png",
   "/services/soins-domicile.jpg",
   "/services/hero-bg.jpg",
-  ...products.map((p) => p.image),
+  ...getProductsByCity("agadir").map((p) => p.image),
 ];
 
 function createSitemapEntry(
@@ -27,7 +31,7 @@ function createSitemapEntry(
 ): MetadataRoute.Sitemap[number] {
   return {
     url: `${siteUrl}${path}`,
-    lastModified: new Date("2026-06-20"),
+    lastModified: new Date("2026-06-25"),
     changeFrequency: "weekly",
     priority,
     images: extraImages?.map((image) => `${siteUrl}${image}`),
@@ -45,26 +49,31 @@ export default function sitemap(): MetadataRoute.Sitemap {
     return [];
   }
 
+  const citySlugs = getActiveVenteCitySlugs();
+
   return [
     createSitemapEntry("/", 1, images),
     createSitemapEntry("/services", 0.9, [
       "/services/soins-domicile.jpg",
       "/services/hero-bg.jpg",
     ]),
-    createSitemapEntry("/location-materiel-medical-agadir", 0.95, [
-      HERO_IMAGE,
+    ...activeCities.map((city) =>
+      createSitemapEntry(hubCityPath(city.slug), 0.95, [HERO_IMAGE])
+    ),
+    ...citySlugs.flatMap((citySlug) => [
+      createSitemapEntry(venteCityPath(citySlug), 0.95, [HERO_IMAGE]),
+      ...venteCategoryParams.map((category) =>
+        createSitemapEntry(venteCategoryPath(category, citySlug), 0.9)
+      ),
     ]),
-    createSitemapEntry(VENTE_PAGE_PATH, 0.95, [HERO_IMAGE]),
-    ...venteCategoryParams.map((category) =>
-      createSitemapEntry(venteCategoryPath(category), 0.9)
-    ),
-    ...seoCategories.map((category) =>
-      createSitemapEntry(`/${category.slug}`, 0.9)
-    ),
-    ...seoCities.map((city) => createSitemapEntry(`/${city.slug}`, 0.85)),
-    ...products.map((product) =>
-      createSitemapEntry(`/produits/${product.slug}`, 0.85, [product.image])
-    ),
+    ...getAllCityProductParams().map(({ city, slug }) => {
+      const product = getProductsByCity(city).find((item) => item.slug === slug);
+      return createSitemapEntry(
+        venteProductPath(slug, city),
+        0.85,
+        product ? [product.image] : undefined
+      );
+    }),
     createSitemapEntry("/contact", 0.9, [HERO_IMAGE]),
     ...legalPages.map((page) => createSitemapEntry(page.href, 0.3)),
     createSitemapEntry("/blog", 0.9, [HERO_IMAGE]),

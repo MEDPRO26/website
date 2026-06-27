@@ -155,10 +155,15 @@ export function itemListSchema(
   };
 }
 
-export function productSchema(product: Product, slug: string) {
+function normalizePath(path: string): string {
+  return path.startsWith("/") ? path : `/${path}`;
+}
+
+export function productSchema(product: Product, productPath: string) {
+  const path = normalizePath(productPath);
   return {
     "@type": "Product",
-    "@id": `${siteUrl}/produits/${slug}#product`,
+    "@id": `${siteUrl}${path}#product`,
     name: product.name,
     description: product.description,
     image: `${siteUrl}${product.image}`,
@@ -172,7 +177,7 @@ export function productSchema(product: Product, slug: string) {
     itemCondition: "https://schema.org/NewCondition",
     offers: {
       "@type": "Offer",
-      "@id": `${siteUrl}/produits/${slug}#offer`,
+      "@id": `${siteUrl}${path}#offer`,
       availability: "https://schema.org/InStock",
       priceCurrency: "MAD",
       price: "0",
@@ -183,19 +188,26 @@ export function productSchema(product: Product, slug: string) {
         description: "Tarif sur demande",
         valueAddedTaxIncluded: true,
       },
-      itemOffered: { "@id": `${siteUrl}/produits/${slug}#product` },
+      itemOffered: { "@id": `${siteUrl}${path}#product` },
       seller: { "@type": "Organization", name: SITE_NAME },
       areaServed: { "@type": "City", name: product.city },
-      url: `${siteUrl}/produits/${slug}`,
+      url: `${siteUrl}${path}`,
     },
     areaServed: { "@type": "City", name: product.city },
   };
 }
 
-export function productBreadcrumbSchema(slug: string, name: string) {
+export function productBreadcrumbSchema(
+  productPath: string,
+  productName: string,
+  hubPath: string,
+  hubLabel: string
+) {
+  const path = normalizePath(productPath);
+  const hub = normalizePath(hubPath);
   return {
     "@type": "BreadcrumbList",
-    "@id": `${siteUrl}/produits/${slug}#breadcrumb`,
+    "@id": `${siteUrl}${path}#breadcrumb`,
     itemListElement: [
       {
         "@type": "ListItem",
@@ -206,14 +218,14 @@ export function productBreadcrumbSchema(slug: string, name: string) {
       {
         "@type": "ListItem",
         position: 2,
-        name: "Location Matériel",
-        item: `${siteUrl}/location-materiel-medical-agadir`,
+        name: hubLabel,
+        item: `${siteUrl}${hub}`,
       },
       {
         "@type": "ListItem",
         position: 3,
-        name,
-        item: `${siteUrl}/produits/${slug}`,
+        name: productName,
+        item: `${siteUrl}${path}`,
       },
     ],
   };

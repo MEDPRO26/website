@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { deliveryCities } from "@/lib/delivery-cities";
+import { activeCities, cities } from "@/lib/cities";
+import { hubCityPath } from "@/lib/routes";
 
 function MaterialIcon({
   name,
@@ -22,16 +23,16 @@ function MaterialIcon({
 
 export default function CityLinks({
   title = "Livraison de ce matériel dans d'autres villes",
-  exclude,
+  excludeHubSlug,
 }: {
   title?: string;
-  exclude?: string;
+  excludeHubSlug?: string;
 }) {
-  const cities = exclude
-    ? deliveryCities.filter((c) => c.slug !== exclude)
-    : deliveryCities;
+  const cityList = excludeHubSlug
+    ? cities.filter((city) => city.hubSlug !== excludeHubSlug)
+    : cities;
 
-  if (cities.length === 0) return null;
+  if (cityList.length === 0) return null;
 
   return (
     <section className="px-4 py-10 sm:px-6 sm:py-14">
@@ -40,11 +41,11 @@ export default function CityLinks({
           {title}
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {cities.map((city) =>
-            city.active ? (
+          {cityList.map((city) =>
+            city.available ? (
               <Link
                 key={city.slug}
-                href={`/${city.slug}`}
+                href={hubCityPath(city.slug)}
                 className="group flex items-center justify-between rounded-2xl border border-outline-variant/30 bg-surface-base p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-primary/20 hover:shadow-md"
               >
                 <div>
@@ -83,6 +84,12 @@ export default function CityLinks({
             )
           )}
         </div>
+        {activeCities.length > 1 && (
+          <p className="mt-4 text-sm text-on-surface-variant">
+            Le catalogue est le même ; la livraison et les délais varient selon
+            votre ville.
+          </p>
+        )}
       </div>
     </section>
   );

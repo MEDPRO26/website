@@ -5,19 +5,29 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import HeroScrollSection from "@/components/hero-scroll-section";
 import CatalogPagination, {
-  CATALOG_PRODUCTS_PER_PAGE,
+  HOMEPAGE_CATALOG_PRODUCTS_PER_PAGE,
 } from "@/components/catalog-pagination";
 import SiteFooter from "@/components/site-footer";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
-import { VENTE_PAGE_PATH } from "@/lib/routes";
+import CitySelector from "@/components/city-selector";
+import { useSelectedCity } from "@/hooks/use-selected-city";
+import { catalogCategories } from "@/lib/catalog-categories";
+import { seoCategories } from "@/lib/seo-data";
+import {
+  hubCityPath,
+  seoCategoryToCatalogParam,
+  venteCategoryPath,
+  venteCityPath,
+  venteProductPath,
+} from "@/lib/routes";
 import {
   CONTACT_EMAIL,
   getCatalogProducts,
   WHATSAPP_NUMBER,
 } from "@/lib/products";
-import { catalogCategories } from "@/lib/catalog-categories";
-import { seoCategories } from "@/lib/seo-data";
+import { activeCities, comingSoonCities, DEFAULT_CITY_SLUG } from "@/lib/cities";
+import { getCityHubContent } from "@/lib/city-hub-content";
 import {
   activeDeliveryCityLabel,
   getCoverageAreas,
@@ -33,7 +43,7 @@ import {
   websiteSchema,
 } from "@/lib/schema";
 
-const products = getCatalogProducts();
+const defaultCatalogProducts = getCatalogProducts(DEFAULT_CITY_SLUG);
 
 const categories = catalogCategories;
 
@@ -170,15 +180,24 @@ const homeSchema = buildGraph(
   itemListSchema(
     "Matériel médical en location",
     "/",
-    products.map((product) => ({
+    defaultCatalogProducts.map((product) => ({
       name: product.name,
-      url: `/produits/${product.slug}`,
+      url: venteProductPath(product.slug, DEFAULT_CITY_SLUG),
     }))
   ),
   faqSchema(faqs, "/")
 );
 
 export default function Home() {
+  const { citySlug, city, setCitySlug } = useSelectedCity();
+  const products = useMemo(
+    () => getCatalogProducts(citySlug),
+    [citySlug]
+  );
+  const hubContent = useMemo(
+    () => getCityHubContent(citySlug),
+    [citySlug]
+  );
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -189,9 +208,14 @@ export default function Home() {
   const [formData, setFormData] = useState({
     nom: "",
     telephone: "",
+    ville: city.name,
     materiel: "",
     message: "",
   });
+
+  useEffect(() => {
+    setFormData((current) => ({ ...current, ville: city.name }));
+  }, [city.name]);
 
   const filteredProducts = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -205,21 +229,21 @@ export default function Home() {
         product.description.toLowerCase().includes(query);
       return matchesCategory && matchesSearch;
     });
-  }, [activeCategory, searchQuery]);
+  }, [activeCategory, searchQuery, products]);
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredProducts.length / CATALOG_PRODUCTS_PER_PAGE)
+    Math.ceil(filteredProducts.length / HOMEPAGE_CATALOG_PRODUCTS_PER_PAGE)
   );
 
   const paginatedProducts = useMemo(() => {
-    const start = (currentPage - 1) * CATALOG_PRODUCTS_PER_PAGE;
-    return filteredProducts.slice(start, start + CATALOG_PRODUCTS_PER_PAGE);
+    const start = (currentPage - 1) * HOMEPAGE_CATALOG_PRODUCTS_PER_PAGE;
+    return filteredProducts.slice(start, start + HOMEPAGE_CATALOG_PRODUCTS_PER_PAGE);
   }, [filteredProducts, currentPage]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeCategory, searchQuery]);
+  }, [activeCategory, searchQuery, citySlug]);
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -238,16 +262,16 @@ export default function Home() {
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!formData.nom || !formData.telephone || !formData.materiel) {
+    if (!formData.nom || !formData.telephone || !formData.ville || !formData.materiel) {
       setFormStatus("error");
       return;
     }
 
     const subject = encodeURIComponent(
-      `Demande de location - ${formData.materiel}`
+      `Demande de location - ${formData.materiel} (${formData.ville})`
     );
     const body = encodeURIComponent(
-      `Bonjour SOS Santé,\n\nJe souhaite louer le matériel suivant : ${formData.materiel}\n\nNom : ${formData.nom}\nTéléphone : ${formData.telephone}\n\n${formData.message || "Merci de me recontacter rapidement."}\n\nCordialement,`
+      `Bonjour SOS Santé,\n\nJe souhaite louer le matériel suivant : ${formData.materiel}\n\nNom : ${formData.nom}\nTéléphone : ${formData.telephone}\nVille : ${formData.ville}\n\n${formData.message || "Merci de me recontacter rapidement."}\n\nCordialement,`
     );
 
     window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
@@ -414,7 +438,10 @@ export default function Home() {
               {seoCategories.map((category) => (
                 <Link
                   key={category.slug}
-                  href={`/${category.slug}`}
+                  href={venteCategoryPath(
+                    seoCategoryToCatalogParam[category.slug] ?? "all",
+                    citySlug
+                  )}
                   className="group flex items-center gap-4 rounded-2xl border border-outline-variant/30 bg-surface-base p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-primary/20 hover:shadow-md"
                 >
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-all group-hover:bg-primary group-hover:text-on-primary">
@@ -498,6 +525,25 @@ export default function Home() {
           </div>
         </section>
 
+        {/* City selector */}
+        <section className="bg-surface-container-low px-4 py-8 sm:px-6 sm:py-10">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="font-body mb-4 text-sm text-on-surface-variant sm:text-base">
+              Sélectionnez votre ville pour consulter le catalogue et la
+              livraison disponibles près de chez vous.
+            </p>
+            <CitySelector
+              className="mx-auto w-full max-w-md"
+              variant="prominent"
+              citySlug={citySlug}
+              onCityChange={(nextCitySlug) => {
+                setCitySlug(nextCitySlug);
+                setCurrentPage(1);
+              }}
+            />
+          </div>
+        </section>
+
         {/* Products Grid */}
         <section className="px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
           <div className="mx-auto max-w-7xl">
@@ -507,12 +553,12 @@ export default function Home() {
                   Catalogue vente
                 </span>
                 <h2 className="font-heading text-xl font-semibold text-secondary sm:text-2xl md:text-3xl">
-                  {activeCategoryLabel}
+                  {activeCategoryLabel} · {city.name}
                 </h2>
               </div>
               <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                 <Link
-                  href={VENTE_PAGE_PATH}
+                  href={venteCityPath(citySlug)}
                   className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-primary bg-white px-4 py-2.5 text-sm font-medium text-primary transition-all hover:bg-primary/5"
                 >
                   Visiter la page de catalogue
@@ -538,7 +584,7 @@ export default function Home() {
                     className="group flex flex-col overflow-hidden rounded-2xl border border-surface-container-high bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
                   >
                     <Link
-                      href={`/produits/${product.slug}`}
+                      href={venteProductPath(product.slug, citySlug)}
                       className="relative aspect-[4/3] overflow-hidden"
                     >
                       <Image
@@ -555,7 +601,7 @@ export default function Home() {
                       </span>
                     </Link>
                     <div className="flex flex-1 flex-col p-4 sm:p-5">
-                      <Link href={`/produits/${product.slug}`}>
+                      <Link href={venteProductPath(product.slug, citySlug)}>
                         <h3 className="font-heading mb-2 text-lg font-semibold text-primary transition-colors hover:text-primary-container sm:text-xl">
                           {product.name}
                         </h3>
@@ -568,7 +614,7 @@ export default function Home() {
                           {product.priceLabel}
                         </span>
                         <Link
-                          href={`/produits/${product.slug}`}
+                          href={venteProductPath(product.slug, citySlug)}
                           aria-label={`Voir les détails de ${product.name}`}
                           className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary transition-all hover:scale-110 hover:bg-primary-container"
                         >
@@ -586,7 +632,7 @@ export default function Home() {
                   onPageChange={goToPage}
                 />
                 <Link
-                  href={VENTE_PAGE_PATH}
+                  href={venteCityPath(citySlug)}
                   className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-primary bg-white px-4 py-2.5 text-sm font-medium text-primary transition-all hover:bg-primary/5"
                 >
                   Visiter la page de catalogue
@@ -617,6 +663,76 @@ export default function Home() {
                 </button>
               </div>
             )}
+          </div>
+        </section>
+
+        {/* Soins et aide à domicile */}
+        <section
+          id="aide-domicile"
+          className="bg-surface-container-low px-4 py-10 sm:px-6 sm:py-14"
+        >
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-8 text-center">
+              <span className="mb-2 inline-block text-sm font-semibold uppercase tracking-wider text-secondary">
+                Nos services à {city.name}
+              </span>
+              <h2 className="font-heading text-2xl font-semibold text-secondary sm:text-3xl">
+                Soins et aide à domicile
+              </h2>
+              <p className="font-body mx-auto mt-4 max-w-2xl text-base leading-relaxed text-on-surface-variant">
+                {hubContent.careIntro}
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+              {hubContent.careServices.map((service) => {
+                const inner = (
+                  <>
+                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                      <MaterialIcon name={service.icon} className="text-[28px]" />
+                    </div>
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <h3 className="font-heading text-xl font-semibold text-secondary">
+                        {service.title}
+                      </h3>
+                      {service.badge && (
+                        <span className="rounded-full bg-surface-container-high px-2.5 py-0.5 text-xs font-semibold text-on-surface-variant">
+                          {service.badge}
+                        </span>
+                      )}
+                    </div>
+                    <p className="font-body flex-1 text-sm leading-relaxed text-on-surface-variant sm:text-base">
+                      {service.description}
+                    </p>
+                  </>
+                );
+
+                return service.href ? (
+                  <Link
+                    key={service.title}
+                    href={service.href}
+                    className="group flex flex-col rounded-3xl border border-outline-variant/30 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-primary/20 hover:shadow-md"
+                  >
+                    {inner}
+                  </Link>
+                ) : (
+                  <div
+                    key={service.title}
+                    className="flex flex-col rounded-3xl border border-outline-variant/30 bg-white p-6 shadow-sm"
+                  >
+                    {inner}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-8 text-center">
+              <Link
+                href="/services"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-on-primary shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary-container"
+              >
+                <MaterialIcon name="support_agent" />
+                En savoir plus sur nos services
+              </Link>
+            </div>
           </div>
         </section>
 
@@ -698,13 +814,13 @@ export default function Home() {
                     Villes desservies
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {coverageAreas.active.map((city) => (
+                    {activeCities.map((activeCity) => (
                       <Link
-                        key={city.slug}
-                        href={`/${city.slug}`}
+                        key={activeCity.slug}
+                        href={hubCityPath(activeCity.slug)}
                         className="rounded-full bg-white px-3 py-1.5 text-sm font-medium text-on-surface shadow-sm transition-colors hover:bg-primary hover:text-on-primary"
                       >
-                        {city.name}
+                        {activeCity.name}
                       </Link>
                     ))}
                   </div>
@@ -715,13 +831,13 @@ export default function Home() {
                     Prochainement
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {coverageAreas.comingSoon.map((city) => (
+                    {comingSoonCities.map((soonCity) => (
                       <span
-                        key={city}
+                        key={soonCity.slug}
                         className="inline-flex items-center gap-1.5 rounded-full bg-surface-container-low px-3 py-1.5 text-sm text-on-surface-variant"
                       >
                         <MaterialIcon name="schedule" className="text-base" />
-                        {city}
+                        {soonCity.name}
                       </span>
                     ))}
                   </div>
@@ -888,6 +1004,7 @@ export default function Home() {
                       setFormData({
                         nom: "",
                         telephone: "",
+                        ville: city.name,
                         materiel: "",
                         message: "",
                       });
@@ -941,6 +1058,30 @@ export default function Home() {
                   </div>
                   <div>
                     <label
+                      htmlFor="ville"
+                      className="mb-1.5 block text-sm font-medium text-white"
+                    >
+                      Ville
+                    </label>
+                    <select
+                      id="ville"
+                      name="ville"
+                      required
+                      value={formData.ville}
+                      onChange={(e) =>
+                        setFormData({ ...formData, ville: e.target.value })
+                      }
+                      className="w-full rounded-xl border-0 bg-white/90 px-4 py-3 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary-fixed"
+                    >
+                      {activeCities.map((activeCity) => (
+                        <option key={activeCity.slug} value={activeCity.name}>
+                          {activeCity.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label
                       htmlFor="materiel"
                       className="mb-1.5 block text-sm font-medium text-white"
                     >
@@ -982,7 +1123,7 @@ export default function Home() {
                       onChange={(e) =>
                         setFormData({ ...formData, message: e.target.value })
                       }
-                      placeholder="Précisez vos besoins, la durée souhaitée, votre ville..."
+                      placeholder="Précisez vos besoins, la durée souhaitée..."
                       className="w-full resize-none rounded-xl border-0 bg-white/90 px-4 py-3 text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:ring-2 focus:ring-primary-fixed"
                     />
                   </div>

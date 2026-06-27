@@ -3,12 +3,16 @@ import FooterContact, { FooterCopyright } from "@/components/footer-contact";
 import FooterLegalLinks from "@/components/footer-legal-links";
 import Logo from "@/components/logo";
 import { SITE_FULL_NAME } from "@/lib/brand";
-import { VENTE_PAGE_PATH } from "@/lib/routes";
+import { activeCities } from "@/lib/cities";
+import { venteCityPath } from "@/lib/routes";
 
 const navigationLinks = [
   { label: "Accueil", href: "/" },
   { label: "Nos Services", href: "/services" },
-  { label: "Vente Matériel", href: VENTE_PAGE_PATH },
+  ...activeCities.map((city) => ({
+    label: `Vente ${city.name}`,
+    href: venteCityPath(city.slug),
+  })),
   { label: "Blog", href: "/blog" },
   { label: "FAQ", href: "/#faq" },
 ];

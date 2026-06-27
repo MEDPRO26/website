@@ -5,12 +5,13 @@ import Navbar from "@/components/navbar";
 import SiteFooter from "@/components/site-footer";
 import { HERO_IMAGE, SITE_NAME, SITE_URL_DEFAULT } from "@/lib/brand";
 import {
-  activeDeliveryCities,
+  activeCities,
   activeDeliveryCityLabel,
   DEFAULT_DELIVERY_CITY,
   deliveryCities,
 } from "@/lib/delivery-cities";
 import { CONTACT_EMAIL, PHONE_DISPLAY, PHONE_NUMBER, WHATSAPP_NUMBER } from "@/lib/products";
+import { hubCityPath } from "@/lib/routes";
 
 const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL_DEFAULT
@@ -317,7 +318,7 @@ export default function ContactPage() {
                       defaultValue={DEFAULT_DELIVERY_CITY}
                       className="w-full rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                     >
-                      {activeDeliveryCities.map((city) => (
+                      {activeCities.map((city) => (
                         <option key={city.slug} value={city.name}>
                           {city.name}
                         </option>
@@ -407,16 +408,18 @@ export default function ContactPage() {
                   ci-dessous seront disponibles prochainement.
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {deliveryCities.map((city) =>
-                    city.active ? (
-                      <Link
-                        key={city.slug}
-                        href={`/${city.slug}`}
-                        className="rounded-full bg-surface-container-low px-3 py-1.5 text-sm text-on-surface transition-colors hover:bg-primary hover:text-on-primary"
-                      >
-                        {city.name}
-                      </Link>
-                    ) : (
+                  {activeCities.map((city) => (
+                    <Link
+                      key={city.slug}
+                      href={hubCityPath(city.slug)}
+                      className="rounded-full bg-surface-container-low px-3 py-1.5 text-sm text-on-surface transition-colors hover:bg-primary hover:text-on-primary"
+                    >
+                      {city.name}
+                    </Link>
+                  ))}
+                  {deliveryCities
+                    .filter((city) => !city.active)
+                    .map((city) => (
                       <span
                         key={city.slug}
                         className="inline-flex items-center gap-1.5 rounded-full bg-surface-container-low px-3 py-1.5 text-sm text-on-surface-variant"
@@ -424,8 +427,7 @@ export default function ContactPage() {
                         <MaterialIcon name="schedule" className="text-base" />
                         {city.name} · Bientôt disponible
                       </span>
-                    )
-                  )}
+                    ))}
                 </div>
               </div>
             </div>

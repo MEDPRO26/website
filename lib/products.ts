@@ -1,7 +1,10 @@
-import { diagnosticProducts } from "@/lib/diagnostic-products";
-import { instrumentsProducts } from "@/lib/instruments-products";
-import { mobilityProducts } from "@/lib/mobility-products";
-import { respiratoryProducts } from "@/lib/respiratory-products";
+import { catalogProducts } from "@/lib/catalog-products";
+import {
+  activeCities,
+  DEFAULT_CITY_SLUG,
+  getCityBySlug,
+  type CitySlug,
+} from "@/lib/cities";
 import type {
   Product,
   ProductSpec,
@@ -11,25 +14,41 @@ import type {
 
 export type { Product, ProductSpec, ProductUseCase, RelatedProduct };
 
-export const CONTACT_EMAIL = "contact@sossante.ma";
+export {
+  CONTACT_EMAIL,
+  PHONE_DISPLAY,
+  PHONE_NUMBER,
+  WHATSAPP_NUMBER,
+} from "@/lib/cities";
 export { PRICE_ON_REQUEST } from "@/lib/respiratory-products";
-export const WHATSAPP_NUMBER = "212700975888";
-export const PHONE_NUMBER = "+212700975888";
-export const PHONE_DISPLAY = "07 00 97 58 88";
 
-export const products: Product[] = [
-  ...respiratoryProducts,
-  ...mobilityProducts,
-  ...diagnosticProducts,
-  ...instrumentsProducts,
-];
+export const products: Product[] = catalogProducts;
 
-export function getProductBySlug(slug: string): Product | undefined {
-  return products.find((p) => p.slug === slug);
+function withCityLabel(citySlug: string): Product[] {
+  const cityName = getCityBySlug(citySlug)?.name ?? "Agadir";
+  return catalogProducts.map((product) => ({ ...product, city: cityName }));
 }
 
-export function getCatalogProducts() {
-  return products.map(
+export function getProductsByCity(citySlug: string): Product[] {
+  if (!getCityBySlug(citySlug)?.available) return [];
+  return withCityLabel(citySlug);
+}
+
+export function getProductBySlug(
+  slug: string,
+  citySlug?: string
+): Product | undefined {
+  const base = catalogProducts.find((product) => product.slug === slug);
+  if (!base) return undefined;
+
+  if (!citySlug) return base;
+
+  const cityName = getCityBySlug(citySlug)?.name;
+  return cityName ? { ...base, city: cityName } : base;
+}
+
+export function getCatalogProducts(citySlug: string = DEFAULT_CITY_SLUG) {
+  return getProductsByCity(citySlug).map(
     ({
       slug,
       name,
@@ -52,4 +71,20 @@ export function getCatalogProducts() {
       priceLabel,
     })
   );
+}
+
+export function getAllCityProductParams() {
+  const params: { city: CitySlug; slug: string }[] = [];
+
+  for (const city of activeCities) {
+    for (const product of catalogProducts) {
+      params.push({ city: city.slug, slug: product.slug });
+    }
+  }
+
+  return params;
+}
+
+export function getActiveVenteCitySlugs(): CitySlug[] {
+  return activeCities.map((city) => city.slug);
 }
