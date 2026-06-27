@@ -43,5 +43,6 @@ next-env.d.ts
 .cursor/
 .stitch/
 .stitch/designs/
+sossante-agadir-hub-main/
 AGENTS.md
 CLAUDE.md
