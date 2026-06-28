@@ -7,6 +7,7 @@ import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
 import CityLinks from "@/components/city-links";
 import Navbar from "@/components/navbar";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
 import { DEFAULT_CITY_SLUG } from "@/lib/cities";
 import { CONTACT_EMAIL, WHATSAPP_NUMBER, type Product } from "@/lib/products";
@@ -158,7 +159,7 @@ function CtaSection({ title }: { title: string }) {
             href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20louer%20du%20matériel%20médical.`}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-primary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
           >
-            <MaterialIcon name="chat" />
+            <WhatsAppIcon className="h-5 w-5" />
             WhatsApp
           </a>
           <a

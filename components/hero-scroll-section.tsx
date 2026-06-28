@@ -60,13 +60,96 @@ function ScrollHint({ overlay = false }: { overlay?: boolean }) {
       </div>
       <span
         className={`whitespace-nowrap font-semibold uppercase tracking-widest ${
-          overlay
-            ? "text-[10px] text-white/90"
-            : "text-xs text-secondary"
+          overlay ? "text-[10px] text-white/90" : "text-xs text-secondary"
         }`}
       >
         Défiler
       </span>
+    </div>
+  );
+}
+
+function GalleryDots({
+  images,
+  activeIndex,
+  onSelect,
+}: {
+  images: HeroGalleryImage[];
+  activeIndex: number;
+  onSelect?: (index: number) => void;
+}) {
+  return (
+    <div
+      className="mt-3 flex items-center justify-center gap-2"
+      aria-label={`Image ${activeIndex + 1} sur ${images.length}`}
+    >
+      {images.map((image, index) => {
+        const isActive = index === activeIndex;
+        const className = `h-2 rounded-full transition-all duration-300 ${
+          isActive ? "w-6 bg-primary" : "w-2 bg-secondary/30"
+        }`;
+
+        if (onSelect) {
+          return (
+            <button
+              key={image.src}
+              type="button"
+              aria-label={`Afficher l'image ${index + 1}`}
+              aria-current={isActive ? "true" : undefined}
+              onClick={() => onSelect(index)}
+              className={`${className} p-0`}
+            />
+          );
+        }
+
+        return <span key={image.src} className={className} />;
+      })}
+    </div>
+  );
+}
+
+function GalleryFrame({
+  images,
+  activeIndex,
+  galleryOverlay,
+  className = "",
+  onTouchStart,
+  onTouchEnd,
+}: {
+  images: HeroGalleryImage[];
+  activeIndex: number;
+  galleryOverlay?: ReactNode;
+  className?: string;
+  onTouchStart?: (event: React.TouchEvent<HTMLDivElement>) => void;
+  onTouchEnd?: (event: React.TouchEvent<HTMLDivElement>) => void;
+}) {
+  return (
+    <div
+      className={`relative mx-auto w-full overflow-hidden rounded-3xl shadow-2xl ${className}`}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
+      {images.map((image, index) => (
+        <Image
+          key={image.src}
+          src={image.src}
+          alt={image.alt}
+          fill
+          priority={index === 0}
+          sizes="(min-width: 1024px) 50vw, 100vw"
+          className="object-cover transition-opacity duration-500 ease-in-out"
+          style={{
+            opacity: index === activeIndex ? 1 : 0,
+            zIndex: index === activeIndex ? 1 : 0,
+          }}
+        />
+      ))}
+      <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+      {galleryOverlay && (
+        <div className="pointer-events-none absolute inset-0 z-20">
+          {galleryOverlay}
+        </div>
+      )}
     </div>
   );
 }
@@ -77,12 +160,60 @@ export default function HeroScrollSection({
   galleryOverlay,
 }: HeroScrollSectionProps) {
   const trackRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef(0);
   const [progress, setProgress] = useState(0);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [mobileIndex, setMobileIndex] = useState(0);
 
   const steps = Math.max(images.length, 1);
   const scrollHeightVh = 100 + (steps - 1) * 45;
 
+  const goToMobileSlide = (index: number) => {
+    setMobileIndex((index + images.length) % images.length);
+  };
+
+  const handleMobileTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    touchStartX.current = event.touches[0]?.clientX ?? 0;
+  };
+
+  const handleMobileTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    const touchEndX = event.changedTouches[0]?.clientX ?? 0;
+    const deltaX = touchStartX.current - touchEndX;
+
+    if (Math.abs(deltaX) < 40) return;
+
+    if (deltaX > 0) {
+      setMobileIndex((current) => (current + 1) % images.length);
+      return;
+    }
+
+    setMobileIndex((current) => (current - 1 + images.length) % images.length);
+  };
+
   useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const updateViewport = () => setIsDesktop(mq.matches);
+    updateViewport();
+    mq.addEventListener("change", updateViewport);
+    return () => mq.removeEventListener("change", updateViewport);
+  }, []);
+
+  useEffect(() => {
+    if (isDesktop || images.length <= 1) return;
+
+    const intervalId = window.setInterval(() => {
+      setMobileIndex((current) => (current + 1) % images.length);
+    }, 4500);
+
+    return () => window.clearInterval(intervalId);
+  }, [isDesktop, images.length]);
+
+  useEffect(() => {
+    if (!isDesktop) {
+      setProgress(0);
+      return;
+    }
+
     const updateProgress = () => {
       const track = trackRef.current;
       if (!track) return;
@@ -106,7 +237,7 @@ export default function HeroScrollSection({
       window.removeEventListener("scroll", updateProgress);
       window.removeEventListener("resize", updateProgress);
     };
-  }, []);
+  }, [isDesktop]);
 
   const activeIndex = Math.min(
     images.length - 1,
@@ -117,10 +248,29 @@ export default function HeroScrollSection({
     <div
       ref={trackRef}
       id="accueil"
-      className="relative"
-      style={{ height: `${scrollHeightVh}vh` }}
+      className="relative scroll-mt-16 md:scroll-mt-20"
+      style={isDesktop ? { height: `${scrollHeightVh}vh` } : undefined}
     >
-      <div className="sticky top-16 flex h-[calc(100vh-4rem)] flex-col overflow-hidden md:top-20 md:h-[calc(100vh-5rem)]">
+      {/* Mobile: swipeable carousel */}
+      <div className="px-4 pb-6 pt-4 sm:px-6 lg:hidden">
+        <GalleryFrame
+          images={images}
+          activeIndex={mobileIndex}
+          galleryOverlay={galleryOverlay}
+          className="aspect-[16/10] max-h-[220px] touch-pan-y sm:max-h-[260px]"
+          onTouchStart={handleMobileTouchStart}
+          onTouchEnd={handleMobileTouchEnd}
+        />
+        <GalleryDots
+          images={images}
+          activeIndex={mobileIndex}
+          onSelect={goToMobileSlide}
+        />
+        <div className="mt-6">{children}</div>
+      </div>
+
+      {/* Desktop: sticky scroll-driven gallery */}
+      <div className="sticky top-16 hidden h-[calc(100vh-4rem)] flex-col overflow-hidden md:top-20 md:h-[calc(100vh-5rem)] lg:flex">
         <div className="relative flex min-h-0 flex-1 flex-col justify-center px-4 sm:px-6 lg:px-8">
           <div className="absolute inset-0 -z-10">
             <div className="absolute -left-[20%] -top-[20%] h-[70%] w-[70%] rounded-full bg-primary/5 blur-[100px]" />
@@ -132,57 +282,20 @@ export default function HeroScrollSection({
             <div className="order-2 min-h-0 lg:order-1">{children}</div>
 
             <div className="order-1 flex flex-col lg:order-2">
-              <div className="relative mx-auto aspect-[4/3] w-full max-h-[34vh] overflow-hidden rounded-3xl shadow-2xl sm:max-h-[38vh] lg:aspect-square lg:max-h-none">
-                {images.map((image, index) => (
-                  <Image
-                    key={image.src}
-                    src={image.src}
-                    alt={image.alt}
-                    fill
-                    priority={index === 0}
-                    sizes="(min-width: 1024px) 50vw, 100vw"
-                    className="object-cover"
-                    style={{
-                      opacity: index === activeIndex ? 1 : 0,
-                      zIndex: index === activeIndex ? 1 : 0,
-                    }}
-                  />
-                ))}
-                <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                {galleryOverlay && (
-                  <div className="pointer-events-none absolute inset-0 z-20">
-                    {galleryOverlay}
-                  </div>
-                )}
-              </div>
+              <GalleryFrame
+                images={images}
+                activeIndex={activeIndex}
+                galleryOverlay={galleryOverlay}
+                className="aspect-[4/3] max-h-[38vh] lg:aspect-square lg:max-h-none"
+              />
+              <GalleryDots images={images} activeIndex={activeIndex} />
 
-              <div
-                className="mt-3 flex items-center justify-center gap-2"
-                aria-label={`Image ${activeIndex + 1} sur ${images.length}`}
-              >
-                {images.map((image, index) => (
-                  <span
-                    key={image.src}
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      index === activeIndex
-                        ? "w-6 bg-primary"
-                        : "w-2 bg-secondary/30"
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {activeIndex < images.length - 1 && (
-              <>
+              {activeIndex < images.length - 1 && (
                 <div className="pointer-events-none absolute -bottom-16 left-[51%] z-30 hidden -translate-x-1/2 lg:block">
                   <ScrollHint overlay />
                 </div>
-                <div className="order-3 flex justify-center py-1 lg:hidden">
-                  <ScrollHint overlay={false} />
-                </div>
-              </>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

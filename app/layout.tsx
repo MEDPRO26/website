@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Source_Serif_4 } from "next/font/google";
+import MobileBottomNav from "@/components/mobile-bottom-nav";
 import { LOGO, SITE_URL_DEFAULT } from "@/lib/brand";
 import { getRobotsMetadata } from "@/lib/indexing";
 import "./globals.css";
@@ -102,7 +103,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+      <body className="min-h-full flex flex-col font-sans">
+        {children}
+        <MobileBottomNav />
+      </body>
     </html>
   );
 }

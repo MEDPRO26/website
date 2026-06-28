@@ -1,7 +1,7 @@
 import type { Product } from "@/lib/product-types";
 import { PRICE_ON_REQUEST } from "@/lib/respiratory-products";
 
-const instrumentsStyle = "bg-secondary/10 text-secondary";
+const instrumentsStyle = "bg-white text-secondary shadow-sm";
 const city = "Agadir";
 
 function instrumentProduct(

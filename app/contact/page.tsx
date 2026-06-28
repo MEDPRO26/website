@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb";
 import Navbar from "@/components/navbar";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
 import { HERO_IMAGE, SITE_NAME, SITE_URL_DEFAULT } from "@/lib/brand";
 import {
@@ -214,7 +215,11 @@ export default function ContactPage() {
                   <div
                     className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl transition-all ${channel.color}`}
                   >
-                    <MaterialIcon name={channel.icon} className="text-[28px]" />
+                    {channel.title === "WhatsApp" ? (
+                      <WhatsAppIcon className="h-7 w-7" />
+                    ) : (
+                      <MaterialIcon name={channel.icon} className="text-[28px]" />
+                    )}
                   </div>
                   <h2 className="font-heading mb-1 text-xl font-semibold text-primary">
                     {channel.title}

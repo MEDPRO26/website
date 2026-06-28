@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
+import CatalogPickerButton from "@/components/catalog-picker-button";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
 import { activeCities, getCityBySlug, type CitySlug } from "@/lib/cities";
 import { getCityHubContent } from "@/lib/city-hub-content";
@@ -125,13 +128,10 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
               {city.deliveryText}
             </p>
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link
-                href={venteCityPath(citySlug)}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-on-primary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-primary-container"
-              >
+              <CatalogPickerButton className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-on-primary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-primary-container">
                 <MaterialIcon name="shopping_bag" />
                 Voir le catalogue vente
-              </Link>
+              </CatalogPickerButton>
               <Link
                 href="/services"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-secondary bg-white px-8 py-4 text-base font-semibold text-secondary transition-all hover:-translate-y-0.5 hover:bg-secondary/5"
@@ -247,11 +247,23 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
                 {content.careIntro}
               </p>
             </div>
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {content.careServices.map((service) => {
                 const inner = (
                   <>
-                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/10 text-secondary">
+                    {service.image && (
+                      <div className="relative -mx-6 -mt-6 mb-5 h-44 overflow-hidden sm:-mx-6">
+                        <Image
+                          src={service.image}
+                          alt={service.imageAlt ?? service.title}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          sizes="(min-width: 1024px) 33vw, 100vw"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent" />
+                      </div>
+                    )}
+                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/10 text-secondary transition-colors group-hover:bg-secondary group-hover:text-on-secondary">
                       <MaterialIcon name={service.icon} className="text-[28px]" />
                     </div>
                     <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -274,14 +286,14 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
                   <Link
                     key={service.title}
                     href={service.href}
-                    className="group flex flex-col rounded-3xl border border-outline-variant/30 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-secondary/20 hover:shadow-md"
+                    className="group flex flex-col overflow-hidden rounded-3xl border border-outline-variant/30 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-secondary/20 hover:shadow-md"
                   >
                     {inner}
                   </Link>
                 ) : (
                   <div
                     key={service.title}
-                    className="flex flex-col rounded-3xl border border-outline-variant/30 bg-white p-6 shadow-sm"
+                    className="group flex flex-col overflow-hidden rounded-3xl border border-outline-variant/30 bg-white p-6 shadow-sm"
                   >
                     {inner}
                   </div>
@@ -382,7 +394,7 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
                 href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-status-success px-8 py-4 text-base font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:brightness-110"
               >
-                <MaterialIcon name="chat" />
+                <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp · {city.name}
               </a>
               <Link

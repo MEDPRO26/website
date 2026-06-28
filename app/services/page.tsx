@@ -6,12 +6,15 @@ import { useState } from "react";
 import SiteFooter from "@/components/site-footer";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import {
   CONTACT_EMAIL,
   PHONE_DISPLAY,
   PHONE_NUMBER,
   WHATSAPP_NUMBER,
 } from "@/lib/products";
+import { activeCities } from "@/lib/cities";
+import { careServiceCityPath, careServiceFormOptions, careServices } from "@/lib/care-services";
 import {
   breadcrumbSchema,
   buildGraph,
@@ -21,10 +24,31 @@ import {
   webPageSchema,
 } from "@/lib/schema";
 
+const careServiceImages = Object.fromEntries(
+  careServices.map((service) => [service.slug, service.images])
+);
+
 const serviceSpecialties = [
   {
+    slug: "kinesitherapie-a-domicile",
+    icon: "fitness_center",
+    title: "Kinésithérapie à domicile",
+    description:
+      "Rééducation fonctionnelle, respiratoire ou neurologique directement chez vous pour une récupération optimale.",
+    features: ["Rééducation motrice", "Kiné respiratoire", "Rééducation neurologique"],
+    theme: {
+      bg: "bg-tertiary-container/15 text-tertiary-container",
+      hoverBg: "group-hover:bg-tertiary-container group-hover:text-on-tertiary-container",
+      border: "border-tertiary-container/10",
+      check: "text-tertiary-container",
+      link: "text-tertiary-container",
+      lightBg: "bg-tertiary-container/5",
+    },
+  },
+  {
+    slug: "soins-infirmiers-a-domicile",
     icon: "medical_services",
-    title: "Infirmier à domicile",
+    title: "Soins infirmiers à domicile",
     description:
       "Injections, pansements complexes, perfusions et suivi des constantes vitales par des professionnels diplômés d'État.",
     features: ["Soins post-opératoires", "Prise de sang", "Surveillance 24h/7j"],
@@ -38,33 +62,51 @@ const serviceSpecialties = [
     },
   },
   {
+    slug: "medecin-a-domicile",
+    icon: "stethoscope",
+    title: "Médecin à domicile",
+    description:
+      "Consultation et suivi médical à domicile. Mise en relation avec des médecins généralistes partenaires selon disponibilité.",
+    features: ["Consultation à domicile", "Suivi post-hospitalisation", "Orientation spécialisée"],
+    theme: {
+      bg: "bg-primary-fixed/80 text-primary-container",
+      hoverBg: "group-hover:bg-primary-container group-hover:text-on-primary-container",
+      border: "border-primary/10",
+      check: "text-primary-container",
+      link: "text-primary-container",
+      lightBg: "bg-primary-fixed/40",
+    },
+  },
+  {
+    slug: "aide-soignant-a-domicile",
     icon: "volunteer_activism",
-    title: "Aide-soignante",
+    title: "Aide-soignant à domicile",
     description:
       "Accompagnement quotidien pour l'hygiène, l'habillage et l'aide à la mobilité des personnes âgées ou dépendantes.",
     features: ["Aide à la toilette", "Surveillance nocturne", "Préparation des repas"],
     theme: {
-      bg: "bg-secondary/10 text-secondary",
-      hoverBg: "group-hover:bg-secondary group-hover:text-on-secondary",
-      border: "border-secondary/10",
-      check: "text-secondary",
-      link: "text-secondary",
-      lightBg: "bg-secondary/5",
+      bg: "bg-primary/10 text-primary",
+      hoverBg: "group-hover:bg-primary group-hover:text-on-primary",
+      border: "border-primary/10",
+      check: "text-primary",
+      link: "text-primary",
+      lightBg: "bg-primary/5",
     },
   },
   {
-    icon: "fitness_center",
-    title: "Kinésithérapeute",
+    slug: "ambulance-maroc",
+    icon: "emergency",
+    title: "Ambulance Maroc",
     description:
-      "Rééducation fonctionnelle, respiratoire ou neurologique directement chez vous pour une récupération optimale.",
-    features: ["Rééducation motrice", "Kiné respiratoire", "Rééducation neurologique"],
+      "Transport médical et ambulance à domicile. Coordination avec des prestataires partenaires au Maroc selon disponibilité.",
+    features: ["Transport médicalisé", "Transfert inter-villes", "Disponibilité à confirmer"],
     theme: {
-      bg: "bg-tertiary-container/15 text-tertiary-container",
-      hoverBg: "group-hover:bg-tertiary-container group-hover:text-on-tertiary-container",
-      border: "border-tertiary-container/10",
-      check: "text-tertiary-container",
-      link: "text-tertiary-container",
-      lightBg: "bg-tertiary-container/5",
+      bg: "bg-primary/10 text-primary",
+      hoverBg: "group-hover:bg-primary group-hover:text-on-primary",
+      border: "border-primary/10",
+      check: "text-primary",
+      link: "text-primary",
+      lightBg: "bg-primary/5",
     },
   },
 ];
@@ -105,12 +147,7 @@ const faqs = [
   },
 ];
 
-const careTypes = [
-  "Infirmier",
-  "Aide-soignante",
-  "Kinésithérapeute",
-  "Garde-malade",
-];
+const careTypes = careServiceFormOptions;
 
 const serviceCities = ["Agadir", "Rabat"];
 
@@ -118,7 +155,7 @@ const servicesSchema = buildGraph(
   webPageSchema(
     "/services",
     "Soins et aide à domicile à Agadir | SOS Santé",
-    "SOS Santé vous met en relation avec des infirmiers, aide-soignants et kinésithérapeutes qualifiés pour des soins à domicile."
+    "SOS Santé vous met en relation avec des kinésithérapeutes, infirmiers, médecins, aide-soignants et ambulance pour des soins à domicile."
   ),
   breadcrumbSchema([
     { name: "Accueil", item: "/" },
@@ -164,7 +201,7 @@ export default function ServicesPage() {
     "idle"
   );
   const [formData, setFormData] = useState({
-    careType: "Infirmier",
+    careType: "Kinésithérapeute",
     city: "",
     neighborhood: "",
     name: "",
@@ -252,7 +289,7 @@ export default function ServicesPage() {
                 href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20un%20service%20de%20soins%20à%20domicile.`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-secondary bg-white/60 px-8 py-4 text-base font-semibold text-secondary backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-secondary/10"
               >
-                <MaterialIcon name="chat" />
+                <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp Express
               </a>
             </div>
@@ -293,16 +330,27 @@ export default function ServicesPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {serviceSpecialties.map((service, index) => (
               <article
                 key={service.title}
-                className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-outline-variant/30 bg-surface-base p-6 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl sm:p-8"
+                className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-outline-variant/30 bg-surface-base shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div
-                  className={`absolute inset-x-0 top-0 h-1 ${service.theme.border.replace("border", "bg")}`}
+                  className={`absolute inset-x-0 top-0 z-10 h-1 ${service.theme.border.replace("border", "bg")}`}
                 />
+                <div className="relative h-44 overflow-hidden">
+                  <Image
+                    src={careServiceImages[service.slug].hero}
+                    alt={careServiceImages[service.slug].alt}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    sizes="(min-width: 1024px) 33vw, 100vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-surface-base via-surface-base/20 to-transparent" />
+                </div>
+                <div className="flex flex-grow flex-col p-6 sm:p-8">
                 <div
                   className={`mb-6 flex h-16 w-16 items-center justify-center rounded-2xl transition-all duration-300 ${service.theme.bg} ${service.theme.hoverBg}`}
                 >
@@ -334,11 +382,23 @@ export default function ServicesPage() {
                     e.preventDefault();
                     scrollToSection("request-form");
                   }}
-                  className={`mt-auto inline-flex items-center gap-1.5 font-heading text-sm font-semibold ${service.theme.link} transition-all hover:gap-2.5`}
+                  className={`inline-flex items-center gap-1.5 font-heading text-sm font-semibold ${service.theme.link} transition-all hover:gap-2.5`}
                 >
                   Demander le service
                   <MaterialIcon name="chevron_right" className="text-lg" />
                 </a>
+                <div className="mt-4 flex flex-wrap gap-2 border-t border-outline-variant/30 pt-4">
+                  {activeCities.map((city) => (
+                    <Link
+                      key={city.slug}
+                      href={careServiceCityPath(service.slug, city.slug)}
+                      className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-on-primary"
+                    >
+                      {service.title} à {city.name}
+                    </Link>
+                  ))}
+                </div>
+                </div>
               </article>
             ))}
           </div>
@@ -458,7 +518,7 @@ export default function ServicesPage() {
                   href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20un%20service%20de%20soins%20à%20domicile.`}
                   className="inline-flex items-center gap-2 rounded-xl border-2 border-status-success px-5 py-3 text-sm font-semibold text-status-success transition-all hover:bg-status-success hover:text-white"
                 >
-                  <MaterialIcon name="chat" />
+                  <WhatsAppIcon className="h-5 w-5" />
                   Discuter maintenant
                 </a>
               </div>
@@ -481,7 +541,7 @@ export default function ServicesPage() {
                   onClick={() => {
                     setFormStatus("idle");
                     setFormData({
-                      careType: "Infirmier",
+                      careType: "Kinésithérapeute",
                       city: "",
                       neighborhood: "",
                       name: "",
@@ -722,7 +782,7 @@ export default function ServicesPage() {
                 href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20j'ai%20besoin%20d'un%20soin%20urgent%20à%20domicile.`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white px-8 py-4 text-base font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-white/10"
               >
-                <MaterialIcon name="chat" />
+                <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp
               </a>
             </div>
@@ -732,48 +792,13 @@ export default function ServicesPage() {
 
       <SiteFooter />
 
-      {/* Mobile bottom nav */}
-      <nav
-        aria-label="Navigation mobile"
-        className="fixed bottom-0 left-0 z-50 flex h-16 w-full items-center justify-around border-t border-outline-variant bg-background px-2 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] md:hidden"
-      >
-        <Link
-          href="/"
-          className="flex flex-1 flex-col items-center justify-center py-2 text-on-surface-variant transition-colors hover:text-primary"
-        >
-          <MaterialIcon name="home" />
-          <span className="text-[10px] font-medium">Accueil</span>
-        </Link>
-        <Link
-          href="/"
-          className="flex flex-1 flex-col items-center justify-center py-2 text-on-surface-variant transition-colors hover:text-primary"
-        >
-          <MaterialIcon name="medical_services" />
-          <span className="text-[10px] font-medium">Matériel</span>
-        </Link>
-        <Link
-          href="/services"
-          className="flex flex-1 flex-col items-center justify-center py-2 text-primary"
-        >
-          <MaterialIcon name="volunteer_activism" filled />
-          <span className="text-[10px] font-bold">Services</span>
-        </Link>
-        <a
-          href={`https://wa.me/${WHATSAPP_NUMBER}`}
-          className="flex flex-1 flex-col items-center justify-center py-2 text-on-surface-variant transition-colors hover:text-status-success"
-        >
-          <MaterialIcon name="chat" className="text-status-success" />
-          <span className="text-[10px] font-medium">WhatsApp</span>
-        </a>
-      </nav>
-
       {/* Desktop WhatsApp FAB */}
       <a
         href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20un%20service%20de%20soins%20à%20domicile.`}
         aria-label="Contacter sur WhatsApp"
         className="fixed bottom-8 right-8 z-50 hidden h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-2xl shadow-[#25D366]/30 transition-all hover:scale-110 hover:shadow-xl active:scale-95 md:flex"
       >
-        <MaterialIcon name="chat" className="text-2xl" />
+        <WhatsAppIcon className="h-7 w-7" />
       </a>
     </>
   );

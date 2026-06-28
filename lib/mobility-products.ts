@@ -1,7 +1,7 @@
 import type { Product } from "@/lib/product-types";
 import { PRICE_ON_REQUEST } from "@/lib/respiratory-products";
 
-const mobilityStyle = "bg-secondary/15 text-secondary";
+const mobilityStyle = "bg-white text-secondary shadow-sm";
 const city = "Agadir";
 
 function mobilityProduct(

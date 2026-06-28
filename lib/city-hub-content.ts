@@ -1,3 +1,4 @@
+import { getCareServicesForCity } from "@/lib/care-services";
 import { getCityBySlug, type CitySlug } from "@/lib/cities";
 import { venteCityPath } from "@/lib/routes";
 
@@ -7,6 +8,8 @@ export type CityHubService = {
   description: string;
   href?: string;
   badge?: string;
+  image?: string;
+  imageAlt?: string;
 };
 
 export type CityHubContent = {
@@ -40,6 +43,8 @@ function buildKeywords(cityName: string): string[] {
     `aide à domicile ${cityName}`,
     `kinésithérapie à domicile ${cityName}`,
     `infirmier à domicile ${cityName}`,
+    `médecin à domicile ${cityName}`,
+    `ambulance ${cityName}`,
     `matelas anti-escarres ${cityName}`,
   ];
 }
@@ -59,7 +64,7 @@ const cityCopy: Partial<
     equipmentIntro:
       "Achetez ou louez du matériel médical à Agadir : lits médicalisés, fauteuils roulants, concentrateurs d'oxygène, matelas anti-escarres et matériel de diagnostic. Livraison locale dans les communes environnantes.",
     careIntro:
-      "Besoin de soins ou d'aide à domicile à Agadir ? SOS Santé vous oriente vers des professionnels qualifiés : kinésithérapeute, infirmier, aide-soignant et autres intervenants à domicile.",
+      "Besoin de soins ou d'aide à domicile à Agadir ? SOS Santé vous oriente vers des professionnels qualifiés : kinésithérapeute, infirmier, médecin, aide-soignant et transport médical.",
     paragraphs: [
       "Que vous recherchiez un lit médicalisé, un fauteuil roulant, un concentrateur d'oxygène ou du matériel de diagnostic, notre équipe vous conseille et organise la livraison à Agadir, Inezgane, Aït Melloul, Dcheira, Anza, Taghazout et environs.",
       "Pour les soins à domicile, nous facilitons la mise en relation avec des professionnels de santé adaptés à votre situation. SOS Santé Agadir agit comme intermédiaire entre les familles et les prestataires locaux.",
@@ -71,13 +76,16 @@ const cityCopy: Partial<
     equipmentIntro:
       "Achetez ou louez du matériel médical à Rabat : mobilité, respiratoire, confort, diagnostic et instruments. Livraison à Rabat, Salé, Temara et environs. Délai sous 24h.",
     careIntro:
-      "Besoin de soins ou d'aide à domicile à Rabat ? SOS Santé vous oriente vers des professionnels qualifiés : kinésithérapeute, infirmier, aide-soignant et autres intervenants à domicile.",
+      "Besoin de soins ou d'aide à domicile à Rabat ? SOS Santé vous oriente vers des professionnels qualifiés : kinésithérapeute, infirmier, médecin, aide-soignant et transport médical.",
     paragraphs: [
       "Notre catalogue couvre le matériel de mobilité, respiratoire, confort, diagnostic et instruments médicaux. Livraison à Rabat, Salé, Temara, Hay Riad, Agdal, Souissi et environs.",
       "Pour l'aide à domicile, nous mettons en relation les patients et les familles avec des professionnels de santé qualifiés. Devis et orientation personnalisés par notre équipe locale.",
     ],
   },
 };
+
+export const homepageCareIntro =
+  "Besoin de soins ou d'aide à domicile ? SOS Santé vous oriente vers des professionnels qualifiés : kinésithérapeute, infirmier, médecin, aide-soignant et transport médical.";
 
 export function getCityHubContent(citySlug: CitySlug): CityHubContent {
   const city = getCityBySlug(citySlug)!;
@@ -87,7 +95,7 @@ export function getCityHubContent(citySlug: CitySlug): CityHubContent {
   return {
     badgeLabel: `${city.brandName} - Matériel Médical & Aide à Domicile`,
     metaTitle: `Location et vente matériel médical à ${cityLabel} | Aide à domicile`,
-    metaDescription: `${city.brandName} : location et vente de matériel médical à domicile à ${cityLabel}. Lits médicalisés, fauteuils roulants, oxygène. Kinésithérapie, infirmier, aide-soignant. ${city.deliveryText}`,
+    metaDescription: `${city.brandName} : location et vente de matériel médical à domicile à ${cityLabel}. Lits médicalisés, fauteuils roulants, oxygène. Kinésithérapie, infirmier, médecin, aide-soignant, ambulance. ${city.deliveryText}`,
     keywords: buildKeywords(cityLabel),
     intro:
       copy?.intro ??
@@ -97,7 +105,7 @@ export function getCityHubContent(citySlug: CitySlug): CityHubContent {
       `Vente et location de matériel médical à ${cityLabel}. Livraison locale selon votre zone.`,
     careIntro:
       copy?.careIntro ??
-      `Soins et aide à domicile à ${cityLabel} : kinésithérapie, infirmier, aide-soignant.`,
+      `Soins et aide à domicile à ${cityLabel} : kinésithérapie, infirmier, médecin, aide-soignant, ambulance.`,
     paragraphs: copy?.paragraphs ?? [
       `Matériel médical à domicile à ${cityLabel} : mobilité, respiratoire, confort, diagnostic et instruments.`,
       `Aide à domicile à ${cityLabel} : orientation vers des professionnels de santé qualifiés.`,
@@ -116,29 +124,7 @@ export function getCityHubContent(citySlug: CitySlug): CityHubContent {
         badge: "Bientôt disponible",
       },
     ],
-    careServices: [
-      {
-        icon: "physical_therapy",
-        title: "Kinésithérapie à domicile",
-        description: `Rééducation et séances de kinésithérapie à domicile à ${cityLabel}. Mise en relation avec des kinésithérapeutes qualifiés.`,
-        href: "/services",
-        badge: "Bientôt disponible",
-      },
-      {
-        icon: "medical_services",
-        title: "Soins infirmiers à domicile",
-        description: `Pansements, injections, perfusions et suivi infirmier à domicile à ${cityLabel}. Orientation vers des infirmiers diplômés.`,
-        href: "/services",
-        badge: "Bientôt disponible",
-      },
-      {
-        icon: "volunteer_activism",
-        title: "Aide-soignant à domicile",
-        description: `Aide aux actes du quotidien, accompagnement et soutien à domicile à ${cityLabel}. Mise en relation avec des aide-soignants.`,
-        href: "/services",
-        badge: "Bientôt disponible",
-      },
-    ],
+    careServices: getCareServicesForCity(citySlug),
     equipmentHighlights: [
       {
         icon: "bed",

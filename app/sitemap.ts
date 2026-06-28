@@ -1,6 +1,11 @@
 import type { MetadataRoute } from "next";
 import { HERO_IMAGE, SITE_URL_DEFAULT } from "@/lib/brand";
 import { activeCities } from "@/lib/cities";
+import {
+  getAllCareServicePageParams,
+  getCareServiceBySlug,
+  parseCareServiceCitySlug,
+} from "@/lib/care-services";
 import { blogPosts } from "@/lib/blog";
 import { allowIndexing } from "@/lib/indexing";
 import { legalPages } from "@/lib/legal-routes";
@@ -57,6 +62,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       "/services/soins-domicile.jpg",
       "/services/hero-bg.jpg",
     ]),
+    ...getAllCareServicePageParams().map(({ slug }) => {
+      const parsed = parseCareServiceCitySlug(slug);
+      const heroImage =
+        (parsed && getCareServiceBySlug(parsed.serviceSlug)?.images.hero) ||
+        "/services/soins-domicile.jpg";
+      return createSitemapEntry(`/services/${slug}`, 0.85, [heroImage]);
+    }),
     ...activeCities.map((city) =>
       createSitemapEntry(hubCityPath(city.slug), 0.95, [HERO_IMAGE])
     ),

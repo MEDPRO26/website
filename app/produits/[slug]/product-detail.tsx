@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import SiteFooter from "@/components/site-footer";
 import Navbar from "@/components/navbar";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import RelatedProducts from "@/components/related-products";
 import CityLinks from "@/components/city-links";
 import {
@@ -127,7 +128,7 @@ export default function ProductDetail({
 
       <main
         id="main-content"
-        className="flex-1 pb-28 pt-16 md:pb-16 md:pt-20"
+        className="flex-1 pb-20 pt-16 md:pb-16 md:pt-20"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
@@ -195,8 +196,113 @@ export default function ProductDetail({
           </section>
 
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
-            {/* Booking card — shown first on mobile for conversion */}
-            <div className="order-first lg:order-2 lg:col-span-5">
+            {/* Gallery — first on mobile, top-left on desktop */}
+            <div className="order-1 lg:col-span-7 lg:row-start-1">
+              <div className="group relative overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-surface-container-high">
+                <div
+                  className="relative aspect-[4/3] overflow-hidden sm:aspect-[16/10]"
+                  onTouchStart={handleTouchStart}
+                  onTouchEnd={handleTouchEnd}
+                >
+                  <Image
+                    src={gallery[activeImage] ?? product.image}
+                    alt={product.alt}
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 58vw, 100vw"
+                    className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+
+                  {gallery.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={prevImage}
+                        aria-label="Image précédente"
+                        className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-primary shadow-lg backdrop-blur-sm transition-all hover:scale-105 hover:bg-white active:scale-95 sm:left-4 sm:h-12 sm:w-12"
+                      >
+                        <MaterialIcon name="arrow_back" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={nextImage}
+                        aria-label="Image suivante"
+                        className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-primary shadow-lg backdrop-blur-sm transition-all hover:scale-105 hover:bg-white active:scale-95 sm:right-4 sm:h-12 sm:w-12"
+                      >
+                        <MaterialIcon name="arrow_forward" />
+                      </button>
+                    </>
+                  )}
+
+                  <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+                    {product.badges.map((badge) => (
+                      <span
+                        key={badge}
+                        className="rounded-full bg-primary/90 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-sm"
+                      >
+                        {badge}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {gallery.length > 1 && (
+                <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
+                  {gallery.map((src, index) => (
+                    <button
+                      key={src}
+                      type="button"
+                      onClick={() => setActiveImage(index)}
+                      aria-label={`Voir l'image ${index + 1}`}
+                      aria-current={activeImage === index}
+                      className={classNames(
+                        "relative h-16 w-20 shrink-0 overflow-hidden rounded-xl transition-all sm:h-20 sm:w-24",
+                        activeImage === index
+                          ? "ring-2 ring-primary shadow-md"
+                          : "ring-1 ring-surface-container-high opacity-70 hover:opacity-100"
+                      )}
+                    >
+                      <Image
+                        src={src}
+                        alt=""
+                        fill
+                        sizes="96px"
+                        className="object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Quick specs — second on mobile */}
+            <div className="order-2 lg:col-span-7 lg:row-start-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {product.specs.map((spec) => (
+                  <div
+                    key={spec.label}
+                    className="flex items-center gap-3 rounded-2xl border border-surface-container-high bg-white p-4 shadow-sm"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-container/15 text-primary">
+                      <MaterialIcon name="check_circle" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-on-surface-variant">
+                        {spec.label}
+                      </p>
+                      <p className="font-heading text-sm font-bold text-on-surface sm:text-base">
+                        {spec.value}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Booking card — third on mobile, sticky right on desktop */}
+            <div className="order-3 lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:row-span-4">
               <div className="lg:sticky lg:top-24">
                 <div className="shimmer-border overflow-hidden rounded-3xl">
                   <div className="rounded-3xl border border-surface-container-high bg-white p-5 shadow-lg sm:p-8">
@@ -382,7 +488,7 @@ export default function ProductDetail({
                       rel="noopener noreferrer"
                       className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#25D366]/30 bg-[#25D366]/5 py-3 text-sm font-semibold text-[#128C7E] transition-colors hover:bg-[#25D366]/10"
                     >
-                      <MaterialIcon name="chat" />
+                      <WhatsAppIcon className="h-5 w-5" />
                       WhatsApp Express
                     </a>
                   </div>
@@ -390,111 +496,10 @@ export default function ProductDetail({
               </div>
             </div>
 
-            {/* Content column */}
-            <div className="order-2 lg:order-1 lg:col-span-7">
-              {/* Gallery */}
-              <div className="group relative overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-surface-container-high">
-                <div
-                  className="relative aspect-[4/3] overflow-hidden sm:aspect-[16/10]"
-                  onTouchStart={handleTouchStart}
-                  onTouchEnd={handleTouchEnd}
-                >
-                  <Image
-                    src={gallery[activeImage] ?? product.image}
-                    alt={product.alt}
-                    fill
-                    priority
-                    sizes="(min-width: 1024px) 58vw, 100vw"
-                    className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                  />
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
-
-                  {gallery.length > 1 && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={prevImage}
-                        aria-label="Image précédente"
-                        className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-primary shadow-lg backdrop-blur-sm transition-all hover:scale-105 hover:bg-white active:scale-95 sm:left-4 sm:h-12 sm:w-12"
-                      >
-                        <MaterialIcon name="arrow_back" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={nextImage}
-                        aria-label="Image suivante"
-                        className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-primary shadow-lg backdrop-blur-sm transition-all hover:scale-105 hover:bg-white active:scale-95 sm:right-4 sm:h-12 sm:w-12"
-                      >
-                        <MaterialIcon name="arrow_forward" />
-                      </button>
-                    </>
-                  )}
-
-                  <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-                    {product.badges.map((badge) => (
-                      <span
-                        key={badge}
-                        className="rounded-full bg-primary/90 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-sm"
-                      >
-                        {badge}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {gallery.length > 1 && (
-                <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
-                  {gallery.map((src, index) => (
-                    <button
-                      key={src}
-                      type="button"
-                      onClick={() => setActiveImage(index)}
-                      aria-label={`Voir l'image ${index + 1}`}
-                      aria-current={activeImage === index}
-                      className={classNames(
-                        "relative h-16 w-20 shrink-0 overflow-hidden rounded-xl transition-all sm:h-20 sm:w-24",
-                        activeImage === index
-                          ? "ring-2 ring-primary shadow-md"
-                          : "ring-1 ring-surface-container-high opacity-70 hover:opacity-100"
-                      )}
-                    >
-                      <Image
-                        src={src}
-                        alt=""
-                        fill
-                        sizes="96px"
-                        className="object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Quick specs */}
-              <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                {product.specs.map((spec) => (
-                  <div
-                    key={spec.label}
-                    className="flex items-center gap-3 rounded-2xl border border-surface-container-high bg-white p-4 shadow-sm"
-                  >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-container/15 text-primary">
-                      <MaterialIcon name="check_circle" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-on-surface-variant">
-                        {spec.label}
-                      </p>
-                      <p className="font-heading text-sm font-bold text-on-surface sm:text-base">
-                        {spec.value}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
+            {/* Long-form content — fourth on mobile, below specs on desktop */}
+            <div className="order-4 lg:col-span-7 lg:row-start-3">
               {/* Description */}
-              <section className="mt-10 sm:mt-12">
+              <section className="mt-0 sm:mt-2">
                 <h2 className="font-heading mb-4 text-xl font-semibold text-primary sm:text-2xl">
                   Description complète
                 </h2>
@@ -682,54 +687,6 @@ export default function ProductDetail({
       </main>
 
       <SiteFooter />
-
-      {/* Floating WhatsApp */}
-      <a
-        href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Contacter sur WhatsApp"
-        className="fixed bottom-20 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl transition-transform hover:scale-110 md:bottom-10 md:right-10"
-      >
-        <MaterialIcon name="chat" className="text-3xl" />
-      </a>
-
-      {/* Mobile bottom nav */}
-      <nav
-        aria-label="Navigation mobile"
-        className="fixed bottom-0 left-0 z-50 flex h-16 w-full items-center justify-around border-t border-outline-variant bg-background px-2 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] md:hidden"
-      >
-        <Link
-          href="/"
-          className="flex flex-1 flex-col items-center justify-center py-2 text-on-surface-variant transition-colors hover:text-primary"
-        >
-          <MaterialIcon name="home" />
-          <span className="text-[10px] font-medium">Accueil</span>
-        </Link>
-        <Link
-          href="/#materiels"
-          className="flex flex-1 flex-col items-center justify-center py-2 text-primary"
-        >
-          <MaterialIcon name="medical_services" />
-          <span className="text-[10px] font-bold">Matériel</span>
-        </Link>
-        <Link
-          href="/services"
-          className="flex flex-1 flex-col items-center justify-center py-2 text-on-surface-variant transition-colors hover:text-primary"
-        >
-          <MaterialIcon name="volunteer_activism" />
-          <span className="text-[10px] font-medium">Services</span>
-        </Link>
-        <a
-          href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex flex-1 flex-col items-center justify-center py-2 text-on-surface-variant transition-colors hover:text-status-success"
-        >
-          <MaterialIcon name="chat" />
-          <span className="text-[10px] font-medium">WhatsApp</span>
-        </a>
-      </nav>
     </>
   );
 }
