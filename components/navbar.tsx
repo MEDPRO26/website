@@ -53,26 +53,26 @@ function MaterialDropdownLinks({
 
   if (isMobile) {
     return (
-      <div className={classNames("space-y-4", className)}>
+      <div className={classNames("space-y-2.5", className)}>
         <div>
-          <p className="mb-2 px-1 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant/70">
+          <p className="mb-1 px-0.5 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">
             Location
           </p>
-          <div className="flex items-center gap-3 rounded-xl border border-dashed border-outline-variant/60 bg-surface-container-low/80 px-4 py-3.5">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-on-surface-variant/10 text-on-surface-variant">
-              <MaterialIcon name="schedule" className="text-lg" />
+          <div className="flex items-center gap-2 rounded-lg border border-dashed border-outline-variant/60 bg-surface-container-low/80 px-3 py-2">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-on-surface-variant/10 text-on-surface-variant">
+              <MaterialIcon name="schedule" className="text-base" />
             </span>
-            <span className="text-sm font-medium text-on-surface-variant">
+            <span className="text-xs font-medium text-on-surface-variant">
               Bientôt disponible
             </span>
           </div>
         </div>
 
         <div>
-          <p className="mb-2 px-1 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant/70">
+          <p className="mb-1 px-0.5 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">
             Vente
           </p>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {activeCities.map((city) => {
               const href = venteCityPath(city.slug);
               const active =
@@ -84,26 +84,26 @@ function MaterialDropdownLinks({
                   href={href}
                   onClick={onNavigate}
                   className={classNames(
-                    "flex items-center gap-3 rounded-xl border px-4 py-3.5 text-sm font-semibold transition-all",
+                    "flex items-center gap-2.5 rounded-lg border px-3 py-2 text-sm font-semibold transition-all",
                     active
-                      ? "border-primary/30 bg-primary/10 text-primary shadow-sm shadow-primary/10"
+                      ? "border-primary/30 bg-primary/10 text-primary"
                       : "border-outline-variant/50 bg-white text-on-surface hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
                   )}
                 >
                   <span
                     className={classNames(
-                      "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+                      "flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
                       active
                         ? "bg-primary/15 text-primary"
                         : "bg-primary/10 text-primary"
                     )}
                   >
-                    <MaterialIcon name="location_on" className="text-lg" />
+                    <MaterialIcon name="location_on" className="text-base" />
                   </span>
                   {city.name}
                   <MaterialIcon
                     name="chevron_right"
-                    className="ml-auto text-lg text-on-surface-variant/60"
+                    className="ml-auto text-base text-on-surface-variant/60"
                   />
                 </Link>
               );
@@ -179,7 +179,7 @@ function ServicesDropdownLinks({
 
   if (isMobile) {
     return (
-      <div className={classNames("space-y-2", className)}>
+      <div className={classNames("space-y-1.5", className)}>
         {careServices.map((service) => {
           const active = isServicePathActive(pathname, service.slug);
 
@@ -189,26 +189,26 @@ function ServicesDropdownLinks({
               type="button"
               onClick={() => onServiceSelect(service.slug)}
               className={classNames(
-                "flex w-full items-center gap-3 rounded-xl border px-4 py-3.5 text-left text-sm font-semibold transition-all",
+                "flex w-full items-center gap-2.5 rounded-lg border px-3 py-2 text-left text-xs font-semibold leading-snug transition-all sm:text-sm",
                 active
-                  ? "border-primary/30 bg-primary/10 text-primary shadow-sm shadow-primary/10"
+                  ? "border-primary/30 bg-primary/10 text-primary"
                   : "border-outline-variant/50 bg-white text-on-surface hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
               )}
             >
               <span
                 className={classNames(
-                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+                  "flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
                   active
                     ? "bg-primary/15 text-primary"
                     : "bg-primary/10 text-primary"
                 )}
               >
-                <MaterialIcon name={service.icon} className="text-lg" />
+                <MaterialIcon name={service.icon} className="text-base" />
               </span>
-              {service.title}
+              <span className="min-w-0 flex-1">{service.title}</span>
               <MaterialIcon
                 name="chevron_right"
-                className="ml-auto text-lg text-on-surface-variant/60"
+                className="shrink-0 text-base text-on-surface-variant/60"
               />
             </button>
           );
@@ -217,14 +217,14 @@ function ServicesDropdownLinks({
           href="/services"
           onClick={onNavigate}
           className={classNames(
-            "flex items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-3 text-sm font-semibold transition-all",
+            "flex items-center justify-center gap-1.5 rounded-lg border border-dashed px-3 py-2 text-xs font-semibold transition-all sm:text-sm",
             pathname === "/services"
               ? "border-primary/30 bg-primary/10 text-primary"
               : "border-outline-variant/50 text-on-surface-variant hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
           )}
         >
           Voir tous les services
-          <MaterialIcon name="arrow_forward" className="text-base" />
+          <MaterialIcon name="arrow_forward" className="text-sm" />
         </Link>
       </div>
     );
@@ -488,17 +488,18 @@ export default function Navbar() {
       {/* Mobile menu sheet */}
       <div
         className={classNames(
-          "absolute left-0 top-full w-full border-b border-outline-variant/50 bg-surface-container-low/95 shadow-xl backdrop-blur-md transition-all duration-300 md:hidden",
+          "absolute left-0 top-full z-40 w-full border-b border-outline-variant/50 bg-surface-container-low/95 shadow-xl backdrop-blur-md transition-all duration-300 md:hidden",
+          "max-h-[calc(100dvh-4rem-4rem-env(safe-area-inset-bottom))] overflow-y-auto overscroll-contain",
           mobileMenuOpen
             ? "pointer-events-auto translate-y-0 opacity-100"
             : "pointer-events-none -translate-y-2 opacity-0"
         )}
       >
-        <nav className="mx-auto max-w-lg space-y-4 px-4 py-5 sm:px-6">
-          <div className="overflow-hidden rounded-2xl border border-outline-variant/50 bg-white p-4 shadow-sm">
-            <div className="mb-4 flex items-center gap-2 border-b border-outline-variant/30 pb-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <MaterialIcon name="medical_services" className="text-lg" />
+        <nav className="mx-auto max-w-lg space-y-2.5 px-3 py-3 sm:px-4">
+          <div className="overflow-hidden rounded-xl border border-outline-variant/50 bg-white p-3 shadow-sm">
+            <div className="mb-2 flex items-center gap-2 border-b border-outline-variant/30 pb-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <MaterialIcon name="medical_services" className="text-base" />
               </span>
               <p className="text-sm font-bold text-on-surface">Matériel</p>
             </div>
@@ -509,10 +510,10 @@ export default function Navbar() {
             />
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-outline-variant/50 bg-white p-4 shadow-sm">
-            <div className="mb-4 flex items-center gap-2 border-b border-outline-variant/30 pb-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <MaterialIcon name="volunteer_activism" className="text-lg" />
+          <div className="overflow-hidden rounded-xl border border-outline-variant/50 bg-white p-3 shadow-sm">
+            <div className="mb-2 flex items-center gap-2 border-b border-outline-variant/30 pb-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <MaterialIcon name="volunteer_activism" className="text-base" />
               </span>
               <p className="text-sm font-bold text-on-surface">Services</p>
             </div>
@@ -524,14 +525,14 @@ export default function Navbar() {
             />
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-outline-variant/50 bg-white p-2 shadow-sm">
+          <div className="overflow-hidden rounded-xl border border-outline-variant/50 bg-white p-1.5 shadow-sm">
             {pageLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
                 className={classNames(
-                  "flex items-center gap-3 rounded-xl px-4 py-3.5 text-base font-medium transition-all",
+                  "flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
                   pathname === link.href
                     ? "bg-primary/10 text-primary"
                     : "text-on-surface hover:bg-surface-container-low hover:text-primary"
@@ -539,13 +540,13 @@ export default function Navbar() {
               >
                 <span
                   className={classNames(
-                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
                     pathname === link.href
                       ? "bg-primary/15 text-primary"
                       : "bg-surface-container text-on-surface-variant"
                   )}
                 >
-                  <MaterialIcon name="mail" className="text-lg" />
+                  <MaterialIcon name="mail" className="text-base" />
                 </span>
                 {link.label}
               </Link>
@@ -555,10 +556,10 @@ export default function Navbar() {
                 key={link.hash}
                 href={link.href}
                 onClick={(e) => handleHashLink(e, link.href, link.hash)}
-                className="flex items-center gap-3 rounded-xl px-4 py-3.5 text-base font-medium text-on-surface transition-all hover:bg-surface-container-low hover:text-primary"
+                className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-on-surface transition-all hover:bg-surface-container-low hover:text-primary"
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-container text-on-surface-variant">
-                  <MaterialIcon name="help" className="text-lg" />
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-container text-on-surface-variant">
+                  <MaterialIcon name="help" className="text-base" />
                 </span>
                 {link.label}
               </Link>

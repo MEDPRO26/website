@@ -35,7 +35,9 @@ export default function MobileBottomNav({
   whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}`,
 }: MobileBottomNavProps) {
   const pathname = usePathname();
-  const [cityPickerOpen, setCityPickerOpen] = useState(false);
+  const [pickerDestination, setPickerDestination] = useState<
+    "catalog" | "services" | null
+  >(null);
 
   const isHome = pathname === "/";
   const isMaterial =
@@ -86,7 +88,7 @@ export default function MobileBottomNav({
 
         <button
           type="button"
-          onClick={() => setCityPickerOpen(true)}
+          onClick={() => setPickerDestination("catalog")}
           className={`flex flex-1 flex-col items-center justify-center py-2 transition-colors ${
             isMaterial
               ? "text-primary"
@@ -101,8 +103,9 @@ export default function MobileBottomNav({
           </span>
         </button>
 
-        <Link
-          href="/services"
+        <button
+          type="button"
+          onClick={() => setPickerDestination("services")}
           className={`flex flex-1 flex-col items-center justify-center py-2 transition-colors ${
             isServices
               ? "text-primary"
@@ -115,7 +118,7 @@ export default function MobileBottomNav({
           >
             Services
           </span>
-        </Link>
+        </button>
 
         <a
           href={whatsappHref}
@@ -129,8 +132,9 @@ export default function MobileBottomNav({
       </nav>
 
       <CityCatalogPickerDialog
-        open={cityPickerOpen}
-        onClose={() => setCityPickerOpen(false)}
+        open={pickerDestination !== null}
+        onClose={() => setPickerDestination(null)}
+        destination={pickerDestination ?? "catalog"}
       />
     </>
   );

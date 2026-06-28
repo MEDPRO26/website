@@ -33,6 +33,7 @@ type CityCatalogPickerDialogProps = {
   onClose: () => void;
   productSlug?: string;
   serviceSlug?: string;
+  destination?: "catalog" | "services";
 };
 
 export default function CityCatalogPickerDialog({
@@ -40,6 +41,7 @@ export default function CityCatalogPickerDialog({
   onClose,
   productSlug,
   serviceSlug,
+  destination = "catalog",
 }: CityCatalogPickerDialogProps) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -61,11 +63,16 @@ export default function CityCatalogPickerDialog({
       router.push(careServiceCityPath(serviceSlug, citySlug));
       return;
     }
+    if (destination === "services") {
+      router.push("/services");
+      return;
+    }
     router.push(venteCityPath(citySlug));
   };
 
   const isProductPicker = Boolean(productSlug);
   const isServicePicker = Boolean(serviceSlug);
+  const isServicesHubPicker = destination === "services" && !isProductPicker && !isServicePicker;
   const serviceTitle = serviceSlug
     ? getCareServiceBySlug(serviceSlug)?.title
     : undefined;
@@ -96,7 +103,9 @@ export default function CityCatalogPickerDialog({
             ? "Choisissez votre ville pour consulter ce produit"
             : isServicePicker
               ? "Choisissez votre ville pour accéder à ce service"
-              : "Accédez au catalogue matériel de votre ville"}
+              : isServicesHubPicker
+                ? "Choisissez votre ville pour accéder à nos services"
+                : "Accédez au catalogue matériel de votre ville"}
         </p>
         <div className="space-y-2">
           {activeCities.map((city) => (
@@ -118,7 +127,9 @@ export default function CityCatalogPickerDialog({
                     ? `Voir le produit — ${city.name}`
                     : isServicePicker
                       ? `${serviceTitle ?? "Service"} — ${city.name}`
-                      : `Catalogue vente — ${city.name}`}
+                      : isServicesHubPicker
+                        ? `Services à domicile — ${city.name}`
+                        : `Catalogue vente — ${city.name}`}
                 </span>
               </span>
               <MaterialIcon
