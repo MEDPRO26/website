@@ -2,7 +2,7 @@ import type { Product } from "@/lib/product-types";
 
 export const PRICE_ON_REQUEST = "Prix sur demande";
 
-const respiratoryStyle = "bg-primary/15 text-primary";
+const respiratoryStyle = "bg-white text-primary shadow-sm";
 const city = "Agadir";
 
 function respiratoryProduct(

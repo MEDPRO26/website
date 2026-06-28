@@ -1,7 +1,7 @@
 import type { Product } from "@/lib/product-types";
 import { PRICE_ON_REQUEST } from "@/lib/respiratory-products";
 
-const diagnosticStyle = "bg-primary/10 text-primary";
+const diagnosticStyle = "bg-white text-primary shadow-sm";
 const city = "Agadir";
 
 function diagnosticProduct(
