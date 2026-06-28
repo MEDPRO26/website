@@ -198,8 +198,8 @@ export function CareServiceCityPage({
                 href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-on-primary shadow-lg shadow-primary/30 transition-all hover:-translate-y-0.5 hover:bg-primary-container"
               >
-                <MaterialIcon name="phone_in_talk" />
-                Appelez-nous · {PHONE_DISPLAY}
+                <MaterialIcon name="chat" />
+                WhatsApp · {PHONE_DISPLAY}
               </a>
               <a
                 href="#request-form"

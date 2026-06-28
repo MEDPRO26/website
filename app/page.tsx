@@ -312,15 +312,15 @@ export default function Home() {
           images={heroGalleryImages}
           galleryOverlay={
             <>
-              <div className="absolute bottom-4 left-4 right-4 flex items-center gap-3 rounded-2xl bg-white/95 p-3 shadow-lg backdrop-blur-md sm:bottom-6 sm:left-6 sm:right-auto sm:p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-container/20 text-primary">
-                  <MaterialIcon name="verified" className="text-xl" />
+              <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2.5 rounded-2xl bg-white/95 p-2.5 shadow-lg backdrop-blur-md sm:bottom-6 sm:left-6 sm:right-auto sm:gap-3 sm:p-4">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-container/20 text-primary sm:h-10 sm:w-10">
+                  <MaterialIcon name="verified" className="text-lg sm:text-xl" />
                 </div>
-                <div>
-                  <p className="font-heading text-sm font-bold text-primary sm:text-base">
+                <div className="min-w-0">
+                  <p className="font-heading truncate text-xs font-bold text-primary sm:text-base">
                     Qualité Certifiée
                   </p>
-                  <p className="text-xs text-on-surface-variant sm:text-sm">
+                  <p className="truncate text-[11px] text-on-surface-variant sm:text-sm">
                     Maintenance régulière assurée
                   </p>
                 </div>
@@ -337,17 +337,17 @@ export default function Home() {
           }
         >
           <div className="animate-fade-in-up">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary">
-              <MaterialIcon name="verified" className="text-base" />
-              <span>Matériel médical certifié au Maroc</span>
+            <div className="mb-4 inline-flex max-w-full items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary sm:mb-5 sm:px-4 sm:py-2 sm:text-sm">
+              <MaterialIcon name="verified" className="shrink-0 text-base" />
+              <span className="leading-snug">Matériel médical certifié au Maroc</span>
             </div>
-            <h1 className="font-heading mb-5 text-3xl font-bold leading-[1.12] tracking-tight text-secondary sm:text-4xl md:text-5xl lg:text-6xl">
+            <h1 className="font-heading mb-4 text-[1.65rem] font-bold leading-[1.15] tracking-tight text-secondary sm:mb-5 sm:text-3xl md:text-5xl lg:text-6xl">
               Location et vente de{" "}
               <span className="text-primary">matériel médical</span>, Services
               de <span className="text-primary">soins</span> et{" "}
               <span className="text-primary">aide</span> au Maroc
             </h1>
-            <p className="font-body mb-8 max-w-xl text-base leading-relaxed text-on-surface-variant sm:text-lg">
+            <p className="font-body mb-6 max-w-xl text-sm leading-relaxed text-on-surface-variant sm:mb-8 sm:text-base md:text-lg">
               Achetez du matériel médical à domicile au Maroc : lits
               médicalisés, fauteuils roulants, concentrateurs d&apos;oxygène,
               matelas anti-escarres. Livraison et installation incluses.
@@ -356,7 +356,7 @@ export default function Home() {
             <div className="flex flex-col gap-3 sm:flex-row">
               <a
                 href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20j'ai%20besoin%20d'aide%20pour%20choisir%20un%20matériel%20médical.`}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-base font-semibold text-on-primary shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary-container hover:shadow-xl"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-base font-semibold text-on-primary shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary-container hover:shadow-xl sm:w-auto"
               >
                 <MaterialIcon name="chat" />
                 Besoin d&apos;aide ?
@@ -367,13 +367,13 @@ export default function Home() {
                   e.preventDefault();
                   scrollToSection("materiels");
                 }}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-secondary bg-white/60 px-6 py-3.5 text-base font-semibold text-secondary backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-secondary/10"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-secondary bg-white/60 px-6 py-3.5 text-base font-semibold text-secondary backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-secondary/10 sm:w-auto"
               >
                   Voir le catalogue vente
                 <MaterialIcon name="arrow_forward" className="text-lg" />
               </a>
             </div>
-            <div className="mt-8 flex flex-wrap items-center gap-4 text-sm text-on-surface-variant">
+            <div className="mt-6 hidden flex-wrap items-center gap-4 text-sm text-on-surface-variant sm:mt-8 sm:flex">
               <span className="inline-flex items-center gap-1.5">
                 <MaterialIcon
                   name="check_circle"
@@ -687,7 +687,19 @@ export default function Home() {
               {hubContent.careServices.map((service) => {
                 const inner = (
                   <>
-                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                    {service.image && (
+                      <div className="relative -mx-6 -mt-6 mb-5 h-44 overflow-hidden sm:-mx-6">
+                        <Image
+                          src={service.image}
+                          alt={service.imageAlt ?? service.title}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          sizes="(min-width: 1024px) 33vw, 100vw"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent" />
+                      </div>
+                    )}
+                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-on-primary">
                       <MaterialIcon name={service.icon} className="text-[28px]" />
                     </div>
                     <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -710,14 +722,14 @@ export default function Home() {
                   <Link
                     key={service.title}
                     href={service.href}
-                    className="group flex flex-col rounded-3xl border border-outline-variant/30 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-primary/20 hover:shadow-md"
+                    className="group flex flex-col overflow-hidden rounded-3xl border border-outline-variant/30 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-primary/20 hover:shadow-md"
                   >
                     {inner}
                   </Link>
                 ) : (
                   <div
                     key={service.title}
-                    className="flex flex-col rounded-3xl border border-outline-variant/30 bg-white p-6 shadow-sm"
+                    className="group flex flex-col overflow-hidden rounded-3xl border border-outline-variant/30 bg-white p-6 shadow-sm"
                   >
                     {inner}
                   </div>
@@ -1154,7 +1166,7 @@ export default function Home() {
       {/* Mobile Bottom Navigation */}
       <nav
         aria-label="Navigation mobile"
-        className="fixed bottom-0 left-0 z-50 flex h-16 w-full items-center justify-around border-t border-outline-variant bg-background px-2 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] md:hidden"
+        className="fixed bottom-0 left-0 z-50 flex h-16 w-full items-center justify-around border-t border-outline-variant bg-background px-2 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_10px_rgba(0,0,0,0.05)] md:hidden"
       >
         <a
           href="#accueil"

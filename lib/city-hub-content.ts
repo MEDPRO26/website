@@ -8,6 +8,8 @@ export type CityHubService = {
   description: string;
   href?: string;
   badge?: string;
+  image?: string;
+  imageAlt?: string;
 };
 
 export type CityHubContent = {

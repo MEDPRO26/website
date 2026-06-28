@@ -328,12 +328,14 @@ export function getAllCareServicePageParams() {
 
 export function getCareServicesForCity(citySlug: CitySlug) {
   const city = getCityBySlug(citySlug)!;
-  return careServices.map(({ slug, icon, title, description, badge }) => ({
+  return careServices.map(({ slug, icon, title, description, badge, images }) => ({
     icon,
     title,
     description: description(city.name),
     href: careServiceCityPath(slug, citySlug),
     badge,
+    image: images.hero,
+    imageAlt: `${images.alt} à ${city.name}`,
   }));
 }
 

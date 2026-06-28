@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
@@ -251,7 +252,19 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
               {content.careServices.map((service) => {
                 const inner = (
                   <>
-                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/10 text-secondary">
+                    {service.image && (
+                      <div className="relative -mx-6 -mt-6 mb-5 h-44 overflow-hidden sm:-mx-6">
+                        <Image
+                          src={service.image}
+                          alt={service.imageAlt ?? service.title}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          sizes="(min-width: 1024px) 33vw, 100vw"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent" />
+                      </div>
+                    )}
+                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/10 text-secondary transition-colors group-hover:bg-secondary group-hover:text-on-secondary">
                       <MaterialIcon name={service.icon} className="text-[28px]" />
                     </div>
                     <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -274,14 +287,14 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
                   <Link
                     key={service.title}
                     href={service.href}
-                    className="group flex flex-col rounded-3xl border border-outline-variant/30 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-secondary/20 hover:shadow-md"
+                    className="group flex flex-col overflow-hidden rounded-3xl border border-outline-variant/30 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-secondary/20 hover:shadow-md"
                   >
                     {inner}
                   </Link>
                 ) : (
                   <div
                     key={service.title}
-                    className="flex flex-col rounded-3xl border border-outline-variant/30 bg-white p-6 shadow-sm"
+                    className="group flex flex-col overflow-hidden rounded-3xl border border-outline-variant/30 bg-white p-6 shadow-sm"
                   >
                     {inner}
                   </div>
