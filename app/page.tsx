@@ -7,11 +7,13 @@ import HeroScrollSection from "@/components/hero-scroll-section";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import CatalogPagination, {
   HOMEPAGE_CATALOG_PRODUCTS_PER_PAGE,
+  HOMEPAGE_CATALOG_PRODUCTS_PER_PAGE_MOBILE,
 } from "@/components/catalog-pagination";
 import SiteFooter from "@/components/site-footer";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import CitySelector from "@/components/city-selector";
+import { useProductsPerPage } from "@/hooks/use-products-per-page";
 import { useSelectedCity } from "@/hooks/use-selected-city";
 import { catalogCategories } from "@/lib/catalog-categories";
 import { seoCategories } from "@/lib/seo-data";
@@ -213,6 +215,10 @@ export default function Home() {
     materiel: "",
     message: "",
   });
+  const productsPerPage = useProductsPerPage(
+    HOMEPAGE_CATALOG_PRODUCTS_PER_PAGE_MOBILE,
+    HOMEPAGE_CATALOG_PRODUCTS_PER_PAGE
+  );
 
   useEffect(() => {
     setFormData((current) => ({ ...current, ville: city.name }));
@@ -234,17 +240,17 @@ export default function Home() {
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredProducts.length / HOMEPAGE_CATALOG_PRODUCTS_PER_PAGE)
+    Math.ceil(filteredProducts.length / productsPerPage)
   );
 
   const paginatedProducts = useMemo(() => {
-    const start = (currentPage - 1) * HOMEPAGE_CATALOG_PRODUCTS_PER_PAGE;
-    return filteredProducts.slice(start, start + HOMEPAGE_CATALOG_PRODUCTS_PER_PAGE);
-  }, [filteredProducts, currentPage]);
+    const start = (currentPage - 1) * productsPerPage;
+    return filteredProducts.slice(start, start + productsPerPage);
+  }, [filteredProducts, currentPage, productsPerPage]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeCategory, searchQuery, citySlug]);
+  }, [activeCategory, searchQuery, citySlug, productsPerPage]);
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -363,10 +369,10 @@ export default function Home() {
                 Besoin d&apos;aide ?
               </a>
               <a
-                href="#materiels"
+                href="#choisir-ville"
                 onClick={(e) => {
                   e.preventDefault();
-                  scrollToSection("materiels");
+                  scrollToSection("choisir-ville");
                 }}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-secondary bg-white/60 px-6 py-3.5 text-base font-semibold text-secondary backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-secondary/10 sm:w-auto"
               >
@@ -469,7 +475,10 @@ export default function Home() {
         {/* City selector + Filter & Search */}
         <section className="bg-surface-container-low px-4 py-8 sm:px-6 sm:py-10">
           <div className="mx-auto max-w-7xl">
-            <div className="mx-auto mb-8 max-w-2xl text-center">
+            <div
+              id="choisir-ville"
+              className="mx-auto mb-8 max-w-2xl scroll-mt-20 text-center md:scroll-mt-24"
+            >
               <p className="font-body mb-4 text-sm text-on-surface-variant sm:text-base">
                 Sélectionnez votre ville pour consulter le catalogue et la
                 livraison disponibles près de chez vous.
@@ -1164,49 +1173,6 @@ export default function Home() {
       </main>
 
       <SiteFooter id="footer" />
-
-      {/* Mobile Bottom Navigation */}
-      <nav
-        aria-label="Navigation mobile"
-        className="fixed bottom-0 left-0 z-50 flex h-16 w-full items-center justify-around border-t border-outline-variant bg-background px-2 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_10px_rgba(0,0,0,0.05)] md:hidden"
-      >
-        <a
-          href="#accueil"
-          onClick={(e) => {
-            e.preventDefault();
-            scrollToSection("accueil");
-          }}
-          className="flex flex-1 flex-col items-center justify-center py-2 text-on-surface-variant transition-colors hover:text-primary"
-        >
-          <MaterialIcon name="home" />
-          <span className="text-[10px] font-medium">Accueil</span>
-        </a>
-        <a
-          href="#materiels"
-          onClick={(e) => {
-            e.preventDefault();
-            scrollToSection("materiels");
-          }}
-          className="flex flex-1 flex-col items-center justify-center py-2 text-primary"
-        >
-          <MaterialIcon name="medical_services" />
-          <span className="text-[10px] font-medium">Matériel</span>
-        </a>
-        <Link
-          href="/services"
-          className="flex flex-1 flex-col items-center justify-center py-2 text-on-surface-variant transition-colors hover:text-primary"
-        >
-          <MaterialIcon name="volunteer_activism" />
-          <span className="text-[10px] font-medium">Services</span>
-        </Link>
-        <a
-          href={`https://wa.me/${WHATSAPP_NUMBER}`}
-          className="flex flex-1 flex-col items-center justify-center py-2 text-on-surface-variant transition-colors hover:text-status-success"
-        >
-          <MaterialIcon name="chat" />
-          <span className="text-[10px] font-medium">WhatsApp</span>
-        </a>
-      </nav>
     </>
   );
 }

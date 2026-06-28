@@ -8,9 +8,11 @@ import CitySelector from "@/components/city-selector";
 import Breadcrumb from "@/components/breadcrumb";
 import CatalogPagination, {
   CATALOG_PRODUCTS_PER_PAGE,
+  CATALOG_PRODUCTS_PER_PAGE_MOBILE,
 } from "@/components/catalog-pagination";
 import Navbar from "@/components/navbar";
 import SiteFooter from "@/components/site-footer";
+import { useProductsPerPage } from "@/hooks/use-products-per-page";
 import { getCityBySlug, type CitySlug } from "@/lib/cities";
 import { writeStoredCitySlug } from "@/lib/city-storage";
 import {
@@ -55,6 +57,10 @@ export default function VenteCatalog({ citySlug, categorySlug }: VenteCatalogPro
 
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = useProductsPerPage(
+    CATALOG_PRODUCTS_PER_PAGE_MOBILE,
+    CATALOG_PRODUCTS_PER_PAGE
+  );
 
   const filteredProducts = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -73,17 +79,17 @@ export default function VenteCatalog({ citySlug, categorySlug }: VenteCatalogPro
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredProducts.length / CATALOG_PRODUCTS_PER_PAGE)
+    Math.ceil(filteredProducts.length / productsPerPage)
   );
 
   const paginatedProducts = useMemo(() => {
-    const start = (currentPage - 1) * CATALOG_PRODUCTS_PER_PAGE;
-    return filteredProducts.slice(start, start + CATALOG_PRODUCTS_PER_PAGE);
-  }, [filteredProducts, currentPage]);
+    const start = (currentPage - 1) * productsPerPage;
+    return filteredProducts.slice(start, start + productsPerPage);
+  }, [filteredProducts, currentPage, productsPerPage]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeCategory, searchQuery, citySlug]);
+  }, [activeCategory, searchQuery, citySlug, productsPerPage]);
 
   useEffect(() => {
     if (currentPage > totalPages) {

@@ -72,23 +72,38 @@ function ScrollHint({ overlay = false }: { overlay?: boolean }) {
 function GalleryDots({
   images,
   activeIndex,
+  onSelect,
 }: {
   images: HeroGalleryImage[];
   activeIndex: number;
+  onSelect?: (index: number) => void;
 }) {
   return (
     <div
       className="mt-3 flex items-center justify-center gap-2"
       aria-label={`Image ${activeIndex + 1} sur ${images.length}`}
     >
-      {images.map((image, index) => (
-        <span
-          key={image.src}
-          className={`h-2 rounded-full transition-all duration-300 ${
-            index === activeIndex ? "w-6 bg-primary" : "w-2 bg-secondary/30"
-          }`}
-        />
-      ))}
+      {images.map((image, index) => {
+        const isActive = index === activeIndex;
+        const className = `h-2 rounded-full transition-all duration-300 ${
+          isActive ? "w-6 bg-primary" : "w-2 bg-secondary/30"
+        }`;
+
+        if (onSelect) {
+          return (
+            <button
+              key={image.src}
+              type="button"
+              aria-label={`Afficher l'image ${index + 1}`}
+              aria-current={isActive ? "true" : undefined}
+              onClick={() => onSelect(index)}
+              className={`${className} p-0`}
+            />
+          );
+        }
+
+        return <span key={image.src} className={className} />;
+      })}
     </div>
   );
 }
@@ -98,15 +113,21 @@ function GalleryFrame({
   activeIndex,
   galleryOverlay,
   className = "",
+  onTouchStart,
+  onTouchEnd,
 }: {
   images: HeroGalleryImage[];
   activeIndex: number;
   galleryOverlay?: ReactNode;
   className?: string;
+  onTouchStart?: (event: React.TouchEvent<HTMLDivElement>) => void;
+  onTouchEnd?: (event: React.TouchEvent<HTMLDivElement>) => void;
 }) {
   return (
     <div
       className={`relative mx-auto w-full overflow-hidden rounded-3xl shadow-2xl ${className}`}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
     >
       {images.map((image, index) => (
         <Image
@@ -116,7 +137,7 @@ function GalleryFrame({
           fill
           priority={index === 0}
           sizes="(min-width: 1024px) 50vw, 100vw"
-          className="object-cover"
+          className="object-cover transition-opacity duration-500 ease-in-out"
           style={{
             opacity: index === activeIndex ? 1 : 0,
             zIndex: index === activeIndex ? 1 : 0,
@@ -139,11 +160,35 @@ export default function HeroScrollSection({
   galleryOverlay,
 }: HeroScrollSectionProps) {
   const trackRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef(0);
   const [progress, setProgress] = useState(0);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [mobileIndex, setMobileIndex] = useState(0);
 
   const steps = Math.max(images.length, 1);
   const scrollHeightVh = 100 + (steps - 1) * 45;
+
+  const goToMobileSlide = (index: number) => {
+    setMobileIndex((index + images.length) % images.length);
+  };
+
+  const handleMobileTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    touchStartX.current = event.touches[0]?.clientX ?? 0;
+  };
+
+  const handleMobileTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    const touchEndX = event.changedTouches[0]?.clientX ?? 0;
+    const deltaX = touchStartX.current - touchEndX;
+
+    if (Math.abs(deltaX) < 40) return;
+
+    if (deltaX > 0) {
+      setMobileIndex((current) => (current + 1) % images.length);
+      return;
+    }
+
+    setMobileIndex((current) => (current - 1 + images.length) % images.length);
+  };
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1024px)");
@@ -152,6 +197,16 @@ export default function HeroScrollSection({
     mq.addEventListener("change", updateViewport);
     return () => mq.removeEventListener("change", updateViewport);
   }, []);
+
+  useEffect(() => {
+    if (isDesktop || images.length <= 1) return;
+
+    const intervalId = window.setInterval(() => {
+      setMobileIndex((current) => (current + 1) % images.length);
+    }, 4500);
+
+    return () => window.clearInterval(intervalId);
+  }, [isDesktop, images.length]);
 
   useEffect(() => {
     if (!isDesktop) {
@@ -196,15 +251,21 @@ export default function HeroScrollSection({
       className="relative scroll-mt-16 md:scroll-mt-20"
       style={isDesktop ? { height: `${scrollHeightVh}vh` } : undefined}
     >
-      {/* Mobile: natural scroll, no sticky gallery */}
+      {/* Mobile: swipeable carousel */}
       <div className="px-4 pb-6 pt-4 sm:px-6 lg:hidden">
         <GalleryFrame
           images={images}
-          activeIndex={0}
+          activeIndex={mobileIndex}
           galleryOverlay={galleryOverlay}
-          className="aspect-[16/10] max-h-[220px] sm:max-h-[260px]"
+          className="aspect-[16/10] max-h-[220px] touch-pan-y sm:max-h-[260px]"
+          onTouchStart={handleMobileTouchStart}
+          onTouchEnd={handleMobileTouchEnd}
         />
-        <GalleryDots images={images} activeIndex={0} />
+        <GalleryDots
+          images={images}
+          activeIndex={mobileIndex}
+          onSelect={goToMobileSlide}
+        />
         <div className="mt-6">{children}</div>
       </div>
 

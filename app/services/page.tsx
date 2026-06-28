@@ -791,41 +791,6 @@ export default function ServicesPage() {
 
       <SiteFooter />
 
-      {/* Mobile bottom nav */}
-      <nav
-        aria-label="Navigation mobile"
-        className="fixed bottom-0 left-0 z-50 flex h-16 w-full items-center justify-around border-t border-outline-variant bg-background px-2 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] md:hidden"
-      >
-        <Link
-          href="/"
-          className="flex flex-1 flex-col items-center justify-center py-2 text-on-surface-variant transition-colors hover:text-primary"
-        >
-          <MaterialIcon name="home" />
-          <span className="text-[10px] font-medium">Accueil</span>
-        </Link>
-        <Link
-          href="/"
-          className="flex flex-1 flex-col items-center justify-center py-2 text-on-surface-variant transition-colors hover:text-primary"
-        >
-          <MaterialIcon name="medical_services" />
-          <span className="text-[10px] font-medium">Matériel</span>
-        </Link>
-        <Link
-          href="/services"
-          className="flex flex-1 flex-col items-center justify-center py-2 text-primary"
-        >
-          <MaterialIcon name="volunteer_activism" filled />
-          <span className="text-[10px] font-bold">Services</span>
-        </Link>
-        <a
-          href={`https://wa.me/${WHATSAPP_NUMBER}`}
-          className="flex flex-1 flex-col items-center justify-center py-2 text-on-surface-variant transition-colors hover:text-status-success"
-        >
-          <MaterialIcon name="chat" className="text-status-success" />
-          <span className="text-[10px] font-medium">WhatsApp</span>
-        </a>
-      </nav>
-
       {/* Desktop WhatsApp FAB */}
       <a
         href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20un%20service%20de%20soins%20à%20domicile.`}

@@ -693,43 +693,6 @@ export default function ProductDetail({
       >
         <MaterialIcon name="chat" className="text-3xl" />
       </a>
-
-      {/* Mobile bottom nav */}
-      <nav
-        aria-label="Navigation mobile"
-        className="fixed bottom-0 left-0 z-50 flex h-16 w-full items-center justify-around border-t border-outline-variant bg-background px-2 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] md:hidden"
-      >
-        <Link
-          href="/"
-          className="flex flex-1 flex-col items-center justify-center py-2 text-on-surface-variant transition-colors hover:text-primary"
-        >
-          <MaterialIcon name="home" />
-          <span className="text-[10px] font-medium">Accueil</span>
-        </Link>
-        <Link
-          href="/#materiels"
-          className="flex flex-1 flex-col items-center justify-center py-2 text-primary"
-        >
-          <MaterialIcon name="medical_services" />
-          <span className="text-[10px] font-bold">Matériel</span>
-        </Link>
-        <Link
-          href="/services"
-          className="flex flex-1 flex-col items-center justify-center py-2 text-on-surface-variant transition-colors hover:text-primary"
-        >
-          <MaterialIcon name="volunteer_activism" />
-          <span className="text-[10px] font-medium">Services</span>
-        </Link>
-        <a
-          href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex flex-1 flex-col items-center justify-center py-2 text-on-surface-variant transition-colors hover:text-status-success"
-        >
-          <MaterialIcon name="chat" />
-          <span className="text-[10px] font-medium">WhatsApp</span>
-        </a>
-      </nav>
     </>
   );
 }
