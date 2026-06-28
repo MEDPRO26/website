@@ -271,7 +271,7 @@ export default function VenteCatalog({ citySlug, categorySlug }: VenteCatalogPro
 
             {filteredProducts.length > 0 ? (
               <>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
                   {paginatedProducts.map((product) => (
                     <article
                       key={product.slug}
@@ -285,34 +285,34 @@ export default function VenteCatalog({ citySlug, categorySlug }: VenteCatalogPro
                           src={product.image}
                           alt={product.alt}
                           fill
-                          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                          sizes="(min-width: 1024px) 33vw, 50vw"
                           className="object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                         <span
-                          className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-xs font-semibold ${product.categoryStyle}`}
+                          className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold sm:left-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-xs ${product.categoryStyle}`}
                         >
                           {product.category}
                         </span>
                       </Link>
-                      <div className="flex flex-1 flex-col p-4 sm:p-5">
+                      <div className="flex flex-1 flex-col p-3 sm:p-5">
                         <Link href={venteProductPath(product.slug, citySlug)}>
-                          <h3 className="font-heading mb-2 text-lg font-semibold text-primary transition-colors hover:text-primary-container sm:text-xl">
+                          <h3 className="font-heading mb-1.5 line-clamp-2 text-sm font-semibold text-primary transition-colors hover:text-primary-container sm:mb-2 sm:text-lg md:text-xl">
                             {product.name}
                           </h3>
                         </Link>
-                        <p className="font-body mb-5 flex-1 text-sm leading-relaxed text-on-surface-variant sm:text-base">
+                        <p className="font-body mb-3 line-clamp-3 flex-1 text-xs leading-relaxed text-on-surface-variant sm:mb-5 sm:line-clamp-none sm:text-sm md:text-base">
                           {product.tagline}
                         </p>
-                        <div className="flex items-center justify-between border-t border-surface-container pt-4">
-                          <span className="font-heading text-sm font-bold text-secondary sm:text-base">
+                        <div className="flex items-center justify-between gap-1 border-t border-surface-container pt-3 sm:pt-4">
+                          <span className="font-heading text-[11px] font-bold leading-tight text-secondary sm:text-sm md:text-base">
                             {product.priceLabel}
                           </span>
                           <Link
                             href={venteProductPath(product.slug, citySlug)}
                             aria-label={`Voir ${product.name}`}
-                            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary transition-all hover:scale-110 hover:bg-primary-container"
+                            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary transition-all hover:scale-110 hover:bg-primary-container sm:h-10 sm:w-10"
                           >
-                            <MaterialIcon name="arrow_forward" />
+                            <MaterialIcon name="arrow_forward" className="text-lg sm:text-xl" />
                           </Link>
                         </div>
                       </div>

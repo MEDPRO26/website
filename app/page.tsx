@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import HeroScrollSection from "@/components/hero-scroll-section";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import CatalogPagination, {
   HOMEPAGE_CATALOG_PRODUCTS_PER_PAGE,
 } from "@/components/catalog-pagination";
@@ -358,7 +359,7 @@ export default function Home() {
                 href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20j'ai%20besoin%20d'aide%20pour%20choisir%20un%20matériel%20médical.`}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-base font-semibold text-on-primary shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary-container hover:shadow-xl sm:w-auto"
               >
-                <MaterialIcon name="chat" />
+                <WhatsAppIcon className="h-5 w-5 shrink-0" />
                 Besoin d&apos;aide ?
               </a>
               <a
@@ -465,82 +466,83 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Filter & Search */}
-        <section
-          id="materiels"
-          className="sticky top-16 z-40 border-y border-outline-variant/50 bg-surface-container-low/90 px-4 py-4 backdrop-blur-md sm:px-6 md:top-20"
-        >
-          <div className="mx-auto flex max-w-7xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div
-              className="flex w-full gap-2 overflow-x-auto pb-1 md:w-auto md:pb-0"
-              role="tablist"
-              aria-label="Filtres de catégorie"
-            >
-              {categories.map((category) => (
-                <button
-                  key={category.value}
-                  onClick={() => setActiveCategory(category.value)}
-                  role="tab"
-                  aria-selected={activeCategory === category.value}
-                  className={`inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-medium transition-all ${
-                    activeCategory === category.value
-                      ? "bg-secondary text-on-secondary shadow-md shadow-secondary/20"
-                      : "border border-outline-variant bg-white text-on-surface-variant hover:border-secondary hover:text-secondary"
-                  }`}
-                >
-                  {category.icon && (
-                    <MaterialIcon name={category.icon} className="text-lg" />
-                  )}
-                  {category.label}
-                </button>
-              ))}
-            </div>
-            <div className="relative w-full md:w-72 lg:w-80">
-              <MaterialIcon
-                name="search"
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant"
-              />
-              <label htmlFor="materiel-search" className="sr-only">
-                Rechercher un matériel médical à acheter
-              </label>
-              <input
-                id="materiel-search"
-                type="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Rechercher un matériel..."
-                className="w-full rounded-full border border-outline-variant bg-white py-2.5 pl-10 pr-4 text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery("")}
-                  aria-label="Effacer la recherche"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-on-surface-variant hover:bg-surface-container"
-                >
-                  <MaterialIcon name="close" className="text-lg" />
-                </button>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* City selector */}
+        {/* City selector + Filter & Search */}
         <section className="bg-surface-container-low px-4 py-8 sm:px-6 sm:py-10">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="font-body mb-4 text-sm text-on-surface-variant sm:text-base">
-              Sélectionnez votre ville pour consulter le catalogue et la
-              livraison disponibles près de chez vous.
-            </p>
-            <CitySelector
-              className="mx-auto w-full max-w-md"
-              variant="prominent"
-              citySlug={citySlug}
-              onCityChange={(nextCitySlug) => {
-                setCitySlug(nextCitySlug);
-                setCurrentPage(1);
-              }}
-            />
+          <div className="mx-auto max-w-7xl">
+            <div className="mx-auto mb-8 max-w-2xl text-center">
+              <p className="font-body mb-4 text-sm text-on-surface-variant sm:text-base">
+                Sélectionnez votre ville pour consulter le catalogue et la
+                livraison disponibles près de chez vous.
+              </p>
+              <CitySelector
+                className="mx-auto w-full max-w-md"
+                variant="prominent"
+                citySlug={citySlug}
+                onCityChange={(nextCitySlug) => {
+                  setCitySlug(nextCitySlug);
+                  setCurrentPage(1);
+                }}
+              />
+            </div>
+
+            <div
+              id="materiels"
+              className="sticky top-16 z-40 -mx-4 border-y border-outline-variant/50 bg-surface-container-low/95 px-4 py-4 backdrop-blur-md sm:-mx-6 sm:px-6 md:top-20"
+            >
+              <div className="mx-auto flex max-w-7xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div
+                  className="flex w-full gap-2 overflow-x-auto pb-1 md:w-auto md:pb-0"
+                  role="tablist"
+                  aria-label="Filtres de catégorie"
+                >
+                  {categories.map((category) => (
+                    <button
+                      key={category.value}
+                      onClick={() => setActiveCategory(category.value)}
+                      role="tab"
+                      aria-selected={activeCategory === category.value}
+                      className={`inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-medium transition-all ${
+                        activeCategory === category.value
+                          ? "bg-secondary text-on-secondary shadow-md shadow-secondary/20"
+                          : "border border-outline-variant bg-white text-on-surface-variant hover:border-secondary hover:text-secondary"
+                      }`}
+                    >
+                      {category.icon && (
+                        <MaterialIcon name={category.icon} className="text-lg" />
+                      )}
+                      {category.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="relative w-full md:w-72 lg:w-80">
+                  <MaterialIcon
+                    name="search"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant"
+                  />
+                  <label htmlFor="materiel-search" className="sr-only">
+                    Rechercher un matériel médical à acheter
+                  </label>
+                  <input
+                    id="materiel-search"
+                    type="search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Rechercher un matériel..."
+                    className="w-full rounded-full border border-outline-variant bg-white py-2.5 pl-10 pr-4 text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                      aria-label="Effacer la recherche"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-on-surface-variant hover:bg-surface-container"
+                    >
+                      <MaterialIcon name="close" className="text-lg" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -577,7 +579,7 @@ export default function Home() {
 
             {filteredProducts.length > 0 ? (
               <>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
                 {paginatedProducts.map((product) => (
                   <article
                     key={product.slug}
@@ -591,34 +593,34 @@ export default function Home() {
                         src={product.image}
                         alt={product.alt}
                         fill
-                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                        sizes="(min-width: 1024px) 33vw, 50vw"
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                       <span
-                        className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-xs font-semibold ${product.categoryStyle}`}
+                        className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold sm:left-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-xs ${product.categoryStyle}`}
                       >
                         {product.category}
                       </span>
                     </Link>
-                    <div className="flex flex-1 flex-col p-4 sm:p-5">
+                    <div className="flex flex-1 flex-col p-3 sm:p-5">
                       <Link href={venteProductPath(product.slug, citySlug)}>
-                        <h3 className="font-heading mb-2 text-lg font-semibold text-primary transition-colors hover:text-primary-container sm:text-xl">
+                        <h3 className="font-heading mb-1.5 line-clamp-2 text-sm font-semibold text-primary transition-colors hover:text-primary-container sm:mb-2 sm:text-lg md:text-xl">
                           {product.name}
                         </h3>
                       </Link>
-                      <p className="font-body mb-5 flex-1 text-sm leading-relaxed text-on-surface-variant sm:text-base">
+                      <p className="font-body mb-3 line-clamp-3 flex-1 text-xs leading-relaxed text-on-surface-variant sm:mb-5 sm:line-clamp-none sm:text-sm md:text-base">
                         {product.description}
                       </p>
-                      <div className="flex items-center justify-between border-t border-surface-container pt-4">
-                        <span className="font-heading text-sm font-bold text-secondary sm:text-base">
+                      <div className="flex items-center justify-between gap-1 border-t border-surface-container pt-3 sm:pt-4">
+                        <span className="font-heading text-[11px] font-bold leading-tight text-secondary sm:text-sm md:text-base">
                           {product.priceLabel}
                         </span>
                         <Link
                           href={venteProductPath(product.slug, citySlug)}
                           aria-label={`Voir les détails de ${product.name}`}
-                          className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary transition-all hover:scale-110 hover:bg-primary-container"
+                          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary transition-all hover:scale-110 hover:bg-primary-container sm:h-10 sm:w-10"
                         >
-                          <MaterialIcon name="arrow_forward" />
+                          <MaterialIcon name="arrow_forward" className="text-lg sm:text-xl" />
                         </Link>
                       </div>
                     </div>
