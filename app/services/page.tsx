@@ -6,6 +6,7 @@ import { useState } from "react";
 import SiteFooter from "@/components/site-footer";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import {
   CONTACT_EMAIL,
   PHONE_DISPLAY,
@@ -288,7 +289,7 @@ export default function ServicesPage() {
                 href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20un%20service%20de%20soins%20à%20domicile.`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-secondary bg-white/60 px-8 py-4 text-base font-semibold text-secondary backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-secondary/10"
               >
-                <MaterialIcon name="chat" />
+                <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp Express
               </a>
             </div>
@@ -517,7 +518,7 @@ export default function ServicesPage() {
                   href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20un%20service%20de%20soins%20à%20domicile.`}
                   className="inline-flex items-center gap-2 rounded-xl border-2 border-status-success px-5 py-3 text-sm font-semibold text-status-success transition-all hover:bg-status-success hover:text-white"
                 >
-                  <MaterialIcon name="chat" />
+                  <WhatsAppIcon className="h-5 w-5" />
                   Discuter maintenant
                 </a>
               </div>
@@ -781,7 +782,7 @@ export default function ServicesPage() {
                 href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20j'ai%20besoin%20d'un%20soin%20urgent%20à%20domicile.`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white px-8 py-4 text-base font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-white/10"
               >
-                <MaterialIcon name="chat" />
+                <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp
               </a>
             </div>
@@ -797,7 +798,7 @@ export default function ServicesPage() {
         aria-label="Contacter sur WhatsApp"
         className="fixed bottom-8 right-8 z-50 hidden h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-2xl shadow-[#25D366]/30 transition-all hover:scale-110 hover:shadow-xl active:scale-95 md:flex"
       >
-        <MaterialIcon name="chat" className="text-2xl" />
+        <WhatsAppIcon className="h-7 w-7" />
       </a>
     </>
   );

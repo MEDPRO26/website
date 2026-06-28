@@ -7,6 +7,7 @@ import {
   WHATSAPP_NUMBER,
 } from "@/lib/products";
 import { careServiceFormOptions } from "@/lib/care-services";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 
 function MaterialIcon({
   name,
@@ -133,7 +134,7 @@ export function CareServiceRequestForm({
                 )}`}
                 className="inline-flex items-center gap-2 rounded-xl border-2 border-status-success px-5 py-3 text-sm font-semibold text-status-success transition-all hover:bg-status-success hover:text-white"
               >
-                <MaterialIcon name="chat" />
+                <WhatsAppIcon className="h-5 w-5" />
                 Discuter maintenant
               </a>
             </div>

@@ -4,6 +4,8 @@ import {
   resolveCareServiceSeo,
   type CareServiceResolvedSeo,
 } from "@/lib/care-service-seo";
+import { getCareServiceCityImages } from "@/lib/care-service-city-images";
+import { getCareServiceCityContentVariant } from "@/lib/care-service-city-variants";
 
 export type CareServiceImages = {
   hero: string;
@@ -265,7 +267,14 @@ export type CareServicePageContent = {
   otherCities: { name: string; href: string }[];
   otherServices: { title: string; href: string }[];
   seo: CareServiceResolvedSeo;
-  images: CareServiceImages & { altWithCity: string };
+  images: CareServiceImages & {
+    altWithCity: string;
+    bentoMain: string;
+    bentoSecondary: string;
+    expertise: string;
+    specialties: string[];
+    trust: string;
+  };
 };
 
 export function getCareServicePageContent(
@@ -278,6 +287,26 @@ export function getCareServicePageContent(
   if (!service || !city || !city.available || !seo) return null;
 
   const cityName = city.name;
+  const cityVariant = getCareServiceCityContentVariant(serviceSlug, citySlug);
+  const resolvedSeo = cityVariant
+    ? {
+        heroSubheadline: cityVariant.heroSubheadline,
+        seoIntroHeading: cityVariant.seoIntroHeading,
+        seoIntro: cityVariant.seoIntro,
+        whyChoose: cityVariant.whyChoose,
+        valueProps: cityVariant.valueProps,
+        expertise: cityVariant.expertise,
+        benefits: cityVariant.benefits,
+        specialties: cityVariant.specialties,
+        trust: cityVariant.trust,
+        community: cityVariant.community,
+      }
+    : resolveCareServiceSeo(seo, cityName);
+  const cityImages = getCareServiceCityImages(
+    serviceSlug,
+    citySlug,
+    service.images.alt
+  );
 
   return {
     serviceSlug,
@@ -285,14 +314,14 @@ export function getCareServicePageContent(
     path: careServiceCityPath(serviceSlug, citySlug),
     h1: `${service.title} à ${cityName}`,
     metaTitle: `${service.title} à ${cityName} | SOS Santé`,
-    metaDescription: `${seo.seoIntro(cityName).slice(0, 155)}…`,
+    metaDescription: `${resolvedSeo.seoIntro.slice(0, 155)}…`,
     keywords: service.keywords(cityName),
     icon: service.icon,
     formLabel: service.formLabel,
-    intro: seo.heroSubheadline(cityName),
+    intro: resolvedSeo.heroSubheadline,
     description: service.description(cityName),
     features: service.features,
-    faqs: seo.extendedFaqs(cityName),
+    faqs: cityVariant?.extendedFaqs ?? seo.extendedFaqs(cityName),
     badge: service.badge,
     cityName,
     brandName: city.brandName,
@@ -310,10 +339,17 @@ export function getCareServicePageContent(
         title: `${s.title} à ${cityName}`,
         href: careServiceCityPath(s.slug, citySlug),
       })),
-    seo: resolveCareServiceSeo(seo, cityName),
+    seo: resolvedSeo,
     images: {
-      ...service.images,
-      altWithCity: `${service.images.alt} à ${cityName}`,
+      hero: cityImages.hero,
+      section: cityImages.bentoMain,
+      alt: cityImages.alt,
+      altWithCity: `${cityImages.alt} — ${cityName}`,
+      bentoMain: cityImages.bentoMain,
+      bentoSecondary: cityImages.bentoSecondary,
+      expertise: cityImages.expertise,
+      specialties: cityImages.specialties,
+      trust: cityImages.trust,
     },
   };
 }
@@ -328,14 +364,44 @@ export function getAllCareServicePageParams() {
 
 export function getCareServicesForCity(citySlug: CitySlug) {
   const city = getCityBySlug(citySlug)!;
-  return careServices.map(({ slug, icon, title, description, badge, images }) => ({
+  return careServices.map(({ slug, icon, title, description, badge, images }) => {
+    const cityImages = getCareServiceCityImages(slug, citySlug, images.alt);
+    return {
+      icon,
+      title,
+      description: description(city.name),
+      href: careServiceCityPath(slug, citySlug),
+      badge,
+      image: cityImages.hero,
+      imageAlt: `${cityImages.alt} à ${city.name}`,
+    };
+  });
+}
+
+const homepageCareServiceDescriptions: Record<string, string> = {
+  "kinesitherapie-a-domicile":
+    "Rééducation et séances de kinésithérapie à domicile dans les grandes villes du Maroc. Mise en relation avec des kinésithérapeutes qualifiés.",
+  "soins-infirmiers-a-domicile":
+    "Pansements, injections, perfusions et suivi infirmier à domicile dans les grandes villes du Maroc. Orientation vers des infirmiers diplômés.",
+  "medecin-a-domicile":
+    "Consultation et suivi médical à domicile dans les grandes villes du Maroc. Mise en relation avec des médecins généralistes selon disponibilité.",
+  "aide-soignant-a-domicile":
+    "Aide aux actes du quotidien, accompagnement et soutien à domicile dans les grandes villes du Maroc. Mise en relation avec des aide-soignants.",
+  "ambulance-maroc":
+    "Transport médical et ambulance dans les grandes villes du Maroc. Coordination avec des prestataires partenaires selon disponibilité.",
+};
+
+export function getHomepageCareServices() {
+  return careServices.map(({ slug, icon, title, badge, images }) => ({
     icon,
     title,
-    description: description(city.name),
-    href: careServiceCityPath(slug, citySlug),
+    description:
+      homepageCareServiceDescriptions[slug] ??
+      "Service disponible dans les grandes villes du Maroc.",
+    href: "/services",
     badge,
     image: images.hero,
-    imageAlt: `${images.alt} à ${city.name}`,
+    imageAlt: images.alt,
   }));
 }
 

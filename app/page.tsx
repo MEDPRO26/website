@@ -5,17 +5,12 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import HeroScrollSection from "@/components/hero-scroll-section";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
-import CatalogPagination, {
-  HOMEPAGE_CATALOG_PRODUCTS_PER_PAGE,
-  HOMEPAGE_CATALOG_PRODUCTS_PER_PAGE_MOBILE,
-} from "@/components/catalog-pagination";
 import SiteFooter from "@/components/site-footer";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
-import CitySelector from "@/components/city-selector";
+import CityCatalogPickerDialog from "@/components/city-catalog-picker-dialog";
 import { useProductsPerPage } from "@/hooks/use-products-per-page";
 import { useSelectedCity } from "@/hooks/use-selected-city";
-import { catalogCategories } from "@/lib/catalog-categories";
 import { seoCategories } from "@/lib/seo-data";
 import {
   hubCityPath,
@@ -30,11 +25,9 @@ import {
   WHATSAPP_NUMBER,
 } from "@/lib/products";
 import { activeCities, comingSoonCities, DEFAULT_CITY_SLUG } from "@/lib/cities";
-import { getCityHubContent } from "@/lib/city-hub-content";
-import {
-  activeDeliveryCityLabel,
-  getCoverageAreas,
-} from "@/lib/delivery-cities";
+import { homepageCareIntro } from "@/lib/city-hub-content";
+import { getHomepageCareServices } from "@/lib/care-services";
+import { getCoverageAreas } from "@/lib/delivery-cities";
 import {
   buildGraph,
   breadcrumbSchema,
@@ -48,11 +41,12 @@ import {
 
 const defaultCatalogProducts = getCatalogProducts(DEFAULT_CITY_SLUG);
 
-const categories = catalogCategories;
+const HOMEPAGE_LATEST_PRODUCTS_MOBILE = 6;
+const HOMEPAGE_LATEST_PRODUCTS_DESKTOP = 9;
 
 const trustBadges = [
   { icon: "verified", label: "Matériel certifié", sub: "Normes médicales" },
-  { icon: "local_shipping", label: "Livraison incluse", sub: "Grandes villes du Maroc" },
+  { icon: "local_shipping", label: "Livraison incluse", sub: "Les grandes villes du Maroc" },
   { icon: "cleaning_services", label: "Désinfection", sub: "Avant chaque location" },
   { icon: "support_agent", label: "Conseil gratuit", sub: "Réponse en 15 min" },
 ];
@@ -89,7 +83,7 @@ const whyChooseUs = [
   {
     icon: "schedule",
     title: "Disponible 24h/24, 7j/7",
-    text: "Que ce soit pour une urgence ou un besoin planifié, nous assurons une mise à disposition rapide à Agadir et au Maroc.",
+    text: "Que ce soit pour une urgence ou un besoin planifié, nous assurons une mise à disposition rapide dans les grandes villes du Maroc.",
   },
   {
     icon: "savings",
@@ -104,6 +98,7 @@ const whyChooseUs = [
 ];
 
 const coverageAreas = getCoverageAreas();
+const homepageCareServices = getHomepageCareServices();
 
 const rentalSteps = [
   {
@@ -119,7 +114,7 @@ const rentalSteps = [
   {
     icon: "local_shipping",
     title: "Livraison",
-    text: "Nous livrons et installons le matériel chez vous à Agadir et partout au Maroc.",
+    text: "Nous livrons et installons le matériel chez vous dans les grandes villes du Maroc.",
   },
 ];
 
@@ -130,9 +125,9 @@ const faqs = [
       "La durée minimale varie selon le type de matériel. Généralement, elle est d'une semaine pour les lits médicalisés et les fauteuils roulants. Nous proposons aussi des formules à la journée pour certains équipements et des tarifs dégressifs pour les locations longue durée.",
   },
   {
-    question: "La livraison et l'installation sont-elles incluses à Agadir ?",
+    question: "La livraison et l'installation sont-elles incluses ?",
     answer:
-      "Oui, la livraison et l'installation sont incluses dans nos forfaits pour la zone d'Agadir et ses environs immédiats. Pour le reste du Maroc, des frais de transport minimes peuvent s'appliquer selon la distance. Notre équipe vous donne un devis transparent avant chaque envoi.",
+      "Oui, la livraison et l'installation sont incluses dans nos forfaits dans les grandes villes du Maroc que nous desservons. Pour les autres zones, des frais de transport minimes peuvent s'appliquer selon la distance. Notre équipe vous donne un devis transparent avant chaque envoi.",
   },
   {
     question: "Le matériel médical est-il désinfecté entre deux locations ?",
@@ -150,9 +145,9 @@ const faqs = [
       "Notre catalogue respiratoire comprend des concentrateurs d'oxygène (5L, 10L, portables), nébuliseurs, kits de nébulisation, masques à oxygène, manodétendeurs, aspirateurs chirurgicaux et spiromètres. Tous nos produits sont adaptés à l'usage à domicile.",
   },
   {
-    question: "Intervenez-vous uniquement à Agadir ou dans tout le Maroc ?",
+    question: "Intervenez-vous uniquement dans les grandes villes ou partout au Maroc ?",
     answer:
-      "Notre siège et notre zone de livraison prioritaire se situent à Agadir, mais nous livrons dans tout le Maroc : Casablanca, Marrakech, Rabat, Tanger, Essaouira et autres villes sur demande. Contactez-nous pour connaître les délais et frais selon votre ville.",
+      "Nous couvrons actuellement plusieurs grandes villes du Maroc, avec une extension progressive vers d'autres agglomérations. Contactez-nous pour connaître les délais et frais selon votre ville.",
   },
 ];
 
@@ -176,8 +171,8 @@ const homeSchema = buildGraph(
   websiteSchema(),
   webPageSchema(
     "/",
-    "Location de matériel médical à Agadir et au Maroc | SOS Santé",
-    "Louez du matériel médical à Agadir et au Maroc. Lits médicalisés, fauteuils roulants, oxygène. Livraison, installation et désinfection incluses."
+    "Location de matériel médical dans les grandes villes du Maroc | SOS Santé",
+    "Louez du matériel médical dans les grandes villes du Maroc. Lits médicalisés, fauteuils roulants, oxygène. Livraison, installation et désinfection incluses."
   ),
   breadcrumbSchema([{ name: "Accueil", item: "/" }]),
   itemListSchema(
@@ -192,80 +187,46 @@ const homeSchema = buildGraph(
 );
 
 export default function Home() {
-  const { citySlug, city, setCitySlug } = useSelectedCity();
+  const { citySlug } = useSelectedCity();
   const products = useMemo(
     () => getCatalogProducts(citySlug),
     [citySlug]
   );
-  const hubContent = useMemo(
-    () => getCityHubContent(citySlug),
-    [citySlug]
-  );
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const defaultFormCity = activeCities[0]?.name ?? "";
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [catalogPickerOpen, setCatalogPickerOpen] = useState(false);
+  const [pickerProductSlug, setPickerProductSlug] = useState<string | null>(
+    null
+  );
   const [formStatus, setFormStatus] = useState<"idle" | "success" | "error">(
     "idle"
   );
   const [formData, setFormData] = useState({
     nom: "",
     telephone: "",
-    ville: city.name,
+    ville: defaultFormCity,
     materiel: "",
     message: "",
   });
-  const productsPerPage = useProductsPerPage(
-    HOMEPAGE_CATALOG_PRODUCTS_PER_PAGE_MOBILE,
-    HOMEPAGE_CATALOG_PRODUCTS_PER_PAGE
+  const latestProductsCount = useProductsPerPage(
+    HOMEPAGE_LATEST_PRODUCTS_MOBILE,
+    HOMEPAGE_LATEST_PRODUCTS_DESKTOP
   );
 
-  useEffect(() => {
-    setFormData((current) => ({ ...current, ville: city.name }));
-  }, [city.name]);
-
-  const filteredProducts = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    return products.filter((product) => {
-      const matchesCategory =
-        activeCategory === "all" || product.category === activeCategory;
-      const matchesSearch =
-        !query ||
-        product.name.toLowerCase().includes(query) ||
-        product.category.toLowerCase().includes(query) ||
-        product.description.toLowerCase().includes(query);
-      return matchesCategory && matchesSearch;
-    });
-  }, [activeCategory, searchQuery, products]);
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredProducts.length / productsPerPage)
+  const latestProducts = useMemo(
+    () => [...products].slice(-latestProductsCount).reverse(),
+    [products, latestProductsCount]
   );
 
-  const paginatedProducts = useMemo(() => {
-    const start = (currentPage - 1) * productsPerPage;
-    return filteredProducts.slice(start, start + productsPerPage);
-  }, [filteredProducts, currentPage, productsPerPage]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [activeCategory, searchQuery, citySlug, productsPerPage]);
-
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [currentPage, totalPages]);
-
-  const goToPage = (page: number) => {
-    setCurrentPage(page);
-    scrollToSection("materiels");
+  const openCatalogPicker = (productSlug?: string) => {
+    setPickerProductSlug(productSlug ?? null);
+    setCatalogPickerOpen(true);
   };
 
-  const activeCategoryLabel =
-    categories.find((c) => c.value === activeCategory)?.label ||
-    "Tous les matériels";
+  const closeCatalogPicker = () => {
+    setCatalogPickerOpen(false);
+    setPickerProductSlug(null);
+  };
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -368,17 +329,14 @@ export default function Home() {
                 <WhatsAppIcon className="h-5 w-5 shrink-0" />
                 Besoin d&apos;aide ?
               </a>
-              <a
-                href="#choisir-ville"
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollToSection("choisir-ville");
-                }}
+              <button
+                type="button"
+                onClick={() => openCatalogPicker()}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-secondary bg-white/60 px-6 py-3.5 text-base font-semibold text-secondary backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-secondary/10 sm:w-auto"
               >
-                  Voir le catalogue vente
+                Voir le catalogue vente
                 <MaterialIcon name="arrow_forward" className="text-lg" />
-              </a>
+              </button>
             </div>
             <div className="mt-6 hidden flex-wrap items-center gap-4 text-sm text-on-surface-variant sm:mt-8 sm:flex">
               <span className="inline-flex items-center gap-1.5">
@@ -472,208 +430,99 @@ export default function Home() {
           </div>
         </section>
 
-        {/* City selector + Filter & Search */}
-        <section className="bg-surface-container-low px-4 py-8 sm:px-6 sm:py-10">
+        {/* Latest products */}
+        <section
+          id="materiels"
+          className="scroll-mt-20 bg-surface-container-low px-4 py-12 sm:px-6 sm:py-16 lg:py-20 md:scroll-mt-24"
+        >
           <div className="mx-auto max-w-7xl">
-            <div
-              id="choisir-ville"
-              className="mx-auto mb-8 max-w-2xl scroll-mt-20 text-center md:scroll-mt-24"
-            >
-              <p className="font-body mb-4 text-sm text-on-surface-variant sm:text-base">
-                Sélectionnez votre ville pour consulter le catalogue et la
-                livraison disponibles près de chez vous.
-              </p>
-              <CitySelector
-                className="mx-auto w-full max-w-md"
-                variant="prominent"
-                citySlug={citySlug}
-                onCityChange={(nextCitySlug) => {
-                  setCitySlug(nextCitySlug);
-                  setCurrentPage(1);
-                }}
-              />
-            </div>
-
-            <div
-              id="materiels"
-              className="sticky top-16 z-40 -mx-4 border-y border-outline-variant/50 bg-surface-container-low/95 px-4 py-4 backdrop-blur-md sm:-mx-6 sm:px-6 md:top-20"
-            >
-              <div className="mx-auto flex max-w-7xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div
-                  className="flex w-full gap-2 overflow-x-auto pb-1 md:w-auto md:pb-0"
-                  role="tablist"
-                  aria-label="Filtres de catégorie"
-                >
-                  {categories.map((category) => (
-                    <button
-                      key={category.value}
-                      onClick={() => setActiveCategory(category.value)}
-                      role="tab"
-                      aria-selected={activeCategory === category.value}
-                      className={`inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-medium transition-all ${
-                        activeCategory === category.value
-                          ? "bg-secondary text-on-secondary shadow-md shadow-secondary/20"
-                          : "border border-outline-variant bg-white text-on-surface-variant hover:border-secondary hover:text-secondary"
-                      }`}
-                    >
-                      {category.icon && (
-                        <MaterialIcon name={category.icon} className="text-lg" />
-                      )}
-                      {category.label}
-                    </button>
-                  ))}
-                </div>
-                <div className="relative w-full md:w-72 lg:w-80">
-                  <MaterialIcon
-                    name="search"
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant"
-                  />
-                  <label htmlFor="materiel-search" className="sr-only">
-                    Rechercher un matériel médical à acheter
-                  </label>
-                  <input
-                    id="materiel-search"
-                    type="search"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Rechercher un matériel..."
-                    className="w-full rounded-full border border-outline-variant bg-white py-2.5 pl-10 pr-4 text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  />
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => setSearchQuery("")}
-                      aria-label="Effacer la recherche"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-on-surface-variant hover:bg-surface-container"
-                    >
-                      <MaterialIcon name="close" className="text-lg" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Products Grid */}
-        <section className="px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
-          <div className="mx-auto max-w-7xl">
-            <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <span className="mb-2 inline-block text-sm font-semibold uppercase tracking-wider text-secondary">
                   Catalogue vente
                 </span>
                 <h2 className="font-heading text-xl font-semibold text-secondary sm:text-2xl md:text-3xl">
-                  {activeCategoryLabel} · {city.name}
+                  Matériel populaire
                 </h2>
+                <p className="font-body mt-2 text-sm text-on-surface-variant sm:text-base">
+                  Les équipements les plus demandés à la vente près de chez
+                  vous.
+                </p>
               </div>
-              <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-                <Link
-                  href={venteCityPath(citySlug)}
-                  className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-primary bg-white px-4 py-2.5 text-sm font-medium text-primary transition-all hover:bg-primary/5"
-                >
-                  Visiter la page de catalogue
-                </Link>
-                <CatalogPagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={goToPage}
-                />
-                <span className="rounded-full bg-surface-container px-3 py-1 text-sm text-on-surface-variant">
-                  {filteredProducts.length} résultat
-                  {filteredProducts.length > 1 ? "s" : ""}
-                </span>
-              </div>
+              <button
+                type="button"
+                onClick={() => openCatalogPicker()}
+                className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-primary bg-white px-4 py-2.5 text-sm font-medium text-primary transition-all hover:bg-primary/5"
+              >
+                Voir tout le catalogue
+              </button>
             </div>
 
-            {filteredProducts.length > 0 ? (
-              <>
-              <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
-                {paginatedProducts.map((product) => (
-                  <article
-                    key={product.slug}
-                    className="group flex flex-col overflow-hidden rounded-2xl border border-surface-container-high bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
+              {latestProducts.map((product) => (
+                <article
+                  key={product.slug}
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-surface-container-high bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
+                >
+                  <button
+                    type="button"
+                    onClick={() => openCatalogPicker(product.slug)}
+                    className="relative aspect-[4/3] w-full overflow-hidden text-left"
                   >
-                    <Link
-                      href={venteProductPath(product.slug, citySlug)}
-                      className="relative aspect-[4/3] overflow-hidden"
+                    <Image
+                      src={product.image}
+                      alt={product.alt}
+                      fill
+                      sizes="(min-width: 1024px) 33vw, 50vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <span
+                      className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold sm:left-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-xs ${product.categoryStyle}`}
                     >
-                      <Image
-                        src={product.image}
-                        alt={product.alt}
-                        fill
-                        sizes="(min-width: 1024px) 33vw, 50vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <span
-                        className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold sm:left-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-xs ${product.categoryStyle}`}
-                      >
-                        {product.category}
+                      {product.category}
+                    </span>
+                  </button>
+                  <div className="flex flex-1 flex-col p-3 sm:p-5">
+                    <button
+                      type="button"
+                      onClick={() => openCatalogPicker(product.slug)}
+                      className="text-left"
+                    >
+                      <h3 className="font-heading mb-1.5 line-clamp-2 text-sm font-semibold text-primary transition-colors hover:text-primary-container sm:mb-2 sm:text-lg md:text-xl">
+                        {product.name}
+                      </h3>
+                    </button>
+                    <p className="font-body mb-3 line-clamp-3 flex-1 text-xs leading-relaxed text-on-surface-variant sm:mb-5 sm:line-clamp-none sm:text-sm md:text-base">
+                      {product.description}
+                    </p>
+                    <div className="flex items-center justify-between gap-1 border-t border-surface-container pt-3 sm:pt-4">
+                      <span className="font-heading text-[11px] font-bold leading-tight text-secondary sm:text-sm md:text-base">
+                        {product.priceLabel}
                       </span>
-                    </Link>
-                    <div className="flex flex-1 flex-col p-3 sm:p-5">
-                      <Link href={venteProductPath(product.slug, citySlug)}>
-                        <h3 className="font-heading mb-1.5 line-clamp-2 text-sm font-semibold text-primary transition-colors hover:text-primary-container sm:mb-2 sm:text-lg md:text-xl">
-                          {product.name}
-                        </h3>
-                      </Link>
-                      <p className="font-body mb-3 line-clamp-3 flex-1 text-xs leading-relaxed text-on-surface-variant sm:mb-5 sm:line-clamp-none sm:text-sm md:text-base">
-                        {product.description}
-                      </p>
-                      <div className="flex items-center justify-between gap-1 border-t border-surface-container pt-3 sm:pt-4">
-                        <span className="font-heading text-[11px] font-bold leading-tight text-secondary sm:text-sm md:text-base">
-                          {product.priceLabel}
-                        </span>
-                        <Link
-                          href={venteProductPath(product.slug, citySlug)}
-                          aria-label={`Voir les détails de ${product.name}`}
-                          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary transition-all hover:scale-110 hover:bg-primary-container sm:h-10 sm:w-10"
-                        >
-                          <MaterialIcon name="arrow_forward" className="text-lg sm:text-xl" />
-                        </Link>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => openCatalogPicker(product.slug)}
+                        aria-label={`Voir les détails de ${product.name}`}
+                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary transition-all hover:scale-110 hover:bg-primary-container sm:h-10 sm:w-10"
+                      >
+                        <MaterialIcon name="arrow_forward" className="text-lg sm:text-xl" />
+                      </button>
                     </div>
-                  </article>
-                ))}
-              </div>
-              <div className="mt-10 flex flex-col items-center gap-4">
-                <CatalogPagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={goToPage}
-                />
-                <Link
-                  href={venteCityPath(citySlug)}
-                  className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-primary bg-white px-4 py-2.5 text-sm font-medium text-primary transition-all hover:bg-primary/5"
-                >
-                  Visiter la page de catalogue
-                </Link>
-              </div>
-              </>
-            ) : (
-              <div className="rounded-3xl border border-dashed border-outline-variant bg-surface-container-low p-10 text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant">
-                  <MaterialIcon name="search_off" className="text-3xl" />
-                </div>
-                <h3 className="font-heading mb-2 text-lg font-semibold text-primary">
-                  Aucun matériel trouvé
-                </h3>
-                <p className="font-body mb-4 text-on-surface-variant">
-                  Essayez un autre terme ou sélectionnez une catégorie
-                  différente.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveCategory("all");
-                    setSearchQuery("");
-                  }}
-                  className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-container"
-                >
-                  Réinitialiser les filtres
-                </button>
-              </div>
-            )}
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="mt-10 flex justify-center">
+              <button
+                type="button"
+                onClick={() => openCatalogPicker()}
+                className="inline-flex items-center gap-2 rounded-full border border-primary bg-white px-6 py-3 text-sm font-semibold text-primary transition-all hover:bg-primary/5"
+              >
+                Voir tout le catalogue
+                <MaterialIcon name="arrow_forward" className="text-lg" />
+              </button>
+            </div>
           </div>
         </section>
 
@@ -685,17 +534,17 @@ export default function Home() {
           <div className="mx-auto max-w-7xl">
             <div className="mb-8 text-center">
               <span className="mb-2 inline-block text-sm font-semibold uppercase tracking-wider text-secondary">
-                Nos services à {city.name}
+                Nos services
               </span>
               <h2 className="font-heading text-2xl font-semibold text-secondary sm:text-3xl">
                 Soins et aide à domicile
               </h2>
               <p className="font-body mx-auto mt-4 max-w-2xl text-base leading-relaxed text-on-surface-variant">
-                {hubContent.careIntro}
+                {homepageCareIntro}
               </p>
             </div>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {hubContent.careServices.map((service) => {
+              {homepageCareServices.map((service) => {
                 const inner = (
                   <>
                     {service.image && (
@@ -770,8 +619,9 @@ export default function Home() {
                 Un service pensé pour votre tranquillité
               </h2>
               <p className="font-body mx-auto max-w-2xl text-base text-on-surface-variant sm:text-lg">
-                Depuis Agadir, nous accompagnons les familles et les soignants
-                avec du matériel médical fiable, livré et installé à domicile.
+                Nous accompagnons les familles et les soignants dans les
+                grandes villes du Maroc avec du matériel médical fiable, livré
+                et installé à domicile.
               </p>
             </div>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -808,13 +658,9 @@ export default function Home() {
                   Grandes villes du Maroc
                 </h2>
                 <p className="font-body mb-6 text-base leading-relaxed text-on-surface-variant sm:text-lg">
-                  Nous livrons actuellement à {activeDeliveryCityLabel}.
+                  Nous livrons actuellement dans les grandes villes du Maroc.
                   {coverageAreas.comingSoon.length > 0 && (
-                    <>
-                      {" "}
-                      {coverageAreas.comingSoon.join(", ")} arrivent
-                      prochainement.
-                    </>
+                    <> D&apos;autres agglomérations rejoignent notre réseau prochainement.</>
                   )}
                 </p>
                 <a
@@ -924,7 +770,7 @@ export default function Home() {
               </h2>
               <p className="font-body mx-auto mt-3 max-w-xl text-base text-on-surface-variant">
                 Retrouvez les réponses aux questions les plus courantes sur la
-                location de matériel médical à Agadir et au Maroc.
+                location de matériel médical dans les grandes villes du Maroc.
               </p>
             </div>
             <div className="space-y-3">
@@ -994,7 +840,7 @@ export default function Home() {
                   href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20louer%20du%20matériel%20médical.`}
                   className="inline-flex items-center justify-center gap-2 rounded-2xl bg-status-success px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-black/10 transition-all hover:-translate-y-0.5 hover:brightness-110"
                 >
-                  <MaterialIcon name="chat" />
+                  <WhatsAppIcon className="h-5 w-5 shrink-0" />
                   Commander par WhatsApp
                 </a>
                 <a
@@ -1027,7 +873,7 @@ export default function Home() {
                       setFormData({
                         nom: "",
                         telephone: "",
-                        ville: city.name,
+                        ville: defaultFormCity,
                         materiel: "",
                         message: "",
                       });
@@ -1173,6 +1019,12 @@ export default function Home() {
       </main>
 
       <SiteFooter id="footer" />
+
+      <CityCatalogPickerDialog
+        open={catalogPickerOpen}
+        onClose={closeCatalogPicker}
+        productSlug={pickerProductSlug ?? undefined}
+      />
     </>
   );
 }

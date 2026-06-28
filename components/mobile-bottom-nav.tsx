@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { activeCities, type CitySlug } from "@/lib/cities";
-import { writeStoredCitySlug } from "@/lib/city-storage";
 import { WHATSAPP_NUMBER } from "@/lib/products";
-import { isVenteCatalogPath, venteCityPath } from "@/lib/routes";
+import { isVenteCatalogPath } from "@/lib/routes";
+import CityCatalogPickerDialog from "@/components/city-catalog-picker-dialog";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 
 function MaterialIcon({
@@ -36,7 +35,6 @@ export default function MobileBottomNav({
   whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}`,
 }: MobileBottomNavProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const [cityPickerOpen, setCityPickerOpen] = useState(false);
 
   const isHome = pathname === "/";
@@ -61,12 +59,6 @@ export default function MobileBottomNav({
     if (!isHome) return;
     event.preventDefault();
     scrollToSection("accueil");
-  };
-
-  const handleCitySelect = (citySlug: CitySlug) => {
-    writeStoredCitySlug(citySlug);
-    setCityPickerOpen(false);
-    router.push(venteCityPath(citySlug));
   };
 
   return (
@@ -136,66 +128,10 @@ export default function MobileBottomNav({
         </a>
       </nav>
 
-      {cityPickerOpen && (
-        <div className="fixed inset-0 z-[60] md:hidden">
-          <button
-            type="button"
-            aria-label="Fermer"
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setCityPickerOpen(false)}
-          />
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="city-picker-title"
-            className="absolute bottom-0 left-0 w-full rounded-t-3xl border-t border-outline-variant bg-background px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-5 shadow-2xl"
-          >
-            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-outline-variant" />
-            <h2
-              id="city-picker-title"
-              className="mb-1 text-center text-lg font-bold text-on-surface"
-            >
-              Choisir votre ville
-            </h2>
-            <p className="mb-5 text-center text-sm text-on-surface-variant">
-              Accédez au catalogue matériel de votre ville
-            </p>
-            <div className="space-y-2">
-              {activeCities.map((city) => (
-                <button
-                  key={city.slug}
-                  type="button"
-                  onClick={() => handleCitySelect(city.slug)}
-                  className="flex w-full items-center gap-3 rounded-2xl border border-outline-variant bg-white px-4 py-3.5 text-left transition-colors hover:border-primary hover:bg-primary/5"
-                >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <MaterialIcon name="location_on" />
-                  </span>
-                  <span>
-                    <span className="block text-base font-semibold text-on-surface">
-                      {city.name}
-                    </span>
-                    <span className="block text-xs text-on-surface-variant">
-                      Catalogue vente — {city.name}
-                    </span>
-                  </span>
-                  <MaterialIcon
-                    name="chevron_right"
-                    className="ml-auto text-on-surface-variant"
-                  />
-                </button>
-              ))}
-            </div>
-            <button
-              type="button"
-              onClick={() => setCityPickerOpen(false)}
-              className="mt-4 w-full rounded-xl py-3 text-sm font-semibold text-on-surface-variant transition-colors hover:bg-surface-container"
-            >
-              Annuler
-            </button>
-          </div>
-        </div>
-      )}
+      <CityCatalogPickerDialog
+        open={cityPickerOpen}
+        onClose={() => setCityPickerOpen(false)}
+      />
     </>
   );
 }

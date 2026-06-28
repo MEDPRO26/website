@@ -84,6 +84,9 @@ const cityCopy: Partial<
   },
 };
 
+export const homepageCareIntro =
+  "Besoin de soins ou d'aide à domicile ? SOS Santé vous oriente vers des professionnels qualifiés : kinésithérapeute, infirmier, médecin, aide-soignant et transport médical.";
+
 export function getCityHubContent(citySlug: CitySlug): CityHubContent {
   const city = getCityBySlug(citySlug)!;
   const copy = cityCopy[citySlug];

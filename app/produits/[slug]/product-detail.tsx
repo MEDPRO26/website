@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import SiteFooter from "@/components/site-footer";
 import Navbar from "@/components/navbar";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import RelatedProducts from "@/components/related-products";
 import CityLinks from "@/components/city-links";
 import {
@@ -487,7 +488,7 @@ export default function ProductDetail({
                       rel="noopener noreferrer"
                       className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#25D366]/30 bg-[#25D366]/5 py-3 text-sm font-semibold text-[#128C7E] transition-colors hover:bg-[#25D366]/10"
                     >
-                      <MaterialIcon name="chat" />
+                      <WhatsAppIcon className="h-5 w-5" />
                       WhatsApp Express
                     </a>
                   </div>

@@ -11,6 +11,7 @@ import CatalogPagination, {
   CATALOG_PRODUCTS_PER_PAGE_MOBILE,
 } from "@/components/catalog-pagination";
 import Navbar from "@/components/navbar";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
 import { useProductsPerPage } from "@/hooks/use-products-per-page";
 import { getCityBySlug, type CitySlug } from "@/lib/cities";
@@ -375,7 +376,7 @@ export default function VenteCatalog({ citySlug, categorySlug }: VenteCatalogPro
                 href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-secondary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
               >
-                <MaterialIcon name="chat" />
+                <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp
               </a>
               <Link

@@ -4,6 +4,7 @@ import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
 import { HERO_IMAGE, SITE_URL_DEFAULT } from "@/lib/brand";
 import { products, WHATSAPP_NUMBER } from "@/lib/products";
@@ -113,7 +114,7 @@ export default function AgadirHubPage() {
                 href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20louer%20du%20matériel%20médical%20à%20Agadir.`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-primary bg-white/60 px-6 py-3.5 text-base font-semibold text-primary backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-primary/5"
               >
-                <span className="material-symbols-outlined">chat</span>
+                <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp
               </a>
             </div>
@@ -317,7 +318,7 @@ export default function AgadirHubPage() {
               href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20louer%20du%20matériel%20médical%20à%20Agadir.`}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-primary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
             >
-              <span className="material-symbols-outlined">chat</span>
+              <WhatsAppIcon className="h-5 w-5" />
               WhatsApp
             </a>
             <a

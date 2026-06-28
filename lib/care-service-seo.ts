@@ -164,7 +164,7 @@ export const careServiceSeoProfiles: Record<string, CareServiceSeoProfile> = {
         title: "Flexibilité dans la prise de rendez-vous",
         paragraphs: (city) => [
           `SOS Santé facilite la planification de vos séances de kiné à domicile à ${city} selon vos disponibilités : matin, après-midi, week-end. Notre équipe de coordination reste joignable pour ajuster ou reprogrammer une visite.`,
-          `Que vous soyez à ${city}, Inezgane, Hay Riad ou ailleurs dans notre zone couverte, nous cherchons un créneau compatible avec votre emploi du temps et celui du kinésithérapeute partenaire.`,
+          `Que vous habitiez le centre-ville ou les communes limitrophes de ${city}, nous cherchons un créneau compatible avec votre emploi du temps et celui du kinésithérapeute partenaire.`,
         ],
       },
       {

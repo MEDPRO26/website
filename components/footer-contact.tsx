@@ -10,6 +10,7 @@ import {
   PHONE_NUMBER,
   WHATSAPP_NUMBER,
 } from "@/lib/products";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 
 function MaterialIcon({
   name,
@@ -70,7 +71,7 @@ export default function FooterContact({
             aria-label="Contacter sur WhatsApp"
             className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary transition-transform hover:scale-110"
           >
-            <MaterialIcon name="chat" />
+            <WhatsAppIcon className="h-5 w-5" />
           </a>
           <a
             href={`mailto:${CONTACT_EMAIL}`}

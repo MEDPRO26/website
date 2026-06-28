@@ -4,6 +4,8 @@ import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
+import CatalogPickerButton from "@/components/catalog-picker-button";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
 import { activeCities, getCityBySlug, type CitySlug } from "@/lib/cities";
 import { getCityHubContent } from "@/lib/city-hub-content";
@@ -126,13 +128,10 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
               {city.deliveryText}
             </p>
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link
-                href={venteCityPath(citySlug)}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-on-primary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-primary-container"
-              >
+              <CatalogPickerButton className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-on-primary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-primary-container">
                 <MaterialIcon name="shopping_bag" />
                 Voir le catalogue vente
-              </Link>
+              </CatalogPickerButton>
               <Link
                 href="/services"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-secondary bg-white px-8 py-4 text-base font-semibold text-secondary transition-all hover:-translate-y-0.5 hover:bg-secondary/5"
@@ -395,7 +394,7 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
                 href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-status-success px-8 py-4 text-base font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:brightness-110"
               >
-                <MaterialIcon name="chat" />
+                <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp · {city.name}
               </a>
               <Link

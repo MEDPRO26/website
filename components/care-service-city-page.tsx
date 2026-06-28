@@ -7,6 +7,7 @@ import Breadcrumb from "@/components/breadcrumb";
 import { CareServiceRequestForm } from "@/components/care-service-request-form";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
 import {
   getValuePropAccentClass,
@@ -124,6 +125,7 @@ export function CareServiceCityPage({
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const { seo } = content;
   const { expertise, trust, community } = seo;
+  const { images } = content;
 
   const schema = buildGraph(
     webPageSchema(content.path, content.metaTitle, content.metaDescription),
@@ -198,7 +200,7 @@ export function CareServiceCityPage({
                 href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-on-primary shadow-lg shadow-primary/30 transition-all hover:-translate-y-0.5 hover:bg-primary-container"
               >
-                <MaterialIcon name="chat" />
+                <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp · {PHONE_DISPLAY}
               </a>
               <a
@@ -278,8 +280,8 @@ export function CareServiceCityPage({
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="relative min-h-[220px] overflow-hidden rounded-3xl sm:row-span-2 sm:min-h-[460px]">
                 <Image
-                  src={content.images.hero}
-                  alt={content.images.altWithCity}
+                  src={images.bentoMain}
+                  alt={`${images.altWithCity} — accompagnement`}
                   fill
                   className="object-cover"
                   sizes="(min-width: 1024px) 25vw, 100vw"
@@ -300,8 +302,8 @@ export function CareServiceCityPage({
               ))}
               <div className="relative min-h-[200px] overflow-hidden rounded-3xl sm:col-span-2 lg:col-span-1">
                 <Image
-                  src={content.images.section}
-                  alt={content.images.altWithCity}
+                  src={images.bentoSecondary}
+                  alt={`${images.altWithCity} — service de proximité`}
                   fill
                   className="object-cover"
                   sizes="(min-width: 1024px) 25vw, 100vw"
@@ -322,8 +324,8 @@ export function CareServiceCityPage({
               title={expertise.title}
               paragraphs={expertise.paragraphs}
               bullets={expertise.bullets}
-              imageSrc={content.images.section}
-              imageAlt={content.images.altWithCity}
+              imageSrc={images.expertise}
+              imageAlt={`${images.altWithCity} — expertise`}
               imagePosition="left"
             />
           </div>
@@ -386,11 +388,10 @@ export function CareServiceCityPage({
                     title={specialty.title}
                     paragraphs={specialty.paragraphs}
                     imageSrc={
-                      index % 2 === 0
-                        ? content.images.section
-                        : content.images.hero
+                      images.specialties[index] ??
+                      images.expertise
                     }
-                    imageAlt={content.images.altWithCity}
+                    imageAlt={`${images.altWithCity} — ${specialty.title}`}
                     imagePosition={index % 2 === 0 ? "right" : "left"}
                   />
                 ))}
@@ -404,8 +405,8 @@ export function CareServiceCityPage({
             <ContentSection
               title={trust.title}
               paragraphs={trust.paragraphs}
-              imageSrc={content.images.hero}
-              imageAlt={content.images.altWithCity}
+              imageSrc={images.trust}
+              imageAlt={`${images.altWithCity} — confiance`}
               imagePosition="left"
             />
           </div>
