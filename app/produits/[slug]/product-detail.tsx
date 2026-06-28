@@ -127,7 +127,7 @@ export default function ProductDetail({
 
       <main
         id="main-content"
-        className="flex-1 pb-28 pt-16 md:pb-16 md:pt-20"
+        className="flex-1 pb-20 pt-16 md:pb-16 md:pt-20"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
@@ -686,17 +686,6 @@ export default function ProductDetail({
       </main>
 
       <SiteFooter />
-
-      {/* Floating WhatsApp */}
-      <a
-        href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Contacter sur WhatsApp"
-        className="fixed bottom-20 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl transition-transform hover:scale-110 md:bottom-10 md:right-10"
-      >
-        <MaterialIcon name="chat" className="text-3xl" />
-      </a>
     </>
   );
 }

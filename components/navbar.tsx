@@ -190,8 +190,12 @@ export default function Navbar() {
       aria-label="Navigation principale"
       className="fixed left-0 top-0 z-50 h-16 w-full border-b border-outline-variant/50 bg-background/95 shadow-sm backdrop-blur-md md:h-20"
     >
-      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-6 lg:gap-10">
+      <div className="relative mx-auto flex h-full max-w-7xl items-center px-4 sm:px-6 lg:px-8 md:justify-between">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:hidden">
+          <Logo priority size="md" />
+        </div>
+
+        <div className="hidden items-center gap-6 lg:gap-10 md:flex">
           <Logo priority size="md" />
 
           <nav className="hidden items-center gap-1 md:flex">
@@ -267,7 +271,7 @@ export default function Navbar() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="relative z-10 ml-auto flex items-center gap-3">
           <a
             href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20des%20informations.`}
             className="hidden items-center gap-2 rounded-full bg-status-success px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:brightness-110 sm:inline-flex"
