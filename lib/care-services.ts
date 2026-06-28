@@ -393,12 +393,12 @@ const homepageCareServiceDescriptions: Record<string, string> = {
 
 export function getHomepageCareServices() {
   return careServices.map(({ slug, icon, title, badge, images }) => ({
+    slug,
     icon,
     title,
     description:
       homepageCareServiceDescriptions[slug] ??
       "Service disponible dans les grandes villes du Maroc.",
-    href: "/services",
     badge,
     image: images.hero,
     imageAlt: images.alt,

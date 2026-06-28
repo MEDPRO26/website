@@ -189,7 +189,7 @@ function ServicesDropdownLinks({
               type="button"
               onClick={() => onServiceSelect(service.slug)}
               className={classNames(
-                "flex w-full items-center gap-2.5 rounded-lg border px-3 py-2 text-left text-xs font-semibold leading-snug transition-all sm:text-sm",
+                "flex w-full cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2 text-left text-xs font-semibold leading-snug transition-all sm:text-sm",
                 active
                   ? "border-primary/30 bg-primary/10 text-primary"
                   : "border-outline-variant/50 bg-white text-on-surface hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
@@ -217,7 +217,7 @@ function ServicesDropdownLinks({
           href="/services"
           onClick={onNavigate}
           className={classNames(
-            "flex items-center justify-center gap-1.5 rounded-lg border border-dashed px-3 py-2 text-xs font-semibold transition-all sm:text-sm",
+            "flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-dashed px-3 py-2 text-xs font-semibold transition-all sm:text-sm",
             pathname === "/services"
               ? "border-primary/30 bg-primary/10 text-primary"
               : "border-outline-variant/50 text-on-surface-variant hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
@@ -241,7 +241,7 @@ function ServicesDropdownLinks({
             type="button"
             onClick={() => onServiceSelect(service.slug)}
             className={classNames(
-              "flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-medium transition-colors",
+              "flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left text-sm font-medium transition-colors",
               active
                 ? "bg-primary/10 text-primary"
                 : "text-on-surface hover:bg-surface-container-low hover:text-primary"
@@ -257,7 +257,7 @@ function ServicesDropdownLinks({
           href="/services"
           onClick={onNavigate}
           className={classNames(
-            "flex items-center gap-2 text-sm font-semibold transition-colors",
+            "flex cursor-pointer items-center gap-2 text-sm font-semibold transition-colors",
             pathname === "/services"
               ? "text-primary"
               : "text-on-surface-variant hover:text-primary"

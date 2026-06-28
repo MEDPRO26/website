@@ -86,6 +86,38 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Interactive cursor — unlayered so Tailwind v4 includes it in the bundle */
+a[href],
+button:not(:disabled),
+select:not(:disabled),
+summary,
+label[for],
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"],
+input[type="submit"]:not(:disabled),
+input[type="button"]:not(:disabled),
+input[type="reset"]:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+[role="link"],
+[role="menuitem"],
+[role="tab"],
+[role="option"] {
+  cursor: pointer;
+}
+
+a[href] *,
+button:not(:disabled) *,
+[role="button"]:not([aria-disabled="true"]) * {
+  cursor: inherit;
+}
+
+button:disabled,
+select:disabled,
+input:disabled {
+  cursor: not-allowed;
+}
+
 ::selection {
   background: var(--primary-fixed);
   color: #1e4a6e;

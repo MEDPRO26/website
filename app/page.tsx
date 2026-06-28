@@ -198,6 +198,9 @@ export default function Home() {
   const [pickerProductSlug, setPickerProductSlug] = useState<string | null>(
     null
   );
+  const [pickerServiceSlug, setPickerServiceSlug] = useState<string | null>(
+    null
+  );
   const [formStatus, setFormStatus] = useState<"idle" | "success" | "error">(
     "idle"
   );
@@ -219,13 +222,21 @@ export default function Home() {
   );
 
   const openCatalogPicker = (productSlug?: string) => {
+    setPickerServiceSlug(null);
     setPickerProductSlug(productSlug ?? null);
+    setCatalogPickerOpen(true);
+  };
+
+  const openServicePicker = (serviceSlug: string) => {
+    setPickerProductSlug(null);
+    setPickerServiceSlug(serviceSlug);
     setCatalogPickerOpen(true);
   };
 
   const closeCatalogPicker = () => {
     setCatalogPickerOpen(false);
     setPickerProductSlug(null);
+    setPickerServiceSlug(null);
   };
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -578,21 +589,15 @@ export default function Home() {
                   </>
                 );
 
-                return service.href ? (
-                  <Link
+                return (
+                  <button
                     key={service.title}
-                    href={service.href}
-                    className="group flex flex-col overflow-hidden rounded-3xl border border-outline-variant/30 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-primary/20 hover:shadow-md"
+                    type="button"
+                    onClick={() => openServicePicker(service.slug)}
+                    className="group flex w-full cursor-pointer flex-col overflow-hidden rounded-3xl border border-outline-variant/30 bg-white p-6 text-left shadow-sm transition-all hover:-translate-y-1 hover:border-primary/20 hover:shadow-md"
                   >
                     {inner}
-                  </Link>
-                ) : (
-                  <div
-                    key={service.title}
-                    className="group flex flex-col overflow-hidden rounded-3xl border border-outline-variant/30 bg-white p-6 shadow-sm"
-                  >
-                    {inner}
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -1024,6 +1029,7 @@ export default function Home() {
         open={catalogPickerOpen}
         onClose={closeCatalogPicker}
         productSlug={pickerProductSlug ?? undefined}
+        serviceSlug={pickerServiceSlug ?? undefined}
       />
     </>
   );
