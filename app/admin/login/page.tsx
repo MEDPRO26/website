@@ -50,9 +50,8 @@ export default function AdminLoginPage() {
         password,
         ...(mode === "signUp" ? { name } : {}),
       });
-      if (mode === "signUp") {
-        await ensureProfile();
-      }
+      // Create staff profile if missing (signup or recovery after partial signup).
+      await ensureProfile();
     } catch (err) {
       setError(
         err instanceof Error
