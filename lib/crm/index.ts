@@ -12,7 +12,6 @@ export { AdminCommissionsPage } from "@/components/crm/pages/admin-commissions";
 export { AdminComplaintsPage } from "@/components/crm/pages/admin-complaints";
 export { AdminConversationsPage } from "@/components/crm/pages/admin-conversations";
 export { AdminNotificationsPage } from "@/components/crm/pages/admin-notifications";
-export { AdminCmsPage } from "@/components/crm/pages/admin-cms";
 export { AdminUsersPage } from "@/components/crm/pages/admin-users";
 export { AdminSettingsPage } from "@/components/crm/pages/admin-settings";
 export { AdminAuditLogsPage } from "@/components/crm/pages/admin-audit-logs";

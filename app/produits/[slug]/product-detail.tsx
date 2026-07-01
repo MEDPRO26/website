@@ -18,7 +18,7 @@ import { venteCityPath, venteProductPath } from "@/lib/routes";
 import {
   CONTACT_EMAIL,
   PRICE_ON_REQUEST,
-  WHATSAPP_NUMBER,
+  whatsAppHref,
   type Product,
 } from "@/lib/products";
 
@@ -118,9 +118,7 @@ export default function ProductDetail({
     setFormStatus("success");
   };
 
-  const whatsappText = encodeURIComponent(
-    `Bonjour SOS Santé, je souhaite acheter un ${product.name} à ${formData.deliveryCity}.`
-  );
+  const whatsappText = `Bonjour SOS Santé, je souhaite acheter un ${product.name} à ${formData.deliveryCity}.`;
 
   return (
     <>
@@ -483,7 +481,7 @@ export default function ProductDetail({
                     </div>
 
                     <a
-                      href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`}
+                      href={whatsAppHref(whatsappText, "materiel")}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#25D366]/30 bg-[#25D366]/5 py-3 text-sm font-semibold text-[#128C7E] transition-colors hover:bg-[#25D366]/10"

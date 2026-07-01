@@ -5,13 +5,13 @@ import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
 import { HERO_IMAGE, SITE_NAME, SITE_URL_DEFAULT } from "@/lib/brand";
+import ContactForm from "@/components/contact-form";
 import {
   activeCities,
   activeDeliveryCityLabel,
-  DEFAULT_DELIVERY_CITY,
   deliveryCities,
 } from "@/lib/delivery-cities";
-import { CONTACT_EMAIL, PHONE_DISPLAY, PHONE_NUMBER, WHATSAPP_NUMBER } from "@/lib/products";
+import { CONTACT_EMAIL, PHONE_DISPLAY, PHONE_NUMBER, whatsAppHref } from "@/lib/products";
 import { hubCityPath } from "@/lib/routes";
 
 const siteUrl = (
@@ -62,7 +62,7 @@ const contactChannels = [
     icon: "chat",
     title: "WhatsApp",
     value: "Disponible 7j/7",
-    href: `https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20un%20devis%20ou%20plus%20d'informations.`,
+    href: whatsAppHref("Bonjour SOS Santé, je souhaite un devis ou plus d'informations.", "general"),
     cta: "Discuter sur WhatsApp",
     color: "bg-[#25D366]/10 text-[#25D366]",
   },
@@ -82,14 +82,6 @@ const contactChannels = [
     cta: "Appeler maintenant",
     color: "bg-secondary/10 text-secondary",
   },
-];
-
-const subjects = [
-  "Demande générale",
-  "Location matériel médical",
-  "Service à domicile",
-  "Demande de devis",
-  "Partenariat",
 ];
 
 function ContactJsonLd() {
@@ -253,127 +245,7 @@ export default function ContactPage() {
                 solution adaptée.
               </p>
 
-              <form
-                action={`mailto:${CONTACT_EMAIL}`}
-                method="post"
-                encType="text/plain"
-                className="space-y-4"
-              >
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label
-                      htmlFor="name"
-                      className="mb-1.5 block text-sm font-medium text-on-surface"
-                    >
-                      Nom complet <span className="text-status-error">*</span>
-                    </label>
-                    <input
-                      id="name"
-                      name="Nom"
-                      type="text"
-                      required
-                      placeholder="Prénom et nom"
-                      className="w-full rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="phone"
-                      className="mb-1.5 block text-sm font-medium text-on-surface"
-                    >
-                      Téléphone <span className="text-status-error">*</span>
-                    </label>
-                    <input
-                      id="phone"
-                      name="Telephone"
-                      type="tel"
-                      required
-                      placeholder="06 XX XX XX XX"
-                      className="w-full rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label
-                      htmlFor="email"
-                      className="mb-1.5 block text-sm font-medium text-on-surface"
-                    >
-                      Email
-                    </label>
-                    <input
-                      id="email"
-                      name="Email"
-                      type="email"
-                      placeholder="votre@email.com"
-                      className="w-full rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="city"
-                      className="mb-1.5 block text-sm font-medium text-on-surface"
-                    >
-                      Ville <span className="text-status-error">*</span>
-                    </label>
-                    <select
-                      id="city"
-                      name="Ville"
-                      required
-                      defaultValue={DEFAULT_DELIVERY_CITY}
-                      className="w-full rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    >
-                      {activeCities.map((city) => (
-                        <option key={city.slug} value={city.name}>
-                          {city.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label
-                    htmlFor="subject"
-                    className="mb-1.5 block text-sm font-medium text-on-surface"
-                  >
-                    Sujet <span className="text-status-error">*</span>
-                  </label>
-                  <select
-                    id="subject"
-                    name="Sujet"
-                    required
-                    className="w-full rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  >
-                    {subjects.map((subject) => (
-                      <option key={subject} value={subject}>
-                        {subject}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label
-                    htmlFor="message"
-                    className="mb-1.5 block text-sm font-medium text-on-surface"
-                  >
-                    Message
-                  </label>
-                  <textarea
-                    id="message"
-                    name="Message"
-                    rows={4}
-                    placeholder="Décrivez votre besoin..."
-                    className="w-full resize-none rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-on-primary shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary-container sm:w-auto"
-                >
-                  <MaterialIcon name="send" />
-                  Envoyer ma demande
-                </button>
-              </form>
+              <ContactForm />
             </div>
 
             <div className="space-y-8">

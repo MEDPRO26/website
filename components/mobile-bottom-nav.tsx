@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { WHATSAPP_NUMBER } from "@/lib/products";
+import { whatsAppHref } from "@/lib/products";
 import { isVenteCatalogPath } from "@/lib/routes";
 import CityCatalogPickerDialog from "@/components/city-catalog-picker-dialog";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
@@ -32,7 +32,7 @@ type MobileBottomNavProps = {
 };
 
 export default function MobileBottomNav({
-  whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}`,
+  whatsappHref = whatsAppHref(undefined, "general"),
 }: MobileBottomNavProps) {
   const pathname = usePathname();
   const [pickerDestination, setPickerDestination] = useState<

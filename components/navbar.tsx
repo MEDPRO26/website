@@ -8,7 +8,7 @@ import CityCatalogPickerDialog from "@/components/city-catalog-picker-dialog";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { activeCities } from "@/lib/cities";
 import { careServiceCityPath, careServices } from "@/lib/care-services";
-import { CONTACT_EMAIL, WHATSAPP_NUMBER } from "@/lib/products";
+import { CONTACT_EMAIL, whatsAppHref } from "@/lib/products";
 import { isVenteCatalogPath, venteCityPath } from "@/lib/routes";
 
 function MaterialIcon({
@@ -453,7 +453,7 @@ export default function Navbar() {
 
         <div className="relative z-10 ml-auto flex items-center gap-3">
           <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20des%20informations.`}
+            href={whatsAppHref("Bonjour SOS Santé, je souhaite des informations.", "general")}
             className="hidden items-center gap-2 rounded-full bg-status-success px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:brightness-110 sm:inline-flex"
           >
             <WhatsAppIcon className="h-5 w-5" />

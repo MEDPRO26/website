@@ -10,7 +10,7 @@ import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
 import { DEFAULT_CITY_SLUG } from "@/lib/cities";
-import { CONTACT_EMAIL, WHATSAPP_NUMBER, type Product } from "@/lib/products";
+import { CONTACT_EMAIL, whatsAppHref, type Product } from "@/lib/products";
 import { hubCityPath, venteProductPath } from "@/lib/routes";
 import { seoCategories, seoCities, type SeoCategory, type SeoCity } from "@/lib/seo-data";
 import {
@@ -156,7 +156,7 @@ function CtaSection({ title }: { title: string }) {
         </p>
         <div className="flex flex-col justify-center gap-3 sm:flex-row">
           <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20louer%20du%20matériel%20médical.`}
+            href={whatsAppHref("Bonjour SOS Santé, je souhaite louer du matériel médical.", "materiel")}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-primary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
           >
             <WhatsAppIcon className="h-5 w-5" />

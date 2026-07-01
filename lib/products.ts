@@ -20,6 +20,12 @@ export {
   PHONE_NUMBER,
   WHATSAPP_NUMBER,
 } from "@/lib/cities";
+export {
+  whatsAppDigits,
+  whatsAppHref,
+  WHATSAPP_LINES,
+  type WhatsAppLine,
+} from "@/lib/whatsapp-lines";
 export { PRICE_ON_REQUEST } from "@/lib/respiratory-products";
 
 export const products: Product[] = catalogProducts;

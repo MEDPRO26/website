@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SupplierShell } from "@/components/dashboard/app-shell";
+import { SupplierLayoutClient } from "./supplier-layout-client";
 import "./crm.css";
 
 export const metadata: Metadata = {
@@ -10,9 +10,5 @@ export const metadata: Metadata = {
 };
 
 export default function SupplierLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="crm-app">
-      <SupplierShell>{children}</SupplierShell>
-    </div>
-  );
+  return <SupplierLayoutClient>{children}</SupplierLayoutClient>;
 }

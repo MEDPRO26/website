@@ -106,3 +106,19 @@
 .crm-app * {
   border-color: var(--border);
 }
+
+/*
+ * Radix portals mount on document.body (outside .crm-app).
+ * Force opaque white surfaces so table/dialog content doesn't bleed through.
+ */
+body:has(.crm-app) [data-radix-popper-content-wrapper] {
+  z-index: 200 !important;
+}
+
+body:has(.crm-app) [data-radix-select-content],
+body:has(.crm-app) [data-radix-dropdown-menu-content],
+body:has(.crm-app) [data-radix-popover-content],
+body:has(.crm-app) [role="listbox"] {
+  background-color: #ffffff !important;
+  color: #474b56 !important;
+}

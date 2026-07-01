@@ -7,7 +7,7 @@ import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
 import { HERO_IMAGE, SITE_URL_DEFAULT } from "@/lib/brand";
-import { products, WHATSAPP_NUMBER } from "@/lib/products";
+import { products, whatsAppHref } from "@/lib/products";
 import { agadirHub, seoCategories } from "@/lib/seo-data";
 import {
   breadcrumbSchema,
@@ -111,7 +111,7 @@ export default function AgadirHubPage() {
                 <span className="material-symbols-outlined text-lg">arrow_forward</span>
               </a>
               <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20louer%20du%20matériel%20médical%20à%20Agadir.`}
+                href={whatsAppHref("Bonjour SOS Santé, je souhaite louer du matériel médical à Agadir.", "materiel")}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-primary bg-white/60 px-6 py-3.5 text-base font-semibold text-primary backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-primary/5"
               >
                 <WhatsAppIcon className="h-5 w-5" />
@@ -315,7 +315,7 @@ export default function AgadirHubPage() {
           </p>
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
             <a
-              href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20louer%20du%20matériel%20médical%20à%20Agadir.`}
+              href={whatsAppHref("Bonjour SOS Santé, je souhaite louer du matériel médical à Agadir.", "materiel")}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-primary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
             >
               <WhatsAppIcon className="h-5 w-5" />

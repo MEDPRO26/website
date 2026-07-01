@@ -1,21 +1,30 @@
 "use client";
 
+import { useQuery } from "convex/react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card } from "@/components/ui/card";
 import { Tag } from "@/components/dashboard/status-badge";
+import { api } from "@/convex/_generated/api";
+import { useAdminSession } from "@/hooks/use-admin-session";
 
-const LOGS = [
-  { date: "12 fév. 14:32", user: "Salma B.", action: "update", entity: "order:SOS-AG-2026-0001", from: "à_affecter", to: "envoyée_fournisseur", ip: "105.66.xx.xx" },
-  { date: "12 fév. 13:10", user: "Karim A.", action: "create", entity: "order:SOS-AG-2026-0008", from: "—", to: "nouvelle_demande", ip: "196.12.xx.xx" },
-  { date: "12 fév. 11:48", user: "Admin", action: "update", entity: "supplier:s1", from: "non vérifié", to: "vérifié", ip: "105.66.xx.xx" },
-  { date: "11 fév. 18:02", user: "Salma B.", action: "delete", entity: "note:n42", from: "Note client", to: "—", ip: "105.66.xx.xx" },
-  { date: "11 fév. 09:21", user: "Admin", action: "update", entity: "settings:commission", from: "12%", to: "15%", ip: "105.66.xx.xx" },
-];
+const ACTION_TONE: Record<string, "success" | "danger" | "info" | "neutral"> = {
+  create: "success",
+  delete: "danger",
+  update: "info",
+  status_change: "info",
+  system: "neutral",
+};
 
 export function AdminAuditLogsPage() {
+  const { canQueryAdmin } = useAdminSession();
+  const logs = useQuery(api.auditLogs.list, canQueryAdmin ? {} : "skip");
+
   return (
     <div>
-      <PageHeader title="Audit logs" description="Historique des actions sur la plateforme" />
+      <PageHeader
+        title="Audit logs"
+        description="Historique des actions enregistrées sur la plateforme."
+      />
       <Card className="overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -27,23 +36,43 @@ export function AdminAuditLogsPage() {
                 <th className="py-2.5 font-medium">Entité</th>
                 <th className="py-2.5 font-medium">Ancienne</th>
                 <th className="py-2.5 font-medium">Nouvelle</th>
-                <th className="px-4 py-2.5 font-medium">IP</th>
               </tr>
             </thead>
             <tbody>
-              {LOGS.map((l, i) => (
-                <tr key={i} className="border-t border-border">
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{l.date}</td>
-                  <td className="py-3 font-medium">{l.user}</td>
-                  <td className="py-3">
-                    <Tag tone={l.action === "create" ? "success" : l.action === "delete" ? "danger" : "info"}>{l.action}</Tag>
+              {logs === undefined ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                    Chargement…
                   </td>
-                  <td className="py-3 font-mono text-xs">{l.entity}</td>
-                  <td className="py-3 text-xs text-muted-foreground">{l.from}</td>
-                  <td className="py-3 text-xs">{l.to}</td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground font-mono">{l.ip}</td>
                 </tr>
-              ))}
+              ) : logs.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                    Aucun log pour l&apos;instant. Les actions CRM apparaîtront ici.
+                  </td>
+                </tr>
+              ) : (
+                logs.map((log) => (
+                  <tr key={log._id} className="border-t border-border">
+                    <td className="px-4 py-3 text-xs text-muted-foreground">
+                      {log.dateLabel}
+                    </td>
+                    <td className="py-3 font-medium">{log.actorName}</td>
+                    <td className="py-3">
+                      <Tag tone={ACTION_TONE[log.action] ?? "neutral"}>
+                        {log.action}
+                      </Tag>
+                    </td>
+                    <td className="py-3 font-mono text-xs">
+                      {log.entityType}:{log.entityLabel}
+                    </td>
+                    <td className="py-3 text-muted-foreground">
+                      {log.fromValue ?? "—"}
+                    </td>
+                    <td className="py-3">{log.toValue ?? "—"}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

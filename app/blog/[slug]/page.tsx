@@ -8,7 +8,7 @@ import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
 import { blogPosts, getBlogPostBySlug } from "@/lib/blog";
-import { CONTACT_EMAIL, products, WHATSAPP_NUMBER } from "@/lib/products";
+import { CONTACT_EMAIL, products, whatsAppHref } from "@/lib/products";
 import { SITE_URL_DEFAULT } from "@/lib/brand";
 import {
   blogPostingSchema,
@@ -311,7 +311,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             </p>
             <div className="flex flex-col justify-center gap-3 sm:flex-row">
               <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20louer%20du%20matériel%20médical.`}
+                href={whatsAppHref("Bonjour SOS Santé, je souhaite louer du matériel médical.", "materiel")}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-primary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
               >
                 <WhatsAppIcon className="h-5 w-5" />

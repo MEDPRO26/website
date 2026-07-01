@@ -14,7 +14,7 @@ import {
 } from "@/lib/care-service-seo";
 import type { CareServicePageContent } from "@/lib/care-services";
 import { hubCityPath } from "@/lib/routes";
-import { PHONE_DISPLAY, WHATSAPP_NUMBER } from "@/lib/products";
+import { PHONE_DISPLAY, whatsAppHref } from "@/lib/products";
 import {
   breadcrumbSchema,
   buildGraph,
@@ -143,9 +143,7 @@ export function CareServiceCityPage({
     serviceSchema(content.h1, content.description, content.path)
   );
 
-  const whatsappText = encodeURIComponent(
-    `Bonjour SOS Santé, je souhaite ${content.formLabel.toLowerCase()} à ${content.cityName}.`
-  );
+  const whatsappText = `Bonjour SOS Santé, je souhaite ${content.formLabel.toLowerCase()} à ${content.cityName}.`;
 
   const whyCardThemes = [
     "bg-secondary text-on-secondary",
@@ -197,7 +195,7 @@ export function CareServiceCityPage({
             </p>
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
               <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`}
+                href={whatsAppHref(whatsappText, "garde_soins")}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-on-primary shadow-lg shadow-primary/30 transition-all hover:-translate-y-0.5 hover:bg-primary-container"
               >
                 <WhatsAppIcon className="h-5 w-5" />

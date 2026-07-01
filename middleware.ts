@@ -1,3 +1,8 @@
+import {
+  convexAuthNextjsMiddleware,
+  createRouteMatcher,
+  nextjsMiddlewareRedirect,
+} from "@convex-dev/auth/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { categoryParamToValue } from "@/lib/catalog-categories";
@@ -11,6 +16,10 @@ import {
 } from "@/lib/routes";
 
 const legacyCategorySlugs = Object.keys(seoCategoryToCatalogParam);
+const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
+const isAdminLogin = createRouteMatcher(["/admin/login"]);
+const isSupplierRoute = createRouteMatcher(["/supplier(.*)"]);
+const isSupplierInvite = createRouteMatcher(["/supplier/invite(.*)"]);
 
 function redirect(request: NextRequest, pathname: string) {
   const url = request.nextUrl.clone();
@@ -19,7 +28,7 @@ function redirect(request: NextRequest, pathname: string) {
   return NextResponse.redirect(url, 301);
 }
 
-export function middleware(request: NextRequest) {
+function handleLegacyRedirects(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname === LEGACY_VENTE_PAGE_PATH) {
@@ -77,23 +86,34 @@ export function middleware(request: NextRequest) {
     return redirect(request, venteCityPath(DEFAULT_CITY_SLUG));
   }
 
-  return NextResponse.next();
+  return null;
 }
 
+export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
+  const legacyRedirect = handleLegacyRedirects(request);
+  if (legacyRedirect) {
+    return legacyRedirect;
+  }
+
+  if (
+    isAdminRoute(request) &&
+    !isAdminLogin(request) &&
+    !(await convexAuth.isAuthenticated())
+  ) {
+    return nextjsMiddlewareRedirect(request, "/admin/login");
+  }
+
+  if (
+    isSupplierRoute(request) &&
+    !isSupplierInvite(request) &&
+    !(await convexAuth.isAuthenticated())
+  ) {
+    return nextjsMiddlewareRedirect(request, "/admin/login");
+  }
+
+  return null;
+});
+
 export const config = {
-  matcher: [
-    "/vente-de-materiel-medical",
-    "/vente-de-materiel-medical/:path*",
-    "/produits/:path*",
-    "/materiel-mobilite",
-    "/materiel-respiratoire",
-    "/materiel-confort",
-    "/materiel-diagnostic",
-    "/materiel-instruments",
-    "/location-materiel-medical-agadir",
-    "/location-materiel-medical-rabat",
-    "/location-materiel-medical-casablanca",
-    "/location-materiel-medical-marrakech",
-    "/location-materiel-medical-tanger",
-  ],
+  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
 };

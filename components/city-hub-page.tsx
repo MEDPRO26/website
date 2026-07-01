@@ -9,7 +9,7 @@ import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
 import { activeCities, getCityBySlug, type CitySlug } from "@/lib/cities";
 import { getCityHubContent } from "@/lib/city-hub-content";
-import { WHATSAPP_NUMBER } from "@/lib/products";
+import { whatsAppHref } from "@/lib/products";
 import {
   hubCityPath,
   venteCategoryPath,
@@ -85,9 +85,7 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
     faqSchema(content.faqs, path)
   );
 
-  const whatsappText = encodeURIComponent(
-    `Bonjour ${content.badgeLabel}, je souhaite des informations sur le matériel médical à ${city.name}.`
-  );
+  const whatsappText = `Bonjour ${content.badgeLabel}, je souhaite des informations sur le matériel médical à ${city.name}.`;
 
   return (
     <>
@@ -391,7 +389,7 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
             </p>
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
               <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`}
+                href={whatsAppHref(whatsappText, "materiel")}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-status-success px-8 py-4 text-base font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:brightness-110"
               >
                 <WhatsAppIcon className="h-5 w-5" />

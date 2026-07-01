@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AdminShell } from "@/components/dashboard/app-shell";
+import { Toaster } from "@/components/ui/sonner";
 import "./crm.css";
 
 export const metadata: Metadata = {
@@ -11,8 +11,9 @@ export const metadata: Metadata = {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="crm-app">
-      <AdminShell>{children}</AdminShell>
-    </div>
+    <>
+      {children}
+      <Toaster richColors position="top-right" />
+    </>
   );
 }

@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "convex/react";
+import { useAdminSession } from "@/hooks/use-admin-session";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { Card } from "@/components/ui/card";
@@ -10,7 +12,9 @@ import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { ORDERS, STATUS_LABEL, type OrderStatus } from "@/lib/mock-data";
+import { api } from "@/convex/_generated/api";
+import { mapConvexOrderToUi } from "@/lib/crm/map-convex-order";
+import { STATUS_LABEL, type Order, type OrderStatus } from "@/lib/mock-data";
 import { Search, LayoutGrid, List, Filter } from "lucide-react";
 
 const KANBAN_COLUMNS: OrderStatus[] = [
@@ -20,11 +24,23 @@ const KANBAN_COLUMNS: OrderStatus[] = [
 
 export function AdminOrdersPage() {
   const [view, setView] = useState<"table" | "kanban">("table");
+  const { canQueryAdmin } = useAdminSession();
+  const ordersData = useQuery(api.orders.list, canQueryAdmin ? {} : "skip");
+  const orders = useMemo(
+    () => (ordersData ? ordersData.map(mapConvexOrderToUi) : []),
+    [ordersData]
+  );
+  const isLoading = ordersData === undefined;
+
   return (
     <div>
       <PageHeader
         title="Commandes"
-        description={`${ORDERS.length} commandes au total · mise à jour il y a 2 min`}
+        description={
+          isLoading
+            ? "Chargement des demandes…"
+            : `${orders.length} demande${orders.length > 1 ? "s" : ""} reçue${orders.length > 1 ? "s" : ""} via le site`
+        }
         actions={
           <>
             <div className="hidden sm:flex rounded-lg border border-border bg-card p-0.5">
@@ -66,17 +82,15 @@ export function AdminOrdersPage() {
             <SelectTrigger className="h-9 w-[120px]"><SelectValue placeholder="Ville" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="agadir">Agadir</SelectItem>
-              <SelectItem value="inezgane">Inezgane</SelectItem>
-              <SelectItem value="dcheira">Dcheira</SelectItem>
+              <SelectItem value="rabat">Rabat</SelectItem>
             </SelectContent>
           </Select>
           <Select>
             <SelectTrigger className="h-9 w-[130px]"><SelectValue placeholder="Source" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="whatsapp">WhatsApp</SelectItem>
               <SelectItem value="site">Formulaire site</SelectItem>
+              <SelectItem value="whatsapp">WhatsApp</SelectItem>
               <SelectItem value="call">Appel</SelectItem>
-              <SelectItem value="gmaps">Google Maps</SelectItem>
             </SelectContent>
           </Select>
           <Button variant="outline" size="sm">
@@ -85,12 +99,25 @@ export function AdminOrdersPage() {
         </div>
       </Card>
 
-      {view === "table" ? <OrdersTable /> : <OrdersKanban />}
+      {isLoading ? (
+        <Card className="p-8 text-center text-sm text-muted-foreground">
+          Chargement des demandes…
+        </Card>
+      ) : orders.length === 0 ? (
+        <Card className="p-8 text-center text-sm text-muted-foreground">
+          Aucune demande pour le moment. Les formulaires du site apparaîtront ici
+          en temps réel.
+        </Card>
+      ) : view === "table" ? (
+        <OrdersTable orders={orders} />
+      ) : (
+        <OrdersKanban orders={orders} />
+      )}
     </div>
   );
 }
 
-function OrdersTable() {
+function OrdersTable({ orders }: { orders: Order[] }) {
   return (
     <Card className="overflow-hidden p-0">
       <div className="overflow-x-auto">
@@ -102,14 +129,12 @@ function OrdersTable() {
               <th className="py-2.5 font-medium">Ville</th>
               <th className="py-2.5 font-medium">Type</th>
               <th className="py-2.5 font-medium">Source</th>
-              <th className="py-2.5 font-medium">Fournisseur</th>
               <th className="py-2.5 font-medium">Statut</th>
-              <th className="py-2.5 font-medium text-right">Prix final</th>
               <th className="px-4 py-2.5 font-medium text-right">Date</th>
             </tr>
           </thead>
           <tbody>
-            {ORDERS.map((o) => (
+            {orders.map((o) => (
               <tr key={o.id} className="border-t border-border hover:bg-muted/30">
                 <td className="px-4 py-3 font-mono text-xs">
                   <Link href={`/admin/orders/${o.id}`} className="text-brand hover:underline">
@@ -122,15 +147,13 @@ function OrdersTable() {
                 </td>
                 <td className="py-3">
                   <div>{o.city}</div>
-                  <div className="text-xs text-muted-foreground">{o.district}</div>
+                  {o.district ? (
+                    <div className="text-xs text-muted-foreground">{o.district}</div>
+                  ) : null}
                 </td>
                 <td className="py-3 text-muted-foreground">{o.type}</td>
                 <td className="py-3 text-xs">{o.source}</td>
-                <td className="py-3 text-xs">{o.supplier ?? <span className="text-muted-foreground italic">—</span>}</td>
                 <td className="py-3"><StatusBadge status={o.status} /></td>
-                <td className="py-3 text-right font-medium">
-                  {o.finalPrice ? `${o.finalPrice.toLocaleString("fr-FR")} MAD` : <span className="text-muted-foreground">—</span>}
-                </td>
                 <td className="px-4 py-3 text-right text-xs text-muted-foreground whitespace-nowrap">{o.createdAt}</td>
               </tr>
             ))}
@@ -141,12 +164,12 @@ function OrdersTable() {
   );
 }
 
-function OrdersKanban() {
+function OrdersKanban({ orders }: { orders: Order[] }) {
   return (
     <div className="overflow-x-auto pb-3">
       <div className="flex gap-3 min-w-max">
         {KANBAN_COLUMNS.map((status) => {
-          const items = ORDERS.filter((o) => o.status === status);
+          const items = orders.filter((o) => o.status === status);
           return (
             <div key={status} className="w-72 shrink-0">
               <div className="mb-2 flex items-center justify-between px-1">
@@ -168,9 +191,6 @@ function OrdersKanban() {
                     <p className="mt-0.5 text-xs text-muted-foreground truncate">{o.item}</p>
                     <div className="mt-2 flex items-center justify-between">
                       <span className="text-[11px] text-muted-foreground">{o.city}</span>
-                      {o.finalPrice && (
-                        <span className="text-[11px] font-semibold">{o.finalPrice.toLocaleString("fr-FR")} MAD</span>
-                      )}
                     </div>
                   </Link>
                 ))}

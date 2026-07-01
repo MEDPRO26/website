@@ -8,7 +8,7 @@ import {
   CONTACT_EMAIL,
   PHONE_DISPLAY,
   PHONE_NUMBER,
-  WHATSAPP_NUMBER,
+  whatsAppHref,
 } from "@/lib/products";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 
@@ -67,7 +67,7 @@ export default function FooterContact({
       {showSocial ? (
         <div className="mt-4 flex gap-3">
           <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}`}
+            href={whatsAppHref(undefined, "general")}
             aria-label="Contacter sur WhatsApp"
             className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary transition-transform hover:scale-110"
           >

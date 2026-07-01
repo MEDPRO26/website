@@ -20,7 +20,7 @@ import {
   catalogCategories,
   categoryValueFromParam,
 } from "@/lib/catalog-categories";
-import { getCatalogProducts, WHATSAPP_NUMBER } from "@/lib/products";
+import { getCatalogProducts, whatsAppHref } from "@/lib/products";
 import {
   hubCityPath,
   venteCityPath,
@@ -137,9 +137,7 @@ export default function VenteCatalog({ citySlug, categorySlug }: VenteCatalogPro
           { label: activeCategoryLabel },
         ];
 
-  const whatsappText = encodeURIComponent(
-    `Bonjour SOS Santé ${city.name}, je souhaite acheter du matériel médical.`
-  );
+  const whatsappText = `Bonjour SOS Santé ${city.name}, je souhaite acheter du matériel médical.`;
 
   return (
     <>
@@ -373,7 +371,7 @@ export default function VenteCatalog({ citySlug, categorySlug }: VenteCatalogPro
             </p>
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
               <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`}
+                href={whatsAppHref(whatsappText, "materiel")}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-secondary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
               >
                 <WhatsAppIcon className="h-5 w-5" />

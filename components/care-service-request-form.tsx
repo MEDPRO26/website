@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useSubmitLead } from "@/hooks/use-submit-lead";
 import {
-  CONTACT_EMAIL,
   PHONE_DISPLAY,
-  WHATSAPP_NUMBER,
+  whatsAppHref,
 } from "@/lib/products";
 import { careServiceFormOptions } from "@/lib/care-services";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
@@ -53,26 +54,32 @@ export function CareServiceRequestForm({
     phone: "",
     message: "",
   });
+  const pathname = usePathname();
+  const { submit, isSubmitting } = useSubmitLead();
 
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!formData.name || !formData.phone || !formData.city) {
       setFormStatus("error");
       return;
     }
 
-    const subject = encodeURIComponent(
-      `Demande de service - ${formData.careType}`
-    );
-    const locationLine = formData.neighborhood
-      ? `${formData.city}, ${formData.neighborhood}`
-      : formData.city;
-    const body = encodeURIComponent(
-      `Bonjour SOS Santé,\n\nType de soin : ${formData.careType}\nVille : ${formData.city}\nQuartier : ${formData.neighborhood || "Non précisé"}\nLocalisation : ${locationLine}\nNom : ${formData.name}\nTéléphone : ${formData.phone}\n\n${formData.message || "Merci de me recontacter rapidement."}\n\nCordialement,`
-    );
-
-    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
-    setFormStatus("success");
+    try {
+      await submit({
+        client: formData.name,
+        phone: formData.phone,
+        city: formData.city,
+        district: formData.neighborhood,
+        type: "Service à domicile",
+        item: formData.careType,
+        message: formData.message,
+        pagePath: pathname,
+        source: "Formulaire site",
+      });
+      setFormStatus("success");
+    } catch {
+      setFormStatus("error");
+    }
   };
 
   return (
@@ -129,9 +136,10 @@ export function CareServiceRequestForm({
                 Vous préférez WhatsApp ?
               </p>
               <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-                  `Bonjour SOS Santé, je souhaite ${defaultCareType.toLowerCase()}${defaultCity ? ` à ${defaultCity}` : ""}.`
-                )}`}
+                href={whatsAppHref(
+                  `Bonjour SOS Santé, je souhaite ${defaultCareType.toLowerCase()}${defaultCity ? ` à ${defaultCity}` : ""}.`,
+                  "garde_soins"
+                )}
                 className="inline-flex items-center gap-2 rounded-xl border-2 border-status-success px-5 py-3 text-sm font-semibold text-status-success transition-all hover:bg-status-success hover:text-white"
               >
                 <WhatsAppIcon className="h-5 w-5" />
@@ -149,8 +157,8 @@ export function CareServiceRequestForm({
                 Demande envoyée !
               </h3>
               <p className="font-body mb-5 text-on-surface-variant">
-                Votre client mail devrait s&apos;ouvrir. Sinon, nous vous
-                répondrons rapidement.
+                Nous avons bien reçu votre demande. Notre équipe vous
+                recontactera rapidement.
               </p>
               <button
                 type="button"
@@ -307,9 +315,10 @@ export function CareServiceRequestForm({
               <div className="mt-2 md:col-span-2">
                 <button
                   type="submit"
-                  className="h-14 w-full rounded-xl bg-primary text-base font-semibold text-on-primary shadow-md shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary-container hover:shadow-lg active:translate-y-0"
+                  disabled={isSubmitting}
+                  className="h-14 w-full rounded-xl bg-primary text-base font-semibold text-on-primary shadow-md shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary-container hover:shadow-lg active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  Envoyer ma demande
+                  {isSubmitting ? "Envoi en cours…" : "Envoyer ma demande"}
                 </button>
               </div>
             </form>

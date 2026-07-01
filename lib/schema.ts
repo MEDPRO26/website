@@ -1,6 +1,6 @@
 import { LOGO, SITE_NAME, SITE_URL_DEFAULT } from "@/lib/brand";
 import type { Product } from "@/lib/products";
-import { CONTACT_EMAIL, PHONE_NUMBER, products, WHATSAPP_NUMBER } from "@/lib/products";
+import { CONTACT_EMAIL, PHONE_NUMBER, products, whatsAppHref } from "@/lib/products";
 
 const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL_DEFAULT
@@ -44,7 +44,7 @@ export function organizationSchema() {
       areaServed: "MA",
       hoursAvailable: "Mo-Su 00:00-23:59",
     },
-    sameAs: [`https://wa.me/${WHATSAPP_NUMBER}`],
+    sameAs: [whatsAppHref(undefined, "general")],
   };
 }
 
@@ -90,7 +90,7 @@ export function localBusinessSchema(
       areaServed: "MA",
       hoursAvailable: "Mo-Su 00:00-23:59",
     },
-    sameAs: [`https://wa.me/${WHATSAPP_NUMBER}`],
+    sameAs: [whatsAppHref(undefined, "general")],
   };
 }
 

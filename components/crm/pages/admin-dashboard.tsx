@@ -1,25 +1,55 @@
 "use client";
 
 import Link from "next/link";
+import { useQuery } from "convex/react";
+import { useAdminSession } from "@/hooks/use-admin-session";
 import {
   Inbox, UserCheck, Clock, Tag as TagIcon, Send, CheckCircle2,
   CalendarClock, AlertTriangle, Wallet,
 } from "lucide-react";
-import { PageHeader, DemoBanner } from "@/components/dashboard/page-header";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  ORDERS, KPI, CHART_ORDERS_7D, CHART_BY_SOURCE, CHART_BY_CITY, CHART_BY_TYPE,
-  CHART_COLORS, SUPPLIERS, COMPLAINTS,
-} from "@/lib/mock-data";
+import { api } from "@/convex/_generated/api";
+import { mapConvexOrderToUi } from "@/lib/crm/map-convex-order";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
   AreaChart, Area, PieChart, Pie, Cell, Legend,
 } from "recharts";
 
+const CHART_COLORS = [
+  "var(--brand)",
+  "var(--info)",
+  "#7c3aed",
+  "#f59e0b",
+  "#10b981",
+  "#ef4444",
+];
+
 export function AdminDashboardPage() {
+  const { canQueryAdmin } = useAdminSession();
+  const stats = useQuery(
+    api.orders.dashboardStats,
+    canQueryAdmin ? {} : "skip"
+  );
+  const analytics = useQuery(
+    api.orders.dashboardAnalytics,
+    canQueryAdmin ? {} : "skip"
+  );
+  const commissionStats = useQuery(
+    api.commissions.stats,
+    canQueryAdmin ? {} : "skip"
+  );
+  const recentOrders = useQuery(api.orders.list, canQueryAdmin ? {} : "skip");
+
+  const orders7d = analytics?.orders7d ?? [];
+  const bySource = analytics?.bySource ?? [];
+  const byCity = analytics?.byCity ?? [];
+  const byType = analytics?.byType ?? [];
+  const suppliersToFollowUp = analytics?.suppliersToFollowUp ?? [];
+
   return (
     <div>
       <PageHeader
@@ -31,57 +61,70 @@ export function AdminDashboardPage() {
           </Button>
         }
       />
-      <DemoBanner />
-
+      
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Nouvelles demandes aujourd'hui" value={KPI.newToday} icon={Inbox} tone="brand" hint="+2 vs hier" />
-        <StatCard label="Commandes à affecter" value={KPI.toAssign} icon={UserCheck} tone="warning" />
-        <StatCard label="En attente fournisseur" value={KPI.waitingSupplier} icon={Clock} tone="info" />
-        <StatCard label="Prix reçus" value={KPI.pricesReceived} icon={TagIcon} tone="info" />
-        <StatCard label="Offres envoyées" value={KPI.offersSent} icon={Send} tone="brand" />
-        <StatCard label="Commandes confirmées" value={KPI.confirmed} icon={CheckCircle2} tone="success" />
-        <StatCard label="Locations actives" value={KPI.activeRentals} icon={CalendarClock} tone="success" />
-        <StatCard label="Réclamations ouvertes" value={KPI.openComplaints} icon={AlertTriangle} tone="danger" />
+        <StatCard label="Nouvelles demandes aujourd'hui" value={stats?.newToday ?? "—"} icon={Inbox} tone="brand" />
+        <StatCard label="Demandes nouvelles" value={stats?.nouvelle ?? "—"} icon={UserCheck} tone="warning" />
+        <StatCard label="Commandes à affecter" value={stats?.toAssign ?? "—"} icon={Clock} tone="info" />
+        <StatCard label="Total commandes" value={stats?.total ?? "—"} icon={TagIcon} tone="info" />
+        <StatCard label="Offres envoyées" value={stats?.offersSent ?? "—"} icon={Send} tone="brand" />
+        <StatCard label="Commandes confirmées" value={stats?.confirmed ?? "—"} icon={CheckCircle2} tone="success" />
+        <StatCard label="Locations actives" value={stats?.activeRentals ?? "—"} icon={CalendarClock} tone="success" />
+        <StatCard label="Réclamations ouvertes" value={stats?.openComplaints ?? "—"} icon={AlertTriangle} tone="danger" />
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
         <Card className="p-5 lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-sm font-semibold">Évolution des commandes (7 jours)</h3>
-            <span className="text-xs text-muted-foreground">Total : 58</span>
+            <span className="text-xs text-muted-foreground">
+              Total : {analytics?.chartTotal7d ?? "—"}
+            </span>
           </div>
           <div className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={CHART_ORDERS_7D}>
-                <defs>
-                  <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--brand)" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="var(--brand)" stopOpacity={0.02} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                <XAxis dataKey="day" tickLine={false} axisLine={false} fontSize={12} />
-                <YAxis tickLine={false} axisLine={false} fontSize={12} />
-                <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }} />
-                <Area type="monotone" dataKey="count" stroke="var(--brand)" strokeWidth={2} fill="url(#g1)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            {orders7d.length === 0 ? (
+              <p className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                Pas encore de données.
+              </p>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={orders7d}>
+                  <defs>
+                    <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--brand)" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="var(--brand)" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                  <XAxis dataKey="day" tickLine={false} axisLine={false} fontSize={12} />
+                  <YAxis tickLine={false} axisLine={false} fontSize={12} allowDecimals={false} />
+                  <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }} />
+                  <Area type="monotone" dataKey="count" stroke="var(--brand)" strokeWidth={2} fill="url(#g1)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </Card>
 
         <Card className="p-5">
           <h3 className="mb-3 text-sm font-semibold">Demandes par source</h3>
           <div className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={CHART_BY_SOURCE} dataKey="value" nameKey="name" innerRadius={45} outerRadius={75} paddingAngle={2}>
-                  {CHART_BY_SOURCE.map((_, i) => (
-                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Legend iconType="circle" wrapperStyle={{ fontSize: 11 }} />
-              </PieChart>
-            </ResponsiveContainer>
+            {bySource.length === 0 ? (
+              <p className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                Pas encore de données.
+              </p>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={bySource} dataKey="value" nameKey="name" innerRadius={45} outerRadius={75} paddingAngle={2}>
+                    {bySource.map((_, i) => (
+                      <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: 11 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </Card>
       </div>
@@ -90,29 +133,41 @@ export function AdminDashboardPage() {
         <Card className="p-5">
           <h3 className="mb-3 text-sm font-semibold">Demandes par ville</h3>
           <div className="h-52">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={CHART_BY_CITY} layout="vertical" margin={{ left: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
-                <XAxis type="number" tickLine={false} axisLine={false} fontSize={12} />
-                <YAxis dataKey="city" type="category" tickLine={false} axisLine={false} fontSize={12} width={80} />
-                <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }} />
-                <Bar dataKey="count" fill="var(--brand)" radius={[0, 6, 6, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {byCity.length === 0 ? (
+              <p className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                Pas encore de données.
+              </p>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={byCity} layout="vertical" margin={{ left: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
+                  <XAxis type="number" tickLine={false} axisLine={false} fontSize={12} allowDecimals={false} />
+                  <YAxis dataKey="city" type="category" tickLine={false} axisLine={false} fontSize={12} width={80} />
+                  <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }} />
+                  <Bar dataKey="count" fill="var(--brand)" radius={[0, 6, 6, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </Card>
         <Card className="p-5">
           <h3 className="mb-3 text-sm font-semibold">Demandes par type de service</h3>
           <div className="h-52">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={CHART_BY_TYPE}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={10} interval={0} angle={-15} textAnchor="end" height={50} />
-                <YAxis tickLine={false} axisLine={false} fontSize={12} />
-                <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }} />
-                <Bar dataKey="value" fill="var(--info)" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {byType.length === 0 ? (
+              <p className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                Pas encore de données.
+              </p>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={byType}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                  <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={10} interval={0} angle={-15} textAnchor="end" height={50} />
+                  <YAxis tickLine={false} axisLine={false} fontSize={12} allowDecimals={false} />
+                  <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }} />
+                  <Bar dataKey="value" fill="var(--info)" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </Card>
       </div>
@@ -137,7 +192,9 @@ export function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {ORDERS.slice(0, 6).map((o) => (
+                {(recentOrders ?? []).slice(0, 6).map((order) => {
+                  const o = mapConvexOrderToUi(order);
+                  return (
                   <tr key={o.id} className="border-b border-border last:border-0 hover:bg-muted/40">
                     <td className="px-5 py-2.5 font-mono text-xs">
                       <Link href={`/admin/orders/${o.id}`} className="text-brand hover:underline">
@@ -149,7 +206,8 @@ export function AdminDashboardPage() {
                     <td className="py-2.5"><StatusBadge status={o.status} /></td>
                     <td className="px-5 py-2.5 text-right text-xs text-muted-foreground">{o.createdAt}</td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -158,46 +216,52 @@ export function AdminDashboardPage() {
         <div className="space-y-4">
           <Card className="p-5">
             <h3 className="mb-3 text-sm font-semibold">Fournisseurs à relancer</h3>
-            <ul className="space-y-3">
-              {SUPPLIERS.slice(0, 3).map((s) => (
-                <li key={s.id} className="flex items-center gap-3">
-                  <div className="grid size-9 place-items-center rounded-lg bg-brand-soft text-brand-deep text-xs font-semibold">
-                    {s.name.slice(0, 2).toUpperCase()}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{s.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">{s.type} · {s.city}</p>
-                  </div>
-                  <Button size="sm" variant="outline">Relancer</Button>
-                </li>
-              ))}
-            </ul>
+            {suppliersToFollowUp.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Aucun fournisseur en attente de réponse.
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {suppliersToFollowUp.map((supplier) => (
+                  supplier ? (
+                  <li key={supplier.id} className="flex items-center gap-3">
+                    <div className="grid size-9 place-items-center rounded-lg bg-brand-soft text-brand-deep text-xs font-semibold">
+                      {supplier.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{supplier.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {supplier.type} · {supplier.city} · {supplier.pending} en attente
+                      </p>
+                    </div>
+                    <Button size="sm" variant="outline" asChild>
+                      <Link href={`/admin/suppliers/${supplier.id}`}>Voir</Link>
+                    </Button>
+                  </li>
+                  ) : null
+                ))}
+              </ul>
+            )}
           </Card>
 
           <Card className="p-5">
             <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-              <Wallet className="size-4 text-brand" /> Commissions dues
+              <Wallet className="size-4 text-brand" /> Commissions
             </h3>
-            <p className="text-2xl font-semibold">{KPI.dueCommissions.toLocaleString("fr-FR")} <span className="text-sm font-normal text-muted-foreground">MAD</span></p>
-            <p className="mt-1 text-xs text-muted-foreground">Sur 3 fournisseurs</p>
+            <p className="text-2xl font-semibold">
+              {(commissionStats?.totalCommission ?? 0).toLocaleString("fr-FR")}{" "}
+              <span className="text-sm font-normal text-muted-foreground">MAD</span>
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {commissionStats?.quoteCount ?? 0} devis confirmé
+              {(commissionStats?.quoteCount ?? 0) > 1 ? "s" : ""}
+              {(commissionStats?.pendingCommission ?? 0) > 0
+                ? ` · ${commissionStats!.pendingCommission.toLocaleString("fr-FR")} MAD en attente d'offre`
+                : ""}
+            </p>
             <Button asChild variant="outline" size="sm" className="mt-3 w-full">
               <Link href="/admin/commissions">Voir le détail</Link>
             </Button>
-          </Card>
-
-          <Card className="p-5">
-            <h3 className="mb-3 text-sm font-semibold">Réclamations récentes</h3>
-            <ul className="space-y-2">
-              {COMPLAINTS.slice(0, 2).map((c) => (
-                <li key={c.id} className="rounded-lg border border-border p-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium">{c.type}</p>
-                    <span className="text-[11px] text-muted-foreground">{c.date}</span>
-                  </div>
-                  <p className="mt-0.5 text-xs text-muted-foreground">{c.client} · {c.order}</p>
-                </li>
-              ))}
-            </ul>
           </Card>
         </div>
       </div>

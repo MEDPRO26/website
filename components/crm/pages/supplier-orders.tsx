@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useQuery } from "convex/react";
 import {
   Calendar,
   Clock,
@@ -10,17 +11,14 @@ import {
   Package,
   Search,
 } from "lucide-react";
+import { api } from "@/convex/_generated/api";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatusBadge, Tag } from "@/components/dashboard/status-badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  getDemoSupplier,
-  getDemoSupplierOrders,
-  type Order,
-  type OrderStatus,
-} from "@/lib/mock-data";
+import { useSupplierSession } from "@/hooks/use-supplier-session";
+import type { OrderStatus } from "@/lib/mock-data";
 
 type FilterTab = "all" | "pending" | "active" | "done";
 
@@ -40,30 +38,15 @@ const ACTIVE_STATUSES: OrderStatus[] = [
 
 const DONE_STATUSES: OrderStatus[] = ["terminee", "annulee"];
 
-function isUrgent(order: Order) {
-  return (
-    order.status === "envoyee_fournisseur" ||
-    order.status === "vue_fournisseur"
-  );
+function isUrgent(status: OrderStatus) {
+  return status === "envoyee_fournisseur" || status === "vue_fournisseur";
 }
 
-function filterOrders(orders: Order[], tab: FilterTab, query: string) {
-  const q = query.trim().toLowerCase();
-  return orders.filter((order) => {
-    const matchesTab =
-      tab === "all" ||
-      (tab === "pending" && PENDING_STATUSES.includes(order.status)) ||
-      (tab === "active" && ACTIVE_STATUSES.includes(order.status)) ||
-      (tab === "done" && DONE_STATUSES.includes(order.status));
-
-    const matchesQuery =
-      !q ||
-      order.ref.toLowerCase().includes(q) ||
-      order.item.toLowerCase().includes(q) ||
-      order.city.toLowerCase().includes(q) ||
-      order.client.toLowerCase().includes(q);
-
-    return matchesTab && matchesQuery;
+function formatDate(ts: number) {
+  return new Date(ts).toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
   });
 }
 
@@ -75,31 +58,57 @@ const TABS: { id: FilterTab; label: string }[] = [
 ];
 
 export function SupplierOrdersPage() {
-  const supplier = getDemoSupplier();
-  const allOrders = useMemo(() => getDemoSupplierOrders(), []);
+  const { supplier, canQuerySupplier } = useSupplierSession();
+  const allOrders = useQuery(
+    api.supplierPortal.listOrders,
+    canQuerySupplier ? {} : "skip"
+  );
   const [tab, setTab] = useState<FilterTab>("all");
   const [query, setQuery] = useState("");
 
-  const orders = useMemo(
-    () => filterOrders(allOrders, tab, query),
-    [allOrders, tab, query]
-  );
+  const orders = useMemo(() => {
+    if (!allOrders) {
+      return [];
+    }
+    const q = query.trim().toLowerCase();
+    return allOrders.filter((order) => {
+      const matchesTab =
+        tab === "all" ||
+        (tab === "pending" && PENDING_STATUSES.includes(order.status as OrderStatus)) ||
+        (tab === "active" && ACTIVE_STATUSES.includes(order.status as OrderStatus)) ||
+        (tab === "done" && DONE_STATUSES.includes(order.status as OrderStatus));
 
-  const counts = useMemo(
-    () => ({
-      all: allOrders.length,
-      pending: allOrders.filter((o) => PENDING_STATUSES.includes(o.status)).length,
-      active: allOrders.filter((o) => ACTIVE_STATUSES.includes(o.status)).length,
-      done: allOrders.filter((o) => DONE_STATUSES.includes(o.status)).length,
-    }),
-    [allOrders]
-  );
+      const matchesQuery =
+        !q ||
+        order.ref.toLowerCase().includes(q) ||
+        order.item.toLowerCase().includes(q) ||
+        order.city.toLowerCase().includes(q);
+
+      return matchesTab && matchesQuery;
+    });
+  }, [allOrders, tab, query]);
+
+  const counts = useMemo(() => {
+    const list = allOrders ?? [];
+    return {
+      all: list.length,
+      pending: list.filter((o) => PENDING_STATUSES.includes(o.status as OrderStatus)).length,
+      active: list.filter((o) => ACTIVE_STATUSES.includes(o.status as OrderStatus)).length,
+      done: list.filter((o) => DONE_STATUSES.includes(o.status as OrderStatus)).length,
+    };
+  }, [allOrders]);
+
+  if (allOrders === undefined) {
+    return (
+      <p className="text-sm text-muted-foreground">Chargement des commandes…</p>
+    );
+  }
 
   return (
     <div className="space-y-4 pb-6">
       <PageHeader
         title="Mes commandes"
-        description={`${supplier.name} · ${allOrders.length} demande${allOrders.length > 1 ? "s" : ""} affectée${allOrders.length > 1 ? "s" : ""}`}
+        description={`${supplier?.name ?? "Fournisseur"} · ${allOrders.length} demande${allOrders.length > 1 ? "s" : ""} affectée${allOrders.length > 1 ? "s" : ""}`}
       />
 
       <div className="relative">
@@ -147,12 +156,12 @@ export function SupplierOrdersPage() {
       ) : (
         <div className="space-y-3">
           {orders.map((order) => (
-            <Card key={order.id} className="overflow-hidden p-0">
+            <Card key={order._id} className="overflow-hidden p-0">
               <div className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="mb-2 flex flex-wrap items-center gap-2">
-                      {isUrgent(order) ? (
+                      {isUrgent(order.status as OrderStatus) ? (
                         <Tag tone="danger">URGENT</Tag>
                       ) : (
                         <Tag tone="neutral">STANDARD</Tag>
@@ -160,10 +169,13 @@ export function SupplierOrdersPage() {
                       <span className="font-mono text-xs font-semibold text-brand">
                         {order.ref}
                       </span>
+                      {order.hasQuote ? (
+                        <Tag tone="success">Prix envoyé</Tag>
+                      ) : null}
                     </div>
                     <p className="font-semibold text-foreground">{order.item}</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      {order.type} · {order.duration}
+                      {order.type} · {order.duration ?? "—"}
                     </p>
                   </div>
                   <button
@@ -178,7 +190,8 @@ export function SupplierOrdersPage() {
                 <div className="mt-3 space-y-1.5 text-sm text-muted-foreground">
                   <p className="inline-flex items-center gap-2">
                     <MapPin className="size-3.5 shrink-0 text-brand" />
-                    {order.city} ({order.district})
+                    {order.city}
+                    {order.district ? ` (${order.district})` : ""}
                   </p>
                   <p className="inline-flex items-center gap-2">
                     <Calendar className="size-3.5 shrink-0 text-brand" />
@@ -186,25 +199,26 @@ export function SupplierOrdersPage() {
                   </p>
                   <p className="inline-flex items-center gap-2">
                     <Clock className="size-3.5 shrink-0 text-brand" />
-                    Reçue le {order.createdAt}
+                    Reçue le {formatDate(order.createdAt)}
                   </p>
                 </div>
 
                 <div className="mt-3">
-                  <StatusBadge status={order.status} />
+                  <StatusBadge status={order.status as OrderStatus} />
                 </div>
               </div>
 
               <div className="border-t border-border bg-muted/30 px-4 py-3">
-                {PENDING_STATUSES.includes(order.status) ? (
+                {PENDING_STATUSES.includes(order.status as OrderStatus) &&
+                !order.hasQuote ? (
                   <Button asChild className="w-full">
-                    <Link href={`/supplier/orders/${order.id}`}>
+                    <Link href={`/supplier/orders/${order._id}`}>
                       Voir et répondre
                     </Link>
                   </Button>
                 ) : (
                   <Button asChild variant="outline" className="w-full">
-                    <Link href={`/supplier/orders/${order.id}`}>Voir détails</Link>
+                    <Link href={`/supplier/orders/${order._id}`}>Voir détails</Link>
                   </Button>
                 )}
               </div>

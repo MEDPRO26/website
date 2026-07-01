@@ -11,6 +11,7 @@ import Navbar from "@/components/navbar";
 import CityCatalogPickerDialog from "@/components/city-catalog-picker-dialog";
 import { useProductsPerPage } from "@/hooks/use-products-per-page";
 import { useSelectedCity } from "@/hooks/use-selected-city";
+import { useSubmitLead } from "@/hooks/use-submit-lead";
 import { seoCategories } from "@/lib/seo-data";
 import {
   hubCityPath,
@@ -22,7 +23,7 @@ import {
 import {
   CONTACT_EMAIL,
   getCatalogProducts,
-  WHATSAPP_NUMBER,
+  whatsAppHref,
 } from "@/lib/products";
 import { activeCities, comingSoonCities, DEFAULT_CITY_SLUG } from "@/lib/cities";
 import { homepageCareIntro } from "@/lib/city-hub-content";
@@ -211,6 +212,7 @@ export default function Home() {
     materiel: "",
     message: "",
   });
+  const { submit, isSubmitting } = useSubmitLead();
   const latestProductsCount = useProductsPerPage(
     HOMEPAGE_LATEST_PRODUCTS_MOBILE,
     HOMEPAGE_LATEST_PRODUCTS_DESKTOP
@@ -239,22 +241,28 @@ export default function Home() {
     setPickerServiceSlug(null);
   };
 
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!formData.nom || !formData.telephone || !formData.ville || !formData.materiel) {
       setFormStatus("error");
       return;
     }
 
-    const subject = encodeURIComponent(
-      `Demande de location - ${formData.materiel} (${formData.ville})`
-    );
-    const body = encodeURIComponent(
-      `Bonjour SOS Santé,\n\nJe souhaite louer le matériel suivant : ${formData.materiel}\n\nNom : ${formData.nom}\nTéléphone : ${formData.telephone}\nVille : ${formData.ville}\n\n${formData.message || "Merci de me recontacter rapidement."}\n\nCordialement,`
-    );
-
-    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
-    setFormStatus("success");
+    try {
+      await submit({
+        client: formData.nom,
+        phone: formData.telephone,
+        city: formData.ville,
+        type: "Location matériel médical",
+        item: formData.materiel,
+        message: formData.message,
+        pagePath: "/",
+        source: "Formulaire site",
+      });
+      setFormStatus("success");
+    } catch {
+      setFormStatus("error");
+    }
   };
 
   const scrollToSection = (id: string) => {
@@ -334,7 +342,7 @@ export default function Home() {
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
               <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20j'ai%20besoin%20d'aide%20pour%20choisir%20un%20matériel%20médical.`}
+                href={whatsAppHref("Bonjour SOS Santé, j'ai besoin d'aide pour choisir un matériel médical.", "general")}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-base font-semibold text-on-primary shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary-container hover:shadow-xl sm:w-auto"
               >
                 <WhatsAppIcon className="h-5 w-5 shrink-0" />
@@ -842,7 +850,7 @@ export default function Home() {
               </p>
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-center md:justify-start">
                 <a
-                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20SOS%20Sant%C3%A9%2C%20je%20souhaite%20louer%20du%20matériel%20médical.`}
+                  href={whatsAppHref("Bonjour SOS Santé, je souhaite louer du matériel médical.", "materiel")}
                   className="inline-flex items-center justify-center gap-2 rounded-2xl bg-status-success px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-black/10 transition-all hover:-translate-y-0.5 hover:brightness-110"
                 >
                   <WhatsAppIcon className="h-5 w-5 shrink-0" />
@@ -868,8 +876,8 @@ export default function Home() {
                     Demande envoyée !
                   </h3>
                   <p className="font-body mb-5 text-sm text-white/90">
-                    Votre client mail devrait s&apos;ouvrir. Sinon, nous vous
-                    répondrons rapidement.
+                    Nous avons bien reçu votre demande. Notre équipe vous
+                    recontactera rapidement.
                   </p>
                   <button
                     type="button"
@@ -1012,9 +1020,10 @@ export default function Home() {
                   )}
                   <button
                     type="submit"
-                    className="w-full rounded-xl bg-white py-3.5 text-base font-semibold text-secondary shadow-lg shadow-black/10 transition-all hover:scale-[1.02] hover:bg-surface-container-low active:scale-[0.98]"
+                    disabled={isSubmitting}
+                    className="w-full rounded-xl bg-white py-3.5 text-base font-semibold text-secondary shadow-lg shadow-black/10 transition-all hover:scale-[1.02] hover:bg-surface-container-low active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
                   >
-                    Envoyer ma demande
+                    {isSubmitting ? "Envoi en cours…" : "Envoyer ma demande"}
                   </button>
                 </form>
               )}
