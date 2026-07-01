@@ -35,3 +35,11 @@ const robotsNoIndex: Metadata["robots"] = {
 export function getRobotsMetadata(): Metadata["robots"] {
   return allowIndexing ? robotsIndex : robotsNoIndex;
 }
+
+/** Admin CRM, supplier portal, and login — never index regardless of site SEO setting. */
+export function getPrivateRobotsMetadata(): Metadata["robots"] {
+  return robotsNoIndex;
+}
+
+/** Paths blocked in robots.txt even when the public site is indexed. */
+export const PRIVATE_CRM_PATHS = ["/admin", "/supplier"] as const;

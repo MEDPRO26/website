@@ -16,6 +16,50 @@ function homeForRole(role: string | undefined) {
   return role === "supplier" ? "/supplier" : "/admin";
 }
 
+function loginErrorMessage(err: unknown, mode: "signIn" | "signUp"): string {
+  const raw =
+    err instanceof Error
+      ? err.message
+      : typeof err === "string"
+        ? err
+        : "";
+
+  const normalized = raw.toLowerCase();
+
+  if (
+    normalized.includes("invalidsecret") ||
+    normalized.includes("invalid secret") ||
+    normalized.includes("incorrect password")
+  ) {
+    return "Mot de passe incorrect.";
+  }
+
+  if (
+    normalized.includes("invalidaccountid") ||
+    normalized.includes("account not found") ||
+    normalized.includes("could not find")
+  ) {
+    return mode === "signIn"
+      ? "Aucun compte pour cet email. Créez un accès admin."
+      : "Compte introuvable.";
+  }
+
+  if (
+    normalized.includes("already exists") ||
+    normalized.includes("accountalreadyexists")
+  ) {
+    return "Un compte existe déjà pour cet email. Connectez-vous ou contactez le support.";
+  }
+
+  if (normalized.includes("server error")) {
+    return mode === "signIn"
+      ? "Connexion impossible. Vérifiez email et mot de passe, ou recréez un accès admin si l'inscription a échoué."
+      : "Inscription impossible. Réessayez ou contactez le support.";
+  }
+
+  return raw || "Connexion impossible. Vérifiez vos identifiants.";
+}
+
 export default function AdminLoginPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -53,11 +97,7 @@ export default function AdminLoginPage() {
       // Create staff profile if missing (signup or recovery after partial signup).
       await ensureProfile();
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Connexion impossible. Vérifiez vos identifiants."
-      );
+      setError(loginErrorMessage(err, mode));
     } finally {
       setSubmitting(false);
     }

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL_DEFAULT } from "@/lib/brand";
-import { allowIndexing } from "@/lib/indexing";
+import { allowIndexing, PRIVATE_CRM_PATHS } from "@/lib/indexing";
 
 const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL_DEFAULT
@@ -35,6 +35,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
+        disallow: [...PRIVATE_CRM_PATHS],
       },
       {
         userAgent: [
@@ -47,6 +48,7 @@ export default function robots(): MetadataRoute.Robots {
           "anthropic-ai",
         ],
         allow: "/",
+        disallow: [...PRIVATE_CRM_PATHS],
       },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,

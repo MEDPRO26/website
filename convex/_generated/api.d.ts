@@ -10,6 +10,7 @@
 
 import type * as auditLogs from "../auditLogs.js";
 import type * as auth from "../auth.js";
+import type * as authAdmin from "../authAdmin.js";
 import type * as authSession from "../authSession.js";
 import type * as cmsPages from "../cmsPages.js";
 import type * as commissions from "../commissions.js";
@@ -56,6 +57,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   auditLogs: typeof auditLogs;
   auth: typeof auth;
+  authAdmin: typeof authAdmin;
   authSession: typeof authSession;
   cmsPages: typeof cmsPages;
   commissions: typeof commissions;

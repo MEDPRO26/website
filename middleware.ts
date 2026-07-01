@@ -5,6 +5,7 @@ import {
 } from "@convex-dev/auth/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { X_ROBOTS_NOINDEX } from "@/lib/indexing";
 import { categoryParamToValue } from "@/lib/catalog-categories";
 import { DEFAULT_CITY_SLUG } from "@/lib/cities";
 import {
@@ -20,6 +21,12 @@ const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
 const isAdminLogin = createRouteMatcher(["/admin/login"]);
 const isSupplierRoute = createRouteMatcher(["/supplier(.*)"]);
 const isSupplierInvite = createRouteMatcher(["/supplier/invite(.*)"]);
+const isPrivateCrmRoute = createRouteMatcher(["/admin(.*)", "/supplier(.*)"]);
+
+function withNoIndex(response: NextResponse) {
+  response.headers.set("X-Robots-Tag", X_ROBOTS_NOINDEX);
+  return response;
+}
 
 function redirect(request: NextRequest, pathname: string) {
   const url = request.nextUrl.clone();
@@ -100,7 +107,7 @@ export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
     !isAdminLogin(request) &&
     !(await convexAuth.isAuthenticated())
   ) {
-    return nextjsMiddlewareRedirect(request, "/admin/login");
+    return withNoIndex(nextjsMiddlewareRedirect(request, "/admin/login"));
   }
 
   if (
@@ -108,7 +115,11 @@ export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
     !isSupplierInvite(request) &&
     !(await convexAuth.isAuthenticated())
   ) {
-    return nextjsMiddlewareRedirect(request, "/admin/login");
+    return withNoIndex(nextjsMiddlewareRedirect(request, "/admin/login"));
+  }
+
+  if (isPrivateCrmRoute(request)) {
+    return withNoIndex(NextResponse.next());
   }
 
   return null;
