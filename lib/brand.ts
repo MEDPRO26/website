@@ -15,6 +15,8 @@ export const LOGO = {
   default: "/sos sante bg trans.webp",
   white: "/sos sante bg white.webp",
   crm: "/sossante-crm-logo.png",
+  favicon: "/favicon-32x32.png",
+  apple: "/apple-touch-icon.png",
 } as const;
 
 export const LOGO_ALT = "SOS Santé — location de matériel médical et soins à domicile";

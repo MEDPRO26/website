@@ -83,8 +83,11 @@ export const metadata: Metadata = {
   robots: getRobotsMetadata(),
   category: "healthcare marketplace",
   icons: {
-    icon: LOGO.default,
-    apple: LOGO.default,
+    icon: [
+      { url: LOGO.favicon, sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: LOGO.apple,
   },
 };
 
