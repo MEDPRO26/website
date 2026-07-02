@@ -108,9 +108,9 @@ export default function AdminLoginPage() {
       {redirecting ? (
         <p className="text-sm text-muted-foreground">Redirection…</p>
       ) : (
-      <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-xl">
+      <div className="w-full max-w-md rounded-[1.75rem] border border-border/60 bg-card p-8 shadow-[0_4px_6px_rgba(15,23,42,0.02),0_24px_56px_rgba(15,23,42,0.1)]">
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-border">
+          <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-border/70">
             <Image
               src={LOGO.crm}
               alt="Centre SOS Santé"
@@ -165,12 +165,12 @@ export default function AdminLoginPage() {
           </div>
 
           {error ? (
-            <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <p className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {error}
             </p>
           ) : null}
 
-          <Button type="submit" className="w-full" disabled={submitting}>
+          <Button type="submit" className="h-11 w-full rounded-xl" disabled={submitting}>
             {submitting
               ? "Connexion…"
               : mode === "signIn"

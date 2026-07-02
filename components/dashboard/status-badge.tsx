@@ -38,7 +38,7 @@ export function Tag({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium",
+        "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium",
         TONE_CLASS[tone],
         className,
       )}

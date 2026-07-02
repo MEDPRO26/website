@@ -40,7 +40,7 @@ export function GlobalSearch({ className }: { className?: string }) {
       <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
       <Input
         placeholder="Rechercher une commande, un client, un fournisseur…"
-        className="h-10 w-full pl-10 bg-muted/50 border-transparent focus-visible:bg-card"
+        className="h-10 w-full rounded-xl border-border/60 bg-muted/40 pl-10 shadow-sm focus-visible:bg-card focus-visible:ring-2 focus-visible:ring-brand/20"
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);
@@ -62,7 +62,7 @@ export function GlobalSearch({ className }: { className?: string }) {
       />
 
       {showPanel ? (
-        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-[min(70vh,420px)] overflow-y-auto rounded-xl border border-border bg-card shadow-lg">
+        <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(70vh,420px)] overflow-hidden overflow-y-auto rounded-2xl border border-border/60 bg-card shadow-[0_8px_32px_rgba(15,23,42,0.12)]">
           {!results ? (
             <p className="px-4 py-3 text-sm text-muted-foreground">Recherche…</p>
           ) : !hasResults ? (
@@ -80,7 +80,7 @@ export function GlobalSearch({ className }: { className?: string }) {
                     <Link
                       key={order._id}
                       href={`/admin/orders/${order._id}`}
-                      className="flex items-start gap-2 px-3 py-2 hover:bg-muted/60"
+                      className="mx-2 flex items-start gap-2 rounded-xl px-3 py-2 hover:bg-muted/60"
                       onClick={() => setOpen(false)}
                     >
                       <ClipboardList className="mt-0.5 size-4 shrink-0 text-brand" />
@@ -104,7 +104,7 @@ export function GlobalSearch({ className }: { className?: string }) {
                     <Link
                       key={customer._id}
                       href={`/admin/customers/${customer._id}`}
-                      className="flex items-start gap-2 px-3 py-2 hover:bg-muted/60"
+                      className="mx-2 flex items-start gap-2 rounded-xl px-3 py-2 hover:bg-muted/60"
                       onClick={() => setOpen(false)}
                     >
                       <Users className="mt-0.5 size-4 shrink-0 text-brand" />
@@ -128,7 +128,7 @@ export function GlobalSearch({ className }: { className?: string }) {
                     <Link
                       key={supplier._id}
                       href={`/admin/suppliers/${supplier._id}`}
-                      className="flex items-start gap-2 px-3 py-2 hover:bg-muted/60"
+                      className="mx-2 flex items-start gap-2 rounded-xl px-3 py-2 hover:bg-muted/60"
                       onClick={() => setOpen(false)}
                     >
                       <Truck className="mt-0.5 size-4 shrink-0 text-brand" />

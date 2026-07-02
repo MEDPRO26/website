@@ -20,7 +20,7 @@ export function StatCard({
     info: "bg-info-soft text-info",
   };
   return (
-    <Card className="p-5">
+    <Card className="p-5 transition-shadow hover:shadow-[0_2px_8px_rgba(15,23,42,0.06),0_12px_32px_rgba(15,23,42,0.08)]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm text-muted-foreground truncate">{label}</p>
@@ -28,7 +28,7 @@ export function StatCard({
           {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
         </div>
         {Icon && (
-          <div className={cn("grid size-10 shrink-0 place-items-center rounded-xl", toneBg[tone])}>
+          <div className={cn("grid size-10 shrink-0 place-items-center rounded-2xl", toneBg[tone])}>
             <Icon className="size-5" />
           </div>
         )}

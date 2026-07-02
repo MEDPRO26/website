@@ -76,7 +76,7 @@ function BrandMark() {
 
   return (
     <Link href={href} className="flex items-center gap-3">
-      <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-[var(--sidebar-border)]">
+      <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-[var(--sidebar-border)]/80">
         <Image
           src={LOGO.crm}
           alt="Centre SOS Santé"
@@ -125,10 +125,10 @@ function NavList({
               href={item.href}
               onClick={onNavigate}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors border-l-[3px]",
+                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all",
                 active
-                  ? "border-[var(--sidebar-primary)] bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)] font-semibold"
-                  : "border-transparent text-[var(--sidebar-foreground)] hover:bg-[var(--muted)] hover:text-[var(--sidebar-foreground-strong)]"
+                  ? "bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)] font-semibold shadow-sm"
+                  : "text-[var(--sidebar-foreground)] hover:bg-[var(--muted)] hover:text-[var(--sidebar-foreground-strong)]"
               )}
             >
               <Icon className={cn("size-[18px] shrink-0", active ? "text-[var(--sidebar-primary)]" : "text-[var(--sidebar-foreground)]")} />
@@ -150,7 +150,7 @@ function SidebarContent({
 }) {
   return (
     <>
-      <div className="px-4 py-5 border-b border-[var(--sidebar-border)]">
+      <div className="px-4 py-5 border-b border-[var(--sidebar-border)]/70">
         <BrandMark />
       </div>
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
@@ -162,11 +162,11 @@ function SidebarContent({
           <NavList items={ADMIN_NAV_SECONDARY} onNavigate={onNavigate} can={can} />
         </div>
       </nav>
-      <div className="border-t border-[var(--sidebar-border)] p-4">
+      <div className="border-t border-[var(--sidebar-border)]/70 p-4">
         {can("orders.create_manual") ? (
           <Button
             asChild
-            className="w-full h-11 rounded-xl bg-[var(--sidebar-primary)] text-white hover:bg-[#2890e0] shadow-md shadow-[#32a0f3]/20 font-semibold"
+            className="w-full h-11 rounded-xl bg-[var(--sidebar-primary)] text-white hover:bg-[#2890e0] shadow-md shadow-[#32a0f3]/25 font-semibold"
           >
             <Link href="/admin/orders/new" onClick={onNavigate}>
               <Plus className="size-4" />
@@ -203,7 +203,7 @@ function Topbar({
   showAdminTools?: boolean;
 }) {
   return (
-    <header className="sticky top-0 z-30 flex items-center gap-4 border-b border-border bg-card px-4 py-3 sm:px-6">
+    <header className="sticky top-0 z-30 flex items-center gap-4 border-b border-border/60 bg-card/90 px-4 py-3 backdrop-blur-md sm:px-6">
       {onMenu && (
         <Button size="icon" variant="ghost" className="lg:hidden shrink-0" onClick={onMenu}>
           <Menu className="size-5" />
@@ -223,7 +223,7 @@ function Topbar({
           <p className="text-sm font-semibold text-foreground leading-tight">{userName}</p>
           <p className="text-[11px] text-muted-foreground uppercase tracking-wide">{roleLabel}</p>
         </div>
-        <span className="hidden sm:inline-flex items-center rounded-md bg-[var(--sidebar-primary)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+        <span className="hidden sm:inline-flex items-center rounded-full bg-[var(--sidebar-primary)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
           {roleLabel}
         </span>
         <DropdownMenu>
@@ -309,27 +309,29 @@ export function AdminShell({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen flex bg-background">
-      <aside className="flex w-[260px] shrink-0 flex-col bg-[var(--sidebar)] border-r border-[var(--sidebar-border)] shadow-sm max-lg:hidden">
-        <SidebarContent can={can} />
-      </aside>
+    <div className="min-h-screen bg-background p-1 sm:p-1.5">
+      <div className="flex min-h-[calc(100dvh-0.5rem)] w-full overflow-hidden rounded-2xl border border-border/50 bg-card shadow-[0_4px_6px_rgba(15,23,42,0.02),0_20px_48px_rgba(15,23,42,0.08)] sm:min-h-[calc(100dvh-0.75rem)]">
+        <aside className="flex w-[260px] shrink-0 flex-col bg-[var(--sidebar)] border-r border-[var(--sidebar-border)]/70 max-lg:hidden">
+          <SidebarContent can={can} />
+        </aside>
 
-      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-[280px] p-0 flex flex-col bg-[var(--sidebar)] border-[var(--sidebar-border)]">
-          <SidebarContent onNavigate={() => setMobileOpen(false)} can={can} />
-        </SheetContent>
-      </Sheet>
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetContent side="left" className="w-[280px] p-0 flex flex-col bg-[var(--sidebar)] border-[var(--sidebar-border)] rounded-r-2xl">
+            <SidebarContent onNavigate={() => setMobileOpen(false)} can={can} />
+          </SheetContent>
+        </Sheet>
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <Topbar
-          roleLabel={roleLabel}
-          userName={userName}
-          userInitials={userInitials}
-          onMenu={() => setMobileOpen(true)}
-          onSignOut={handleSignOut}
-          showAdminTools
-        />
-        <main className="flex-1 px-4 py-5 sm:px-6 sm:py-6">{children}</main>
+        <div className="flex min-w-0 flex-1 flex-col bg-background/50">
+          <Topbar
+            roleLabel={roleLabel}
+            userName={userName}
+            userInitials={userInitials}
+            onMenu={() => setMobileOpen(true)}
+            onSignOut={handleSignOut}
+            showAdminTools
+          />
+          <main className="flex-1 overflow-auto px-4 py-5 sm:px-6 sm:py-6">{children}</main>
+        </div>
       </div>
     </div>
   );
@@ -344,13 +346,13 @@ export const SUPPLIER_NAV: NavItem[] = [
 function SupplierSidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <>
-      <div className="px-4 py-5 border-b border-[var(--sidebar-border)]">
+      <div className="px-4 py-5 border-b border-[var(--sidebar-border)]/70">
         <BrandMark />
       </div>
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         <NavList items={SUPPLIER_NAV} onNavigate={onNavigate} />
       </nav>
-      <div className="border-t border-[var(--sidebar-border)] p-4">
+      <div className="border-t border-[var(--sidebar-border)]/70 p-4">
         <p className="text-[10px] leading-relaxed text-[var(--sidebar-foreground)] text-center">
           Espace fournisseur partenaire · SOS Santé Agadir
         </p>
@@ -418,29 +420,31 @@ export function SupplierShell({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen flex bg-background pb-16 md:pb-0">
-      <aside className="hidden md:flex w-60 shrink-0 flex-col bg-[var(--sidebar)] border-r border-[var(--sidebar-border)] shadow-sm">
-        <SupplierSidebarContent />
-      </aside>
+    <div className="min-h-screen bg-background p-1 pb-20 sm:p-1.5 md:pb-1.5">
+      <div className="flex min-h-[calc(100dvh-5rem)] w-full overflow-hidden rounded-2xl border border-border/50 bg-card shadow-[0_4px_6px_rgba(15,23,42,0.02),0_20px_48px_rgba(15,23,42,0.08)] md:min-h-[calc(100dvh-0.75rem)]">
+        <aside className="hidden md:flex w-60 shrink-0 flex-col bg-[var(--sidebar)] border-r border-[var(--sidebar-border)]/70">
+          <SupplierSidebarContent />
+        </aside>
 
-      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-[280px] p-0 flex flex-col bg-[var(--sidebar)] border-[var(--sidebar-border)]">
-          <SupplierSidebarContent onNavigate={() => setMobileOpen(false)} />
-        </SheetContent>
-      </Sheet>
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetContent side="left" className="w-[280px] p-0 flex flex-col bg-[var(--sidebar)] border-[var(--sidebar-border)] rounded-r-2xl">
+            <SupplierSidebarContent onNavigate={() => setMobileOpen(false)} />
+          </SheetContent>
+        </Sheet>
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <Topbar
-          roleLabel="Fournisseur"
-          userName={userName}
-          userInitials={userInitials}
-          onMenu={() => setMobileOpen(true)}
-          onSignOut={handleSignOut}
-        />
-        <main className="flex-1 px-4 py-4 sm:px-5 sm:py-5">{children}</main>
+        <div className="flex min-w-0 flex-1 flex-col bg-background/50">
+          <Topbar
+            roleLabel="Fournisseur"
+            userName={userName}
+            userInitials={userInitials}
+            onMenu={() => setMobileOpen(true)}
+            onSignOut={handleSignOut}
+          />
+          <main className="flex-1 overflow-auto px-4 py-4 sm:px-5 sm:py-5">{children}</main>
+        </div>
       </div>
 
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-card grid grid-cols-3 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+      <nav className="md:hidden fixed bottom-3 inset-x-3 z-40 grid grid-cols-3 rounded-2xl border border-border/60 bg-card/95 shadow-[0_8px_32px_rgba(15,23,42,0.12)] backdrop-blur-md">
         {[
           { href: "/supplier", label: "Accueil", icon: LayoutDashboard, exact: true },
           { href: "/supplier/orders", label: "Commandes", icon: ClipboardList },

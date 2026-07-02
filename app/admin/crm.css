@@ -7,9 +7,17 @@
  */
 
 .crm-app {
-  --radius: 0.75rem;
+  --radius: 0.875rem;
+  --radius-sm: 0.625rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.125rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 20px rgba(15, 23, 42, 0.05);
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.03), 0 8px 24px rgba(15, 23, 42, 0.06);
+  --shadow-panel: 0 4px 6px rgba(15, 23, 42, 0.02), 0 20px 48px rgba(15, 23, 42, 0.08);
   /* Aligné sur sossante.ma — bleu #32a0f3 · gris #747782 */
-  --background: #f7f8fb;
+  --background: #eef1f6;
   --foreground: #474b56;
   --card: #ffffff;
   --card-foreground: #474b56;
@@ -19,13 +27,13 @@
   --primary-foreground: #ffffff;
   --secondary: #747782;
   --secondary-foreground: #ffffff;
-  --muted: #f2f4f7;
+  --muted: #f4f6f9;
   --muted-foreground: #747782;
   --accent: #d6ebfc;
   --accent-foreground: #2890e0;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #e6e8ec;
+  --border: #e2e5eb;
   --input: #eceef2;
   --ring: #32a0f3;
   --brand: #32a0f3;
@@ -47,7 +55,7 @@
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #d6ebfc;
   --sidebar-accent-foreground: #2890e0;
-  --sidebar-border: #e6e8ec;
+  --sidebar-border: #e2e5eb;
   --sidebar-ring: #32a0f3;
   --chart-1: #32a0f3;
   --chart-2: #747782;
@@ -121,4 +129,31 @@ body:has(.crm-app) [data-radix-popover-content],
 body:has(.crm-app) [role="listbox"] {
   background-color: #ffffff !important;
   color: #474b56 !important;
+  border-radius: 1rem !important;
+  border: 1px solid #e2e5eb !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+/* Softer controls inside CRM */
+.crm-app input:not([type="checkbox"]):not([type="radio"]),
+.crm-app textarea {
+  border-radius: 0.75rem;
+}
+
+.crm-app button.rounded-md,
+.crm-app a.rounded-md {
+  border-radius: 0.75rem;
+}
+
+.crm-app .rounded-lg {
+  border-radius: var(--radius-lg);
+}
+
+.crm-app .rounded-xl {
+  border-radius: var(--radius-xl);
+}
+
+.crm-app .rounded-2xl,
+.crm-app .rounded-3xl {
+  border-radius: var(--radius-2xl);
 }
