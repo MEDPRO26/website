@@ -26,6 +26,7 @@ import type * as lib_authz from "../lib/authz.js";
 import type * as lib_createOrder from "../lib/createOrder.js";
 import type * as lib_customers from "../lib/customers.js";
 import type * as lib_linkSupplierStaff from "../lib/linkSupplierStaff.js";
+import type * as lib_messenger360 from "../lib/messenger360.js";
 import type * as lib_notifications from "../lib/notifications.js";
 import type * as lib_orderEvents from "../lib/orderEvents.js";
 import type * as lib_orderStatus from "../lib/orderStatus.js";
@@ -47,6 +48,7 @@ import type * as supplierPortal from "../supplierPortal.js";
 import type * as suppliers from "../suppliers.js";
 import type * as validators from "../validators.js";
 import type * as whatsappChannels from "../whatsappChannels.js";
+import type * as whatsappMessenger from "../whatsappMessenger.js";
 
 import type {
   ApiFromModules,
@@ -73,6 +75,7 @@ declare const fullApi: ApiFromModules<{
   "lib/createOrder": typeof lib_createOrder;
   "lib/customers": typeof lib_customers;
   "lib/linkSupplierStaff": typeof lib_linkSupplierStaff;
+  "lib/messenger360": typeof lib_messenger360;
   "lib/notifications": typeof lib_notifications;
   "lib/orderEvents": typeof lib_orderEvents;
   "lib/orderStatus": typeof lib_orderStatus;
@@ -94,6 +97,7 @@ declare const fullApi: ApiFromModules<{
   suppliers: typeof suppliers;
   validators: typeof validators;
   whatsappChannels: typeof whatsappChannels;
+  whatsappMessenger: typeof whatsappMessenger;
 }>;
 
 /**
