@@ -123,6 +123,7 @@ export const whatsappProviderValidator = v.union(
   v.literal("manual"),
   v.literal("meta"),
   v.literal("360dialog"),
+  v.literal("360messenger"),
   v.literal("disabled")
 );
 

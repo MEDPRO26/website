@@ -221,6 +221,9 @@ export default defineSchema({
     /** Meta Cloud API — filled when API is connected */
     metaPhoneNumberId: v.optional(v.string()),
     metaWabaId: v.optional(v.string()),
+    /** 360Messenger API key (one key = one WhatsApp number) */
+    messenger360ApiKey: v.optional(v.string()),
+    messenger360ConnectedAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -279,8 +282,11 @@ export default defineSchema({
     conversationId: v.id("conversations"),
     from: v.union(v.literal("client"), v.literal("staff")),
     text: v.string(),
+    externalId: v.optional(v.string()),
     createdAt: v.number(),
-  }).index("by_conversationId", ["conversationId"]),
+  })
+    .index("by_conversationId", ["conversationId"])
+    .index("by_externalId", ["externalId"]),
 
   cmsPages: defineTable({
     title: v.string(),

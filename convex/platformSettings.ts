@@ -225,7 +225,8 @@ export const updateWhatsappProvider = mutation({
 
     if (
       args.whatsappProvider !== "manual" &&
-      args.whatsappProvider !== "disabled"
+      args.whatsappProvider !== "disabled" &&
+      args.whatsappProvider !== "360messenger"
     ) {
       throw new Error(
         "Meta Cloud API et 360dialog seront disponibles après configuration des identifiants API."

@@ -1,5 +1,6 @@
 import { mutation, query, type MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 import { requireAdminStaff } from "./lib/authz";
 import { findCustomerByPhone } from "./lib/customers";
 import { conversationStatusValidator } from "./validators";
@@ -213,7 +214,12 @@ export const sendReply = mutation({
       updatedAt: now,
     });
 
-    // API outbound: call convex/lib/whatsappOutbound when provider !== manual
+    if (settings?.whatsappProvider === "360messenger") {
+      await ctx.scheduler.runAfter(0, internal.whatsappMessenger.deliverReply, {
+        conversationId: args.conversationId,
+        text,
+      });
+    }
 
     await logAudit(ctx, {
       actorStaffId: staff._id,

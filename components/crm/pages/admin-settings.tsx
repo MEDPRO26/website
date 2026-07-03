@@ -27,6 +27,11 @@ const PROVIDERS = [
     desc: "Nécessite Phone Number ID + token",
   },
   {
+    id: "360messenger" as const,
+    label: "360Messenger",
+    desc: "API WhatsApp — inbox CRM automatique",
+  },
+  {
     id: "360dialog" as const,
     label: "360dialog",
     desc: "BSP partenaire Meta",
@@ -48,6 +53,7 @@ export function AdminSettingsPage() {
   const updateNotifications = useMutation(api.platformSettings.updateNotifications);
   const updateSeo = useMutation(api.platformSettings.updateSeo);
   const updateSecurity = useMutation(api.platformSettings.updateSecurity);
+  const connect360 = useMutation(api.whatsappMessenger.connectChannel);
 
   const channels = useQuery(
     api.whatsappChannels.list,
@@ -57,11 +63,19 @@ export function AdminSettingsPage() {
     api.platformSettings.get,
     canQueryAdmin ? {} : "skip"
   );
+  const webhookInfo = useQuery(
+    api.whatsappMessenger.getWebhookInfo,
+    canQueryAdmin ? {} : "skip"
+  );
 
   const [drafts, setDrafts] = useState<
-    Record<string, { label: string; phone: string; metaPhoneNumberId: string }>
+    Record<
+      string,
+      { label: string; phone: string; metaPhoneNumberId: string; messenger360ApiKey: string }
+    >
   >({});
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [connectingId, setConnectingId] = useState<string | null>(null);
   const [bootstrapped, setBootstrapped] = useState(false);
   const [generalSaving, setGeneralSaving] = useState(false);
   const [seoSaving, setSeoSaving] = useState(false);
@@ -90,13 +104,16 @@ export function AdminSettingsPage() {
     if (!channels) {
       return;
     }
-    const next: Record<string, { label: string; phone: string; metaPhoneNumberId: string }> =
-      {};
+    const next: Record<
+      string,
+      { label: string; phone: string; metaPhoneNumberId: string; messenger360ApiKey: string }
+    > = {};
     for (const channel of channels) {
       next[channel._id] = {
         label: channel.label,
         phone: channel.phone,
         metaPhoneNumberId: channel.metaPhoneNumberId ?? "",
+        messenger360ApiKey: channel.messenger360ApiKey ?? "",
       };
     }
     setDrafts(next);
@@ -189,8 +206,37 @@ export function AdminSettingsPage() {
     }
   };
 
+  const handleConnect360 = async (id: Id<"whatsappChannels">) => {
+    const draft = drafts[id];
+    if (!draft?.messenger360ApiKey.trim()) {
+      toast.error("Collez d'abord la clé API 360Messenger.");
+      return;
+    }
+    if (!draft.phone.trim()) {
+      toast.error("Renseignez le numéro WhatsApp de cette ligne (212…).");
+      return;
+    }
+    setConnectingId(id);
+    try {
+      await updateChannel({
+        id,
+        label: draft.label,
+        phone: draft.phone,
+      });
+      await connect360({
+        channelId: id,
+        apiKey: draft.messenger360ApiKey.trim(),
+      });
+      toast.success("360Messenger connecté — les messages arriveront dans le CRM.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Connexion impossible.");
+    } finally {
+      setConnectingId(null);
+    }
+  };
+
   const handleSelectProvider = async (
-    provider: "manual" | "meta" | "360dialog" | "disabled"
+    provider: "manual" | "meta" | "360dialog" | "360messenger" | "disabled"
   ) => {
     try {
       await updateProvider({ whatsappProvider: provider });
@@ -199,7 +245,9 @@ export function AdminSettingsPage() {
           ? "Mode manuel activé."
           : provider === "disabled"
             ? "WhatsApp désactivé."
-            : "Provider enregistré — complétez les identifiants API par ligne."
+            : provider === "360messenger"
+              ? "360Messenger sélectionné — connectez une ligne ci-dessous."
+              : "Provider enregistré — complétez les identifiants API par ligne."
       );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erreur.");
@@ -288,10 +336,16 @@ export function AdminSettingsPage() {
           <div>
             <h3 className="font-semibold">Lignes WhatsApp (4 numéros)</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Chaque ligne correspond à un numéro WhatsApp Business. Les conversations
-              sont regroupées par ligne dans l&apos;inbox{" "}
+              Chaque ligne correspond à un numéro WhatsApp. Les messages reçus via
+              360Messenger apparaissent dans l&apos;inbox{" "}
               <strong>/admin/conversations</strong>.
             </p>
+            {webhookInfo?.webhookUrl ? (
+              <p className="mt-2 rounded-xl bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+                Webhook CRM (configuré automatiquement) :{" "}
+                <code className="font-mono text-foreground">{webhookInfo.webhookUrl}</code>
+              </p>
+            ) : null}
           </div>
 
           {channels === undefined ? (
@@ -332,6 +386,10 @@ export function AdminSettingsPage() {
                                   current[channel._id]?.metaPhoneNumberId ??
                                   channel.metaPhoneNumberId ??
                                   "",
+                                messenger360ApiKey:
+                                  current[channel._id]?.messenger360ApiKey ??
+                                  channel.messenger360ApiKey ??
+                                  "",
                               },
                             }))
                           }
@@ -353,18 +411,51 @@ export function AdminSettingsPage() {
                                   current[channel._id]?.metaPhoneNumberId ??
                                   channel.metaPhoneNumberId ??
                                   "",
+                                messenger360ApiKey:
+                                  current[channel._id]?.messenger360ApiKey ??
+                                  channel.messenger360ApiKey ??
+                                  "",
                               },
                             }))
                           }
                         />
                       </div>
                       <div className="sm:col-span-2">
+                        <Label className="text-xs">Clé API 360Messenger</Label>
+                        <Input
+                          className="mt-1.5 font-mono text-xs"
+                          type="password"
+                          placeholder="Coller la clé depuis le panneau 360Messenger"
+                          value={draft?.messenger360ApiKey ?? ""}
+                          onChange={(e) =>
+                            setDrafts((current) => ({
+                              ...current,
+                              [channel._id]: {
+                                label: current[channel._id]?.label ?? channel.label,
+                                phone: current[channel._id]?.phone ?? channel.phone,
+                                metaPhoneNumberId:
+                                  current[channel._id]?.metaPhoneNumberId ??
+                                  channel.metaPhoneNumberId ??
+                                  "",
+                                messenger360ApiKey: e.target.value,
+                              },
+                            }))
+                          }
+                        />
+                        {channel.messenger360ConnectedAt ? (
+                          <p className="mt-1 text-xs text-success">
+                            Connecté le{" "}
+                            {new Date(channel.messenger360ConnectedAt).toLocaleString("fr-FR")}
+                          </p>
+                        ) : null}
+                      </div>
+                      <div className="sm:col-span-2 hidden">
                         <Label className="text-xs">
-                          Meta Phone Number ID (quand API connectée)
+                          Meta Phone Number ID (360dialog / Meta)
                         </Label>
                         <Input
                           className="mt-1.5"
-                          placeholder="Optionnel pour l'instant"
+                          placeholder="Optionnel"
                           value={draft?.metaPhoneNumberId ?? ""}
                           onChange={(e) =>
                             setDrafts((current) => ({
@@ -373,30 +464,48 @@ export function AdminSettingsPage() {
                                 label: current[channel._id]?.label ?? channel.label,
                                 phone: current[channel._id]?.phone ?? channel.phone,
                                 metaPhoneNumberId: e.target.value,
+                                messenger360ApiKey:
+                                  current[channel._id]?.messenger360ApiKey ??
+                                  channel.messenger360ApiKey ??
+                                  "",
                               },
                             }))
                           }
                         />
                       </div>
                     </div>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                       <span>
                         {channel.conversationCount} conversation
                         {channel.conversationCount > 1 ? "s" : ""} ·{" "}
                         {channel.unreadCount} non lu
                         {channel.unreadCount > 1 ? "s" : ""}
                       </span>
-                      <Button
-                        size="sm"
-                        disabled={savingId === channel._id}
-                        onClick={() => void handleSaveChannel(channel._id)}
-                      >
-                        {savingId === channel._id ? (
-                          <Loader2 className="size-4 animate-spin" />
-                        ) : (
-                          "Enregistrer"
-                        )}
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={connectingId === channel._id}
+                          onClick={() => void handleConnect360(channel._id)}
+                        >
+                          {connectingId === channel._id ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            "Connecter 360Messenger"
+                          )}
+                        </Button>
+                        <Button
+                          size="sm"
+                          disabled={savingId === channel._id}
+                          onClick={() => void handleSaveChannel(channel._id)}
+                        >
+                          {savingId === channel._id ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            "Enregistrer"
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -408,13 +517,16 @@ export function AdminSettingsPage() {
         <Card className="space-y-3 p-5">
           <h3 className="font-semibold">Mode d&apos;envoi WhatsApp</h3>
           <p className="text-sm text-muted-foreground">
-            Aujourd&apos;hui : mode <strong>manuel</strong> uniquement. Les options API
-            seront activées après configuration Meta Business.
+            Mode <strong>360Messenger</strong> : réception automatique dans le CRM et envoi
+            depuis l&apos;inbox. Mode manuel : copier/coller + WhatsApp Web.
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             {PROVIDERS.map((provider) => {
               const isActive = activeProvider === provider.id;
-              const apiReady = provider.id === "manual" || provider.id === "disabled";
+              const apiReady =
+                provider.id === "manual" ||
+                provider.id === "disabled" ||
+                provider.id === "360messenger";
               return (
                 <div
                   key={provider.id}

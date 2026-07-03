@@ -56,6 +56,11 @@ export function AdminConversationsPage() {
     api.whatsappChannels.list,
     canQueryAdmin ? {} : "skip"
   );
+  const settings = useQuery(
+    api.platformSettings.get,
+    canQueryAdmin ? {} : "skip"
+  );
+  const is360Connected = settings?.whatsappProvider === "360messenger";
   const conversations = useQuery(
     api.conversations.list,
     canQueryAdmin
@@ -147,6 +152,9 @@ export function AdminConversationsPage() {
     try {
       await sendReply({ conversationId: activeId, text: reply });
       setReply("");
+      if (is360Connected) {
+        toast.success("Message envoyé via WhatsApp.");
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erreur.");
     } finally {
@@ -182,7 +190,11 @@ export function AdminConversationsPage() {
     <div>
       <PageHeader
         title="Conversations WhatsApp"
-        description="4 lignes WhatsApp regroupées — saisie manuelle jusqu'à connexion API."
+        description={
+          is360Connected
+            ? "Messages WhatsApp reçus automatiquement via 360Messenger."
+            : "4 lignes WhatsApp — saisie manuelle ou connectez 360Messenger dans Paramètres."
+        }
         actions={
           <div className="flex gap-2">
             <Button variant="outline" size="sm" asChild>
@@ -412,24 +424,30 @@ export function AdminConversationsPage() {
                 </div>
                 <div className="border-t border-border p-3">
                   <Textarea
-                    placeholder="Tapez votre réponse (puis Ouvrir WhatsApp pour envoyer)…"
+                    placeholder={
+                      is360Connected
+                        ? "Répondre au client — envoi direct via WhatsApp…"
+                        : "Tapez votre réponse (puis Ouvrir WhatsApp pour envoyer)…"
+                    }
                     rows={2}
                     value={reply}
                     onChange={(e) => setReply(e.target.value)}
                   />
                   <div className="mt-2 flex justify-end gap-2">
-                    <Button size="sm" variant="outline" asChild>
-                      <a href={replyUrl} target="_blank" rel="noopener noreferrer">
-                        Ouvrir WhatsApp
-                      </a>
-                    </Button>
+                    {!is360Connected ? (
+                      <Button size="sm" variant="outline" asChild>
+                        <a href={replyUrl} target="_blank" rel="noopener noreferrer">
+                          Ouvrir WhatsApp
+                        </a>
+                      </Button>
+                    ) : null}
                     <Button size="sm" disabled={submitting} onClick={() => void handleReply()}>
                       {submitting ? (
                         <Loader2 className="size-4 animate-spin" />
                       ) : (
                         <Send className="size-4" />
                       )}
-                      Enregistrer réponse
+                      {is360Connected ? "Envoyer" : "Enregistrer réponse"}
                     </Button>
                   </div>
                 </div>

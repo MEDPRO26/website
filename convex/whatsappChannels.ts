@@ -126,6 +126,7 @@ export const update = mutation({
     status: v.optional(whatsappChannelStatusValidator),
     metaPhoneNumberId: v.optional(v.string()),
     metaWabaId: v.optional(v.string()),
+    messenger360ApiKey: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await requireAdminStaff(ctx);
@@ -153,6 +154,9 @@ export const update = mutation({
     if (args.metaWabaId !== undefined) {
       patch.metaWabaId = args.metaWabaId.trim() || undefined;
     }
+    if (args.messenger360ApiKey !== undefined) {
+      patch.messenger360ApiKey = args.messenger360ApiKey.trim() || undefined;
+    }
 
     await ctx.db.patch(args.id, patch);
   },
@@ -173,7 +177,11 @@ export const updateProvider = mutation({
       throw new Error("Paramètres introuvables.");
     }
 
-    if (args.whatsappProvider !== "manual" && args.whatsappProvider !== "disabled") {
+    if (
+      args.whatsappProvider !== "manual" &&
+      args.whatsappProvider !== "disabled" &&
+      args.whatsappProvider !== "360messenger"
+    ) {
       throw new Error(
         "Meta Cloud API et 360dialog seront disponibles après configuration des identifiants API."
       );
