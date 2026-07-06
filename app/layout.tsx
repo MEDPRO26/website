@@ -27,9 +27,9 @@ const siteUrl = (
 ).replace(/\/$/, "");
 const siteName = "SOS Santé";
 const title =
-  "Location de matériel médical à Agadir et au Maroc | SOS Santé";
+  "Vente, location de matériel médical et soins à domicile";
 const description =
-  "Louez du matériel médical à Agadir et partout au Maroc avec SOS Santé : lits médicalisés, fauteuils roulants, concentrateurs d'oxygène. Livraison, installation et désinfection incluses. Devis gratuit en 15 min.";
+  "Vente et location de matériel médical au Maroc. Soins et aide à domicile au Maroc : lits, fauteuils, oxygène. Devis rapide.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -37,16 +37,17 @@ export const metadata: Metadata = {
   title,
   description,
   keywords: [
-    "location matériel médical Agadir",
+    "vente matériel médical Maroc",
     "location matériel médical Maroc",
-    "matériel médical à domicile Agadir",
     "matériel médical à domicile Maroc",
+    "soins à domicile Maroc",
+    "aide à domicile Maroc",
+    "location matériel médical Agadir",
+    "vente matériel médical Agadir",
     "lit médicalisé location Agadir",
     "fauteuil roulant location Agadir",
     "concentrateur oxygène location Agadir",
-    "aide à domicile Agadir",
     "maintien à domicile Maroc",
-    "location matelas anti escarres Agadir",
     "SOS Santé",
   ],
   authors: [{ name: siteName }],

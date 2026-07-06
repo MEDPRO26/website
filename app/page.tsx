@@ -204,8 +204,8 @@ const homeSchema = buildGraph(
   localBusinessSchema({ citySlug: "agadir", path: "/" }),
   webPageSchema(
     "/",
-    "Location de matériel médical dans les grandes villes du Maroc | SOS Santé",
-    "Louez du matériel médical dans les grandes villes du Maroc. Lits médicalisés, fauteuils roulants, oxygène. Livraison, installation et désinfection incluses."
+    "Vente, location de matériel médical et soins à domicile",
+    "Vente et location de matériel médical au Maroc. Soins et aide à domicile au Maroc : lits, fauteuils, oxygène. Devis rapide."
   ),
   breadcrumbSchema([{ name: "Accueil", item: "/" }]),
   itemListSchema(
