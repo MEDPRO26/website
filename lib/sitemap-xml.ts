@@ -11,19 +11,13 @@ function escapeXml(value: string) {
 
 function renderUrl(entry: SitemapEntry, siteUrl: string, lastModified: string) {
   const loc = `${siteUrl}${entry.path}`;
-  const imageBlock = entry.image
-    ? `
-    <image:image>
-      <image:loc>${escapeXml(`${siteUrl}${entry.image}`)}</image:loc>
-    </image:image>`
-    : "";
 
   return `
   <url>
     <loc>${escapeXml(loc)}</loc>
     <lastmod>${lastModified}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>${entry.priority.toFixed(2)}</priority>${imageBlock}
+    <priority>${entry.priority.toFixed(2)}</priority>
   </url>`;
 }
 
@@ -35,7 +29,7 @@ export function buildUrlsetXml(
   const urls = entries.map((entry) => renderUrl(entry, siteUrl, lastModified)).join("");
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">${urls}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}
 </urlset>`;
 }
 
