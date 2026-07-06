@@ -60,7 +60,7 @@ Objectif : chaque type de page a le bon schéma, sans duplication.
 
 ## Phase 3 — Autorité & contenu
 
-- [ ] Google Business Profile Agadir aligné NAP = schema (nom, adresse, tel, site) → voir `docs/GBP-NAP-AGADIR.md`
+- [-] Google Business Profile Agadir aligné NAP = schema → site web `https://www.sossante.ma/agadir` ajouté (validation Google en cours)
 - [ ] GBP Rabat quand `contactReady`
 - [-] 2–4 articles blog / mois (3 articles publiés — continuer le rythme)
 - [x] FAQ sur catalogues vente (Agadir + Rabat)
