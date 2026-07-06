@@ -14,6 +14,7 @@ export function websiteSchema() {
     "@type": "WebSite",
     "@id": `${siteUrl}/#website`,
     name: SITE_NAME,
+    alternateName: ["SOS sante", "SOS Santé", "sossante.ma"],
     url: siteUrl,
     inLanguage: "fr-MA",
     publisher: { "@id": `${siteUrl}/#organization` },
@@ -25,6 +26,7 @@ export function organizationSchema() {
     "@type": "Organization",
     "@id": `${siteUrl}/#organization`,
     name: SITE_NAME,
+    alternateName: ["SOS sante", "sossante.ma"],
     url: siteUrl,
     logo: `${siteUrl}${LOGO.default}`,
     areaServed: [

@@ -3,7 +3,7 @@ import { Plus_Jakarta_Sans, Source_Serif_4 } from "next/font/google";
 import MobileBottomNav from "@/components/mobile-bottom-nav";
 import ConvexClientProvider from "@/components/convex-client-provider";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
-import { LOGO, SITE_URL_DEFAULT } from "@/lib/brand";
+import { LOGO, HOMEPAGE_OG_ALT, HOMEPAGE_OG_IMAGE, SITE_DISPLAY_NAME, SITE_URL_DEFAULT } from "@/lib/brand";
 import { getRobotsMetadata } from "@/lib/indexing";
 import GlobalSiteJsonLd from "@/components/global-site-json-ld";
 import "./globals.css";
@@ -25,7 +25,7 @@ const sourceSerif4 = Source_Serif_4({
 const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL_DEFAULT
 ).replace(/\/$/, "");
-const siteName = "SOS Santé";
+const siteName = SITE_DISPLAY_NAME;
 const title =
   "Vente, location de matériel médical et soins à domicile";
 const description =
@@ -69,10 +69,10 @@ export const metadata: Metadata = {
     description,
     images: [
       {
-        url: "/og-image.png",
+        url: HOMEPAGE_OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: "SOS Santé, location de matériel médical et aide à domicile au Maroc",
+        alt: HOMEPAGE_OG_ALT,
       },
     ],
   },
@@ -80,16 +80,19 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title,
     description,
-    images: ["/og-image.png"],
+    images: [HOMEPAGE_OG_IMAGE],
   },
   robots: getRobotsMetadata(),
   category: "healthcare marketplace",
   icons: {
     icon: [
+      { url: "/favicon.ico", sizes: "any" },
       { url: LOGO.favicon, sizes: "32x32", type: "image/png" },
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-512.png", sizes: "512x512", type: "image/png" },
     ],
     apple: LOGO.apple,
+    shortcut: "/favicon.ico",
   },
 };
 

@@ -1,4 +1,8 @@
 export const SITE_NAME = "SOS Santé";
+export const SITE_DISPLAY_NAME = "SOS Santé";
+export const HOMEPAGE_OG_IMAGE = "/products/inogen-rove-g6-homme-masque-domicile.webp";
+export const HOMEPAGE_OG_ALT =
+  "Homme utilisant un concentrateur portable Inogen Rove G6 à domicile à Agadir";
 export const SITE_FULL_NAME =
   "SOS Santé Agadir - Matériel Médical & Aide à Domicile";
 export const SITE_NATIONAL_NAME =
