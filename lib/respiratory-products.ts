@@ -203,7 +203,7 @@ export const respiratoryProducts: Product[] = [
         description: "Outils d'accompagnement et de suivi intégrés.",
       },
     ],
-    related: ["masques-cpap-airfit-resmed"],
+    related: [],
     seoTitle: "Achat ResMed AirSense S11 AutoSet CPAP | SOS Santé",
     seoDescription:
       "Achetez un appareil CPAP ResMed AirSense 11 AutoSet au Maroc pour le traitement de l'apnée du sommeil. Devis et conseil avec SOS Santé.",
@@ -252,7 +252,7 @@ export const respiratoryProducts: Product[] = [
         description: "Mise en place simple pour un usage quotidien.",
       },
     ],
-    related: ["resmed-airsense-s11-autoset-cpap"],
+    related: [],
     seoTitle: "Achat masques CPAP ResMed AirFit | SOS Santé",
     seoDescription:
       "Achetez un masque CPAP ResMed AirFit (F20, N20, P10, AirTouch) au Maroc. Conseil pour choisir le bon modèle avec SOS Santé.",
@@ -300,7 +300,7 @@ export const respiratoryProducts: Product[] = [
         description: "Ventilation non invasive pour patients autonomes.",
       },
     ],
-    related: ["resmed-airsense-s11-autoset-cpap"],
+    related: [],
     seoTitle: "Achat Lumis 150 VNI ResMed | SOS Santé",
     seoDescription:
       "Achetez un ventilateur non invasif Lumis 150 VNI ResMed au Maroc. Devis, conseil et accompagnement avec SOS Santé.",

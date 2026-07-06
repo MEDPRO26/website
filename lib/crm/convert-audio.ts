@@ -95,19 +95,19 @@ export async function convertBlobToMp3(blob: Blob) {
     const { samples, sampleRate } = mixToMono(audioBuffer);
     const pcm = floatTo16BitPCM(samples);
     const encoder = new lame.Mp3Encoder(1, sampleRate, 128);
-    const mp3Chunks: Uint8Array[] = [];
+    const mp3Chunks: Uint8Array<ArrayBuffer>[] = [];
 
     for (let offset = 0; offset < pcm.length; offset += MP3_BLOCK_SIZE) {
       const chunk = pcm.subarray(offset, offset + MP3_BLOCK_SIZE);
       const encoded = encoder.encodeBuffer(chunk);
       if (encoded.length > 0) {
-        mp3Chunks.push(new Uint8Array(encoded.buffer.slice(0)));
+        mp3Chunks.push(new Uint8Array(encoded.buffer.slice(0) as ArrayBuffer));
       }
     }
 
     const flushed = encoder.flush();
     if (flushed.length > 0) {
-      mp3Chunks.push(new Uint8Array(flushed.buffer.slice(0)));
+      mp3Chunks.push(new Uint8Array(flushed.buffer.slice(0) as ArrayBuffer));
     }
 
     if (mp3Chunks.length === 0) {

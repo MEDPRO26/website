@@ -63,8 +63,8 @@ const SOURCE_FILTERS = [
     source.toLowerCase().includes("appel") },
 ] as const;
 
-function filterOrders(
-  orders: Order[],
+function filterOrders<T extends Order>(
+  orders: T[],
   searchQuery: string,
   statusFilter: string,
   cityFilter: string,
