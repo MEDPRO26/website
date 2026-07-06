@@ -94,6 +94,6 @@ Objectif : chaque type de page a le bon schéma, sans duplication.
 
 ## Notes
 
-- **Devis sur demande** : le schema **Product** n'inclut pas de prix ni d'`Offer` — pas de rich results produit, mais plus d'alertes Merchant/Product invalides dans GSC. Les prix restent visibles sur le site (« Prix sur demande ») et via le formulaire de devis.
+- **Devis sur demande** : pas de schema Product sur les fiches produit (GSC exige offers, review ou aggregateRating). On garde WebPage + fil d'Ariane + ItemList associés. Réactiver productSchema() quand les prix seront connus.
 - **Un seul `<script type="application/ld+json">` par page** (+ le global layout pour Organization/WebSite est acceptable ; les pages ne redéclarent pas Organization).
-- Dernière mise à jour : 2026-07-06 (retrait Offer Product)
+- Dernière mise à jour : 2026-07-06 (Product schema désactivé)
