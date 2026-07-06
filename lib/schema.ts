@@ -208,7 +208,8 @@ export function productPageGraph(
   hubLabel: string,
   relatedProducts: Product[] = [],
   relatedPathForSlug: (slug: string) => string = (slug) =>
-    `/vente-de-materiel-medical-agadir/produits/${slug}`
+    `/vente-de-materiel-medical-agadir/produits/${slug}`,
+  categoryCrumb?: { label: string; path: string }
 ) {
   const path = normalizePath(productPath);
   const relatedItems = relatedProducts.map((item) => ({
@@ -218,7 +219,13 @@ export function productPageGraph(
 
   const nodes: Record<string, unknown>[] = [
     webPageSchema(path, product.seoTitle, product.seoDescription),
-    productBreadcrumbSchema(path, product.shortName, hubPath, hubLabel),
+    productBreadcrumbSchema(
+      path,
+      product.shortName,
+      hubPath,
+      hubLabel,
+      categoryCrumb
+    ),
   ];
 
   if (relatedItems.length > 0) {
@@ -232,33 +239,57 @@ export function productBreadcrumbSchema(
   productPath: string,
   productName: string,
   hubPath: string,
-  hubLabel: string
+  hubLabel: string,
+  categoryCrumb?: { label: string; path: string }
 ) {
   const path = normalizePath(productPath);
   const hub = normalizePath(hubPath);
+  const items: {
+    "@type": "ListItem";
+    position: number;
+    name: string;
+    item: string;
+  }[] = [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Accueil",
+      item: siteUrl,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: hubLabel,
+      item: `${siteUrl}${hub}`,
+    },
+  ];
+
+  if (categoryCrumb) {
+    items.push({
+      "@type": "ListItem",
+      position: 3,
+      name: categoryCrumb.label,
+      item: `${siteUrl}${normalizePath(categoryCrumb.path)}`,
+    });
+    items.push({
+      "@type": "ListItem",
+      position: 4,
+      name: productName,
+      item: `${siteUrl}${path}`,
+    });
+  } else {
+    items.push({
+      "@type": "ListItem",
+      position: 3,
+      name: productName,
+      item: `${siteUrl}${path}`,
+    });
+  }
+
   return {
     "@type": "BreadcrumbList",
     "@id": `${siteUrl}${path}#breadcrumb`,
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Accueil",
-        item: siteUrl,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: hubLabel,
-        item: `${siteUrl}${hub}`,
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: productName,
-        item: `${siteUrl}${path}`,
-      },
-    ],
+    itemListElement: items,
   };
 }
 

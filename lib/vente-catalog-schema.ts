@@ -5,11 +5,13 @@ import { hubCityPath, venteCityPath, venteProductPath } from "@/lib/routes";
 import {
   breadcrumbSchema,
   buildGraph,
+  faqSchema,
   itemListSchema,
   localBusinessSchema,
   webPageSchema,
 } from "@/lib/schema";
 import { getVenteCatalogPageInfo } from "@/lib/vente-metadata";
+import { getVenteCatalogFaqs } from "@/lib/vente-faqs";
 
 export function buildVenteCatalogGraph(
   citySlug: CitySlug,
@@ -70,6 +72,7 @@ export function buildVenteCatalogGraph(
         name: product.name,
         url: venteProductPath(product.slug, citySlug),
       }))
-    )
+    ),
+    faqSchema(getVenteCatalogFaqs(citySlug), path)
   );
 }

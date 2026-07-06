@@ -34,8 +34,8 @@ Objectif : chaque type de page a le bon schéma, sans duplication.
 |------|---------|------------|---------------|-----|----------|---------|---------|-------------|
 | Homepage | [x] | [x] | [x] | [x] | [x] | [-] | [-] | [-] |
 | City hub (`/agadir`) | [x] | [x] | [x] | [x] | [x] | [-] | [-] | [-] |
-| Vente city | [x] | [x] | [x] | [-] | [x] | [-] | [-] | [-] |
-| Category vente | [x] | [x] | [x] | [-] | [x] | [-] | [-] | [-] |
+| Vente city | [x] | [x] | [x] | [x] | [x] | [-] | [-] | [-] |
+| Category vente | [x] | [x] | [x] | [x] | [x] | [-] | [-] | [-] |
 | Product | [x] | [x] | [-] | [-] | [x] | [-] | [-] | [-] |
 | Care service | [x] | [x] | [x] | [x] | [-] | [-] | [x] | [-] |
 | Services hub | [x] | [x] | [x] | [-] | [-] | [-] | [x] | [-] |
@@ -60,12 +60,12 @@ Objectif : chaque type de page a le bon schéma, sans duplication.
 
 ## Phase 3 — Autorité & contenu
 
-- [ ] Google Business Profile Agadir aligné NAP = schema (nom, adresse, tel, site)
+- [ ] Google Business Profile Agadir aligné NAP = schema (nom, adresse, tel, site) → voir `docs/GBP-NAP-AGADIR.md`
 - [ ] GBP Rabat quand `contactReady`
-- [ ] 2–4 articles blog / mois (longue traîne)
-- [ ] FAQ sur pages à fort trafic (déjà bien avancé)
+- [-] 2–4 articles blog / mois (3 articles publiés — continuer le rythme)
+- [x] FAQ sur catalogues vente (Agadir + Rabat)
 - [ ] Avis clients réels → **AggregateRating** (uniquement avec données vérifiables)
-- [ ] Maillage interne : hub → catégorie → produit → article
+- [x] Maillage interne code : hub → catégorie → produit → article (fil d'Ariane, guides, blog hub)
 
 ---
 

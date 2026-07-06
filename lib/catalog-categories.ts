@@ -42,6 +42,11 @@ export function categoryValueFromParam(param: string | null): string {
   return categoryParamToValue[param] ?? "all";
 }
 
+export function categoryParamFromValue(value: string): string | null {
+  const match = catalogCategories.find((category) => category.value === value);
+  return match && match.param !== "all" ? match.param : null;
+}
+
 export function isValidCategoryParam(param: string): boolean {
   return param in categoryParamToValue && param !== "all";
 }

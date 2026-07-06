@@ -9,6 +9,7 @@ import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
 import { activeCities, getCityBySlug, type CitySlug } from "@/lib/cities";
 import { getCityHubContent } from "@/lib/city-hub-content";
+import { blogPosts } from "@/lib/blog";
 import { getProductsByCity, whatsAppHref } from "@/lib/products";
 import {
   hubCityPath,
@@ -438,6 +439,46 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
             </div>
           </div>
         </section>
+
+        {blogPosts.length > 0 && (
+          <section className="px-4 py-10 sm:px-6 sm:py-14">
+            <div className="mx-auto max-w-7xl">
+              <div className="mb-8 text-center">
+                <span className="mb-2 inline-block text-sm font-semibold uppercase tracking-wider text-secondary">
+                  Blog
+                </span>
+                <h2 className="font-heading text-2xl font-semibold text-secondary sm:text-3xl">
+                  Guides matériel médical
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {blogPosts.map((post) => (
+                  <Link
+                    key={post.slug}
+                    href={`/blog/${post.slug}`}
+                    className="group rounded-2xl border border-outline-variant/30 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-primary/20 hover:shadow-md"
+                  >
+                    <h3 className="font-heading mb-2 text-lg font-semibold text-primary group-hover:text-primary-container">
+                      {post.title}
+                    </h3>
+                    <p className="text-sm leading-relaxed text-on-surface-variant">
+                      {post.excerpt}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+              <div className="mt-8 flex justify-center">
+                <Link
+                  href="/blog"
+                  className="inline-flex items-center gap-2 rounded-full border border-primary bg-white px-6 py-3 text-sm font-semibold text-primary transition-all hover:bg-primary/5"
+                >
+                  Tous les articles
+                  <MaterialIcon name="arrow_forward" className="text-lg" />
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
 
         <section className="px-4 py-10 sm:px-6 sm:py-14">
           <div className="mx-auto max-w-3xl">

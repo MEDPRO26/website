@@ -8,7 +8,9 @@ import SiteFooter from "@/components/site-footer";
 import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import RelatedProducts from "@/components/related-products";
+import ProductGuideLinks from "@/components/product-guide-links";
 import CityLinks from "@/components/city-links";
+import { categoryParamFromValue } from "@/lib/catalog-categories";
 import { useSubmitLead } from "@/hooks/use-submit-lead";
 import {
   activeDeliveryCityLabel,
@@ -16,7 +18,7 @@ import {
 } from "@/lib/delivery-cities";
 import { getCityBySlug, DEFAULT_CITY_SLUG, type CitySlug } from "@/lib/cities";
 import { formatProductAchatHeading } from "@/lib/french";
-import { venteCityPath, venteProductPath } from "@/lib/routes";
+import { venteCityPath, venteCategoryPath, venteProductPath, hubCityPath } from "@/lib/routes";
 import {
   PRICE_ON_REQUEST,
   whatsAppHref,
@@ -54,6 +56,11 @@ export default function ProductDetail({
   const city = getCityBySlug(citySlug)!;
   const pathname = usePathname();
   const catalogPath = venteCityPath(citySlug);
+  const hubPath = hubCityPath(citySlug);
+  const categoryParam = categoryParamFromValue(product.category);
+  const categoryPath = categoryParam
+    ? venteCategoryPath(categoryParam, citySlug)
+    : catalogPath;
   const { submit, isSubmitting, error: submitError } = useSubmitLead();
   const gallery = product.gallery ?? [product.image];
   const [activeImage, setActiveImage] = useState(0);
@@ -164,10 +171,19 @@ export default function ProductDetail({
               <li className="flex items-center gap-2">
                 <MaterialIcon name="chevron_right" className="text-sm" />
                 <Link
-                  href={catalogPath}
+                  href={hubPath}
                   className="transition-colors hover:text-primary"
                 >
-                  Vente · {city.name}
+                  Location et vente à {city.name}
+                </Link>
+              </li>
+              <li className="flex items-center gap-2">
+                <MaterialIcon name="chevron_right" className="text-sm" />
+                <Link
+                  href={categoryPath}
+                  className="transition-colors hover:text-primary"
+                >
+                  {product.category}
                 </Link>
               </li>
               <li className="flex items-center gap-2">
@@ -682,6 +698,7 @@ export default function ProductDetail({
             </div>
           </div>
 
+          <ProductGuideLinks productSlug={product.slug} />
           <RelatedProducts
             currentSlug={product.slug}
             category={product.category}

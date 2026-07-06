@@ -3,10 +3,9 @@ import { notFound } from "next/navigation";
 import JsonLd from "@/components/json-ld";
 import { formatAchatSeoTitle } from "@/lib/french";
 import { getProductBySlug, getProductsByCity } from "@/lib/products";
-import { resolveRelatedProducts } from "@/lib/related-products";
-import { hubCityPath, venteProductPath } from "@/lib/routes";
+import { buildProductPageSchema } from "@/lib/product-page-schema";
+import { venteProductPath } from "@/lib/routes";
 import { SITE_URL_DEFAULT } from "@/lib/brand";
-import { productPageGraph } from "@/lib/schema";
 import ProductDetail from "@/app/produits/[slug]/product-detail";
 
 const citySlug = "agadir" as const;
@@ -50,19 +49,7 @@ function ProductJsonLd({ slug }: { slug: string }) {
   const product = getProductBySlug(slug, citySlug);
   if (!product) return null;
 
-  const productPath = venteProductPath(slug, citySlug);
-  const hubPath = hubCityPath(citySlug);
-  const relatedProducts = resolveRelatedProducts(product);
-  const schema = productPageGraph(
-    product,
-    productPath,
-    hubPath,
-    `Location et vente de matériel médical à Agadir`,
-    relatedProducts,
-    (relatedSlug) => venteProductPath(relatedSlug, citySlug)
-  );
-
-  return <JsonLd data={schema} />;
+  return <JsonLd data={buildProductPageSchema(product, citySlug)} />;
 }
 
 export default async function VenteAgadirProductPage({ params }: PageProps) {

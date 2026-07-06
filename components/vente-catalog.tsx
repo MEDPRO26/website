@@ -13,6 +13,7 @@ import CatalogPagination, {
 import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
+import VenteCatalogFaq from "@/components/vente-catalog-faq";
 import { useProductsPerPage } from "@/hooks/use-products-per-page";
 import { getCityBySlug, type CitySlug } from "@/lib/cities";
 import { writeStoredCitySlug } from "@/lib/city-storage";
@@ -359,6 +360,8 @@ export default function VenteCatalog({ citySlug, categorySlug }: VenteCatalogPro
             )}
           </div>
         </section>
+
+        <VenteCatalogFaq citySlug={citySlug} />
 
         <section className="px-4 pb-14 sm:px-6 sm:pb-20">
           <div className="mx-auto max-w-5xl rounded-[32px] bg-secondary px-6 py-12 text-center text-on-secondary shadow-2xl shadow-secondary/20 sm:px-10 sm:py-16">
