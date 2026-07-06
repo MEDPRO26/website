@@ -320,6 +320,8 @@ export function SeoCityPage({
       { name: city.name, item: path },
     ]),
     localBusinessSchema({
+      businessId: city.slug,
+      path,
       description: city.description,
       addressLocality: city.name,
       areaServed: [

@@ -164,6 +164,8 @@ const servicesSchema = buildGraph(
   ]),
   faqSchema(faqs, "/services"),
   localBusinessSchema({
+    citySlug: "agadir",
+    path: "/services",
     description:
       "Services d'aide à domicile et location de matériel médical à Agadir et au Maroc.",
   }),

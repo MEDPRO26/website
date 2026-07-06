@@ -38,9 +38,7 @@ import {
   faqSchema,
   itemListSchema,
   localBusinessSchema,
-  organizationSchema,
   webPageSchema,
-  websiteSchema,
 } from "@/lib/schema";
 
 const defaultCatalogProducts = getCatalogProducts(DEFAULT_CITY_SLUG);
@@ -203,9 +201,7 @@ function MaterialIcon({
 }
 
 const homeSchema = buildGraph(
-  organizationSchema(),
-  localBusinessSchema(),
-  websiteSchema(),
+  localBusinessSchema({ citySlug: "agadir", path: "/" }),
   webPageSchema(
     "/",
     "Location de matériel médical dans les grandes villes du Maroc | SOS Santé",

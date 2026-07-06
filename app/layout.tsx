@@ -5,6 +5,7 @@ import ConvexClientProvider from "@/components/convex-client-provider";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { LOGO, SITE_URL_DEFAULT } from "@/lib/brand";
 import { getRobotsMetadata } from "@/lib/indexing";
+import GlobalSiteJsonLd from "@/components/global-site-json-ld";
 import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -110,6 +111,7 @@ export default async function RootLayout({
           />
         </head>
         <body className="min-h-full flex flex-col font-sans">
+          <GlobalSiteJsonLd />
           <ConvexClientProvider>{children}</ConvexClientProvider>
           <MobileBottomNav />
         </body>

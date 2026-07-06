@@ -53,6 +53,8 @@ const hubSchema = buildGraph(
     { name: "Location matériel médical Agadir", item: "/location-materiel-medical-agadir" },
   ]),
   localBusinessSchema({
+    citySlug: "agadir",
+    path: "/location-materiel-medical-agadir",
     description: agadirHub.description,
     addressLocality: "Agadir",
   }),

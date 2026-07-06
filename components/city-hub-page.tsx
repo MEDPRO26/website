@@ -78,6 +78,8 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
       { name: `Location et vente de matériel médical à ${city.name}`, item: path },
     ]),
     localBusinessSchema({
+      citySlug,
+      path,
       name: content.badgeLabel,
       description: content.metaDescription,
       telephone: city.contactReady ? city.phone : undefined,

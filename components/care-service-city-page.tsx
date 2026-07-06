@@ -136,6 +136,8 @@ export function CareServiceCityPage({
     ]),
     faqSchema(content.faqs, content.path),
     localBusinessSchema({
+      citySlug: content.citySlug,
+      path: content.path,
       name: content.brandName,
       description: content.metaDescription,
       addressLocality: content.cityName,

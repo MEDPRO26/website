@@ -1,0 +1,98 @@
+# SEO & JSON-LD — Checklist de progression
+
+Suivi de l’implémentation structured data et SEO technique pour [sossante.ma](https://www.sossante.ma).
+
+**Légende :** `[x]` fait · `[ ]` à faire · `[-]` partiel
+
+---
+
+## Phase 1 — Nettoyage (fondations)
+
+Objectif : corriger les erreurs qui bloquent ou polluent Google Search Console avant d’ajouter du markup.
+
+- [x] Supprimer le JSON-LD dupliqué dans `components/breadcrumb.tsx` (garder uniquement `breadcrumbSchema()` côté pages)
+- [x] Ajouter **Organization** + **WebSite** globaux dans `app/layout.tsx` (un seul `@graph` site-wide)
+- [x] Retirer Organization/WebSite dupliqués de la homepage
+- [x] `@id` **LocalBusiness** unique par ville (`#localbusiness-agadir`, `#localbusiness-rabat`, etc.)
+- [x] Lier LocalBusiness à Organization via `parentOrganization`
+- [x] Corriger **Product/Offer** : retirer `price: "0"`, garder `priceSpecification` « Prix sur demande »
+- [x] Corriger **OfferCatalog** : retirer `price: "0"`
+- [x] Retirer WhatsApp de `sameAs` (réservé aux profils sociaux / GBP)
+- [x] Étendre `areaServed` Organization à toutes les villes actives
+- [ ] Vérifier dans GSC → URL Inspection : homepage, `/agadir`, 1 produit, `/contact`
+- [ ] Vérifier Enhancements : Breadcrumbs, FAQ, Products (warnings attendus sur prix)
+
+---
+
+## Phase 2 — Couverture complète
+
+Objectif : chaque type de page a le bon schéma, sans duplication.
+
+### Templates
+
+| Page | WebPage | Breadcrumb | LocalBusiness | FAQ | ItemList | Product | Service | BlogPosting |
+|------|---------|------------|---------------|-----|----------|---------|---------|-------------|
+| Homepage | [x] | [x] | [x] | [x] | [x] | [-] | [-] | [-] |
+| City hub (`/agadir`) | [x] | [x] | [x] | [x] | [ ] | [-] | [-] | [-] |
+| Vente city | [ ] | [ ] | [ ] | [ ] | [ ] | [-] | [-] | [-] |
+| Category vente | [ ] | [x] | [-] | [x] | [x] | [-] | [-] | [-] |
+| Product | [ ] | [x] | [-] | [-] | [-] | [x] | [-] | [-] |
+| Care service | [x] | [x] | [x] | [x] | [-] | [-] | [x] | [-] |
+| Services hub | [x] | [x] | [x] | [-] | [-] | [-] | [x] | [-] |
+| Blog index | [x] | [x] | [-] | [-] | [ ] | [-] | [-] | [-] |
+| Blog post | [x] | [x] | [-] | [-] | [-] | [-] | [-] | [x] |
+| Contact | [x] | [x] | [x] | [ ] | [-] | [-] | [-] | [-] |
+| Legal | [ ] | [ ] | [-] | [-] | [-] | [-] | [-] | [-] |
+
+### Tâches Phase 2
+
+- [ ] **ItemList** sur city hubs (6 derniers produits affichés)
+- [ ] Schéma sur **toutes** les pages vente city (Agadir + Rabat)
+- [ ] Schéma sur **toutes** les catégories vente par ville
+- [ ] **ContactPage** unifié via `lib/schema.ts` (plus de JSON inline)
+- [ ] **Service** sur chaque page care service (déjà partiel)
+- [ ] **ItemList** blog index
+- [ ] **WebPage CollectionPage** sur catalogues vente
+- [ ] Relier produits `related` pour maillage schema (optionnel)
+
+---
+
+## Phase 3 — Autorité & contenu
+
+- [ ] Google Business Profile Agadir aligné NAP = schema (nom, adresse, tel, site)
+- [ ] GBP Rabat quand `contactReady`
+- [ ] 2–4 articles blog / mois (longue traîne)
+- [ ] FAQ sur pages à fort trafic (déjà bien avancé)
+- [ ] Avis clients réels → **AggregateRating** (uniquement avec données vérifiables)
+- [ ] Maillage interne : hub → catégorie → produit → article
+
+---
+
+## Phase 4 — Avancé (optionnel)
+
+- [ ] `MedicalBusiness` au lieu de `LocalBusiness` où pertinent
+- [ ] `MedicalDevice` sur CPAP, concentrateurs, lits
+- [ ] `HowTo` sur guides blog
+- [ ] `VideoObject` si vidéos produits
+- [ ] `WebSite` → `SearchAction` si recherche catalogue
+- [ ] Profils sociaux dans `sameAs` (Facebook, Instagram)
+
+---
+
+## Infra SEO (hors JSON-LD)
+
+- [x] Sitemap index (`/sitemap.xml` + sections)
+- [x] `robots.txt` avec sitemap + blocage `/admin`, `/supplier`
+- [x] `NEXT_PUBLIC_ALLOW_INDEXING` via Vercel Production
+- [x] Canonical `https://www.sossante.ma`
+- [ ] Soumettre sitemap dans Google Search Console
+- [ ] Soumettre sitemap dans Bing Webmaster Tools
+- [ ] Monitoring 404 / couverture index hebdomadaire
+
+---
+
+## Notes
+
+- **Prix sur demande** : pas de rich results Product tant qu’il n’y a pas de prix réel — c’est normal.
+- **Un seul `<script type="application/ld+json">` par page** (+ le global layout pour Organization/WebSite est acceptable ; les pages ne redéclarent pas Organization).
+- Dernière mise à jour Phase 1 : 2026-07-06

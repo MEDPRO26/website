@@ -6,6 +6,7 @@ import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
 import { HERO_IMAGE, SITE_NAME, SITE_URL_DEFAULT } from "@/lib/brand";
 import ContactForm from "@/components/contact-form";
+import JsonLd from "@/components/json-ld";
 import {
   activeCities,
   activeDeliveryCityLabel,
@@ -13,6 +14,12 @@ import {
 } from "@/lib/delivery-cities";
 import { CONTACT_EMAIL, PHONE_DISPLAY, PHONE_NUMBER, whatsAppHref } from "@/lib/products";
 import { hubCityPath } from "@/lib/routes";
+import {
+  breadcrumbSchema,
+  buildGraph,
+  localBusinessSchema,
+  webPageSchema,
+} from "@/lib/schema";
 
 const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL_DEFAULT
@@ -84,82 +91,27 @@ const contactChannels = [
   },
 ];
 
-function ContactJsonLd() {
-  const schema = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "ContactPage",
-        "@id": `${siteUrl}/contact#webpage`,
-        url: `${siteUrl}/contact`,
-        name: `Contact ${SITE_NAME} | Devis matériel médical & soins à domicile Agadir`,
-        description:
-          `Contactez ${SITE_NAME} pour un devis gratuit de location de matériel médical ou de services d'aide à domicile à Agadir.`,
-        inLanguage: "fr-MA",
-        isPartOf: { "@id": `${siteUrl}/#website` },
-      },
-      {
-        "@type": "BreadcrumbList",
-        "@id": `${siteUrl}/contact#breadcrumb`,
-        itemListElement: [
-          {
-            "@type": "ListItem",
-            position: 1,
-            name: "Accueil",
-            item: siteUrl,
-          },
-          {
-            "@type": "ListItem",
-            position: 2,
-            name: "Contact",
-            item: `${siteUrl}/contact`,
-          },
-        ],
-      },
-      {
-        "@type": "LocalBusiness",
-        "@id": `${siteUrl}/contact#localbusiness`,
-        name: SITE_NAME,
-        description:
-          "Location de matériel médical et services d'aide à domicile à Agadir et au Maroc.",
-        url: siteUrl,
-        telephone: PHONE_NUMBER,
-        email: CONTACT_EMAIL,
-        address: {
-          "@type": "PostalAddress",
-          addressLocality: "Agadir",
-          addressCountry: "MA",
-        },
-        areaServed: [
-          { "@type": "City", name: "Agadir" },
-          { "@type": "Country", name: "Maroc" },
-        ],
-        contactPoint: {
-          "@type": "ContactPoint",
-          telephone: PHONE_NUMBER,
-          contactType: "Service client",
-          availableLanguage: ["French", "Arabic"],
-          areaServed: "MA",
-          hoursAvailable: "Mo-Su 00:00-23:59",
-        },
-      },
-    ],
-  };
+const contactTitle = `Contact ${SITE_NAME} | Devis matériel médical & soins à domicile Agadir`;
+const contactDescription = `Contactez ${SITE_NAME} pour un devis gratuit de location de matériel médical ou de services d'aide à domicile à Agadir. Réponse sous 15 minutes.`;
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify(schema).replace(/</g, "\\u003c"),
-      }}
-    />
-  );
-}
+const contactSchema = buildGraph(
+  webPageSchema("/contact", contactTitle, contactDescription, "ContactPage"),
+  breadcrumbSchema([
+    { name: "Accueil", item: "/" },
+    { name: "Contact", item: "/contact" },
+  ]),
+  localBusinessSchema({
+    citySlug: "agadir",
+    path: "/contact",
+    description:
+      "Location et vente de matériel médical et services d'aide à domicile à Agadir et au Maroc.",
+  })
+);
 
 export default function ContactPage() {
   return (
     <>
-      <ContactJsonLd />
+      <JsonLd data={contactSchema} />
       <Navbar />
       <main className="flex-1 pb-20 pt-16 md:pb-0 md:pt-20">
         <div className="px-4 sm:px-6 lg:px-8">

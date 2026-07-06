@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { SITE_URL_DEFAULT } from "@/lib/brand";
 
 export type BreadcrumbItem = {
   label: string;
@@ -9,25 +8,8 @@ export type BreadcrumbItem = {
 };
 
 export default function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: items.map((item, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      name: item.label,
-      item: item.href ? `${SITE_URL_DEFAULT}${item.href}` : undefined,
-    })),
-  };
-
   return (
     <nav aria-label="Fil d'ariane" className="py-4">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
-        }}
-      />
       <ol className="flex flex-wrap items-center gap-2 text-sm text-on-surface-variant">
         {items.map((item, index) => {
           const isLast = index === items.length - 1;

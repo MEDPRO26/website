@@ -1,12 +1,33 @@
 import { LOGO, SITE_NAME, SITE_URL_DEFAULT } from "@/lib/brand";
+import { activeCities } from "@/lib/cities";
 import type { Product } from "@/lib/products";
-import { CONTACT_EMAIL, PHONE_NUMBER, products, whatsAppHref } from "@/lib/products";
+import { CONTACT_EMAIL, PHONE_NUMBER, products } from "@/lib/products";
 
 const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL_DEFAULT
 ).replace(/\/$/, "");
 
 export const contactPhone = PHONE_NUMBER;
+
+const PRICE_ON_REQUEST = "Prix sur demande — contactez-nous pour un devis";
+
+function offerOnRequest(path: string, areaServed: { "@type": string; name: string }) {
+  return {
+    "@type": "Offer",
+    "@id": `${siteUrl}${path}#offer`,
+    availability: "https://schema.org/InStock",
+    priceCurrency: "MAD",
+    priceSpecification: {
+      "@type": "PriceSpecification",
+      priceCurrency: "MAD",
+      description: PRICE_ON_REQUEST,
+      valueAddedTaxIncluded: true,
+    },
+    seller: { "@id": `${siteUrl}/#organization` },
+    areaServed,
+    url: `${siteUrl}${path}`,
+  };
+}
 
 export function websiteSchema() {
   return {
@@ -28,10 +49,11 @@ export function organizationSchema() {
     logo: `${siteUrl}${LOGO.default}`,
     areaServed: [
       { "@type": "Country", name: "Maroc" },
-      { "@type": "City", name: "Agadir" },
+      ...activeCities.map((city) => ({ "@type": "City", name: city.name })),
     ],
     knowsAbout: [
       "Location de matériel médical",
+      "Vente de matériel médical",
       "Aide à domicile",
       "Maintien à domicile",
       "Services de santé à domicile au Maroc",
@@ -44,12 +66,14 @@ export function organizationSchema() {
       areaServed: "MA",
       hoursAvailable: "Mo-Su 00:00-23:59",
     },
-    sameAs: [whatsAppHref(undefined, "general")],
   };
 }
 
 export function localBusinessSchema(
   overrides: {
+    businessId?: string;
+    citySlug?: string;
+    path?: string;
     name?: string;
     description?: string;
     telephone?: string;
@@ -60,14 +84,18 @@ export function localBusinessSchema(
     openingHours?: string;
   } = {}
 ) {
+  const businessId = overrides.businessId ?? overrides.citySlug ?? "agadir";
+  const pagePath = overrides.path ?? "/";
+
   return {
     "@type": "LocalBusiness",
-    "@id": `${siteUrl}/#localbusiness`,
+    "@id": `${siteUrl}/#localbusiness-${businessId}`,
     name: overrides.name ?? SITE_NAME,
     description:
       overrides.description ??
-      "Location de matériel médical à Agadir et livraison au Maroc. Lits médicalisés, fauteuils roulants, concentrateurs d'oxygène.",
-    url: siteUrl,
+      "Location et vente de matériel médical à Agadir et livraison au Maroc. Lits médicalisés, fauteuils roulants, concentrateurs d'oxygène.",
+    url: `${siteUrl}${pagePath}`,
+    parentOrganization: { "@id": `${siteUrl}/#organization` },
     telephone: overrides.telephone ?? contactPhone,
     email: overrides.email ?? CONTACT_EMAIL,
     address: {
@@ -90,7 +118,6 @@ export function localBusinessSchema(
       areaServed: "MA",
       hoursAvailable: "Mo-Su 00:00-23:59",
     },
-    sameAs: [whatsAppHref(undefined, "general")],
   };
 }
 
@@ -108,19 +135,21 @@ export function webPageSchema(
     description,
     inLanguage: "fr-MA",
     isPartOf: { "@id": `${siteUrl}/#website` },
+    about: { "@id": `${siteUrl}/#organization` },
     dateModified: new Date().toISOString().split("T")[0],
   };
 }
 
 export function breadcrumbSchema(items: { name: string; item?: string }[]) {
+  const lastPath = items[items.length - 1]?.item ?? "";
   return {
     "@type": "BreadcrumbList",
-    "@id": `${siteUrl}${items[items.length - 1]?.item ?? ""}#breadcrumb`,
+    "@id": `${siteUrl}${lastPath}#breadcrumb`,
     itemListElement: items.map((item, index) => ({
       "@type": "ListItem",
       position: index + 1,
       name: item.name,
-      item: item.item ? `${siteUrl}${item.item}` : siteUrl,
+      ...(item.item ? { item: `${siteUrl}${item.item}` } : {}),
     })),
   };
 }
@@ -150,7 +179,7 @@ export function itemListSchema(
       "@type": "ListItem",
       position: index + 1,
       name: item.name,
-      url: `${siteUrl}${item.url}`,
+      url: item.url.startsWith("http") ? item.url : `${siteUrl}${item.url}`,
     })),
   };
 }
@@ -175,24 +204,7 @@ export function productSchema(product: Product, productPath: string) {
     sku: product.slug,
     mpn: product.slug,
     itemCondition: "https://schema.org/NewCondition",
-    offers: {
-      "@type": "Offer",
-      "@id": `${siteUrl}${path}#offer`,
-      availability: "https://schema.org/InStock",
-      priceCurrency: "MAD",
-      price: "0",
-      priceValidUntil: "2027-12-31",
-      priceSpecification: {
-        "@type": "PriceSpecification",
-        priceCurrency: "MAD",
-        description: "Tarif sur demande",
-        valueAddedTaxIncluded: true,
-      },
-      itemOffered: { "@id": `${siteUrl}${path}#product` },
-      seller: { "@type": "Organization", name: SITE_NAME },
-      areaServed: { "@type": "City", name: product.city },
-      url: `${siteUrl}${path}`,
-    },
+    offers: offerOnRequest(path, { "@type": "City", name: product.city }),
     areaServed: { "@type": "City", name: product.city },
   };
 }
@@ -259,9 +271,8 @@ export function offerCatalogSchema(
       "@type": "Offer",
       position: index + 1,
       name: offer.name,
-      description: offer.description ?? "Tarif sur demande",
+      description: offer.description ?? PRICE_ON_REQUEST,
       priceCurrency: "MAD",
-      price: "0",
       priceSpecification: {
         "@type": "PriceSpecification",
         priceCurrency: "MAD",
