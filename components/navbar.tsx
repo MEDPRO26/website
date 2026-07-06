@@ -8,7 +8,7 @@ import CityCatalogPickerDialog from "@/components/city-catalog-picker-dialog";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { activeCities } from "@/lib/cities";
 import { careServiceCityPath, careServices } from "@/lib/care-services";
-import { CONTACT_EMAIL, whatsAppHref } from "@/lib/products";
+import { whatsAppHref } from "@/lib/products";
 import { isVenteCatalogPath, venteCityPath } from "@/lib/routes";
 
 function MaterialIcon({
@@ -458,12 +458,6 @@ export default function Navbar() {
           >
             <WhatsAppIcon className="h-5 w-5" />
             WhatsApp
-          </a>
-          <a
-            href={`mailto:${CONTACT_EMAIL}?subject=Acc%C3%A8s%20Mon%20Espace%20SOS%20Sant%C3%A9`}
-            className="hidden rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-all hover:bg-primary-container sm:inline-flex"
-          >
-            Mon Espace
           </a>
           <button
             type="button"

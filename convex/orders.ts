@@ -1,4 +1,6 @@
 import { internalMutation, mutation, query } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+import type { MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAdminPermission, requireAdminStaff } from "./lib/authz";
 import { createOrderRecord } from "./lib/createOrder";
@@ -732,7 +734,9 @@ export const smokeTestFlow = internalMutation({
       finalPrice: pricing.finalPrice,
       message: buildDefaultOfferMessage({
         clientFirstName: customer?.name.split(" ")[0] ?? "client",
+        requestType: order?.type ?? "Location matériel médical",
         item: order?.item ?? "Lit médicalisé",
+        duration: order?.duration,
         finalPrice: pricing.finalPrice,
         desiredDate: order?.desiredDate,
         slot: order?.slot,
@@ -773,5 +777,84 @@ export const smokeTestFlow = internalMutation({
       adminUrl: `/admin/orders/${orderId}`,
       supplierUrl: `/supplier/orders/${orderId}`,
     };
+  },
+});
+
+async function deleteOrderRecord(ctx: MutationCtx, orderId: Id<"orders">) {
+  const order = await ctx.db.get(orderId);
+  if (!order) {
+    throw new Error("Commande introuvable.");
+  }
+
+  const events = await ctx.db
+    .query("orderEvents")
+    .withIndex("by_orderId", (q) => q.eq("orderId", orderId))
+    .collect();
+  for (const event of events) {
+    await ctx.db.delete(event._id);
+  }
+
+  const offers = await ctx.db
+    .query("clientOffers")
+    .withIndex("by_orderId", (q) => q.eq("orderId", orderId))
+    .collect();
+  for (const offer of offers) {
+    await ctx.db.delete(offer._id);
+  }
+
+  const quotes = await ctx.db
+    .query("orderSupplierQuotes")
+    .withIndex("by_orderId", (q) => q.eq("orderId", orderId))
+    .collect();
+  for (const quote of quotes) {
+    await ctx.db.delete(quote._id);
+  }
+
+  const complaints = await ctx.db
+    .query("complaints")
+    .withIndex("by_orderId", (q) => q.eq("orderId", orderId))
+    .collect();
+  for (const complaint of complaints) {
+    await ctx.db.delete(complaint._id);
+  }
+
+  await ctx.db.delete(orderId);
+
+  const customer = await ctx.db.get(order.customerId);
+  if (customer) {
+    const remainingOrders = await ctx.db
+      .query("orders")
+      .withIndex("by_customerId", (q) => q.eq("customerId", order.customerId))
+      .collect();
+
+    await ctx.db.patch(order.customerId, {
+      ordersCount: remainingOrders.length,
+      lastOrderAt:
+        remainingOrders.length > 0
+          ? Math.max(...remainingOrders.map((row) => row.createdAt))
+          : undefined,
+      updatedAt: Date.now(),
+    });
+  }
+
+  return order;
+}
+
+export const remove = mutation({
+  args: { id: v.id("orders") },
+  handler: async (ctx, args) => {
+    const staff = await requireAdminPermission(ctx, "orders.delete");
+    const order = await deleteOrderRecord(ctx, args.id);
+
+    await logAudit(ctx, {
+      actorStaffId: staff._id,
+      actorName: staff.name,
+      action: "delete",
+      entityType: "order",
+      entityId: args.id,
+      entityLabel: order.ref,
+    });
+
+    return { deleted: true as const, ref: order.ref };
   },
 });

@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import SiteFooter from "@/components/site-footer";
 import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import RelatedProducts from "@/components/related-products";
 import CityLinks from "@/components/city-links";
+import { useSubmitLead } from "@/hooks/use-submit-lead";
 import {
   activeDeliveryCityLabel,
   activeDeliveryCities,
@@ -16,7 +18,6 @@ import { getCityBySlug, DEFAULT_CITY_SLUG, type CitySlug } from "@/lib/cities";
 import { formatProductAchatHeading } from "@/lib/french";
 import { venteCityPath, venteProductPath } from "@/lib/routes";
 import {
-  CONTACT_EMAIL,
   PRICE_ON_REQUEST,
   whatsAppHref,
   type Product,
@@ -51,13 +52,16 @@ export default function ProductDetail({
   citySlug?: CitySlug;
 }) {
   const city = getCityBySlug(citySlug)!;
+  const pathname = usePathname();
   const catalogPath = venteCityPath(citySlug);
+  const { submit, isSubmitting, error: submitError } = useSubmitLead();
   const gallery = product.gallery ?? [product.image];
   const [activeImage, setActiveImage] = useState(0);
   const [formStatus, setFormStatus] = useState<"idle" | "success" | "error">(
     "idle"
   );
   const [formData, setFormData] = useState({
+    name: "",
     deliveryCity: city.name,
     quantity: "1",
     phone: "",
@@ -100,22 +104,36 @@ export default function ProductDetail({
     setTouchStartX(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.phone) {
+    if (!formData.name.trim() || !formData.phone.trim()) {
       setFormStatus("error");
       return;
     }
 
-    const subject = encodeURIComponent(
-      `Devis achat ${product.name} - ${formData.deliveryCity}`
-    );
-    const body = encodeURIComponent(
-      `Bonjour SOS Santé,\n\nJe souhaite acheter : ${product.name}\nVille de livraison : ${formData.deliveryCity}\nQuantité : ${formData.quantity}\nTéléphone : ${formData.phone}${formData.message ? `\n\nMessage : ${formData.message}` : ""}\n\nMerci de me communiquer le prix et la disponibilité.\n\nCordialement,`
-    );
+    const details = [
+      `Catégorie : ${product.category}`,
+      `Quantité : ${formData.quantity}`,
+      formData.message.trim() ? formData.message.trim() : null,
+    ]
+      .filter(Boolean)
+      .join("\n");
 
-    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
-    setFormStatus("success");
+    try {
+      await submit({
+        client: formData.name.trim(),
+        phone: formData.phone.trim(),
+        city: formData.deliveryCity,
+        type: "Vente matériel médical",
+        item: product.name,
+        message: details,
+        pagePath: pathname,
+        source: `Formulaire produit · ${product.category}`,
+      });
+      setFormStatus("success");
+    } catch {
+      setFormStatus("error");
+    }
   };
 
   const whatsappText = `Bonjour SOS Santé, je souhaite acheter un ${product.name} à ${formData.deliveryCity}.`;
@@ -323,14 +341,15 @@ export default function ProductDetail({
                           Demande envoyée !
                         </h3>
                         <p className="mb-4 text-sm text-on-surface-variant">
-                          Votre client mail devrait s&apos;ouvrir. Un conseiller
-                          vous rappelle sous 15 minutes.
+                          Un conseiller vous rappelle sous 15 minutes pour
+                          finaliser votre achat.
                         </p>
                         <button
                           type="button"
                           onClick={() => {
                             setFormStatus("idle");
                             setFormData({
+                              name: "",
                               deliveryCity: city.name,
                               quantity: "1",
                               phone: "",
@@ -343,7 +362,30 @@ export default function ProductDetail({
                         </button>
                       </div>
                     ) : (
-                      <form onSubmit={handleSubmit} className="space-y-4">
+                      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
+                        <div>
+                          <label
+                            htmlFor="name"
+                            className="mb-1.5 block text-sm font-medium text-on-surface-variant"
+                          >
+                            Votre nom
+                          </label>
+                          <input
+                            id="name"
+                            type="text"
+                            required
+                            value={formData.name}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                name: e.target.value,
+                              })
+                            }
+                            placeholder="Prénom et nom"
+                            className="w-full rounded-xl border border-outline-variant px-4 py-3 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          />
+                        </div>
+
                         <div>
                           <label
                             htmlFor="city"
@@ -453,15 +495,19 @@ export default function ProductDetail({
                             className="flex items-center gap-2 rounded-lg bg-status-error/10 px-3 py-2 text-sm font-medium text-status-error"
                           >
                             <MaterialIcon name="error" />
-                            Veuillez renseigner votre téléphone.
+                            {submitError ??
+                              "Veuillez renseigner votre nom et votre téléphone."}
                           </p>
                         )}
 
                         <button
                           type="submit"
-                          className="w-full rounded-xl bg-primary py-3.5 text-base font-semibold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] hover:bg-primary-container active:scale-95"
+                          disabled={isSubmitting}
+                          className="w-full rounded-xl bg-primary py-3.5 text-base font-semibold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] hover:bg-primary-container active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          Demander un devis d&apos;achat
+                          {isSubmitting
+                            ? "Envoi en cours…"
+                            : "Demander un devis d'achat"}
                         </button>
                       </form>
                     )}

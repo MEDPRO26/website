@@ -1,17 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useSubmitLead } from "@/hooks/use-submit-lead";
+import { catalogProducts } from "@/lib/catalog-products";
+import { careServiceFormOptions } from "@/lib/care-services";
 import { activeCities, DEFAULT_DELIVERY_CITY } from "@/lib/delivery-cities";
 
-const subjects = [
-  "Demande générale",
-  "Location matériel médical",
-  "Service à domicile",
-  "Demande de devis",
-  "Partenariat",
+type ContactRequestKind = "general" | "location" | "vente" | "service";
+
+const SUBJECT_OPTIONS: { value: ContactRequestKind; label: string }[] = [
+  { value: "general", label: "Demande générale" },
+  { value: "location", label: "Location matériel médical" },
+  { value: "vente", label: "Vente matériel médical" },
+  { value: "service", label: "Service à domicile" },
 ];
+
+const REQUEST_TYPE_LABEL: Record<Exclude<ContactRequestKind, "general">, string> = {
+  location: "Location matériel médical",
+  vente: "Vente matériel médical",
+  service: "Service à domicile",
+};
+
+const rentalMaterialOptions = [
+  "Lit médicalisé électrique",
+  "Lit médicalisé + matelas anti-escarres",
+  "Fauteuil roulant",
+  "Concentrateur d'oxygène 5L",
+  "Concentrateur d'oxygène 10L",
+  "Nébuliseur",
+  "Déambulateur",
+  "Béquilles",
+  "Soulève-malade",
+  "Aspirateur chirurgical",
+];
+
+const initialFormData = {
+  name: "",
+  phone: "",
+  email: "",
+  city: DEFAULT_DELIVERY_CITY,
+  demandeType: "general" as ContactRequestKind,
+  item: "",
+  message: "",
+};
 
 function MaterialIcon({
   name,
@@ -33,21 +65,46 @@ export default function ContactForm() {
   const [formStatus, setFormStatus] = useState<"idle" | "success" | "error">(
     "idle"
   );
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    city: DEFAULT_DELIVERY_CITY,
-    subject: subjects[0],
-    message: "",
-  });
+  const [formData, setFormData] = useState(initialFormData);
+
+  const requestChoices = useMemo(() => {
+    if (formData.demandeType === "vente") {
+      return catalogProducts.map((product) => product.name);
+    }
+    if (formData.demandeType === "service") {
+      return careServiceFormOptions;
+    }
+    if (formData.demandeType === "location") {
+      return rentalMaterialOptions;
+    }
+    return [];
+  }, [formData.demandeType]);
+
+  const showItemField = formData.demandeType !== "general";
+  const itemLabel =
+    formData.demandeType === "service" ? "Service souhaité" : "Matériel souhaité";
+  const itemPlaceholder =
+    formData.demandeType === "service" ? "Choisir un service" : "Choisir un matériel";
+  const otherItemLabel =
+    formData.demandeType === "service" ? "Autre service" : "Autre matériel";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!formData.name || !formData.phone || !formData.city || !formData.subject) {
+    if (!formData.name || !formData.phone || !formData.city) {
       setFormStatus("error");
       return;
     }
+    if (showItemField && !formData.item) {
+      setFormStatus("error");
+      return;
+    }
+
+    const type =
+      formData.demandeType === "general"
+        ? "Demande générale"
+        : REQUEST_TYPE_LABEL[formData.demandeType];
+    const item =
+      formData.demandeType === "general" ? "Demande générale" : formData.item;
 
     try {
       await submit({
@@ -55,8 +112,8 @@ export default function ContactForm() {
         phone: formData.phone,
         email: formData.email || undefined,
         city: formData.city,
-        type: formData.subject,
-        item: formData.subject,
+        type,
+        item,
         message: formData.message,
         pagePath: pathname,
         source: "Formulaire site",
@@ -84,14 +141,7 @@ export default function ContactForm() {
           type="button"
           onClick={() => {
             setFormStatus("idle");
-            setFormData({
-              name: "",
-              phone: "",
-              email: "",
-              city: DEFAULT_DELIVERY_CITY,
-              subject: subjects[0],
-              message: "",
-            });
+            setFormData(initialFormData);
           }}
           className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-container"
         >
@@ -184,28 +234,60 @@ export default function ContactForm() {
       </div>
       <div>
         <label
-          htmlFor="subject"
+          htmlFor="demandeType"
           className="mb-1.5 block text-sm font-medium text-on-surface"
         >
           Sujet <span className="text-status-error">*</span>
         </label>
         <select
-          id="subject"
-          name="subject"
+          id="demandeType"
+          name="demandeType"
           required
-          value={formData.subject}
+          value={formData.demandeType}
           onChange={(e) =>
-            setFormData({ ...formData, subject: e.target.value })
+            setFormData({
+              ...formData,
+              demandeType: e.target.value as ContactRequestKind,
+              item: "",
+            })
           }
           className="w-full rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         >
-          {subjects.map((subject) => (
-            <option key={subject} value={subject}>
-              {subject}
+          {SUBJECT_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
             </option>
           ))}
         </select>
       </div>
+      {showItemField ? (
+        <div>
+          <label
+            htmlFor="item"
+            className="mb-1.5 block text-sm font-medium text-on-surface"
+          >
+            {itemLabel} <span className="text-status-error">*</span>
+          </label>
+          <select
+            id="item"
+            name="item"
+            required
+            value={formData.item}
+            onChange={(e) => setFormData({ ...formData, item: e.target.value })}
+            className="w-full rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          >
+            <option value="" disabled>
+              {itemPlaceholder}
+            </option>
+            {requestChoices.map((choice) => (
+              <option key={choice} value={choice}>
+                {choice}
+              </option>
+            ))}
+            <option value={otherItemLabel}>{otherItemLabel}</option>
+          </select>
+        </div>
+      ) : null}
       <div>
         <label
           htmlFor="message"

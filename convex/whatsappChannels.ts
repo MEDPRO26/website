@@ -127,6 +127,7 @@ export const update = mutation({
     metaPhoneNumberId: v.optional(v.string()),
     metaWabaId: v.optional(v.string()),
     messenger360ApiKey: v.optional(v.string()),
+    accentColor: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await requireAdminStaff(ctx);
@@ -156,6 +157,10 @@ export const update = mutation({
     }
     if (args.messenger360ApiKey !== undefined) {
       patch.messenger360ApiKey = args.messenger360ApiKey.trim() || undefined;
+    }
+    if (args.accentColor !== undefined) {
+      const color = args.accentColor.trim();
+      patch.accentColor = color || undefined;
     }
 
     await ctx.db.patch(args.id, patch);

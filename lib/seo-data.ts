@@ -194,26 +194,25 @@ Chaque appareil est sélectionné pour sa fiabilité et son usage professionnel.
     icon: "medical_services",
     title: "Instruments médicaux et chirurgicaux",
     description:
-      "Pinces, plateaux inox, stérilisateurs et instruments pour cabinets et structures de soins.",
-    longDescription: `Notre catalogue Instruments regroupe du matériel professionnel pour la pratique médicale et chirurgicale : pinces, marteau à réflexes, haricots et plateaux inox, ainsi que des stérilisateurs à air chaud.
+      "Stérilisateurs et autoclaves pour cabinets et structures de soins.",
+    longDescription: `Notre catalogue Instruments regroupe du matériel professionnel pour la stérilisation : stérilisateurs à air chaud et autoclaves à vapeur pour cabinets médicaux, cliniques et laboratoires.
 
 Chaque référence est proposée sur devis. Contactez-nous pour connaître la disponibilité, les modèles et organiser la livraison selon votre ville.`,
     metaTitle:
-      "Instruments médicaux Maroc | Pinces, plateaux inox, stérilisateur",
+      "Instruments médicaux Maroc | Stérilisateur, autoclave",
     metaDescription:
-      "Achetez des instruments médicaux au Maroc : pinces, marteau à réflexes, plateau inox, stérilisateur. Devis sur demande avec SOS Santé.",
+      "Achetez des équipements de stérilisation au Maroc : stérilisateur à air chaud et autoclave à vapeur. Devis sur demande avec SOS Santé.",
     keywords: [
       "instruments médicaux Maroc",
-      "pince chirurgicale Maroc",
-      "plateau inox médical",
       "stérilisateur air chaud",
-      "marteau réflexes Taylor",
+      "autoclave stérilisation vapeur",
+      "stérilisation instruments médicaux",
     ],
     faqs: [
       {
         question: "Quels instruments médicaux proposez-vous ?",
         answer:
-          "Nous proposons notamment des pinces (Kelly, Bengolea, Foerster, Jean-Louis Faure), un marteau à réflexes Taylor, des haricots et plateaux inox, ainsi que des stérilisateurs à air chaud. La disponibilité varie selon les références.",
+          "Nous proposons notamment des stérilisateurs à air chaud et des autoclaves de stérilisation à la vapeur. La disponibilité varie selon les références.",
       },
       {
         question: "Comment obtenir un devis pour un instrument médical ?",

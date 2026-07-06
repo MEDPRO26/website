@@ -5,6 +5,7 @@ import { appendOrderEvent } from "./orderEvents";
 import { buildOrderRef } from "./refs";
 import { notifyStaff } from "./notifications";
 import { logAudit } from "./auditLog";
+import { normalizeOrderPagePath } from "../../lib/crm/format-page-path";
 
 export type CreateOrderInput = {
   client: string;
@@ -70,7 +71,7 @@ export async function createOrderRecord(ctx: MutationCtx, input: CreateOrderInpu
     slot: input.slot?.trim() || undefined,
     message: input.message?.trim() || undefined,
     notes: input.notes?.trim() || undefined,
-    pagePath: input.pagePath?.trim() || undefined,
+    pagePath: normalizeOrderPagePath(input.pagePath),
     source,
     assignedStaffId: input.assignedStaffId,
     createdAt: now,

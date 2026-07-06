@@ -1,11 +1,14 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 export type HeroGalleryImage = {
   src: string;
   alt: string;
+  href?: string;
+  objectPosition?: string;
 };
 
 type HeroScrollSectionProps = {
@@ -123,9 +126,12 @@ function GalleryFrame({
   onTouchStart?: (event: React.TouchEvent<HTMLDivElement>) => void;
   onTouchEnd?: (event: React.TouchEvent<HTMLDivElement>) => void;
 }) {
-  return (
+  const activeImage = images[activeIndex];
+  const frame = (
     <div
-      className={`relative mx-auto w-full overflow-hidden rounded-3xl shadow-2xl ${className}`}
+      className={`relative mx-auto w-full overflow-hidden rounded-3xl shadow-2xl ${className} ${
+        activeImage?.href ? "cursor-pointer" : ""
+      }`}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
@@ -141,6 +147,7 @@ function GalleryFrame({
           style={{
             opacity: index === activeIndex ? 1 : 0,
             zIndex: index === activeIndex ? 1 : 0,
+            objectPosition: image.objectPosition ?? "center",
           }}
         />
       ))}
@@ -152,6 +159,20 @@ function GalleryFrame({
       )}
     </div>
   );
+
+  if (activeImage?.href) {
+    return (
+      <Link
+        href={activeImage.href}
+        aria-label={`Voir ${activeImage.alt}`}
+        className="block"
+      >
+        {frame}
+      </Link>
+    );
+  }
+
+  return frame;
 }
 
 export default function HeroScrollSection({

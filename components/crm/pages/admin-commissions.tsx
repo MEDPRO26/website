@@ -104,12 +104,18 @@ export function AdminCommissionsPage() {
               <thead className="bg-muted/40">
                 <tr className="text-left text-xs text-muted-foreground">
                   <th className="px-4 py-2.5 font-medium">Commande</th>
-                  <th className="py-2.5 font-medium">Fournisseur</th>
-                  <th className="py-2.5 font-medium text-right">Prix client</th>
-                  <th className="py-2.5 font-medium text-right">Commission</th>
-                  <th className="py-2.5 font-medium">Offre client</th>
-                  <th className="py-2.5 font-medium">Règlement</th>
-                  <th className="py-2.5 font-medium">Date</th>
+                  <th className="px-4 py-2.5 font-medium">Fournisseur</th>
+                  <th className="px-4 py-2.5 font-medium text-right whitespace-nowrap">
+                    Prix client
+                  </th>
+                  <th className="px-4 py-2.5 font-medium text-right whitespace-nowrap">
+                    Commission
+                  </th>
+                  <th className="px-4 py-2.5 font-medium whitespace-nowrap min-w-[140px]">
+                    Offre client
+                  </th>
+                  <th className="px-4 py-2.5 font-medium whitespace-nowrap">Règlement</th>
+                  <th className="px-4 py-2.5 font-medium whitespace-nowrap">Date</th>
                   <th className="px-4 py-2.5"></th>
                 </tr>
               </thead>
@@ -121,15 +127,17 @@ export function AdminCommissionsPage() {
                       <td className="px-4 py-3 font-mono text-xs text-brand">
                         {row.orderRef}
                       </td>
-                      <td className="py-3">{row.supplierName}</td>
-                      <td className="py-3 text-right">{formatMad(row.finalPrice)}</td>
-                      <td className="py-3 text-right font-semibold text-brand-deep">
+                      <td className="px-4 py-3">{row.supplierName}</td>
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        {formatMad(row.finalPrice)}
+                      </td>
+                      <td className="px-4 py-3 text-right font-semibold text-brand-deep whitespace-nowrap">
                         {formatMad(row.commissionAmount)}
                       </td>
-                      <td className="py-3">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <Tag tone={offer.tone}>{offer.label}</Tag>
                       </td>
-                      <td className="py-3">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         {row.commissionPaid ? (
                           <Tag tone="success">
                             <Check className="size-3" /> Payée
@@ -144,7 +152,7 @@ export function AdminCommissionsPage() {
                           </Button>
                         )}
                       </td>
-                      <td className="py-3 text-xs text-muted-foreground">
+                      <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
                         {formatDate(row.submittedAt)}
                       </td>
                       <td className="px-4 py-3 text-right">

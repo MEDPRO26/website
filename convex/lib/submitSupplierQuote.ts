@@ -5,6 +5,7 @@ import { appendOrderEvent } from "./orderEvents";
 import { formatStatusChange } from "./orderStatus";
 import { supplierTotal } from "./pricing";
 import { notifyStaff } from "./notifications";
+import { ensureDraftClientOffer } from "./clientOffer";
 
 type SubmitQuoteInput = {
   orderId: Id<"orders">;
@@ -31,6 +32,14 @@ export async function upsertSupplierQuote(ctx: MutationCtx, args: SubmitQuoteInp
 
   if (args.basePrice < 0) {
     throw new Error("Le prix doit être positif.");
+  }
+
+  if (args.submittedBySupplier) {
+    if (args.commissionAmount === undefined || args.commissionAmount <= 0) {
+      throw new Error(
+        "La commission SOS Santé est obligatoire. Indiquez le montant en MAD."
+      );
+    }
   }
 
   if (
@@ -74,6 +83,16 @@ export async function upsertSupplierQuote(ctx: MutationCtx, args: SubmitQuoteInp
       createdAt: now,
     });
   }
+
+  const quote = (await ctx.db.get(quoteId))!;
+
+  await ensureDraftClientOffer(ctx, {
+    orderId: args.orderId,
+    quoteId,
+    quote,
+    order,
+    actorStaffId: args.actorStaffId,
+  });
 
   const total = supplierTotal({
     basePrice: args.basePrice,

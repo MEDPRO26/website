@@ -37,6 +37,7 @@ export function mapConvexOrderToUi(order: OrderWithCustomer): Order {
     }),
     message: order.message ?? "",
     notes: order.notes,
+    pagePath: order.pagePath,
   };
 }
 

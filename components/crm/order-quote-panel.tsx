@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { CheckCircle2, Copy, Loader2, Send } from "lucide-react";
+import { CheckCircle2, Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -16,6 +16,7 @@ import { formatMad } from "@/lib/crm/pricing";
 
 type OrderQuotePanelProps = {
   orderId: Id<"orders">;
+  orderStatus?: string;
   supplierId?: Id<"suppliers">;
   clientName: string;
   item: string;
@@ -25,6 +26,7 @@ type OrderQuotePanelProps = {
 
 export function OrderQuotePanel({
   orderId,
+  orderStatus,
   supplierId,
   clientName,
   item,
@@ -42,10 +44,14 @@ export function OrderQuotePanel({
   const [submittingOffer, setSubmittingOffer] = useState(false);
 
   useEffect(() => {
-    if (quoteData?.activeOffer) {
-      setOfferMessage(quoteData.activeOffer.message);
+    const message =
+      quoteData?.activeOffer?.message?.trim() ||
+      quoteData?.suggestedMessage ||
+      "";
+    if (message) {
+      setOfferMessage(message);
     }
-  }, [quoteData?.activeOffer]);
+  }, [quoteData?.activeOffer, quoteData?.suggestedMessage]);
 
   if (!supplierId) {
     return (
@@ -70,6 +76,8 @@ export function OrderQuotePanel({
   const activeOffer = quoteData.activeOffer;
   const offerSent = activeOffer?.status === "sent";
   const offerAccepted = activeOffer?.status === "accepted";
+  const canSendOffer =
+    !offerAccepted && (!offerSent || orderStatus === "prix_recu");
   const waitingForSupplier = !quote || quote.status !== "submitted";
   const usesDeclaredCommission = pricing?.usesDeclaredCommission ?? false;
 
@@ -90,14 +98,23 @@ export function OrderQuotePanel({
     }
   };
 
-  const handleSendOffer = async () => {
+  const handleSendOffer = async (viaWhatsApp?: boolean) => {
+    if (viaWhatsApp && !offerMessage.trim()) {
+      toast.error("Préparez d'abord le message client.");
+      return;
+    }
     setSubmittingOffer(true);
     try {
       await sendOffer({
         orderId,
         message: offerMessage.trim() || undefined,
+        viaWhatsApp: viaWhatsApp || undefined,
       });
-      toast.success("Offre marquée comme envoyée.");
+      toast.success(
+        viaWhatsApp
+          ? "Offre envoyée au client via WhatsApp."
+          : "Offre marquée comme envoyée."
+      );
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Impossible d'envoyer l'offre."
@@ -121,14 +138,6 @@ export function OrderQuotePanel({
     }
   };
 
-  const handleCopyWhatsApp = async () => {
-    if (!offerMessage.trim()) {
-      toast.error("Préparez d'abord le message client.");
-      return;
-    }
-    await navigator.clipboard.writeText(offerMessage);
-    toast.success("Message copié pour WhatsApp.");
-  };
 
   return (
     <div className="space-y-5">
@@ -186,7 +195,7 @@ export function OrderQuotePanel({
               rows={6}
               value={offerMessage}
               onChange={(e) => setOfferMessage(e.target.value)}
-              placeholder={`Bonjour ${clientName.split(" ")[0]},\n\nVoici notre offre pour ${item}…`}
+              placeholder={`Bonjour ${clientName.split(" ")[0]},\n\nSuite à votre demande…`}
             />
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
               {offerAccepted ? (
@@ -200,24 +209,29 @@ export function OrderQuotePanel({
                 <Button
                   size="sm"
                   variant="outline"
-                  disabled={submittingOffer || offerSent || offerAccepted}
+                  disabled={submittingOffer || !canSendOffer}
                   onClick={() => void handlePrepareOffer()}
                 >
                   Préparer
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => void handleCopyWhatsApp()}>
-                  <Copy className="size-4" /> Copier WhatsApp
-                </Button>
                 <Button
                   size="sm"
-                  disabled={submittingOffer || offerSent || offerAccepted}
-                  onClick={() => void handleSendOffer()}
+                  disabled={submittingOffer || !canSendOffer}
+                  onClick={() => void handleSendOffer(true)}
                 >
                   {submittingOffer ? (
                     <Loader2 className="size-4 animate-spin" />
                   ) : (
                     <Send className="size-4" />
                   )}
+                  Envoyer sur WhatsApp
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={submittingOffer || !canSendOffer}
+                  onClick={() => void handleSendOffer()}
+                >
                   Marquer comme envoyée
                 </Button>
                 {offerSent && !offerAccepted ? (

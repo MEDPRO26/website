@@ -1,4 +1,5 @@
 import { internalMutation, mutation, query } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAdminPermission, requireAdminStaff } from "./lib/authz";
@@ -327,6 +328,80 @@ export const updateStatus = mutation({
   },
 });
 
+async function deleteSupplierRecord(ctx: MutationCtx, supplierId: Id<"suppliers">) {
+  const supplier = await ctx.db.get(supplierId);
+  if (!supplier) {
+    throw new Error("Fournisseur introuvable.");
+  }
+
+  const invites = await ctx.db
+    .query("supplierInvitations")
+    .withIndex("by_supplierId", (q) => q.eq("supplierId", supplierId))
+    .collect();
+  for (const invite of invites) {
+    await ctx.db.delete(invite._id);
+  }
+
+  const staffRows = await ctx.db
+    .query("staff")
+    .withIndex("by_supplierId", (q) => q.eq("supplierId", supplierId))
+    .collect();
+  for (const staff of staffRows) {
+    await ctx.db.delete(staff._id);
+  }
+
+  const quotes = await ctx.db
+    .query("orderSupplierQuotes")
+    .withIndex("by_supplierId", (q) => q.eq("supplierId", supplierId))
+    .collect();
+  const clientOffers = await ctx.db.query("clientOffers").collect();
+  for (const quote of quotes) {
+    for (const offer of clientOffers.filter((row) => row.quoteId === quote._id)) {
+      await ctx.db.delete(offer._id);
+    }
+    await ctx.db.delete(quote._id);
+  }
+
+  const orders = await ctx.db
+    .query("orders")
+    .withIndex("by_supplierId", (q) => q.eq("supplierId", supplierId))
+    .collect();
+  for (const order of orders) {
+    await ctx.db.patch(order._id, { supplierId: undefined });
+  }
+
+  const complaints = await ctx.db.query("complaints").collect();
+  for (const complaint of complaints.filter((row) => row.supplierId === supplierId)) {
+    await ctx.db.patch(complaint._id, {
+      supplierId: undefined,
+      supplierName: undefined,
+    });
+  }
+
+  await ctx.db.delete(supplierId);
+
+  return supplier;
+}
+
+export const remove = mutation({
+  args: { id: v.id("suppliers") },
+  handler: async (ctx, args) => {
+    const staff = await requireAdminPermission(ctx, "suppliers.delete");
+    const supplier = await deleteSupplierRecord(ctx, args.id);
+
+    await logAudit(ctx, {
+      actorStaffId: staff._id,
+      actorName: staff.name,
+      action: "delete",
+      entityType: "supplier",
+      entityId: args.id,
+      entityLabel: supplier.name,
+    });
+
+    return { deleted: true as const, name: supplier.name };
+  },
+});
+
 export const ensureDemoSuppliers = mutation({
   args: {},
   handler: async (ctx) => {
@@ -437,39 +512,7 @@ export const purgeByEmail = internalMutation({
       return { deleted: false, reason: "not_found" as const };
     }
 
-    const invites = await ctx.db
-      .query("supplierInvitations")
-      .withIndex("by_supplierId", (q) => q.eq("supplierId", supplier._id))
-      .collect();
-    for (const invite of invites) {
-      await ctx.db.delete(invite._id);
-    }
-
-    const staffRows = await ctx.db
-      .query("staff")
-      .withIndex("by_supplierId", (q) => q.eq("supplierId", supplier._id))
-      .collect();
-    for (const staff of staffRows) {
-      await ctx.db.delete(staff._id);
-    }
-
-    const quotes = await ctx.db
-      .query("orderSupplierQuotes")
-      .withIndex("by_supplierId", (q) => q.eq("supplierId", supplier._id))
-      .collect();
-    for (const quote of quotes) {
-      await ctx.db.delete(quote._id);
-    }
-
-    const orders = await ctx.db
-      .query("orders")
-      .withIndex("by_supplierId", (q) => q.eq("supplierId", supplier._id))
-      .collect();
-    for (const order of orders) {
-      await ctx.db.patch(order._id, { supplierId: undefined });
-    }
-
-    await ctx.db.delete(supplier._id);
+    await deleteSupplierRecord(ctx, supplier._id);
 
     return {
       deleted: true as const,

@@ -4,7 +4,7 @@ export type OrderStatus = Doc<"orders">["status"];
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   nouvelle: "Nouvelle demande",
-  a_qualifier: "À qualifier",
+  a_qualifier: "client confirme",
   a_affecter: "À affecter",
   envoyee_fournisseur: "Envoyée fournisseur",
   vue_fournisseur: "Vue fournisseur",

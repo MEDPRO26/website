@@ -1,12 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import {
+  assertWhatsAppAudioContentType,
+  isWebmAudio,
+} from "@/lib/crm/audio-upload";
+import { prepareAudioForWhatsApp } from "@/lib/crm/convert-audio";
+import { resolveMessageMediaKind, shouldShowMessageText } from "@/lib/crm/media-message";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
-import { Loader2, Plus, Send, Settings } from "lucide-react";
+import { Loader2, Mic, Paperclip, Plus, Send, Settings, Square, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { Tag } from "@/components/dashboard/status-badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,10 +37,18 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useAdminSession } from "@/hooks/use-admin-session";
 import { whatsAppUrl } from "@/lib/crm/phone-links";
+import {
+  mixHexWithWhite,
+  resolveChannelColor,
+  resolveClientColor,
+  rgbaFromHex,
+} from "@/lib/crm/whatsapp-colors";
 
 const ALL_CHANNELS = "all";
 
 export function AdminConversationsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { canQueryAdmin } = useAdminSession();
   const ensureChannels = useMutation(api.whatsappChannels.ensureDefaults);
   const migrateChannels = useMutation(api.conversations.migrateUnassignedChannels);
@@ -43,14 +57,24 @@ export function AdminConversationsPage() {
   const [activeId, setActiveId] = useState<Id<"conversations"> | null>(null);
   const [reply, setReply] = useState("");
   const [notes, setNotes] = useState("");
+  const [clientColor, setClientColor] = useState("#db2777");
   const [submitting, setSubmitting] = useState(false);
   const [bootstrapped, setBootstrapped] = useState(false);
+  const deepLinkHandled = useRef(false);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [newChannelId, setNewChannelId] = useState("");
   const [newName, setNewName] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [newMessage, setNewMessage] = useState("");
+  const [recording, setRecording] = useState(false);
+  const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
+  const [pendingAudioBlob, setPendingAudioBlob] = useState<Blob | null>(null);
+  const [convertingAudio, setConvertingAudio] = useState(false);
+  const audioInputRef = useRef<HTMLInputElement>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const recorderStreamRef = useRef<MediaStream | null>(null);
+  const recorderChunksRef = useRef<Blob[]>([]);
 
   const channels = useQuery(
     api.whatsappChannels.list,
@@ -73,14 +97,31 @@ export function AdminConversationsPage() {
       : "skip"
   );
   const createConversation = useMutation(api.conversations.create);
+  const ensureForContact = useMutation(api.conversations.ensureForContact);
   const sendReply = useMutation(api.conversations.sendReply);
+  const generateAudioUploadUrl = useMutation(api.conversations.generateAudioUploadUrl);
+  const sendAudioReply = useMutation(api.conversations.sendAudioReply);
+  const deleteMessageMedia = useMutation(api.conversations.deleteMessageMedia);
   const updateStatus = useMutation(api.conversations.updateStatus);
+  const updateOrderStatus = useMutation(api.orders.updateStatus);
+  const acceptClientOffer = useMutation(api.quotes.acceptClientOffer);
   const updateNotes = useMutation(api.conversations.updateNotes);
+  const updateClientAccentColor = useMutation(api.conversations.updateClientAccentColor);
 
   const activeData = useQuery(
     api.conversations.get,
     canQueryAdmin && activeId ? { id: activeId } : "skip"
   );
+  const linkedOrders = useQuery(
+    api.conversations.getLinkedOrder,
+    canQueryAdmin && activeId ? { conversationId: activeId } : "skip"
+  );
+  const nouvelleOrder = linkedOrders?.nouvelle ?? null;
+  const qualifiedOrder =
+    linkedOrders?.latest && !nouvelleOrder ? linkedOrders.latest : null;
+  const offreEnvoyeeOrder = linkedOrders?.offreEnvoyee ?? null;
+  const acceptedOrder = linkedOrders?.acceptee ?? null;
+  const pipelineOrder = linkedOrders?.primary ?? linkedOrders?.latest ?? null;
 
   useEffect(() => {
     if (!canQueryAdmin || bootstrapped) {
@@ -92,6 +133,45 @@ export function AdminConversationsPage() {
       setBootstrapped(true);
     })();
   }, [bootstrapped, canQueryAdmin, ensureChannels, migrateChannels]);
+
+  useEffect(() => {
+    if (!canQueryAdmin || !bootstrapped || deepLinkHandled.current) {
+      return;
+    }
+
+    const phone = searchParams.get("phone");
+    if (!phone?.trim()) {
+      return;
+    }
+
+    deepLinkHandled.current = true;
+
+    void (async () => {
+      try {
+        const result = await ensureForContact({
+          phone: phone.trim(),
+          name: searchParams.get("name")?.trim() || `Client ${phone.trim()}`,
+          city: searchParams.get("city")?.trim() || undefined,
+          message: searchParams.get("message")?.trim() || undefined,
+          source: "Commande CRM",
+        });
+        setActiveId(result.conversationId);
+        setChannelFilter(result.channelId);
+        router.replace("/admin/conversations", { scroll: false });
+      } catch (error) {
+        deepLinkHandled.current = false;
+        toast.error(
+          error instanceof Error ? error.message : "Impossible d'ouvrir la conversation."
+        );
+      }
+    })();
+  }, [
+    bootstrapped,
+    canQueryAdmin,
+    ensureForContact,
+    router,
+    searchParams,
+  ]);
 
   useEffect(() => {
     if (channels?.length && !newChannelId) {
@@ -113,6 +193,31 @@ export function AdminConversationsPage() {
   useEffect(() => {
     setNotes(activeData?.conversation.notes ?? "");
   }, [activeData?.conversation.notes, activeId]);
+
+  useEffect(() => {
+    const conversation = activeData?.conversation;
+    if (!conversation) {
+      return;
+    }
+    setClientColor(
+      resolveClientColor(conversation.clientAccentColor, conversation.phone)
+    );
+  }, [
+    activeData?.conversation?.clientAccentColor,
+    activeData?.conversation?.phone,
+    activeId,
+  ]);
+
+  const channelColorById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const channel of channels ?? []) {
+      map.set(
+        channel._id,
+        resolveChannelColor(channel.accentColor, channel.slug, channel.sortOrder)
+      );
+    }
+    return map;
+  }, [channels]);
 
   const totalUnread = useMemo(
     () => (channels ?? []).reduce((sum, channel) => sum + channel.unreadCount, 0),
@@ -146,6 +251,40 @@ export function AdminConversationsPage() {
     }
   };
 
+  const handleQualify = async () => {
+    if (!nouvelleOrder || nouvelleOrder.status !== "nouvelle") {
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await updateOrderStatus({
+        orderId: nouvelleOrder._id,
+        status: "a_qualifier",
+        note: "Client confirme depuis la conversation WhatsApp.",
+      });
+      toast.success(`Commande ${nouvelleOrder.ref} passée en client confirme.`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erreur.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleAcceptPrice = async () => {
+    if (!offreEnvoyeeOrder) {
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await acceptClientOffer({ orderId: offreEnvoyeeOrder._id });
+      toast.success(`Prix accepté pour ${offreEnvoyeeOrder.ref}.`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erreur.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleReply = async () => {
     if (!activeId || !reply.trim()) return;
     setSubmitting(true);
@@ -162,7 +301,144 @@ export function AdminConversationsPage() {
     }
   };
 
+  const clearAudioPreview = () => {
+    if (audioPreviewUrl) {
+      URL.revokeObjectURL(audioPreviewUrl);
+    }
+    setAudioPreviewUrl(null);
+    setPendingAudioBlob(null);
+  };
+
+  const uploadAndSendAudio = async (blob: Blob) => {
+    if (!activeId) {
+      return;
+    }
+
+    setSubmitting(true);
+    setConvertingAudio(true);
+    try {
+      const prepared = await prepareAudioForWhatsApp(blob);
+      assertWhatsAppAudioContentType(prepared.contentType);
+
+      const uploadUrl = await generateAudioUploadUrl();
+      const uploadResult = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": prepared.contentType },
+        body: prepared.blob,
+      });
+      if (!uploadResult.ok) {
+        throw new Error("Échec du téléversement audio.");
+      }
+      const { storageId } = (await uploadResult.json()) as {
+        storageId: Id<"_storage">;
+      };
+      await sendAudioReply({
+        conversationId: activeId,
+        storageId,
+        contentType: prepared.contentType,
+        text: reply.trim() || undefined,
+      });
+      setReply("");
+      clearAudioPreview();
+      toast.success("Message vocal envoyé via WhatsApp.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erreur.");
+    } finally {
+      setConvertingAudio(false);
+      setSubmitting(false);
+    }
+  };
+
+  const handleAudioFile = async (file: File | null) => {
+    if (!file) {
+      return;
+    }
+    if (!file.type.startsWith("audio/")) {
+      toast.error("Choisissez un fichier audio (MP3, OGG, M4A, WAV…).");
+      return;
+    }
+    clearAudioPreview();
+    setPendingAudioBlob(file);
+    setAudioPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const startRecording = async () => {
+    if (!is360Connected || recording) {
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      recorderStreamRef.current = stream;
+      recorderChunksRef.current = [];
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recorderChunksRef.current.push(event.data);
+        }
+      };
+      recorder.onstop = () => {
+        stream.getTracks().forEach((track) => track.stop());
+        recorderStreamRef.current = null;
+        const blob = new Blob(recorderChunksRef.current, {
+          type: recorder.mimeType || "audio/webm",
+        });
+        if (blob.size === 0) {
+          return;
+        }
+        clearAudioPreview();
+        setPendingAudioBlob(blob);
+        setAudioPreviewUrl(URL.createObjectURL(blob));
+      };
+      recorder.start();
+      recorderRef.current = recorder;
+      setRecording(true);
+    } catch {
+      toast.error("Microphone inaccessible. Autorisez l'accès au micro.");
+    }
+  };
+
+  const stopRecording = () => {
+    recorderRef.current?.stop();
+    recorderRef.current = null;
+    setRecording(false);
+  };
+
+  const handleSendAudio = async () => {
+    if (!pendingAudioBlob) {
+      return;
+    }
+    await uploadAndSendAudio(pendingAudioBlob);
+  };
+
+  const handleDeleteMessageMedia = async (
+    messageId: Id<"conversationMessages">
+  ) => {
+    if (!window.confirm("Supprimer cet audio du CRM ?")) {
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await deleteMessageMedia({ messageId });
+      toast.success("Audio supprimé du CRM.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erreur.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const active = activeData?.conversation;
+  const activeLineColor = active
+    ? resolveChannelColor(
+        active.channelAccentColor,
+        active.channelSlug,
+        active.channelSortOrder
+      )
+    : "#2563eb";
+  const activeClientColor = active
+    ? resolveClientColor(active.clientAccentColor, active.phone)
+    : "#db2777";
   const replyUrl = active
     ? whatsAppUrl(active.phone, reply.trim() || active.lastMessage)
     : "#";
@@ -269,9 +545,9 @@ export function AdminConversationsPage() {
         }
       />
 
-      <Card className="min-h-[500px] overflow-hidden p-0 h-[calc(100vh-220px)]">
-        <div className="grid h-full grid-cols-1 lg:grid-cols-[200px_260px_minmax(0,1fr)_280px]">
-          <aside className="hidden border-r border-border bg-muted/20 lg:block">
+      <Card className="h-[calc(100vh-220px)] min-h-[500px] overflow-hidden p-0">
+        <div className="grid h-full min-h-0 grid-cols-1 lg:grid-cols-[200px_260px_minmax(0,1fr)_280px]">
+          <aside className="hidden min-h-0 overflow-y-auto border-r border-border bg-muted/20 lg:block">
             <div className="border-b border-border p-3">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Lignes WhatsApp
@@ -292,31 +568,48 @@ export function AdminConversationsPage() {
                   ) : null}
                 </button>
               </li>
-              {(channels ?? []).map((channel) => (
+              {(channels ?? []).map((channel) => {
+                const lineColor = channelColorById.get(channel._id) ?? "#2563eb";
+                const isActive = channelFilter === channel._id;
+                return (
                 <li key={channel._id}>
                   <button
                     type="button"
                     onClick={() => setChannelFilter(channel._id)}
-                    className={`flex w-full flex-col rounded-lg px-3 py-2 text-left text-sm hover:bg-muted/60 ${channelFilter === channel._id ? "bg-brand-soft/70" : ""}`}
+                    className={`flex w-full flex-col rounded-lg border border-transparent px-3 py-2 text-left text-sm hover:bg-muted/60 ${isActive ? "font-medium" : ""}`}
+                    style={{
+                      borderLeftWidth: 3,
+                      borderLeftColor: lineColor,
+                      backgroundColor: isActive
+                        ? mixHexWithWhite(lineColor, 0.9)
+                        : undefined,
+                    }}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="truncate font-medium">{channel.label}</span>
+                      <span className="truncate">{channel.label}</span>
                       {channel.unreadCount > 0 ? (
-                        <span className="grid min-w-5 shrink-0 place-items-center rounded-full bg-brand px-1.5 text-[10px] font-bold text-primary-foreground">
+                        <span
+                          className="grid min-w-5 shrink-0 place-items-center rounded-full px-1.5 text-[10px] font-bold text-white"
+                          style={{ backgroundColor: lineColor }}
+                        >
                           {channel.unreadCount}
                         </span>
                       ) : null}
                     </div>
-                    <span className="truncate text-[11px] text-muted-foreground">
+                    <span
+                      className="truncate text-[11px] font-medium"
+                      style={{ color: lineColor }}
+                    >
                       {channel.phone || "Numéro à configurer"}
                     </span>
                   </button>
                 </li>
-              ))}
+              );
+              })}
             </ul>
           </aside>
 
-          <aside className="border-r border-border overflow-y-auto">
+          <aside className="min-h-0 overflow-y-auto border-r border-border">
             <div className="border-b border-border p-3 lg:hidden">
               <Select value={channelFilter} onValueChange={setChannelFilter}>
                 <SelectTrigger className="h-9">
@@ -333,33 +626,79 @@ export function AdminConversationsPage() {
               </Select>
             </div>
             <ul>
-              {(conversations ?? []).map((c) => (
+              {(conversations ?? []).map((c) => {
+                const lineColor = resolveChannelColor(
+                  c.channelAccentColor,
+                  c.channelSlug,
+                  c.channelSortOrder
+                );
+                const clientColor = resolveClientColor(c.clientAccentColor, c.phone);
+                const isActive = activeId === c._id;
+                return (
                 <li key={c._id}>
                   <button
                     type="button"
                     onClick={() => setActiveId(c._id)}
-                    className={`w-full border-b border-border px-3 py-3 text-left hover:bg-muted/50 ${activeId === c._id ? "bg-brand-soft/60" : ""}`}
+                    className={`w-full border-b border-border px-3 py-3 text-left hover:bg-muted/50 ${isActive ? "" : ""}`}
+                    style={{
+                      backgroundColor: isActive
+                        ? mixHexWithWhite(clientColor, 0.94)
+                        : undefined,
+                      borderLeftWidth: 3,
+                      borderLeftColor: clientColor,
+                    }}
                   >
-                    <div className="flex items-center justify-between">
-                      <p className="truncate text-sm font-medium">{c.name}</p>
-                      <span className="shrink-0 text-[11px] text-muted-foreground">
-                        {c.timeLabel}
-                      </span>
+                    <div className="flex items-center justify-between gap-2">
+                      <p
+                        className="truncate text-sm font-medium"
+                        style={{ color: clientColor }}
+                      >
+                        {c.name}
+                      </p>
+                      <div className="flex shrink-0 items-center gap-1">
+                        {c.starColor === "yellow" ? (
+                          <Star
+                            className="size-3.5 fill-amber-400 text-amber-400"
+                            aria-label="Prix accepté"
+                          />
+                        ) : c.starColor === "blue" ? (
+                          <Star
+                            className="size-3.5 fill-primary text-primary"
+                            aria-label="Client confirme"
+                          />
+                        ) : null}
+                        <span className="text-[11px] text-muted-foreground">
+                          {c.timeLabel}
+                        </span>
+                      </div>
                     </div>
                     <p className="mt-0.5 truncate text-xs text-muted-foreground">
                       {c.lastMessage}
                     </p>
                     <div className="mt-1.5 flex items-center justify-between gap-2">
-                      <Tag tone="info">{c.channelLabel}</Tag>
+                      <span
+                        className="inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium"
+                        style={{
+                          color: lineColor,
+                          backgroundColor: mixHexWithWhite(lineColor, 0.88),
+                          borderColor: rgbaFromHex(lineColor, 0.25),
+                        }}
+                      >
+                        {c.channelLabel}
+                      </span>
                       {c.unreadCount > 0 ? (
-                        <span className="grid size-4 place-items-center rounded-full bg-brand text-[10px] font-bold text-primary-foreground">
+                        <span
+                          className="grid size-4 place-items-center rounded-full text-[10px] font-bold text-white"
+                          style={{ backgroundColor: lineColor }}
+                        >
                           {c.unreadCount}
                         </span>
                       ) : null}
                     </div>
                   </button>
                 </li>
-              ))}
+              );
+              })}
               {conversations?.length === 0 ? (
                 <li className="p-4 text-sm text-muted-foreground">
                   Aucune conversation sur cette ligne.
@@ -368,50 +707,186 @@ export function AdminConversationsPage() {
             </ul>
           </aside>
 
-          <section className="flex min-w-0 flex-col">
+          <section className="flex min-h-0 min-w-0 flex-col overflow-hidden">
             {active ? (
               <>
-                <header className="flex flex-wrap items-center justify-between gap-2 border-b border-border p-3">
+                <header className="shrink-0 flex flex-wrap items-center justify-between gap-2 border-b border-border p-3">
                   <div>
-                    <p className="text-sm font-medium">{active.name}</p>
-                    <p className="text-xs text-muted-foreground">{active.phone}</p>
-                    <p className="mt-1 text-xs text-brand-deep">
+                    <p className="text-sm font-medium" style={{ color: activeClientColor }}>
+                      {active.name}
+                    </p>
+                    <p className="text-xs font-medium" style={{ color: activeClientColor }}>
+                      {active.phone}
+                    </p>
+                    <p className="mt-1 text-xs font-medium" style={{ color: activeLineColor }}>
                       Ligne : {active.channelLabel}
                       {active.channelPhone ? ` (${active.channelPhone})` : ""}
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-1">
-                    <Button size="sm" variant="outline" asChild>
-                      <Link href={createOrderHref}>Créer commande</Link>
-                    </Button>
-                    <Button size="sm" variant="outline" asChild>
-                      <a href={replyUrl} target="_blank" rel="noopener noreferrer">
-                        Ouvrir WhatsApp
-                      </a>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() =>
-                        void updateStatus({ id: active._id, status: "traite" })
-                      }
-                    >
-                      Traité
-                    </Button>
+                  <div className="flex flex-wrap items-start gap-2">
+                    <div className="flex flex-col gap-1">
+                      {nouvelleOrder ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={submitting}
+                          className="border-gray-200 bg-gray-50 text-gray-600 shadow-none hover:bg-gray-100 hover:text-gray-700"
+                          onClick={() => void handleQualify()}
+                        >
+                          <Star className="size-3.5 fill-primary text-primary" />
+                          Client confirme {nouvelleOrder.ref}
+                        </Button>
+                      ) : qualifiedOrder ? (
+                        <Button
+                          size="sm"
+                          disabled
+                          className="disabled:opacity-100"
+                        >
+                          <Star className="size-3.5 fill-primary text-primary" />
+                          Client confirme · {qualifiedOrder.ref}
+                        </Button>
+                      ) : null}
+                      {pipelineOrder ? (
+                        acceptedOrder && !offreEnvoyeeOrder ? (
+                          <Button
+                            size="sm"
+                            disabled
+                            className="bg-amber-400 text-white hover:bg-amber-400 disabled:opacity-100"
+                          >
+                            <Star className="size-3.5 fill-white text-white" />
+                            Prix accepté · {acceptedOrder.ref}
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={submitting || !offreEnvoyeeOrder}
+                            className="border-gray-200 bg-gray-50 text-gray-600 shadow-none hover:bg-gray-100 hover:text-gray-700 disabled:opacity-100 disabled:text-gray-400"
+                            onClick={() => void handleAcceptPrice()}
+                          >
+                            <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                            Prix Accepte {pipelineOrder.ref}
+                          </Button>
+                        )
+                      ) : null}
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {pipelineOrder ? (
+                        <Button size="sm" variant="outline" asChild>
+                          <Link href={`/admin/orders/${pipelineOrder._id}`}>
+                            Commande
+                          </Link>
+                        </Button>
+                      ) : null}
+                      {!pipelineOrder ? (
+                        <Button size="sm" variant="outline" asChild>
+                          <Link href={createOrderHref}>Créer commande</Link>
+                        </Button>
+                      ) : null}
+                      <Button size="sm" variant="outline" asChild>
+                        <a href={replyUrl} target="_blank" rel="noopener noreferrer">
+                          Ouvrir WhatsApp
+                        </a>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          void updateStatus({ id: active._id, status: "traite" })
+                        }
+                      >
+                        Traité
+                      </Button>
+                    </div>
                   </div>
                 </header>
-                <div className="flex-1 space-y-3 overflow-y-auto bg-muted/20 p-4">
-                  {(activeData?.messages ?? []).map((m) => (
+                <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-muted/20 p-4">
+                  {(activeData?.messages ?? []).map((m) => {
+                    const mediaKind = resolveMessageMediaKind(
+                      m.mediaUrl,
+                      m.mediaKind,
+                      m.text
+                    );
+                    return (
                     <div
                       key={m._id}
                       className={`flex ${m.from === "staff" ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm ${m.from === "staff" ? "rounded-br-sm bg-brand text-primary-foreground" : "rounded-bl-sm border border-border bg-card"}`}
+                        className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm ${m.from === "staff" ? "rounded-br-sm bg-brand text-primary-foreground" : "rounded-bl-sm border"}`}
+                        style={
+                          m.from === "staff"
+                            ? undefined
+                            : {
+                                backgroundColor: mixHexWithWhite(activeLineColor, 0.9),
+                                borderColor: rgbaFromHex(activeLineColor, 0.28),
+                                color: activeLineColor,
+                              }
+                        }
                       >
-                        {m.text}
+                        {m.mediaUrl ? (
+                          <div className="mb-1 space-y-1">
+                            {mediaKind === "audio" ? (
+                              <div className="flex items-center gap-2">
+                                <audio
+                                  controls
+                                  src={m.mediaUrl}
+                                  className="w-56 max-w-full"
+                                />
+                                <Button
+                                  type="button"
+                                  size="icon"
+                                  variant="outline"
+                                  className="size-8 shrink-0 border-border bg-white text-primary hover:bg-muted/40"
+                                  disabled={submitting}
+                                  title="Supprimer l'audio du CRM"
+                                  onClick={() => void handleDeleteMessageMedia(m._id)}
+                                >
+                                  <Trash2 className="size-4" />
+                                </Button>
+                              </div>
+                            ) : mediaKind === "image" ? (
+                              <a
+                                href={m.mediaUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={m.mediaUrl}
+                                  alt="Image reçue"
+                                  className="max-h-60 w-auto rounded-lg"
+                                />
+                              </a>
+                            ) : mediaKind === "video" ? (
+                              <video
+                                controls
+                                src={m.mediaUrl}
+                                className="max-h-60 w-full rounded-lg"
+                              />
+                            ) : (
+                              <a
+                                href={m.mediaUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-current/30 px-2.5 py-1.5 text-xs font-medium underline"
+                              >
+                                <Paperclip className="size-3.5" />
+                                Ouvrir le fichier
+                              </a>
+                            )}
+                          </div>
+                        ) : null}
+                        {shouldShowMessageText(m.text, m.mediaUrl) ? (
+                          <span>{m.text}</span>
+                        ) : null}
                         <p
-                          className={`mt-0.5 text-[10px] ${m.from === "staff" ? "text-primary-foreground/70" : "text-muted-foreground"}`}
+                          className={`mt-0.5 text-[10px] ${m.from === "staff" ? "text-primary-foreground/70" : ""}`}
+                          style={
+                            m.from === "staff"
+                              ? undefined
+                              : { color: rgbaFromHex(activeLineColor, 0.7) }
+                          }
                         >
                           {new Date(m.createdAt).toLocaleTimeString("fr-FR", {
                             hour: "2-digit",
@@ -420,9 +895,53 @@ export function AdminConversationsPage() {
                         </p>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
-                <div className="border-t border-border p-3">
+                <div className="shrink-0 border-t border-border p-3">
+                  <input
+                    ref={audioInputRef}
+                    type="file"
+                    accept="audio/*,.mp3,.m4a,.ogg,.oga,.wav,.aac,.amr"
+                    className="hidden"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0] ?? null;
+                      void handleAudioFile(file);
+                      event.target.value = "";
+                    }}
+                  />
+                  {audioPreviewUrl ? (
+                    <div className="mb-2 space-y-2 rounded-lg border border-border bg-muted/30 p-2.5">
+                      <audio controls src={audioPreviewUrl} className="w-full" />
+                      {pendingAudioBlob && isWebmAudio(pendingAudioBlob.type) ? (
+                        <p className="text-xs text-muted-foreground">
+                          Le vocal sera converti en MP3 avant l&apos;envoi WhatsApp.
+                        </p>
+                      ) : null}
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={submitting || convertingAudio}
+                          onClick={clearAudioPreview}
+                        >
+                          Annuler
+                        </Button>
+                        <Button
+                          size="sm"
+                          disabled={submitting || convertingAudio}
+                          onClick={() => void handleSendAudio()}
+                        >
+                          {submitting || convertingAudio ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            <Send className="size-4" />
+                          )}
+                          {convertingAudio ? "Conversion…" : "Envoyer vocal"}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
                   <Textarea
                     placeholder={
                       is360Connected
@@ -434,6 +953,32 @@ export function AdminConversationsPage() {
                     onChange={(e) => setReply(e.target.value)}
                   />
                   <div className="mt-2 flex justify-end gap-2">
+                    {is360Connected ? (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={submitting || convertingAudio || recording}
+                          onClick={() => audioInputRef.current?.click()}
+                          title="Joindre un fichier audio"
+                        >
+                          <Paperclip className="size-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={recording ? "destructive" : "outline"}
+                          disabled={submitting || convertingAudio}
+                          onClick={() => (recording ? stopRecording() : void startRecording())}
+                          title={recording ? "Arrêter l'enregistrement" : "Enregistrer un vocal"}
+                        >
+                          {recording ? (
+                            <Square className="size-4 fill-current" />
+                          ) : (
+                            <Mic className="size-4" />
+                          )}
+                        </Button>
+                      </>
+                    ) : null}
                     {!is360Connected ? (
                       <Button size="sm" variant="outline" asChild>
                         <a href={replyUrl} target="_blank" rel="noopener noreferrer">
@@ -441,7 +986,11 @@ export function AdminConversationsPage() {
                         </a>
                       </Button>
                     ) : null}
-                    <Button size="sm" disabled={submitting} onClick={() => void handleReply()}>
+                    <Button
+                      size="sm"
+                      disabled={submitting || !reply.trim()}
+                      onClick={() => void handleReply()}
+                    >
                       {submitting ? (
                         <Loader2 className="size-4 animate-spin" />
                       ) : (
@@ -459,25 +1008,53 @@ export function AdminConversationsPage() {
             )}
           </section>
 
-          <aside className="hidden overflow-y-auto border-l border-border p-4 md:block">
+          <aside className="hidden min-h-0 overflow-y-auto border-l border-border p-4 md:block">
             {active ? (
               <>
                 <h3 className="mb-3 text-sm font-semibold">Infos client</h3>
                 <div className="space-y-3 text-sm">
                   <div>
                     <p className="text-xs text-muted-foreground">Ligne WhatsApp</p>
-                    <p className="font-medium">{active.channelLabel}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="font-medium" style={{ color: activeLineColor }}>
+                      {active.channelLabel}
+                    </p>
+                    <p className="text-xs font-medium" style={{ color: activeLineColor }}>
                       {active.channelPhone || "Configurez le numéro dans Paramètres"}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Téléphone client</p>
-                    <p className="font-medium">{active.phone}</p>
+                    <p className="font-medium" style={{ color: activeClientColor }}>
+                      {active.phone}
+                    </p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <Label className="text-xs text-muted-foreground">Couleur client</Label>
+                      <input
+                        type="color"
+                        value={clientColor}
+                        onChange={(e) => setClientColor(e.target.value)}
+                        onBlur={() =>
+                          void updateClientAccentColor({
+                            id: active._id,
+                            accentColor: clientColor,
+                          }).then(() => toast.success("Couleur client enregistrée."))
+                        }
+                        className="h-9 w-12 cursor-pointer rounded-lg border border-border bg-card p-1"
+                      />
+                    </div>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Source</p>
-                    <Tag tone="brand">{active.source}</Tag>
+                    <span
+                      className="inline-flex rounded-full border px-2.5 py-0.5 text-xs font-medium"
+                      style={{
+                        color: activeLineColor,
+                        backgroundColor: mixHexWithWhite(activeLineColor, 0.88),
+                        borderColor: rgbaFromHex(activeLineColor, 0.25),
+                      }}
+                    >
+                      {active.source}
+                    </span>
                   </div>
                   {activeData?.customer ? (
                     <div>

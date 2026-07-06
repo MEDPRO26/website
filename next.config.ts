@@ -4,6 +4,35 @@ import { X_ROBOTS_NOINDEX, allowIndexing } from "./lib/indexing";
 const noIndexHeaders = [{ key: "X-Robots-Tag", value: X_ROBOTS_NOINDEX }];
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/location-vente-materiel-medical-agadir",
+        destination: "/agadir",
+        permanent: true,
+      },
+      {
+        source: "/location-vente-materiel-medical-rabat",
+        destination: "/rabat",
+        permanent: true,
+      },
+      {
+        source: "/location-vente-materiel-medical-casablanca",
+        destination: "/casablanca",
+        permanent: true,
+      },
+      {
+        source: "/location-vente-materiel-medical-marrakech",
+        destination: "/marrakech",
+        permanent: true,
+      },
+      {
+        source: "/location-vente-materiel-medical-tanger",
+        destination: "/tanger",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     if (allowIndexing) {
       return [];

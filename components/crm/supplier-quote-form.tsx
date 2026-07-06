@@ -77,8 +77,10 @@ export function SupplierQuoteForm({
       toast.error("Indiquez un prix matériel/service valide.");
       return;
     }
-    if (Number.isNaN(commission) || commission < 0) {
-      toast.error("Indiquez la commission SOS Santé (MAD).");
+    if (!commissionAmount.trim() || Number.isNaN(commission) || commission <= 0) {
+      toast.error(
+        "La commission SOS Santé est obligatoire. Indiquez le montant en MAD avant d'envoyer votre offre."
+      );
       return;
     }
 

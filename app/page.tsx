@@ -27,7 +27,10 @@ import {
 } from "@/lib/products";
 import { activeCities, comingSoonCities, DEFAULT_CITY_SLUG } from "@/lib/cities";
 import { homepageCareIntro } from "@/lib/city-hub-content";
-import { getHomepageCareServices } from "@/lib/care-services";
+import {
+  careServiceFormOptions,
+  getHomepageCareServices,
+} from "@/lib/care-services";
 import { getCoverageAreas } from "@/lib/delivery-cities";
 import {
   buildGraph,
@@ -54,24 +57,30 @@ const trustBadges = [
 
 const heroGalleryImages = [
   {
+    src: "/products/inogen-rove-g6-homme-masque-domicile.webp",
+    alt: "Homme utilisant un concentrateur portable Inogen Rove G6 à domicile",
+    href: venteProductPath("inogen-rove-g6", DEFAULT_CITY_SLUG),
+    objectPosition: "28% center",
+  },
+  {
+    src: "/products/masques-cpap-airfit.webp",
+    alt: "Masques CPAP ResMed AirFit F20, N20, P10 et AirTouch",
+    href: venteProductPath("masques-cpap-airfit-resmed", DEFAULT_CITY_SLUG),
+  },
+  {
+    src: "/products/resmed-airsense-s11-femme-domicile.webp",
+    alt: "Femme utilisant un appareil CPAP ResMed AirSense S11 à domicile",
+    href: venteProductPath("resmed-airsense-s11-autoset-cpap", DEFAULT_CITY_SLUG),
+  },
+  {
+    src: "/products/lumis-150-vni-resmed-homme-domicile.webp",
+    alt: "Homme utilisant un appareil Lumis 150 VNI ResMed à domicile",
+    href: venteProductPath("lumis-150-vni-resmed", DEFAULT_CITY_SLUG),
+  },
+  {
     src: "/products/concentrateur-oxygene-5l.webp",
-    alt: "Concentrateur d'oxygène 5L pour oxygénothérapie à domicile",
-  },
-  {
-    src: "/products/concentrateur-5l-silencieux-nebuliseur.webp",
-    alt: "Concentrateur 5L silencieux avec nébuliseur",
-  },
-  {
-    src: "/products/inogen-rove-g6.webp",
-    alt: "Concentrateur d'oxygène portable Inogen Rove G6",
-  },
-  {
-    src: "/products/beurer-nebuliseur-ih-21.webp",
-    alt: "Nébuliseur électrique Beurer IH 21",
-  },
-  {
-    src: "/products/rossmax-nebuliseur-na100.webp",
-    alt: "Nébuliseur à piston Rossmax NA100",
+    alt: "Concentrateur d'oxygène 5L Optimox",
+    href: venteProductPath("concentrateur-oxygene-5l", DEFAULT_CITY_SLUG),
   },
 ];
 
@@ -100,6 +109,33 @@ const whyChooseUs = [
 
 const coverageAreas = getCoverageAreas();
 const homepageCareServices = getHomepageCareServices();
+
+type RequestKind = "location" | "vente" | "service";
+
+const REQUEST_KIND_OPTIONS: { value: RequestKind; label: string }[] = [
+  { value: "location", label: "Location matériel médical" },
+  { value: "vente", label: "Vente matériel médical" },
+  { value: "service", label: "Service à domicile" },
+];
+
+const REQUEST_KIND_LABEL: Record<RequestKind, string> = {
+  location: "Location matériel médical",
+  vente: "Vente matériel médical",
+  service: "Service à domicile",
+};
+
+const rentalMaterialOptions = [
+  "Lit médicalisé électrique",
+  "Lit médicalisé + matelas anti-escarres",
+  "Fauteuil roulant",
+  "Concentrateur d'oxygène 5L",
+  "Concentrateur d'oxygène 10L",
+  "Nébuliseur",
+  "Déambulateur",
+  "Béquilles",
+  "Soulève-malade",
+  "Aspirateur chirurgical",
+];
 
 const rentalSteps = [
   {
@@ -209,6 +245,7 @@ export default function Home() {
     nom: "",
     telephone: "",
     ville: defaultFormCity,
+    demandeType: "location" as RequestKind,
     materiel: "",
     message: "",
   });
@@ -222,6 +259,23 @@ export default function Home() {
     () => [...products].slice(-latestProductsCount).reverse(),
     [products, latestProductsCount]
   );
+
+  const requestChoices = useMemo(() => {
+    if (formData.demandeType === "vente") {
+      return products.map((product) => product.name);
+    }
+    if (formData.demandeType === "service") {
+      return careServiceFormOptions;
+    }
+    return rentalMaterialOptions;
+  }, [formData.demandeType, products]);
+
+  const requestChoiceLabel =
+    formData.demandeType === "service" ? "Service souhaité" : "Matériel souhaité";
+  const requestChoicePlaceholder =
+    formData.demandeType === "service" ? "Choisir un service" : "Choisir un matériel";
+  const otherChoiceLabel =
+    formData.demandeType === "service" ? "Autre service" : "Autre matériel";
 
   const openCatalogPicker = (productSlug?: string) => {
     setPickerServiceSlug(null);
@@ -253,10 +307,10 @@ export default function Home() {
         client: formData.nom,
         phone: formData.telephone,
         city: formData.ville,
-        type: "Location matériel médical",
+        type: REQUEST_KIND_LABEL[formData.demandeType],
         item: formData.materiel,
         message: formData.message,
-        pagePath: "/",
+        pagePath: "/accueil",
         source: "Formulaire site",
       });
       setFormStatus("success");
@@ -887,6 +941,7 @@ export default function Home() {
                         nom: "",
                         telephone: "",
                         ville: defaultFormCity,
+                        demandeType: "location",
                         materiel: "",
                         message: "",
                       });
@@ -964,10 +1019,38 @@ export default function Home() {
                   </div>
                   <div>
                     <label
+                      htmlFor="demandeType"
+                      className="mb-1.5 block text-sm font-medium text-white"
+                    >
+                      Type de demande
+                    </label>
+                    <select
+                      id="demandeType"
+                      name="demandeType"
+                      required
+                      value={formData.demandeType}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          demandeType: e.target.value as RequestKind,
+                          materiel: "",
+                        })
+                      }
+                      className="w-full rounded-xl border-0 bg-white/90 px-4 py-3 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary-fixed"
+                    >
+                      {REQUEST_KIND_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label
                       htmlFor="materiel"
                       className="mb-1.5 block text-sm font-medium text-white"
                     >
-                      Matériel souhaité
+                      {requestChoiceLabel}
                     </label>
                     <select
                       id="materiel"
@@ -980,14 +1063,14 @@ export default function Home() {
                       className="w-full rounded-xl border-0 bg-white/90 px-4 py-3 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary-fixed"
                     >
                       <option value="" disabled>
-                        Choisir un matériel
+                        {requestChoicePlaceholder}
                       </option>
-                      {products.map((p) => (
-                        <option key={p.slug} value={p.name}>
-                          {p.name}
+                      {requestChoices.map((choice) => (
+                        <option key={choice} value={choice}>
+                          {choice}
                         </option>
                       ))}
-                      <option value="Autre matériel">Autre matériel</option>
+                      <option value={otherChoiceLabel}>{otherChoiceLabel}</option>
                     </select>
                   </div>
                   <div>

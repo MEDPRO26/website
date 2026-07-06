@@ -55,6 +55,7 @@ export default defineSchema({
     district: v.optional(v.string()),
     address: v.optional(v.string()),
     status: customerStatusValidator,
+    accentColor: v.optional(v.string()),
     source: v.string(),
     ordersCount: v.number(),
     lastOrderAt: v.optional(v.number()),
@@ -224,6 +225,7 @@ export default defineSchema({
     /** 360Messenger API key (one key = one WhatsApp number) */
     messenger360ApiKey: v.optional(v.string()),
     messenger360ConnectedAt: v.optional(v.number()),
+    accentColor: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -268,6 +270,7 @@ export default defineSchema({
     lastMessageAt: v.number(),
     unreadCount: v.number(),
     notes: v.optional(v.string()),
+    clientAccentColor: v.optional(v.string()),
     source: v.string(),
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -282,6 +285,16 @@ export default defineSchema({
     conversationId: v.id("conversations"),
     from: v.union(v.literal("client"), v.literal("staff")),
     text: v.string(),
+    mediaUrl: v.optional(v.string()),
+    mediaStorageId: v.optional(v.id("_storage")),
+    mediaKind: v.optional(
+      v.union(
+        v.literal("audio"),
+        v.literal("image"),
+        v.literal("video"),
+        v.literal("document")
+      )
+    ),
     externalId: v.optional(v.string()),
     createdAt: v.number(),
   })

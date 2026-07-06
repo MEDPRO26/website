@@ -13,12 +13,16 @@ export function webhookUrl(siteUrl: string) {
   return `${base}/whatsapp/webhook`;
 }
 
+export type InboundMediaKind = "audio" | "image" | "video" | "document";
+
 export type Inbound360Message = {
   externalId?: string;
   fromPhone: string;
   toPhone?: string;
   text: string;
   type: "chat" | "file";
+  mediaUrl?: string;
+  mediaKind?: InboundMediaKind;
   apiKeyHint?: string;
 };
 
@@ -37,8 +41,63 @@ function readString(value: unknown) {
   return "";
 }
 
+/** 360Messenger sends PascalCase keys (From, Chat, Type, ID, Hash). */
+function normalizeRecord(raw: Record<string, unknown>) {
+  const record: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(raw)) {
+    record[key.toLowerCase()] = value;
+  }
+  return record;
+}
+
+function isHttpUrl(value: string) {
+  return value.startsWith("http://") || value.startsWith("https://");
+}
+
+/** Pull a media URL from any known or embedded field in the webhook payload. */
+export function extractMediaUrl(record: Record<string, unknown>) {
+  const direct =
+    readString(record.url) ||
+    readString(record.mediaurl) ||
+    readString(record.link) ||
+    readString(record.fileurl) ||
+    readString(record.file) ||
+    readString(record.attachment) ||
+    readString(record.media);
+
+  if (isHttpUrl(direct)) {
+    return direct;
+  }
+
+  const chat = readString(record.chat);
+  if (isHttpUrl(chat)) {
+    return chat;
+  }
+
+  for (const value of Object.values(record)) {
+    const candidate = readString(value);
+    if (isHttpUrl(candidate)) {
+      return candidate;
+    }
+  }
+
+  return "";
+}
+
+const FILE_MESSAGE_TYPES = new Set([
+  "file",
+  "ptt",
+  "audio",
+  "voice",
+  "document",
+  "image",
+  "video",
+]);
+
+const AUDIO_MESSAGE_TYPES = new Set(["ptt", "audio", "voice"]);
+
 function isDeliveryPayload(record: Record<string, unknown>) {
-  return Boolean(record.delivery && (record.id || record.tracking_Code));
+  return Boolean(record.delivery && (record.id || record.tracking_code));
 }
 
 export function parseInboundPayload(raw: unknown): Inbound360Message | Delivery360Update | null {
@@ -46,11 +105,11 @@ export function parseInboundPayload(raw: unknown): Inbound360Message | Delivery3
     return null;
   }
 
-  const record = raw as Record<string, unknown>;
+  const record = normalizeRecord(raw as Record<string, unknown>);
 
   if (isDeliveryPayload(record)) {
     return {
-      trackingCode: readString(record.id ?? record.tracking_Code),
+      trackingCode: readString(record.id ?? record.tracking_code),
       delivery: readString(record.delivery),
     };
   }
@@ -60,37 +119,180 @@ export function parseInboundPayload(raw: unknown): Inbound360Message | Delivery3
     return parseInboundPayload(nested[0]);
   }
 
-  const type = readString(record.type) || "chat";
+  const dataType = readString(record.datatype).toLowerCase();
+  if (dataType && dataType !== "message") {
+    return null;
+  }
+
+  const type = (readString(record.type) || "chat").toLowerCase();
   const fromPhone = readString(record.from ?? record.phonenumber ?? record.phone);
-  const text =
+  const mediaUrl = extractMediaUrl(record);
+  const chatText =
     readString(record.chat) ||
     readString(record.text) ||
-    readString(record.message) ||
-    readString(record.file);
+    readString(record.message);
+  const caption =
+    chatText && chatText.toUpperCase() !== "N/A" && !isHttpUrl(chatText)
+      ? chatText
+      : "";
 
-  if (!fromPhone || !text) {
+  if (!fromPhone) {
     return null;
   }
 
-  if (type !== "chat" && type !== "file") {
+  if (type !== "chat" && !FILE_MESSAGE_TYPES.has(type)) {
     return null;
   }
+
+  const isFile = FILE_MESSAGE_TYPES.has(type) || Boolean(mediaUrl);
+
+  if (!isFile && !caption) {
+    return null;
+  }
+
+  const mediaKind = isFile
+    ? detectMediaKind(mediaUrl, record, type)
+    : undefined;
+  const fallbackLabel = mediaKind ? MEDIA_LABEL[mediaKind] : "Fichier";
+  const text = isFile ? caption || `[${fallbackLabel}]` : caption;
 
   return {
-    externalId: readString(record.id) || undefined,
+    externalId: readString(record.id ?? record.whatsappid) || undefined,
     fromPhone,
     toPhone: readString(record.to) || undefined,
-    text: type === "file" ? `[Fichier] ${text}` : text,
-    type,
+    text,
+    type: isFile ? "file" : "chat",
+    mediaUrl: mediaUrl || undefined,
+    mediaKind,
     apiKeyHint: readString(record.hash) || undefined,
   };
 }
 
-export async function set360Webhook(apiKey: string, url: string) {
-  const encoded = encodeURIComponent(url);
+const MEDIA_LABEL: Record<InboundMediaKind, string> = {
+  audio: "Message vocal",
+  image: "Image",
+  video: "Vidéo",
+  document: "Document",
+};
+
+function detectMediaKind(
+  url: string,
+  record: Record<string, unknown>,
+  type = "file"
+): InboundMediaKind {
+  if (AUDIO_MESSAGE_TYPES.has(type)) {
+    return "audio";
+  }
+  if (type === "image") {
+    return "image";
+  }
+  if (type === "video") {
+    return "video";
+  }
+
+  const hint = `${url} ${readString(record.mimetype)} ${readString(
+    record.filetype
+  )} ${readString(record.datatype)} ${type}`.toLowerCase();
+
+  if (/(audio|voice|ptt|ogg|oga|opus|mp3|m4a|wav|amr|aac|storage-whatsapp|api\.360messenger\.com\/files)/.test(hint)) {
+    return "audio";
+  }
+  if (/(image|jpg|jpeg|png|gif|webp|heic)/.test(hint)) {
+    return "image";
+  }
+  if (/(video|mp4|mov|3gp|webm|mkv)/.test(hint)) {
+    return "video";
+  }
+  return "document";
+}
+
+export function classifyMediaUrl(url: string, type = "file") {
+  return detectMediaKind(url, {}, type);
+}
+
+type Received360Row = Record<string, unknown>;
+
+function readReceivedRows(body: unknown): Received360Row[] {
+  if (!body || typeof body !== "object") {
+    return [];
+  }
+
+  const record = body as Record<string, unknown>;
+  if (Array.isArray(record.data)) {
+    return record.data.filter(
+      (row): row is Received360Row => !!row && typeof row === "object"
+    );
+  }
+
+  if (Array.isArray(body)) {
+    return body.filter(
+      (row): row is Received360Row => !!row && typeof row === "object"
+    );
+  }
+
+  return [];
+}
+
+/** Fetch file URL from 360Messenger when the webhook omits it. */
+export async function fetchReceivedMessageMediaUrl(
+  apiKey: string,
+  opts: { messageId?: string; fromPhone?: string }
+) {
+  const phoneDigitsValue = opts.fromPhone ? phoneDigits(opts.fromPhone) : "";
+  const phoneFilter = phoneDigitsValue
+    ? `&phonenumber=${encodeURIComponent(phoneDigitsValue)}`
+    : "";
   const response = await fetch(
-    `${API_BASE}/webhook/set/${encodeURIComponent(apiKey)}?url=${encoded}`
+    `${API_BASE}/showAllGetMessages/${encodeURIComponent(apiKey)}?page=1${phoneFilter}`
   );
+  if (!response.ok) {
+    return null;
+  }
+
+  let body: unknown;
+  try {
+    body = await response.json();
+  } catch {
+    return null;
+  }
+
+  const rows = readReceivedRows(body);
+  for (const row of rows) {
+    const record = normalizeRecord(row);
+    const id = readString(record.id);
+    if (opts.messageId) {
+      if (!id || id !== opts.messageId) {
+        continue;
+      }
+    }
+
+    const rowType = (readString(record.type) || "chat").toLowerCase();
+    if (rowType === "chat" && opts.messageId) {
+      continue;
+    }
+
+    const mediaUrl = extractMediaUrl(record);
+    if (mediaUrl) {
+      return mediaUrl;
+    }
+  }
+
+  return null;
+}
+
+function authHeaders(apiKey: string) {
+  return {
+    Authorization: `Bearer ${apiKey}`,
+    "Content-Type": "application/json",
+  };
+}
+
+export async function set360Webhook(apiKey: string, url: string) {
+  const response = await fetch(`${API_BASE}/v2/settings/webhook/set`, {
+    method: "POST",
+    headers: authHeaders(apiKey),
+    body: JSON.stringify({ url }),
+  });
   const body = await response.text();
   if (!response.ok) {
     throw new Error(`Webhook 360Messenger (${response.status}): ${body}`);
@@ -99,25 +301,59 @@ export async function set360Webhook(apiKey: string, url: string) {
 }
 
 export async function enable360Receive(apiKey: string) {
-  const response = await fetch(
-    `${API_BASE}/receive/${encodeURIComponent(apiKey)}?receive=on`
-  );
+  const response = await fetch(`${API_BASE}/v2/settings/receive`, {
+    method: "POST",
+    headers: authHeaders(apiKey),
+    body: JSON.stringify({ receive: "on" }),
+  });
   const body = await response.text();
-  if (!response.ok) {
+  // Non-blocking: some plans auto-enable receive; ignore 404 on this optional call.
+  if (!response.ok && response.status !== 404) {
     throw new Error(`Receive 360Messenger (${response.status}): ${body}`);
   }
   return body;
 }
 
-export async function send360Message(apiKey: string, toPhone: string, text: string) {
-  const form = new FormData();
-  form.set("phonenumber", phoneDigits(toPhone));
-  form.set("text", text.trim());
+export async function send360Message(
+  apiKey: string,
+  toPhone: string,
+  text: string,
+  mediaUrl?: string
+) {
+  const trimmedText = text.trim() || (mediaUrl ? "Message vocal" : "");
+  if (!trimmedText && !mediaUrl) {
+    throw new Error("Message vide.");
+  }
 
-  const response = await fetch(
-    `${API_BASE}/sendMessage/${encodeURIComponent(apiKey)}`,
-    { method: "POST", body: form }
-  );
+  if (mediaUrl) {
+    const form = new URLSearchParams();
+    form.set("phonenumber", phoneDigits(toPhone));
+    form.set("text", trimmedText);
+    form.set("url", mediaUrl);
+
+    const response = await fetch(
+      `${API_BASE}/sendMessage/${encodeURIComponent(apiKey)}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: form.toString(),
+      }
+    );
+    const body = await response.text();
+    if (!response.ok) {
+      throw new Error(`Envoi média 360Messenger (${response.status}): ${body}`);
+    }
+    return body.trim();
+  }
+
+  const response = await fetch(`${API_BASE}/v2/sendMessage`, {
+    method: "POST",
+    headers: authHeaders(apiKey),
+    body: JSON.stringify({
+      phonenumber: phoneDigits(toPhone),
+      text: trimmedText,
+    }),
+  });
   const body = await response.text();
   if (!response.ok) {
     throw new Error(`Envoi 360Messenger (${response.status}): ${body}`);

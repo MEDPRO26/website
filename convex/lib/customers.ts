@@ -1,5 +1,6 @@
 import type { MutationCtx, QueryCtx } from "../_generated/server";
-import { normalizePhone } from "./refs";
+import type { Id } from "../_generated/dataModel";
+import { normalizePhone, phoneLookupVariants } from "./refs";
 
 type UpsertCustomerInput = {
   name: string;
@@ -16,11 +17,59 @@ export async function findCustomerByPhone(
   ctx: MutationCtx | QueryCtx,
   phone: string
 ) {
-  const normalized = normalizePhone(phone);
-  return await ctx.db
-    .query("customers")
-    .withIndex("by_phone", (q) => q.eq("phone", normalized))
-    .unique();
+  for (const variant of phoneLookupVariants(phone)) {
+    const customer = await ctx.db
+      .query("customers")
+      .withIndex("by_phone", (q) => q.eq("phone", variant))
+      .unique();
+    if (customer) {
+      return customer;
+    }
+  }
+
+  const target = normalizePhone(phone);
+  if (!target) {
+    return null;
+  }
+
+  const customers = await ctx.db.query("customers").collect();
+  return (
+    customers.find((customer) => normalizePhone(customer.phone) === target) ??
+    null
+  );
+}
+
+export async function findCustomerForConversation(
+  ctx: MutationCtx | QueryCtx,
+  conversation: {
+    customerId?: Id<"customers">;
+    phone: string;
+    name: string;
+  }
+) {
+  if (conversation.customerId) {
+    const linked = await ctx.db.get(conversation.customerId);
+    if (linked) {
+      return linked;
+    }
+  }
+
+  const byPhone = await findCustomerByPhone(ctx, conversation.phone);
+  if (byPhone) {
+    return byPhone;
+  }
+
+  const normalizedName = conversation.name.trim().toLowerCase();
+  if (!normalizedName || normalizedName.startsWith("client ")) {
+    return null;
+  }
+
+  const customers = await ctx.db.query("customers").collect();
+  return (
+    customers.find(
+      (customer) => customer.name.trim().toLowerCase() === normalizedName
+    ) ?? null
+  );
 }
 
 export async function upsertCustomer(

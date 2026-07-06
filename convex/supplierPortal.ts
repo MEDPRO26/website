@@ -140,8 +140,10 @@ export const submitQuote = mutation({
       throw new Error("Complétez votre profil fournisseur avant de répondre.");
     }
 
-    if (args.commissionAmount < 0) {
-      throw new Error("La commission SOS Santé doit être positive.");
+    if (!args.commissionAmount || args.commissionAmount <= 0) {
+      throw new Error(
+        "La commission SOS Santé est obligatoire. Indiquez le montant en MAD."
+      );
     }
 
     return await upsertSupplierQuote(ctx, {

@@ -136,8 +136,13 @@ export const respiratoryProducts: Product[] = [
       "Concentrateur d'oxygène portable Inogen Rove G6, ultra-léger (2,6 kg avec batterie double) pour l'oxygénothérapie en débit pulsé de 1 à 6.",
     extendedDescription:
       "Technologie Intelligent Delivery : l'oxygène est délivré à chaque inspiration pour une autonomie optimale. Jusqu'à 13 heures avec batterie 16 cellules. Idéal pour les déplacements et le maintien de l'indépendance.",
-    image: "/products/inogen-rove-g6.webp",
-    alt: "Concentrateur d'oxygène portable Inogen Rove G6",
+    image: "/products/inogen-rove-g6-homme-masque-domicile.webp",
+    gallery: [
+      "/products/inogen-rove-g6-homme-masque-domicile.webp",
+      "/products/inogen-rove-g6.webp",
+      "/products/inogen-rove-g6-femme-domicile.webp",
+    ],
+    alt: "Homme utilisant un concentrateur d'oxygène Inogen Rove G6 avec masque à domicile",
     specs: [
       { label: "Poids", value: "2,6 kg (batterie double)" },
       { label: "Débit pulsé", value: "1 à 6" },
@@ -153,6 +158,152 @@ export const respiratoryProducts: Product[] = [
     seoTitle: "Achat Inogen Rove G6 portable | SOS Santé",
     seoDescription:
       "Achetez un concentrateur d'oxygène portable Inogen G6 au Maroc. Conseil personnalisé SOS Santé.",
+  }),
+  respiratoryProduct({
+    slug: "resmed-airsense-s11-autoset-cpap",
+    name: "ResMed AirSense 11 AutoSet CPAP",
+    shortName: "AirSense S11",
+    tagline: "Appareil CPAP auto-réglant de dernière génération pour l'apnée du sommeil.",
+    description:
+      "Appareil CPAP ResMed AirSense 11 AutoSet avec réglage automatique de la pression, conçu pour le traitement du syndrome d'apnée obstructive du sommeil (SAOS) à domicile.",
+    extendedDescription:
+      "Dernière génération ResMed : écran tactile intuitif, bouton Marche/Arrêt unique et algorithme AutoSet (incluant AutoSet for Her) pour adapter la pression tout au long de la nuit. Humidificateur chauffant HumidAir 11 intégré, compatible avec le circuit chauffant ClimateLineAir 11 en option pour un confort optimal. Filtres standard ou hypoallergéniques, diagnostic interne de l'appareil et fonction Care Check-In pour suivre votre adaptation au traitement. Plus léger et plus simple à utiliser au quotidien.",
+    image: "/products/resmed-airsense-s11-homme-domicile.webp",
+    gallery: [
+      "/products/resmed-airsense-s11-homme-domicile.webp",
+      "/products/resmed-airsense-s11-femme-domicile.webp",
+      "/products/resmed-airsense-s11.webp",
+    ],
+    alt: "Homme utilisant un appareil CPAP ResMed AirSense S11 à domicile",
+    specs: [
+      { label: "Type", value: "CPAP AutoSet" },
+      { label: "Indication", value: "Apnée obstructive du sommeil (SAOS)" },
+      { label: "Interface", value: "Écran tactile" },
+    ],
+    included: [
+      "Humidificateur HumidAir 11 intégré",
+      "Filtre à air",
+      "Bouton Marche/Arrêt",
+      "Care Check-In",
+    ],
+    useCases: [
+      {
+        icon: "bedtime",
+        title: "Apnée du sommeil",
+        description: "Traitement du SAOS avec pression auto-adaptative.",
+      },
+      {
+        icon: "home",
+        title: "Usage à domicile",
+        description: "Confort et simplicité pour les nuits à la maison.",
+      },
+      {
+        icon: "monitoring",
+        title: "Suivi du traitement",
+        description: "Outils d'accompagnement et de suivi intégrés.",
+      },
+    ],
+    related: ["masques-cpap-airfit-resmed"],
+    seoTitle: "Achat ResMed AirSense S11 AutoSet CPAP | SOS Santé",
+    seoDescription:
+      "Achetez un appareil CPAP ResMed AirSense 11 AutoSet au Maroc pour le traitement de l'apnée du sommeil. Devis et conseil avec SOS Santé.",
+  }),
+  respiratoryProduct({
+    slug: "masques-cpap-airfit-resmed",
+    name: "Masques CPAP ResMed AirFit",
+    shortName: "AirFit",
+    tagline: "Gamme de masques CPAP confortables pour une thérapie de l'apnée adaptée à chaque visage.",
+    description:
+      "Masques CPAP ResMed AirFit : nasal, narinaire ou facial complet, conçus pour s'adapter à la morphologie de chaque patient et assurer une étanchéité fiable avec les appareils CPAP.",
+    extendedDescription:
+      "La gamme AirFit couvre les principaux profils de respiration : AirFit N20 (nasal), AirFit P10 (coussinets narinaires minimalistes), AirFit F20 (facial complet) et AirTouch (coussin en mousse UltraSoft). Coussins InfinitySeal ou AdaptiSeal en silicone hypoallergénique, cadre souple, sangle confortable et clips magnétiques pour un enfilage rapide. Raccord à déconnexion rapide pour se lever la nuit sans retirer le masque. Ventilation QuietAir sur certains modèles pour un traitement discret. Plusieurs tailles disponibles selon le modèle choisi.",
+    image: "/products/masques-cpap-airfit.webp",
+    gallery: [
+      "/products/masques-cpap-airfit.webp",
+      "/products/masque-cpap-airfit-homme-domicile.webp",
+      "/products/masque-cpap-airfit-femme-domicile.webp",
+    ],
+    alt: "Masques CPAP ResMed AirFit F20, N20, P10 et AirTouch",
+    specs: [
+      { label: "Gamme", value: "F20 · N20 · P10 · AirTouch" },
+      { label: "Types", value: "Nasal, narinaire, facial complet" },
+      { label: "Compatibilité", value: "Appareils CPAP et VNI ResMed" },
+    ],
+    included: [
+      "Cadre et sangle",
+      "Coussin (taille selon modèle)",
+      "Raccord à déconnexion rapide",
+      "Clips magnétiques",
+    ],
+    useCases: [
+      {
+        icon: "bedtime",
+        title: "Apnée du sommeil",
+        description: "Interface confortable pour la thérapie CPAP nocturne.",
+      },
+      {
+        icon: "face",
+        title: "Adaptation morphologique",
+        description: "Plusieurs modèles et tailles pour un bon ajustement.",
+      },
+      {
+        icon: "home",
+        title: "Confort à domicile",
+        description: "Mise en place simple pour un usage quotidien.",
+      },
+    ],
+    related: ["resmed-airsense-s11-autoset-cpap"],
+    seoTitle: "Achat masques CPAP ResMed AirFit | SOS Santé",
+    seoDescription:
+      "Achetez un masque CPAP ResMed AirFit (F20, N20, P10, AirTouch) au Maroc. Conseil pour choisir le bon modèle avec SOS Santé.",
+  }),
+  respiratoryProduct({
+    slug: "lumis-150-vni-resmed",
+    name: "Lumis 150 VNI ResMed",
+    shortName: "Lumis 150",
+    tagline: "Ventilateur non invasif pour pathologies respiratoires obstructives et restrictives.",
+    description:
+      "Ventilateur non invasif ResMed Lumis 150 VPAP ST, conçu pour les patients non dépendants souffrant de pathologies respiratoires obstructives ou restrictives.",
+    extendedDescription:
+      "Équipé du mode iVAPS de ResMed, il maintient une ventilation minute cible en tenant compte de l'espace anatomique et ajuste l'aide selon les besoins variables du patient. L'algorithme iBR optimise la synchronisation et le confort. Avec l'AutoEPAP, l'iVAPS surveille les voies aériennes supérieures cycle à cycle pour une ventilation personnalisée. Plateforme Air10 : humidification intégrée, titration facilitée et télésuivi pour un monitorage à distance.",
+    image: "/products/lumis-150-vni-resmed-homme-domicile.webp",
+    gallery: [
+      "/products/lumis-150-vni-resmed-homme-domicile.webp",
+      "/products/lumis-150-vni-resmed-femme-sommeil.webp",
+      "/products/lumis-150-vni-resmed.webp",
+    ],
+    alt: "Homme utilisant un appareil Lumis 150 VNI ResMed à domicile",
+    specs: [
+      { label: "Type", value: "VNI VPAP ST" },
+      { label: "Mode", value: "iVAPS avec AutoEPAP" },
+      { label: "Plateforme", value: "ResMed Air10" },
+    ],
+    included: [
+      "Humidification intégrée",
+      "Module de télésuivi",
+      "Mode iVAPS / iBR",
+    ],
+    useCases: [
+      {
+        icon: "air",
+        title: "Pathologies obstructives",
+        description: "Prise en charge des troubles respiratoires obstructifs.",
+      },
+      {
+        icon: "pulmonology",
+        title: "Pathologies restrictives",
+        description: "Adapté aux insuffisances respiratoires restrictives.",
+      },
+      {
+        icon: "home",
+        title: "Usage à domicile",
+        description: "Ventilation non invasive pour patients autonomes.",
+      },
+    ],
+    related: ["resmed-airsense-s11-autoset-cpap"],
+    seoTitle: "Achat Lumis 150 VNI ResMed | SOS Santé",
+    seoDescription:
+      "Achetez un ventilateur non invasif Lumis 150 VNI ResMed au Maroc. Devis, conseil et accompagnement avec SOS Santé.",
   }),
   respiratoryProduct({
     slug: "concentrateur-oxygene-10l-optimium",

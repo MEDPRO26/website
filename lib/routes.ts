@@ -39,9 +39,7 @@ export function venteProductPath(
 
 export function hubCityPath(citySlug: string): string {
   const city = getCityBySlug(citySlug);
-  return city
-    ? `/${city.hubSlug}`
-    : `/${getCityBySlug(DEFAULT_CITY_SLUG)!.hubSlug}`;
+  return city ? `/${city.slug}` : `/${DEFAULT_CITY_SLUG}`;
 }
 
 export function locationCityPath(citySlug: string): string {
@@ -64,7 +62,41 @@ export function isVenteCatalogPath(pathname: string): boolean {
 }
 
 export function getCitySlugFromPath(pathname: string): CitySlug | undefined {
-  return getCityFromVentePath(pathname)?.slug;
+  return resolveCityFromPath(pathname)?.slug;
+}
+
+/** Detect which city a URL belongs to (for footer NAP, breadcrumbs, etc.). */
+export function resolveCityFromPath(pathname: string) {
+  const path = pathname.split("?")[0].replace(/\/$/, "") || "/";
+
+  for (const city of cities) {
+    if (path === `/${city.slug}` || path.startsWith(`/${city.slug}/`)) {
+      return city;
+    }
+  }
+
+  const venteCity = getCityFromVentePath(path);
+  if (venteCity) {
+    return venteCity;
+  }
+
+  for (const city of cities) {
+    if (
+      path === `/${city.hubSlug}` ||
+      path.startsWith(`/${city.hubSlug}/`) ||
+      path === `/${city.locationSlug}` ||
+      path.startsWith(`/${city.locationSlug}/`)
+    ) {
+      return city;
+    }
+
+    const citySuffix = `-${city.slug}`;
+    if (path.endsWith(citySuffix) || path.includes(`${citySuffix}/`)) {
+      return city;
+    }
+  }
+
+  return undefined;
 }
 
 /** @deprecated Use venteCityPath(citySlug) */

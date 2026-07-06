@@ -799,15 +799,6 @@ export default function ServicesPage() {
       </main>
 
       <SiteFooter />
-
-      {/* Desktop WhatsApp FAB */}
-      <a
-        href={whatsAppHref("Bonjour SOS Santé, je souhaite un service de soins à domicile.", "garde_soins")}
-        aria-label="Contacter sur WhatsApp"
-        className="fixed bottom-8 right-8 z-50 hidden h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-2xl shadow-[#25D366]/30 transition-all hover:scale-110 hover:shadow-xl active:scale-95 md:flex"
-      >
-        <WhatsAppIcon className="h-7 w-7" />
-      </a>
     </>
   );
 }

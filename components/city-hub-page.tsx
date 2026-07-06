@@ -79,6 +79,7 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
     localBusinessSchema({
       name: content.badgeLabel,
       description: content.metaDescription,
+      telephone: city.contactReady ? city.phone : undefined,
       addressLocality: city.name,
       areaServed: city.zones.map((zone) => ({ "@type": "City", name: zone })),
     }),

@@ -13,6 +13,10 @@ export type City = {
   phoneDisplay: string;
   whatsapp: string;
   email: string;
+  /** When true, footer and contact blocks show local phone / address. */
+  contactReady: boolean;
+  address?: string;
+  showAddress?: boolean;
   available: boolean;
   zones: string[];
   deliveryText: string;
@@ -69,6 +73,9 @@ export const cities: City[] = [
     phoneDisplay: PHONE_DISPLAY,
     whatsapp: WHATSAPP_NUMBER,
     email: CONTACT_EMAIL,
+    contactReady: true,
+    address: "Lerac, Avenue Abderrahim Bouabid, 8000, Agadir 80000",
+    showAddress: true,
     available: true,
     zones: [
       "Agadir",
@@ -92,10 +99,11 @@ export const cities: City[] = [
     slug: "rabat",
     name: "Rabat",
     brandName: "SOS Santé Rabat",
-    phone: PHONE_NUMBER,
-    phoneDisplay: PHONE_DISPLAY,
-    whatsapp: WHATSAPP_NUMBER,
+    phone: "",
+    phoneDisplay: "",
+    whatsapp: "",
     email: CONTACT_EMAIL,
+    contactReady: false,
     available: true,
     zones: ["Rabat", "Salé", "Témara", "Hay Riad", "Agdal", "Souissi"],
     deliveryText:
@@ -108,10 +116,11 @@ export const cities: City[] = [
     slug: "casablanca",
     name: "Casablanca",
     brandName: "SOS Santé Casablanca",
-    phone: PHONE_NUMBER,
-    phoneDisplay: PHONE_DISPLAY,
-    whatsapp: WHATSAPP_NUMBER,
+    phone: "",
+    phoneDisplay: "",
+    whatsapp: "",
     email: CONTACT_EMAIL,
+    contactReady: false,
     available: false,
     zones: ["Casablanca"],
     deliveryText:
@@ -124,10 +133,11 @@ export const cities: City[] = [
     slug: "marrakech",
     name: "Marrakech",
     brandName: "SOS Santé Marrakech",
-    phone: PHONE_NUMBER,
-    phoneDisplay: PHONE_DISPLAY,
-    whatsapp: WHATSAPP_NUMBER,
+    phone: "",
+    phoneDisplay: "",
+    whatsapp: "",
     email: CONTACT_EMAIL,
+    contactReady: false,
     available: false,
     zones: ["Marrakech", "Guéliz", "Hivernage"],
     deliveryText:
@@ -140,10 +150,11 @@ export const cities: City[] = [
     slug: "tanger",
     name: "Tanger",
     brandName: "SOS Santé Tanger",
-    phone: PHONE_NUMBER,
-    phoneDisplay: PHONE_DISPLAY,
-    whatsapp: WHATSAPP_NUMBER,
+    phone: "",
+    phoneDisplay: "",
+    whatsapp: "",
     email: CONTACT_EMAIL,
+    contactReady: false,
     available: false,
     zones: ["Tanger"],
     deliveryText: "Livraison à Tanger et sa région sous 48–72h.",

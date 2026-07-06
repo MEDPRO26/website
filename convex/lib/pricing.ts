@@ -50,24 +50,59 @@ export function formatMad(amount: number) {
   return `${amount.toLocaleString("fr-FR")} MAD`;
 }
 
+export function formatRequestTypeLabel(requestType: string) {
+  const normalized = requestType.trim().toLowerCase();
+  if (normalized.includes("vente")) {
+    return "vente de matériel médical";
+  }
+  if (normalized.includes("location")) {
+    return "location de matériel médical";
+  }
+  if (normalized.includes("service")) {
+    return "service à domicile";
+  }
+  return requestType.trim() || "demande";
+}
+
+function productOrServiceLabel(requestType: string) {
+  const normalized = requestType.trim().toLowerCase();
+  return normalized.includes("service") ? "Service" : "Produit";
+}
+
 export function buildDefaultOfferMessage(args: {
   clientFirstName: string;
+  requestType: string;
   item: string;
   finalPrice: number;
+  duration?: string;
   desiredDate?: string;
   slot?: string;
 }) {
+  const requestLabel = formatRequestTypeLabel(args.requestType);
+  const itemLabel = productOrServiceLabel(args.requestType);
   const availability =
     args.desiredDate && args.slot
       ? `${args.desiredDate} (${args.slot})`
       : args.desiredDate ?? "à confirmer";
 
-  return `Bonjour ${args.clientFirstName},
+  const lines = [
+    `Bonjour ${args.clientFirstName},`,
+    "",
+    `Suite à votre demande de ${requestLabel} :`,
+    `— ${itemLabel} : ${args.item}`,
+  ];
 
-Voici notre offre pour ${args.item} :
-— Prix : ${formatMad(args.finalPrice)} (livraison & installation incluses)
-— Disponibilité : ${availability}
+  if (args.duration?.trim()) {
+    lines.push(`— Durée : ${args.duration.trim()}`);
+  }
 
-Merci de confirmer pour planification.
-Équipe SOS Santé Agadir`;
+  lines.push(
+    `— Prix : ${formatMad(args.finalPrice)} (livraison & installation incluses)`,
+    `— Disponibilité : ${availability}`,
+    "",
+    "Merci de confirmer pour planification.",
+    "Équipe SOS Santé Agadir"
+  );
+
+  return lines.join("\n");
 }

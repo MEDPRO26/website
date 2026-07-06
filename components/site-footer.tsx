@@ -1,8 +1,14 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import FooterContact, { FooterCopyright } from "@/components/footer-contact";
 import FooterLegalLinks from "@/components/footer-legal-links";
 import Logo from "@/components/logo";
-import { SITE_FULL_NAME } from "@/lib/brand";
+import {
+  footerCityLinks,
+  getFooterContextFromPath,
+} from "@/lib/footer-context";
 import { activeCities } from "@/lib/cities";
 import { venteCityPath } from "@/lib/routes";
 
@@ -22,6 +28,10 @@ type SiteFooterProps = {
 };
 
 export default function SiteFooter({ id }: SiteFooterProps) {
+  const pathname = usePathname();
+  const context = getFooterContextFromPath(pathname ?? "/");
+  const isNational = context.variant === "national";
+
   return (
     <footer
       id={id}
@@ -31,13 +41,31 @@ export default function SiteFooter({ id }: SiteFooterProps) {
         <div className="sm:col-span-2 md:col-span-1">
           <Logo href="/" size="lg" className="mb-4" />
           <p className="font-heading mb-2 text-sm font-semibold text-on-surface sm:text-base">
-            {SITE_FULL_NAME}
+            {context.brandTitle}
           </p>
           <p className="font-body text-sm leading-relaxed text-on-surface-variant sm:text-base">
-            Votre partenaire de confiance pour le maintien à domicile au Maroc.
-            Location et vente de matériel médical à Agadir et dans tout le
-            royaume.
+            {context.description}
           </p>
+          {isNational ? (
+            <div className="mt-4">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-primary">
+                Nos villes
+              </p>
+              <ul className="space-y-1.5">
+                {footerCityLinks.map((city) => (
+                  <li key={city.href}>
+                    <Link
+                      href={city.href}
+                      className="text-sm text-on-surface-variant transition-colors hover:text-primary"
+                    >
+                      {city.label}
+                      {!city.available ? " (bientôt)" : ""}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
         <div>
           <h4 className="font-heading mb-3 text-sm font-bold uppercase tracking-wider text-primary sm:mb-4">
@@ -57,8 +85,8 @@ export default function SiteFooter({ id }: SiteFooterProps) {
           </ul>
         </div>
         <FooterLegalLinks contactHref="/contact" />
-        <FooterContact />
-        <FooterCopyright />
+        <FooterContact context={context} />
+        <FooterCopyright context={context} />
       </div>
     </footer>
   );

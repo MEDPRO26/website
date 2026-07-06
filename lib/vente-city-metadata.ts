@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getCityBySlug, type CitySlug } from "@/lib/cities";
 import {
+  hubCityPath,
   venteCategoryPath,
   venteCityPath,
 } from "@/lib/routes";
@@ -62,7 +63,7 @@ export function createHubMetadata(citySlug: CitySlug): Metadata {
   const city = getCityBySlug(citySlug);
   if (!city) return {};
 
-  const path = `/${city.hubSlug}`;
+  const path = hubCityPath(citySlug);
   const title = `Location et vente matériel médical ${city.name} | SOS Santé`;
   const description = `SOS Santé ${city.name} : location et vente de matériel médical à domicile. Lits, fauteuils roulants, oxygène. Livraison à ${city.name} et environs.`;
 

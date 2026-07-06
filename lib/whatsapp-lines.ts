@@ -31,3 +31,12 @@ export function whatsAppHref(text?: string, line: WhatsAppLine = "general") {
   const base = `https://wa.me/${WHATSAPP_LINES[line]}`;
   return text ? `${base}?text=${encodeURIComponent(text)}` : base;
 }
+
+/** CRM webhook URL for 360Messenger (uses public Convex site URL). */
+export function crmWhatsAppWebhookUrl(siteUrl?: string) {
+  const base = (siteUrl ?? process.env.NEXT_PUBLIC_CONVEX_SITE_URL ?? "").replace(
+    /\/$/,
+    ""
+  );
+  return base ? `${base}/whatsapp/webhook` : "";
+}

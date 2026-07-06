@@ -16,7 +16,7 @@ export type OrderStatus =
 
 export const STATUS_LABEL: Record<OrderStatus, string> = {
   nouvelle: "Nouvelle demande",
-  a_qualifier: "À qualifier",
+  a_qualifier: "client confirme",
   a_affecter: "À affecter",
   envoyee_fournisseur: "Envoyée fournisseur",
   vue_fournisseur: "Vue fournisseur",
@@ -75,6 +75,7 @@ export type Order = {
   createdAt: string;
   message: string;
   notes?: string;
+  pagePath?: string;
 };
 
 export const ORDERS: Order[] = [

@@ -10,6 +10,16 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -17,20 +27,32 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { useAdminSession } from "@/hooks/use-admin-session";
-import { Search, ShieldCheck, Plus } from "lucide-react";
+import { Search, ShieldCheck, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 const ALL = "all";
 
+type DeleteTarget = {
+  id: Id<"suppliers">;
+  name: string;
+  ordersCount: number;
+};
+
 export function AdminSuppliersPage() {
-  const { canQueryAdmin } = useAdminSession();
+  const { canQueryAdmin, staff } = useAdminSession();
+  const canDeleteSupplier = staff?.role === "super_admin";
   const ensureDemo = useMutation(api.suppliers.ensureDemoSuppliers);
+  const removeSupplier = useMutation(api.suppliers.remove);
   const [search, setSearch] = useState("");
   const [city, setCity] = useState(ALL);
   const [type, setType] = useState(ALL);
   const [status, setStatus] = useState(ALL);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [seedAttempted, setSeedAttempted] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const suppliers = useQuery(
     api.suppliers.list,
@@ -67,6 +89,25 @@ export function AdminSuppliersPage() {
   }, [suppliers]);
 
   const isLoading = suppliers === undefined;
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+
+    setDeleting(true);
+    try {
+      await removeSupplier({ id: deleteTarget.id });
+      toast.success(`${deleteTarget.name} a été supprimé.`);
+      setDeleteTarget(null);
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Impossible de supprimer ce fournisseur."
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <div>
@@ -205,9 +246,28 @@ export function AdminSuppliersPage() {
                       ) : null}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <Button asChild size="sm" variant="outline">
-                        <Link href={`/admin/suppliers/${s._id}`}>Voir</Link>
-                      </Button>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button asChild size="sm" variant="outline">
+                          <Link href={`/admin/suppliers/${s._id}`}>Voir</Link>
+                        </Button>
+                        {canDeleteSupplier ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className="text-status-error hover:bg-status-error/10 hover:text-status-error"
+                            onClick={() =>
+                              setDeleteTarget({
+                                id: s._id,
+                                name: s.name,
+                                ordersCount: s.ordersCount,
+                              })
+                            }
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -218,6 +278,49 @@ export function AdminSuppliersPage() {
       </Card>
 
       <SupplierFormDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+
+      <AlertDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open && !deleting) setDeleteTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce fournisseur ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget ? (
+                <>
+                  <span className="font-medium text-foreground">{deleteTarget.name}</span>{" "}
+                  sera définitivement supprimé avec ses invitations et devis associés.
+                  {deleteTarget.ordersCount > 0 ? (
+                    <>
+                      {" "}
+                      {deleteTarget.ordersCount} commande
+                      {deleteTarget.ordersCount > 1 ? "s" : ""} liée
+                      {deleteTarget.ordersCount > 1 ? "s" : ""} resteront sans
+                      fournisseur assigné.
+                    </>
+                  ) : null}
+                </>
+              ) : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleting}
+              className="bg-status-error text-white hover:bg-status-error/90"
+              onClick={(e) => {
+                e.preventDefault();
+                void handleDelete();
+              }}
+            >
+              {deleting ? "Suppression…" : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -1,6 +1,10 @@
 export const SITE_NAME = "SOS Santé";
 export const SITE_FULL_NAME =
   "SOS Santé Agadir - Matériel Médical & Aide à Domicile";
+export const SITE_NATIONAL_NAME =
+  "sossante.ma – Matériel Médical & Aide à Domicile au Maroc";
+export const SITE_NATIONAL_DESCRIPTION =
+  "Service de coordination, location, vente et livraison de matériel médical à domicile selon disponibilité.";
 export const SITE_URL_DEFAULT = "https://www.sossante.ma";
 export const SITE_WEBSITE = "www.sossante.ma";
 export const SITE_ADDRESS =

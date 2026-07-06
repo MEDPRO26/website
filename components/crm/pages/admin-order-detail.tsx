@@ -18,10 +18,12 @@ import {
   Phone, MessageCircle, Mail, MapPin, User, Calendar, Clock,
   Truck, ArrowLeft, StickyNote, GitBranch, UserCheck, Receipt, Send,
 } from "lucide-react";
+import { formatOrderOriginDisplay, getOrderSourceLabel } from "@/lib/crm/format-page-path";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { formatEventTime, mapConvexOrderToUi } from "@/lib/crm/map-convex-order";
-import { telUrl, whatsAppUrl } from "@/lib/crm/phone-links";
+import { adminConversationHref } from "@/lib/crm/conversation-links";
+import { telUrl } from "@/lib/crm/phone-links";
 
 type AdminOrderDetailPageProps = { orderId: string };
 
@@ -66,7 +68,9 @@ export function AdminOrderDetailPage({ orderId }: AdminOrderDetailPageProps) {
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="font-mono text-xl font-semibold tracking-tight">{o.ref}</h1>
             <StatusBadge status={o.status} />
-            <Tag tone="neutral">{o.source}</Tag>
+            <Tag tone="neutral">
+              {getOrderSourceLabel(o.source, data.order.pagePath)}
+            </Tag>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
             Créée le {o.createdAt} · Assistant : <span className="font-medium text-foreground">{o.assistant}</span>
@@ -106,13 +110,16 @@ export function AdminOrderDetailPage({ orderId }: AdminOrderDetailPageProps) {
                 </a>
               </Button>
               <Button size="sm" variant="outline" asChild>
-                <a
-                  href={whatsAppUrl(o.whatsapp || o.phone)}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href={adminConversationHref({
+                    phone: o.whatsapp || o.phone,
+                    name: o.client,
+                    city: o.city,
+                    message: o.message || undefined,
+                  })}
                 >
                   <MessageCircle className="size-4" /> WhatsApp
-                </a>
+                </Link>
               </Button>
               <Button size="sm" variant="ghost" asChild>
                 <Link href={`/admin/customers/${customer?._id ?? data.order.customerId}`}>
@@ -130,16 +137,14 @@ export function AdminOrderDetailPage({ orderId }: AdminOrderDetailPageProps) {
               <Info label="Durée" value={o.duration || "—"} />
               <Info label="Date souhaitée" value={o.desiredDate || "—"} icon={Calendar} />
               <Info label="Créneau" value={o.slot || "—"} icon={Clock} />
+              <Info
+                label="Origine"
+                value={formatOrderOriginDisplay(o.source, data.order.pagePath)}
+              />
             </div>
             <Separator className="my-4" />
             <Label className="mb-1.5 block">Message du client</Label>
             <p className="rounded-lg bg-muted p-3 text-sm">{o.message || "—"}</p>
-            {data.order.pagePath ? (
-              <>
-                <Label className="mb-1.5 mt-4 block">Page source</Label>
-                <p className="rounded-lg border border-border p-3 text-sm">{data.order.pagePath}</p>
-              </>
-            ) : null}
           </Card>
 
           <Card className="p-5">
@@ -159,6 +164,7 @@ export function AdminOrderDetailPage({ orderId }: AdminOrderDetailPageProps) {
             </h3>
             <OrderQuotePanel
               orderId={data.order._id}
+              orderStatus={data.order.status}
               supplierId={data.order.supplierId}
               clientName={o.client}
               item={o.item}

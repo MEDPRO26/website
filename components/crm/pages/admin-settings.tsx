@@ -11,9 +11,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useAdminSession } from "@/hooks/use-admin-session";
+import { crmWhatsAppWebhookUrl } from "@/lib/whatsapp-lines";
+import { defaultChannelColor } from "@/lib/crm/whatsapp-colors";
+import { activeCities } from "@/lib/cities";
 
 const PROVIDERS = [
   {
@@ -63,15 +73,12 @@ export function AdminSettingsPage() {
     api.platformSettings.get,
     canQueryAdmin ? {} : "skip"
   );
-  const webhookInfo = useQuery(
-    api.whatsappMessenger.getWebhookInfo,
-    canQueryAdmin ? {} : "skip"
-  );
+  const webhookUrl = crmWhatsAppWebhookUrl();
 
   const [drafts, setDrafts] = useState<
     Record<
       string,
-      { label: string; phone: string; metaPhoneNumberId: string; messenger360ApiKey: string }
+      { label: string; phone: string; city: string; metaPhoneNumberId: string; messenger360ApiKey: string; accentColor: string }
     >
   >({});
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -106,14 +113,16 @@ export function AdminSettingsPage() {
     }
     const next: Record<
       string,
-      { label: string; phone: string; metaPhoneNumberId: string; messenger360ApiKey: string }
+      { label: string; phone: string; city: string; metaPhoneNumberId: string; messenger360ApiKey: string; accentColor: string }
     > = {};
     for (const channel of channels) {
       next[channel._id] = {
         label: channel.label,
         phone: channel.phone,
+        city: channel.city ?? "",
         metaPhoneNumberId: channel.metaPhoneNumberId ?? "",
         messenger360ApiKey: channel.messenger360ApiKey ?? "",
+        accentColor: channel.accentColor ?? defaultChannelColor(channel.slug, channel.sortOrder),
       };
     }
     setDrafts(next);
@@ -196,7 +205,9 @@ export function AdminSettingsPage() {
         id,
         label: draft.label,
         phone: draft.phone,
+        city: draft.city,
         metaPhoneNumberId: draft.metaPhoneNumberId,
+        accentColor: draft.accentColor,
       });
       toast.success("Ligne WhatsApp enregistrée.");
     } catch (err) {
@@ -340,10 +351,10 @@ export function AdminSettingsPage() {
               360Messenger apparaissent dans l&apos;inbox{" "}
               <strong>/admin/conversations</strong>.
             </p>
-            {webhookInfo?.webhookUrl ? (
+            {webhookUrl ? (
               <p className="mt-2 rounded-xl bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-                Webhook CRM (configuré automatiquement) :{" "}
-                <code className="font-mono text-foreground">{webhookInfo.webhookUrl}</code>
+                Webhook CRM (à coller dans 360Messenger si besoin) :{" "}
+                <code className="font-mono text-foreground">{webhookUrl}</code>
               </p>
             ) : null}
           </div>
@@ -354,6 +365,7 @@ export function AdminSettingsPage() {
             <div className="grid gap-3">
               {channels.map((channel) => {
                 const draft = drafts[channel._id];
+                const is360Active = Boolean(channel.messenger360ConnectedAt);
                 return (
                   <div
                     key={channel._id}
@@ -366,8 +378,8 @@ export function AdminSettingsPage() {
                           {channel.purpose} · {channel.city ?? "—"}
                         </p>
                       </div>
-                      <Tag tone={channel.status === "active" ? "success" : "warning"}>
-                        {channel.status === "active" ? "Active" : "En pause"}
+                      <Tag tone={is360Active ? "success" : "warning"}>
+                        {is360Active ? "Active" : "Not active"}
                       </Tag>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2">
@@ -382,6 +394,7 @@ export function AdminSettingsPage() {
                               [channel._id]: {
                                 label: e.target.value,
                                 phone: current[channel._id]?.phone ?? channel.phone,
+                                city: current[channel._id]?.city ?? channel.city ?? "",
                                 metaPhoneNumberId:
                                   current[channel._id]?.metaPhoneNumberId ??
                                   channel.metaPhoneNumberId ??
@@ -390,6 +403,10 @@ export function AdminSettingsPage() {
                                   current[channel._id]?.messenger360ApiKey ??
                                   channel.messenger360ApiKey ??
                                   "",
+                                accentColor:
+                                  current[channel._id]?.accentColor ??
+                                  channel.accentColor ??
+                                  defaultChannelColor(channel.slug, channel.sortOrder),
                               },
                             }))
                           }
@@ -407,6 +424,7 @@ export function AdminSettingsPage() {
                               [channel._id]: {
                                 label: current[channel._id]?.label ?? channel.label,
                                 phone: e.target.value,
+                                city: current[channel._id]?.city ?? channel.city ?? "",
                                 metaPhoneNumberId:
                                   current[channel._id]?.metaPhoneNumberId ??
                                   channel.metaPhoneNumberId ??
@@ -415,10 +433,89 @@ export function AdminSettingsPage() {
                                   current[channel._id]?.messenger360ApiKey ??
                                   channel.messenger360ApiKey ??
                                   "",
+                                accentColor:
+                                  current[channel._id]?.accentColor ??
+                                  channel.accentColor ??
+                                  defaultChannelColor(channel.slug, channel.sortOrder),
                               },
                             }))
                           }
                         />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Ville représentée</Label>
+                        <Select
+                          value={draft?.city || "none"}
+                          onValueChange={(value) =>
+                            setDrafts((current) => ({
+                              ...current,
+                              [channel._id]: {
+                                label: current[channel._id]?.label ?? channel.label,
+                                phone: current[channel._id]?.phone ?? channel.phone,
+                                city: value === "none" ? "" : value,
+                                metaPhoneNumberId:
+                                  current[channel._id]?.metaPhoneNumberId ??
+                                  channel.metaPhoneNumberId ??
+                                  "",
+                                messenger360ApiKey:
+                                  current[channel._id]?.messenger360ApiKey ??
+                                  channel.messenger360ApiKey ??
+                                  "",
+                                accentColor:
+                                  current[channel._id]?.accentColor ??
+                                  channel.accentColor ??
+                                  defaultChannelColor(channel.slug, channel.sortOrder),
+                              },
+                            }))
+                          }
+                        >
+                          <SelectTrigger className="mt-1.5">
+                            <SelectValue placeholder="Choisir une ville" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Non assignée</SelectItem>
+                            {activeCities.map((city) => (
+                              <SelectItem key={city.slug} value={city.name}>
+                                {city.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="mt-1 text-[11px] text-muted-foreground">
+                          Les commandes de cette ville ouvriront cette ligne WhatsApp.
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs">Couleur inbox</Label>
+                        <div className="mt-1.5 flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={draft?.accentColor ?? defaultChannelColor(channel.slug, channel.sortOrder)}
+                            onChange={(e) =>
+                              setDrafts((current) => ({
+                                ...current,
+                                [channel._id]: {
+                                  label: current[channel._id]?.label ?? channel.label,
+                                  phone: current[channel._id]?.phone ?? channel.phone,
+                                  city: current[channel._id]?.city ?? channel.city ?? "",
+                                  metaPhoneNumberId:
+                                    current[channel._id]?.metaPhoneNumberId ??
+                                    channel.metaPhoneNumberId ??
+                                    "",
+                                  messenger360ApiKey:
+                                    current[channel._id]?.messenger360ApiKey ??
+                                    channel.messenger360ApiKey ??
+                                    "",
+                                  accentColor: e.target.value,
+                                },
+                              }))
+                            }
+                            className="h-10 w-14 cursor-pointer rounded-lg border border-border bg-card p-1"
+                          />
+                          <span className="font-mono text-xs text-muted-foreground">
+                            {draft?.accentColor ?? defaultChannelColor(channel.slug, channel.sortOrder)}
+                          </span>
+                        </div>
                       </div>
                       <div className="sm:col-span-2">
                         <Label className="text-xs">Clé API 360Messenger</Label>
@@ -433,11 +530,16 @@ export function AdminSettingsPage() {
                               [channel._id]: {
                                 label: current[channel._id]?.label ?? channel.label,
                                 phone: current[channel._id]?.phone ?? channel.phone,
+                                city: current[channel._id]?.city ?? channel.city ?? "",
                                 metaPhoneNumberId:
                                   current[channel._id]?.metaPhoneNumberId ??
                                   channel.metaPhoneNumberId ??
                                   "",
                                 messenger360ApiKey: e.target.value,
+                                accentColor:
+                                  current[channel._id]?.accentColor ??
+                                  channel.accentColor ??
+                                  defaultChannelColor(channel.slug, channel.sortOrder),
                               },
                             }))
                           }
@@ -447,7 +549,11 @@ export function AdminSettingsPage() {
                             Connecté le{" "}
                             {new Date(channel.messenger360ConnectedAt).toLocaleString("fr-FR")}
                           </p>
-                        ) : null}
+                        ) : (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Not active — connectez cette ligne avec 360Messenger.
+                          </p>
+                        )}
                       </div>
                       <div className="sm:col-span-2 hidden">
                         <Label className="text-xs">
@@ -463,11 +569,16 @@ export function AdminSettingsPage() {
                               [channel._id]: {
                                 label: current[channel._id]?.label ?? channel.label,
                                 phone: current[channel._id]?.phone ?? channel.phone,
+                                city: current[channel._id]?.city ?? channel.city ?? "",
                                 metaPhoneNumberId: e.target.value,
                                 messenger360ApiKey:
                                   current[channel._id]?.messenger360ApiKey ??
                                   channel.messenger360ApiKey ??
                                   "",
+                                accentColor:
+                                  current[channel._id]?.accentColor ??
+                                  channel.accentColor ??
+                                  defaultChannelColor(channel.slug, channel.sortOrder),
                               },
                             }))
                           }
