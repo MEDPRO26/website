@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import LegalJsonLd from "@/components/legal-json-ld";
 import LegalPageLayout from "@/components/legal-page-layout";
 import { SITE_FULL_NAME, SITE_NAME } from "@/lib/brand";
 import { LEGAL_ROUTES } from "@/lib/legal-routes";
@@ -22,7 +23,14 @@ function BulletList({ items }: { items: string[] }) {
 
 export default function ConditionsGeneralesPage() {
   return (
-    <LegalPageLayout
+    <>
+      <LegalJsonLd
+        path={LEGAL_ROUTES.conditions}
+        title={`Conditions générales d'utilisation et de services | ${SITE_NAME}`}
+        description={`Conditions générales d'utilisation et de services de ${SITE_FULL_NAME} : devis, vente, location de matériel médical et mise en relation avec des prestataires.`}
+        breadcrumbLabel="Conditions générales"
+      />
+      <LegalPageLayout
       title="Conditions générales d'utilisation et de services"
       breadcrumbLabel="Conditions générales"
       intro={`Les présentes Conditions Générales régissent l'utilisation du site internet ${SITE_NAME} ainsi que les demandes de devis, d'information, de mise en relation, de vente, de location de matériel médical et, le cas échéant, les demandes de services d'aide à domicile, d'accompagnement, de soins à domicile, de kinésithérapie, de transport sanitaire ou de prestations similaires proposées directement ou par l'intermédiaire de prestataires partenaires.
@@ -680,5 +688,6 @@ Téléphone / WhatsApp : ${PHONE_DISPLAY}`}
         },
       ]}
     />
+    </>
   );
 }

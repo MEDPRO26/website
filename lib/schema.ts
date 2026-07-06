@@ -188,7 +188,11 @@ function normalizePath(path: string): string {
   return path.startsWith("/") ? path : `/${path}`;
 }
 
-export function productSchema(product: Product, productPath: string) {
+export function productSchema(
+  product: Product,
+  productPath: string,
+  relatedProductPaths: string[] = []
+) {
   const path = normalizePath(productPath);
   return {
     "@type": "Product",
@@ -206,7 +210,47 @@ export function productSchema(product: Product, productPath: string) {
     itemCondition: "https://schema.org/NewCondition",
     offers: offerOnRequest(path, { "@type": "City", name: product.city }),
     areaServed: { "@type": "City", name: product.city },
+    ...(relatedProductPaths.length > 0
+      ? {
+          isRelatedTo: relatedProductPaths.map((relatedPath) => ({
+            "@type": "Product",
+            "@id": `${siteUrl}${normalizePath(relatedPath)}#product`,
+          })),
+        }
+      : {}),
   };
+}
+
+export function productPageGraph(
+  product: Product,
+  productPath: string,
+  hubPath: string,
+  hubLabel: string,
+  relatedProducts: Product[] = [],
+  relatedPathForSlug: (slug: string) => string = (slug) =>
+    `/vente-de-materiel-medical-agadir/produits/${slug}`
+) {
+  const path = normalizePath(productPath);
+  const relatedItems = relatedProducts.map((item) => ({
+    name: item.name,
+    url: relatedPathForSlug(item.slug),
+  }));
+
+  const nodes: Record<string, unknown>[] = [
+    webPageSchema(path, product.seoTitle, product.seoDescription),
+    productSchema(
+      product,
+      path,
+      relatedItems.map((item) => item.url)
+    ),
+    productBreadcrumbSchema(path, product.shortName, hubPath, hubLabel),
+  ];
+
+  if (relatedItems.length > 0) {
+    nodes.push(itemListSchema("Produits associés", path, relatedItems));
+  }
+
+  return buildGraph(...nodes);
 }
 
 export function productBreadcrumbSchema(

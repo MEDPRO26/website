@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import VenteCatalog from "@/components/vente-catalog";
+import VenteCatalogJsonLd from "@/components/vente-catalog-json-ld";
 import { catalogCategories } from "@/lib/catalog-categories";
 import {
   buildVenteCityMetadata,
@@ -30,5 +31,10 @@ export async function generateMetadata({
 export default async function VenteRabatCategoryPage({ params }: PageProps) {
   const { category } = await params;
   if (!validateVenteCategory(category)) notFound();
-  return <VenteCatalog citySlug={citySlug} categorySlug={category} />;
+  return (
+    <>
+      <VenteCatalogJsonLd citySlug={citySlug} categorySlug={category} />
+      <VenteCatalog citySlug={citySlug} categorySlug={category} />
+    </>
+  );
 }

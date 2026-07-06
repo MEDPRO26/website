@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import LegalJsonLd from "@/components/legal-json-ld";
 import LegalPageLayout from "@/components/legal-page-layout";
 import { SITE_FULL_NAME, SITE_NAME } from "@/lib/brand";
 import { LEGAL_ROUTES } from "@/lib/legal-routes";
@@ -12,7 +13,14 @@ export const metadata: Metadata = {
 
 export default function PolitiqueConfidentialitePage() {
   return (
-    <LegalPageLayout
+    <>
+      <LegalJsonLd
+        path={LEGAL_ROUTES.privacy}
+        title={`Politique de confidentialité | ${SITE_NAME}`}
+        description={`Politique de protection des données personnelles de ${SITE_NAME} : collecte, utilisation et droits des utilisateurs au Maroc.`}
+        breadcrumbLabel="Confidentialité"
+      />
+      <LegalPageLayout
       title="Politique de confidentialité"
       breadcrumbLabel="Confidentialité"
       intro={`${SITE_FULL_NAME} accorde une importance particulière à la protection de vos données personnelles. La présente politique décrit les informations que nous collectons, la manière dont nous les utilisons et vos droits, conformément à la loi marocaine n° 09-08 relative à la protection des personnes physiques à l'égard du traitement des données à caractère personnel.`}
@@ -142,5 +150,6 @@ export default function PolitiqueConfidentialitePage() {
         },
       ]}
     />
+    </>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import LegalJsonLd from "@/components/legal-json-ld";
 import LegalPageLayout from "@/components/legal-page-layout";
 import {
   SITE_ADDRESS,
@@ -18,7 +19,14 @@ export const metadata: Metadata = {
 
 export default function MentionsLegalesPage() {
   return (
-    <LegalPageLayout
+    <>
+      <LegalJsonLd
+        path={LEGAL_ROUTES.mentions}
+        title={`Mentions légales | ${SITE_NAME}`}
+        description={`Mentions légales du site ${SITE_WEBSITE} : éditeur, hébergement et coordonnées de ${SITE_FULL_NAME}.`}
+        breadcrumbLabel="Mentions légales"
+      />
+      <LegalPageLayout
       title="Mentions légales"
       breadcrumbLabel="Mentions légales"
       intro={`Conformément aux usages en vigueur au Maroc, les présentes mentions légales précisent l'identité de l'éditeur du site ${SITE_WEBSITE} et les informations essentielles relatives à son exploitation.`}
@@ -122,5 +130,6 @@ export default function MentionsLegalesPage() {
         },
       ]}
     />
+    </>
   );
 }

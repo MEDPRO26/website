@@ -682,45 +682,6 @@ export default function ProductDetail({
             </div>
           </div>
 
-          {/* Related products */}
-          {product.related.length > 0 && (
-            <section className="mt-14 sm:mt-20">
-              <h2 className="font-heading mb-8 text-xl font-semibold text-on-surface sm:text-2xl">
-                Produits fréquemment achetés ensemble
-              </h2>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {product.related.map((related) => (
-                  <Link
-                    key={related.slug}
-                    href={venteProductPath(related.slug, citySlug)}
-                    className="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-surface-container-high transition-all hover:-translate-y-1 hover:shadow-lg"
-                  >
-                    <div className="relative h-48 overflow-hidden sm:h-52">
-                      <Image
-                        src={related.image}
-                        alt={related.alt}
-                        fill
-                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                    </div>
-                    <div className="p-5">
-                      <h3 className="font-heading mb-1 text-base font-bold text-on-surface sm:text-lg">
-                        {related.name}
-                      </h3>
-                      <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-on-surface-variant">
-                        {related.description}
-                      </p>
-                      <span className="font-heading text-sm font-bold text-secondary sm:text-base">
-                        {PRICE_ON_REQUEST}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
-
           <RelatedProducts
             currentSlug={product.slug}
             category={product.category}

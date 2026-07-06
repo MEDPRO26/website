@@ -3,9 +3,10 @@ import { notFound } from "next/navigation";
 import JsonLd from "@/components/json-ld";
 import { formatAchatSeoTitle } from "@/lib/french";
 import { getProductBySlug, getProductsByCity } from "@/lib/products";
+import { resolveRelatedProducts } from "@/lib/related-products";
 import { hubCityPath, venteProductPath } from "@/lib/routes";
 import { SITE_URL_DEFAULT } from "@/lib/brand";
-import { buildGraph, productBreadcrumbSchema, productSchema } from "@/lib/schema";
+import { productPageGraph } from "@/lib/schema";
 import ProductDetail from "@/app/produits/[slug]/product-detail";
 
 const citySlug = "agadir" as const;
@@ -51,14 +52,14 @@ function ProductJsonLd({ slug }: { slug: string }) {
 
   const productPath = venteProductPath(slug, citySlug);
   const hubPath = hubCityPath(citySlug);
-  const schema = buildGraph(
-    productSchema(product, productPath),
-    productBreadcrumbSchema(
-      productPath,
-      product.shortName,
-      hubPath,
-      `Location et vente de matériel médical à Agadir`
-    )
+  const relatedProducts = resolveRelatedProducts(product);
+  const schema = productPageGraph(
+    product,
+    productPath,
+    hubPath,
+    `Location et vente de matériel médical à Agadir`,
+    relatedProducts,
+    (relatedSlug) => venteProductPath(relatedSlug, citySlug)
   );
 
   return <JsonLd data={schema} />;

@@ -6,10 +6,10 @@ import {
 import { getCityBySlug, type CitySlug } from "@/lib/cities";
 import { venteCategoryPath, venteCityPath } from "@/lib/routes";
 
-export function buildVenteCityMetadata(
+export function getVenteCatalogPageInfo(
   citySlug: CitySlug,
   categoryParam?: string | null
-): Metadata {
+) {
   const city = getCityBySlug(citySlug)!;
   const categoryMeta = categoryParam
     ? catalogCategories.find((item) => item.param === categoryParam)
@@ -26,6 +26,22 @@ export function buildVenteCityMetadata(
   const description = categoryMeta
     ? `Achetez du matériel ${categoryMeta.label.toLowerCase()} à ${city.name}. Catalogue SOS Santé avec livraison locale.`
     : `Achetez du matériel médical à ${city.name} : mobilité, respiratoire, diagnostic, instruments. ${city.deliveryText}`;
+
+  const listName = categoryMeta
+    ? `Matériel ${categoryMeta.label.toLowerCase()} à vendre à ${city.name}`
+    : `Catalogue vente matériel médical ${city.name}`;
+
+  return { city, categoryMeta, path, title, description, listName };
+}
+
+export function buildVenteCityMetadata(
+  citySlug: CitySlug,
+  categoryParam?: string | null
+): Metadata {
+  const { path, title, description } = getVenteCatalogPageInfo(
+    citySlug,
+    categoryParam
+  );
 
   return {
     title,

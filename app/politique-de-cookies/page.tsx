@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import LegalJsonLd from "@/components/legal-json-ld";
 import LegalPageLayout from "@/components/legal-page-layout";
 import { SITE_NAME, SITE_WEBSITE } from "@/lib/brand";
 import { LEGAL_ROUTES } from "@/lib/legal-routes";
@@ -12,7 +13,14 @@ export const metadata: Metadata = {
 
 export default function PolitiqueCookiesPage() {
   return (
-    <LegalPageLayout
+    <>
+      <LegalJsonLd
+        path={LEGAL_ROUTES.cookies}
+        title={`Politique de cookies | ${SITE_NAME}`}
+        description={`Politique de cookies du site ${SITE_WEBSITE} : types de cookies utilisés et gestion de vos préférences.`}
+        breadcrumbLabel="Cookies"
+      />
+      <LegalPageLayout
       title="Politique de cookies"
       breadcrumbLabel="Cookies"
       intro={`Cette page explique comment le site ${SITE_WEBSITE} utilise les cookies et technologies similaires, et comment vous pouvez gérer vos préférences.`}
@@ -113,5 +121,6 @@ export default function PolitiqueCookiesPage() {
         },
       ]}
     />
+    </>
   );
 }

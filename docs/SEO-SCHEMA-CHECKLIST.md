@@ -19,8 +19,8 @@ Objectif : corriger les erreurs qui bloquent ou polluent Google Search Console a
 - [x] Corriger **OfferCatalog** : retirer `price: "0"`
 - [x] Retirer WhatsApp de `sameAs` (réservé aux profils sociaux / GBP)
 - [x] Étendre `areaServed` Organization à toutes les villes actives
-- [ ] Vérifier dans GSC → URL Inspection : homepage, `/agadir`, 1 produit, `/contact`
-- [ ] Vérifier Enhancements : Breadcrumbs, FAQ, Products (warnings attendus sur prix)
+- [x] Vérifier dans GSC → URL Inspection : homepage, `/agadir`, 1 produit, `/contact`
+- [x] Vérifier Enhancements : Breadcrumbs, FAQ, Products (warnings attendus sur prix)
 
 ---
 
@@ -33,27 +33,28 @@ Objectif : chaque type de page a le bon schéma, sans duplication.
 | Page | WebPage | Breadcrumb | LocalBusiness | FAQ | ItemList | Product | Service | BlogPosting |
 |------|---------|------------|---------------|-----|----------|---------|---------|-------------|
 | Homepage | [x] | [x] | [x] | [x] | [x] | [-] | [-] | [-] |
-| City hub (`/agadir`) | [x] | [x] | [x] | [x] | [ ] | [-] | [-] | [-] |
-| Vente city | [ ] | [ ] | [ ] | [ ] | [ ] | [-] | [-] | [-] |
-| Category vente | [ ] | [x] | [-] | [x] | [x] | [-] | [-] | [-] |
-| Product | [ ] | [x] | [-] | [-] | [-] | [x] | [-] | [-] |
+| City hub (`/agadir`) | [x] | [x] | [x] | [x] | [x] | [-] | [-] | [-] |
+| Vente city | [x] | [x] | [x] | [-] | [x] | [-] | [-] | [-] |
+| Category vente | [x] | [x] | [x] | [-] | [x] | [-] | [-] | [-] |
+| Product | [x] | [x] | [-] | [-] | [x] | [x] | [-] | [-] |
 | Care service | [x] | [x] | [x] | [x] | [-] | [-] | [x] | [-] |
 | Services hub | [x] | [x] | [x] | [-] | [-] | [-] | [x] | [-] |
-| Blog index | [x] | [x] | [-] | [-] | [ ] | [-] | [-] | [-] |
+| Blog index | [x] | [x] | [-] | [-] | [x] | [-] | [-] | [-] |
 | Blog post | [x] | [x] | [-] | [-] | [-] | [-] | [-] | [x] |
 | Contact | [x] | [x] | [x] | [ ] | [-] | [-] | [-] | [-] |
-| Legal | [ ] | [ ] | [-] | [-] | [-] | [-] | [-] | [-] |
+| Legal | [x] | [x] | [-] | [-] | [-] | [-] | [-] | [-] |
 
 ### Tâches Phase 2
 
-- [ ] **ItemList** sur city hubs (6 derniers produits affichés)
-- [ ] Schéma sur **toutes** les pages vente city (Agadir + Rabat)
-- [ ] Schéma sur **toutes** les catégories vente par ville
-- [ ] **ContactPage** unifié via `lib/schema.ts` (plus de JSON inline)
-- [ ] **Service** sur chaque page care service (déjà partiel)
-- [ ] **ItemList** blog index
-- [ ] **WebPage CollectionPage** sur catalogues vente
-- [ ] Relier produits `related` pour maillage schema (optionnel)
+- [x] **ItemList** sur city hubs (6 derniers produits affichés)
+- [x] Schéma sur **toutes** les pages vente city (Agadir + Rabat)
+- [x] Schéma sur **toutes** les catégories vente par ville
+- [x] **ContactPage** unifié via `lib/schema.ts` (plus de JSON inline)
+- [x] **Service** sur chaque page care service (déjà partiel)
+- [x] **ItemList** blog index
+- [x] **WebPage CollectionPage** sur catalogues vente
+- [x] **WebPage** minimal sur pages légales
+- [x] Relier produits `related` pour maillage schema (curated + fallback catégorie)
 
 ---
 
@@ -95,4 +96,4 @@ Objectif : chaque type de page a le bon schéma, sans duplication.
 
 - **Prix sur demande** : pas de rich results Product tant qu’il n’y a pas de prix réel — c’est normal.
 - **Un seul `<script type="application/ld+json">` par page** (+ le global layout pour Organization/WebSite est acceptable ; les pages ne redéclarent pas Organization).
-- Dernière mise à jour Phase 1 : 2026-07-06
+- Dernière mise à jour Phase 2 : 2026-07-06

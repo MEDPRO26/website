@@ -20,6 +20,7 @@ import {
   buildGraph,
   breadcrumbSchema,
   faqSchema,
+  itemListSchema,
   localBusinessSchema,
   webPageSchema,
 } from "@/lib/schema";
@@ -71,6 +72,9 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
   const content = getCityHubContent(citySlug);
   const path = hubCityPath(citySlug);
 
+  const whatsappText = `Bonjour ${content.badgeLabel}, je souhaite des informations sur le matériel médical à ${city.name}.`;
+  const latestProducts = [...getProductsByCity(citySlug)].slice(-6).reverse();
+
   const schema = buildGraph(
     webPageSchema(path, content.metaTitle, content.metaDescription),
     breadcrumbSchema([
@@ -86,11 +90,16 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
       addressLocality: city.name,
       areaServed: city.zones.map((zone) => ({ "@type": "City", name: zone })),
     }),
-    faqSchema(content.faqs, path)
+    faqSchema(content.faqs, path),
+    itemListSchema(
+      "Nos derniers produits",
+      path,
+      latestProducts.map((product) => ({
+        name: product.name,
+        url: venteProductPath(product.slug, citySlug),
+      }))
+    )
   );
-
-  const whatsappText = `Bonjour ${content.badgeLabel}, je souhaite des informations sur le matériel médical à ${city.name}.`;
-  const latestProducts = [...getProductsByCity(citySlug)].slice(-6).reverse();
 
   return (
     <>
