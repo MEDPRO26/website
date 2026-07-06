@@ -9,11 +9,12 @@ import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
 import { activeCities, getCityBySlug, type CitySlug } from "@/lib/cities";
 import { getCityHubContent } from "@/lib/city-hub-content";
-import { whatsAppHref } from "@/lib/products";
+import { getProductsByCity, whatsAppHref } from "@/lib/products";
 import {
   hubCityPath,
   venteCategoryPath,
   venteCityPath,
+  venteProductPath,
 } from "@/lib/routes";
 import {
   buildGraph,
@@ -87,6 +88,7 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
   );
 
   const whatsappText = `Bonjour ${content.badgeLabel}, je souhaite des informations sur le matériel médical à ${city.name}.`;
+  const latestProducts = [...getProductsByCity(citySlug)].slice(-6).reverse();
 
   return (
     <>
@@ -229,6 +231,76 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
                 </Link>
               ))}
             </div>
+
+            {latestProducts.length > 0 && (
+              <div className="mt-14 border-t border-outline-variant/30 pt-14">
+                <div className="mb-8 text-center">
+                  <span className="mb-2 inline-block text-sm font-semibold uppercase tracking-wider text-secondary">
+                    Catalogue vente
+                  </span>
+                  <h3 className="font-heading text-2xl font-semibold text-secondary sm:text-3xl">
+                    Nos derniers produits
+                  </h3>
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
+                  {latestProducts.map((product) => (
+                    <article
+                      key={product.slug}
+                      className="group flex flex-col overflow-hidden rounded-2xl border border-surface-container-high bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
+                    >
+                      <Link
+                        href={venteProductPath(product.slug, citySlug)}
+                        className="relative aspect-[4/3] overflow-hidden"
+                      >
+                        <Image
+                          src={product.image}
+                          alt={product.alt}
+                          fill
+                          sizes="(min-width: 1024px) 33vw, 50vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <span
+                          className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold sm:left-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-xs ${product.categoryStyle}`}
+                        >
+                          {product.category}
+                        </span>
+                      </Link>
+                      <div className="flex flex-1 flex-col p-3 sm:p-5">
+                        <Link href={venteProductPath(product.slug, citySlug)}>
+                          <h4 className="font-heading mb-1.5 line-clamp-2 text-sm font-semibold text-primary transition-colors hover:text-primary-container sm:mb-2 sm:text-lg">
+                            {product.name}
+                          </h4>
+                        </Link>
+                        <p className="font-body mb-3 line-clamp-3 flex-1 text-xs leading-relaxed text-on-surface-variant sm:line-clamp-none sm:text-sm">
+                          {product.description}
+                        </p>
+                        <div className="flex items-center justify-between gap-1 border-t border-surface-container pt-3 sm:pt-4">
+                          <span className="font-heading text-[11px] font-bold leading-tight text-secondary sm:text-sm">
+                            {product.priceLabel}
+                          </span>
+                          <Link
+                            href={venteProductPath(product.slug, citySlug)}
+                            aria-label={`Voir les détails de ${product.name}`}
+                            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary transition-all hover:scale-110 hover:bg-primary-container sm:h-10 sm:w-10"
+                          >
+                            <MaterialIcon name="arrow_forward" className="text-lg sm:text-xl" />
+                          </Link>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+                <div className="mt-8 flex justify-center">
+                  <Link
+                    href={venteCityPath(citySlug)}
+                    className="inline-flex items-center gap-2 rounded-full border border-primary bg-white px-6 py-3 text-sm font-semibold text-primary transition-all hover:bg-primary/5"
+                  >
+                    Voir tout le catalogue
+                    <MaterialIcon name="arrow_forward" className="text-lg" />
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
