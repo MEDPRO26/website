@@ -9,26 +9,6 @@ const siteUrl = (
 
 export const contactPhone = PHONE_NUMBER;
 
-const PRICE_ON_REQUEST = "Prix sur demande — contactez-nous pour un devis";
-
-function offerOnRequest(path: string, areaServed: { "@type": string; name: string }) {
-  return {
-    "@type": "Offer",
-    "@id": `${siteUrl}${path}#offer`,
-    availability: "https://schema.org/InStock",
-    priceCurrency: "MAD",
-    priceSpecification: {
-      "@type": "PriceSpecification",
-      priceCurrency: "MAD",
-      description: PRICE_ON_REQUEST,
-      valueAddedTaxIncluded: true,
-    },
-    seller: { "@id": `${siteUrl}/#organization` },
-    areaServed,
-    url: `${siteUrl}${path}`,
-  };
-}
-
 export function websiteSchema() {
   return {
     "@type": "WebSite",
@@ -208,7 +188,6 @@ export function productSchema(
     sku: product.slug,
     mpn: product.slug,
     itemCondition: "https://schema.org/NewCondition",
-    offers: offerOnRequest(path, { "@type": "City", name: product.city }),
     areaServed: { "@type": "City", name: product.city },
     ...(relatedProductPaths.length > 0
       ? {
@@ -299,33 +278,6 @@ export function serviceSchema(
     provider: { "@id": `${siteUrl}/#organization` },
     areaServed: { "@type": "Country", name: "Maroc" },
     ...(path ? { url: `${siteUrl}${path}` } : {}),
-  };
-}
-
-export function offerCatalogSchema(
-  name: string,
-  path: string,
-  offers: { name: string; price: string; description?: string; category?: string }[]
-) {
-  return {
-    "@type": "OfferCatalog",
-    "@id": `${siteUrl}${path}#catalog`,
-    name,
-    itemListElement: offers.map((offer, index) => ({
-      "@type": "Offer",
-      position: index + 1,
-      name: offer.name,
-      description: offer.description ?? PRICE_ON_REQUEST,
-      priceCurrency: "MAD",
-      priceSpecification: {
-        "@type": "PriceSpecification",
-        priceCurrency: "MAD",
-        description: offer.price,
-      },
-      availability: "https://schema.org/InStock",
-      areaServed: { "@type": "Country", name: "Maroc" },
-      category: offer.category,
-    })),
   };
 }
 

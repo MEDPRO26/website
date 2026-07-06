@@ -15,12 +15,12 @@ Objectif : corriger les erreurs qui bloquent ou polluent Google Search Console a
 - [x] Retirer Organization/WebSite dupliqués de la homepage
 - [x] `@id` **LocalBusiness** unique par ville (`#localbusiness-agadir`, `#localbusiness-rabat`, etc.)
 - [x] Lier LocalBusiness à Organization via `parentOrganization`
-- [x] Corriger **Product/Offer** : retirer `price: "0"`, garder `priceSpecification` « Prix sur demande »
-- [x] Corriger **OfferCatalog** : retirer `price: "0"`
+- [x] Corriger **Product** : pas de bloc `Offer` (devis sur demande — évite les erreurs Merchant dans GSC)
+- [x] Retirer **OfferCatalog** inutilisé (plus de prix dans le schema)
 - [x] Retirer WhatsApp de `sameAs` (réservé aux profils sociaux / GBP)
 - [x] Étendre `areaServed` Organization à toutes les villes actives
 - [x] Vérifier dans GSC → URL Inspection : homepage, `/agadir`, 1 produit, `/contact`
-- [x] Vérifier Enhancements : Breadcrumbs, FAQ, Products (warnings attendus sur prix)
+- [x] Vérifier Enhancements : Breadcrumbs, FAQ (Product sans Offer — pas d'alertes Merchant)
 
 ---
 
@@ -86,7 +86,7 @@ Objectif : chaque type de page a le bon schéma, sans duplication.
 - [x] `robots.txt` avec sitemap + blocage `/admin`, `/supplier`
 - [x] `NEXT_PUBLIC_ALLOW_INDEXING` via Vercel Production
 - [x] Canonical `https://www.sossante.ma`
-- [ ] Soumettre sitemap dans Google Search Console
+- [x] Soumettre sitemap dans Google Search Console
 - [ ] Soumettre sitemap dans Bing Webmaster Tools
 - [ ] Monitoring 404 / couverture index hebdomadaire
 
@@ -94,6 +94,6 @@ Objectif : chaque type de page a le bon schéma, sans duplication.
 
 ## Notes
 
-- **Prix sur demande** : pas de rich results Product tant qu’il n’y a pas de prix réel — c’est normal.
+- **Devis sur demande** : le schema **Product** n'inclut pas de prix ni d'`Offer` — pas de rich results produit, mais plus d'alertes Merchant/Product invalides dans GSC. Les prix restent visibles sur le site (« Prix sur demande ») et via le formulaire de devis.
 - **Un seul `<script type="application/ld+json">` par page** (+ le global layout pour Organization/WebSite est acceptable ; les pages ne redéclarent pas Organization).
-- Dernière mise à jour Phase 2 : 2026-07-06
+- Dernière mise à jour : 2026-07-06 (retrait Offer Product)
