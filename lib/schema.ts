@@ -173,6 +173,7 @@ export function productSchema(
   productPath: string,
   relatedProductPaths: string[] = []
 ) {
+  // Reserved for when real prices are available — re-enable in productPageGraph().
   const path = normalizePath(productPath);
   return {
     "@type": "Product",
@@ -217,11 +218,6 @@ export function productPageGraph(
 
   const nodes: Record<string, unknown>[] = [
     webPageSchema(path, product.seoTitle, product.seoDescription),
-    productSchema(
-      product,
-      path,
-      relatedItems.map((item) => item.url)
-    ),
     productBreadcrumbSchema(path, product.shortName, hubPath, hubLabel),
   ];
 

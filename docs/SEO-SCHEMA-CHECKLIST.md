@@ -36,7 +36,7 @@ Objectif : chaque type de page a le bon schéma, sans duplication.
 | City hub (`/agadir`) | [x] | [x] | [x] | [x] | [x] | [-] | [-] | [-] |
 | Vente city | [x] | [x] | [x] | [-] | [x] | [-] | [-] | [-] |
 | Category vente | [x] | [x] | [x] | [-] | [x] | [-] | [-] | [-] |
-| Product | [x] | [x] | [-] | [-] | [x] | [x] | [-] | [-] |
+| Product | [x] | [x] | [-] | [-] | [x] | [-] | [-] | [-] |
 | Care service | [x] | [x] | [x] | [x] | [-] | [-] | [x] | [-] |
 | Services hub | [x] | [x] | [x] | [-] | [-] | [-] | [x] | [-] |
 | Blog index | [x] | [x] | [-] | [-] | [x] | [-] | [-] | [-] |
