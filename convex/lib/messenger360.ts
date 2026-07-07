@@ -21,6 +21,8 @@ export type Inbound360Message = {
   toPhone?: string;
   text: string;
   type: "chat" | "file";
+  /** Raw 360Messenger type (chat, file, ptt, image, …). */
+  sourceType?: string;
   mediaUrl?: string;
   mediaKind?: InboundMediaKind;
   apiKeyHint?: string;
@@ -54,7 +56,7 @@ function isHttpUrl(value: string) {
   return value.startsWith("http://") || value.startsWith("https://");
 }
 
-/** Pull a media URL from any known or embedded field in the webhook payload. */
+/** Pull a media URL from known 360Messenger file fields only (not arbitrary payload URLs). */
 export function extractMediaUrl(record: Record<string, unknown>) {
   const direct =
     readString(record.url) ||
@@ -72,13 +74,6 @@ export function extractMediaUrl(record: Record<string, unknown>) {
   const chat = readString(record.chat);
   if (isHttpUrl(chat)) {
     return chat;
-  }
-
-  for (const value of Object.values(record)) {
-    const candidate = readString(value);
-    if (isHttpUrl(candidate)) {
-      return candidate;
-    }
   }
 
   return "";
@@ -144,14 +139,15 @@ export function parseInboundPayload(raw: unknown): Inbound360Message | Delivery3
     return null;
   }
 
-  const isFile = FILE_MESSAGE_TYPES.has(type) || Boolean(mediaUrl);
+  const isFile = FILE_MESSAGE_TYPES.has(type);
 
   if (!isFile && !caption) {
     return null;
   }
 
-  const mediaKind = isFile
-    ? detectMediaKind(mediaUrl, record, type)
+  const resolvedMediaUrl = isFile ? mediaUrl || undefined : undefined;
+  const mediaKind = resolvedMediaUrl
+    ? detectMediaKind(resolvedMediaUrl, record, type)
     : undefined;
   const fallbackLabel = mediaKind ? MEDIA_LABEL[mediaKind] : "Fichier";
   const text = isFile ? caption || `[${fallbackLabel}]` : caption;
@@ -162,7 +158,8 @@ export function parseInboundPayload(raw: unknown): Inbound360Message | Delivery3
     toPhone: readString(record.to) || undefined,
     text,
     type: isFile ? "file" : "chat",
-    mediaUrl: mediaUrl || undefined,
+    sourceType: type,
+    mediaUrl: resolvedMediaUrl,
     mediaKind,
     apiKeyHint: readString(record.hash) || undefined,
   };
@@ -175,7 +172,7 @@ const MEDIA_LABEL: Record<InboundMediaKind, string> = {
   document: "Document",
 };
 
-function detectMediaKind(
+export function detectMediaKind(
   url: string,
   record: Record<string, unknown>,
   type = "file"
@@ -194,7 +191,10 @@ function detectMediaKind(
     record.filetype
   )} ${readString(record.datatype)} ${type}`.toLowerCase();
 
-  if (/(audio|voice|ptt|ogg|oga|opus|mp3|m4a|wav|amr|aac|storage-whatsapp|api\.360messenger\.com\/files)/.test(hint)) {
+  if (
+    /(audio|voice|ptt|ogg|oga|opus|mp3|m4a|wav|amr|aac)/.test(hint) ||
+    /storage-whatsapp.*\.(oga|ogg|opus|mp3|m4a|wav|amr|aac)/.test(hint)
+  ) {
     return "audio";
   }
   if (/(image|jpg|jpeg|png|gif|webp|heic)/.test(hint)) {
@@ -233,11 +233,21 @@ function readReceivedRows(body: unknown): Received360Row[] {
   return [];
 }
 
+export type Fetched360Media = {
+  mediaUrl: string;
+  sourceType: string;
+  record: Record<string, unknown>;
+};
+
 /** Fetch file URL from 360Messenger when the webhook omits it. */
-export async function fetchReceivedMessageMediaUrl(
+export async function fetchReceivedMessageMedia(
   apiKey: string,
-  opts: { messageId?: string; fromPhone?: string }
-) {
+  opts: { messageId: string; fromPhone?: string }
+): Promise<Fetched360Media | null> {
+  if (!opts.messageId) {
+    return null;
+  }
+
   const phoneDigitsValue = opts.fromPhone ? phoneDigits(opts.fromPhone) : "";
   const phoneFilter = phoneDigitsValue
     ? `&phonenumber=${encodeURIComponent(phoneDigitsValue)}`
@@ -260,20 +270,18 @@ export async function fetchReceivedMessageMediaUrl(
   for (const row of rows) {
     const record = normalizeRecord(row);
     const id = readString(record.id);
-    if (opts.messageId) {
-      if (!id || id !== opts.messageId) {
-        continue;
-      }
+    if (!id || id !== opts.messageId) {
+      continue;
     }
 
     const rowType = (readString(record.type) || "chat").toLowerCase();
-    if (rowType === "chat" && opts.messageId) {
-      continue;
+    if (rowType === "chat") {
+      return null;
     }
 
     const mediaUrl = extractMediaUrl(record);
     if (mediaUrl) {
-      return mediaUrl;
+      return { mediaUrl, sourceType: rowType, record };
     }
   }
 

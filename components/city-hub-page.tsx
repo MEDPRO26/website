@@ -5,7 +5,7 @@ import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import CatalogPickerButton from "@/components/catalog-picker-button";
-import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import QuoteRequestSection from "@/components/quote-request-section";
 import SiteFooter from "@/components/site-footer";
 import { activeCities, getCityBySlug, type CitySlug } from "@/lib/cities";
 import { getCityHubContent } from "@/lib/city-hub-content";
@@ -75,6 +75,7 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
 
   const whatsappText = `Bonjour ${content.badgeLabel}, je souhaite des informations sur le matériel médical à ${city.name}.`;
   const latestProducts = [...getProductsByCity(citySlug)].slice(-6).reverse();
+  const productNames = getProductsByCity(citySlug).map((product) => product.name);
 
   const schema = buildGraph(
     webPageSchema(path, content.metaTitle, content.metaDescription),
@@ -132,7 +133,7 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
               Location et vente de{" "}
               <span className="text-primary">matériel médical</span>, Services
               de <span className="text-primary">soins</span> et{" "}
-              <span className="text-primary">aide</span> à {city.name}
+              <span className="text-primary">aide à domicile</span> à {city.name}
             </h1>
             <p className="font-body mx-auto mb-6 max-w-2xl text-base leading-relaxed text-on-surface-variant sm:text-lg">
               {content.intro}
@@ -503,39 +504,22 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
           </div>
         </section>
 
-        <section className="px-4 pb-14 sm:px-6 sm:pb-20">
-          <div className="mx-auto max-w-5xl rounded-[32px] bg-secondary px-6 py-12 text-center text-on-secondary shadow-2xl shadow-secondary/20 sm:px-10 sm:py-16">
-            <h2 className="font-heading mb-4 text-2xl font-bold sm:text-3xl">
-              Besoin d&apos;un devis à {city.name} ?
-            </h2>
-            <p className="font-body mx-auto mb-8 max-w-xl text-base text-white/90 sm:text-lg">
-              Contactez {content.badgeLabel} pour la vente, la location ou
-              l&apos;aide à domicile. Réponse rapide par WhatsApp ou formulaire.
-            </p>
-            <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <a
-                href={whatsAppHref(whatsappText, "materiel")}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-status-success px-8 py-4 text-base font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:brightness-110"
-              >
-                <WhatsAppIcon className="h-5 w-5" />
-                WhatsApp · {city.name}
-              </a>
-              <Link
-                href="/contact"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white/80 bg-transparent px-8 py-4 text-base font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-white/10"
-              >
-                <MaterialIcon name="edit_note" />
-                Formulaire de contact
-              </Link>
-            </div>
-            <p className="mt-4 text-sm text-white/70">
+        <QuoteRequestSection
+          title={`Besoin d'un devis à ${city.name} ?`}
+          description={`Contactez ${content.badgeLabel} pour la vente, la location ou l'aide à domicile. Nos experts vous répondent en moins de 15 minutes pour organiser la livraison de votre matériel médical.`}
+          whatsappHref={whatsAppHref(whatsappText, "materiel")}
+          defaultCityName={city.name}
+          pagePath={path}
+          productNames={productNames}
+          footerExtra={
+            <>
               Vente :{" "}
               <Link href={venteCityPath(citySlug)} className="underline">
                 catalogue vente {city.name}
               </Link>
-            </p>
-          </div>
-        </section>
+            </>
+          }
+        />
       </main>
       <SiteFooter />
     </>

@@ -14,9 +14,9 @@ import { requireAdminPermission } from "./lib/authz";
 import { findCustomerByPhone } from "./lib/customers";
 import { normalizePhone } from "./lib/refs";
 import {
-  classifyMediaUrl,
+  detectMediaKind,
   enable360Receive,
-  fetchReceivedMessageMediaUrl,
+  fetchReceivedMessageMedia,
   parseHttpBody,
   parseInboundPayload,
   phoneDigits,
@@ -292,7 +292,7 @@ export const processInboundWebhook = internalAction({
 
     let message = parsed;
 
-    if (message.type === "file" && !message.mediaUrl) {
+    if (message.type === "file" && !message.mediaUrl && message.externalId) {
       const channel = await ctx.runQuery(internal.whatsappMessenger.resolveInboundChannel, {
         fromPhone: message.fromPhone,
         toPhone: message.toPhone,
@@ -300,7 +300,7 @@ export const processInboundWebhook = internalAction({
       });
 
       if (channel?.messenger360ApiKey) {
-        const mediaUrl = await fetchReceivedMessageMediaUrl(
+        const fetched = await fetchReceivedMessageMedia(
           channel.messenger360ApiKey,
           {
             messageId: message.externalId,
@@ -308,13 +308,21 @@ export const processInboundWebhook = internalAction({
           }
         );
 
-        if (mediaUrl) {
-          const mediaKind = classifyMediaUrl(mediaUrl, "file");
+        if (fetched) {
+          const mediaKind = detectMediaKind(
+            fetched.mediaUrl,
+            fetched.record,
+            fetched.sourceType
+          );
           message = {
             ...message,
-            mediaUrl,
+            mediaUrl: fetched.mediaUrl,
             mediaKind,
-            text: mediaKind === "audio" ? "[Message vocal]" : message.text,
+            sourceType: fetched.sourceType,
+            text:
+              mediaKind === "audio" && !message.text.trim()
+                ? "[Message vocal]"
+                : message.text,
           };
         }
       }

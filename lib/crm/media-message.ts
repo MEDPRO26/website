@@ -9,12 +9,12 @@ export function resolveMessageMediaKind(
     return mediaKind;
   }
 
-  if (mediaKind && mediaKind !== "document") {
+  if (mediaKind) {
     return mediaKind;
   }
 
   const lower = mediaUrl.toLowerCase();
-  if (isLikelyAudioUrl(lower, text)) {
+  if (isLikelyAudioUrl(lower)) {
     return "audio";
   }
   if (/\.(jpe?g|png|gif|webp|heic)(\?|$)/.test(lower)) {
@@ -24,23 +24,13 @@ export function resolveMessageMediaKind(
     return "video";
   }
 
-  return mediaKind ?? "document";
+  return "document";
 }
 
-function isLikelyAudioUrl(url: string, text?: string) {
-  if (
-    /\.(oga|ogg|opus|mp3|m4a|wav|amr|aac)(\?|$)/.test(url) ||
-    url.includes("storage-whatsapp") ||
-    url.includes("api.360messenger.com/files")
-  ) {
-    return true;
-  }
-
-  const label = text?.trim().toLowerCase();
+function isLikelyAudioUrl(url: string) {
   return (
-    label === "[document]" ||
-    label === "[message vocal]" ||
-    label === "[fichier]"
+    /\.(oga|ogg|opus|mp3|m4a|wav|amr|aac)(\?|$)/.test(url) ||
+    /storage-whatsapp.*\.(oga|ogg|opus|mp3|m4a|wav|amr|aac)/.test(url)
   );
 }
 
@@ -52,4 +42,12 @@ export function shouldShowMessageText(text: string, mediaUrl?: string) {
     return false;
   }
   return true;
+}
+
+export function shouldRenderAudioPlayer(
+  mediaUrl?: string,
+  mediaKind?: MediaKind,
+  text?: string
+) {
+  return resolveMessageMediaKind(mediaUrl, mediaKind, text) === "audio";
 }

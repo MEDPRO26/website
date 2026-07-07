@@ -6,7 +6,7 @@ import {
   isWebmAudio,
 } from "@/lib/crm/audio-upload";
 import { prepareAudioForWhatsApp } from "@/lib/crm/convert-audio";
-import { resolveMessageMediaKind, shouldShowMessageText } from "@/lib/crm/media-message";
+import { resolveMessageMediaKind, shouldRenderAudioPlayer, shouldShowMessageText } from "@/lib/crm/media-message";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
@@ -826,7 +826,7 @@ export function AdminConversationsPage() {
                       >
                         {m.mediaUrl ? (
                           <div className="mb-1 space-y-1">
-                            {mediaKind === "audio" ? (
+                            {shouldRenderAudioPlayer(m.mediaUrl, mediaKind, m.text) ? (
                               <div className="flex items-center gap-2">
                                 <audio
                                   controls

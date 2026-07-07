@@ -121,7 +121,18 @@ export default function FooterContact({
 export function FooterCopyright({ context }: { context: FooterContext }) {
   return (
     <div className="border-t border-outline-variant pt-6 text-center text-xs text-on-surface-variant sm:text-sm md:col-span-4">
-      © 2026 {context.copyrightName}. Tous droits réservés.
+      <p>© 2026 {context.copyrightName}. Tous droits réservés.</p>
+      <p className="mt-2">
+        Créé par{" "}
+        <a
+          href="https://www.itagroupe.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-primary transition-colors hover:text-primary-container"
+        >
+          ITA GROUPE
+        </a>
+      </p>
     </div>
   );
 }
