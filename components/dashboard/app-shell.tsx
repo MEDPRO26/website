@@ -333,7 +333,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             onSignOut={handleSignOut}
             showAdminTools
           />
-          <main className="flex-1 overflow-auto px-4 py-5 sm:px-6 sm:py-6">{children}</main>
+          <main className="flex-1 overflow-auto px-4 py-5 pb-24 sm:px-6 sm:py-6 md:pb-6">{children}</main>
         </div>
       </div>
     </div>
