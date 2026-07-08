@@ -10,7 +10,7 @@ import { resolveMessageMediaKind, shouldRenderAudioPlayer, shouldShowMessageText
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useAction } from "convex/react";
-import { Loader2, Mic, Paperclip, Plus, Send, Settings, Square, Star, Trash2 } from "lucide-react";
+import { ArrowLeft, Loader2, Mic, Paperclip, Plus, Send, Settings, Square, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card } from "@/components/ui/card";
@@ -65,6 +65,8 @@ export function AdminConversationsPage() {
 
   const [channelFilter, setChannelFilter] = useState<string>(ALL_CHANNELS);
   const [activeId, setActiveId] = useState<Id<"conversations"> | null>(null);
+  const [mobileThreadOpen, setMobileThreadOpen] = useState(false);
+  const [isLgUp, setIsLgUp] = useState(false);
   const [reply, setReply] = useState("");
   const [notes, setNotes] = useState("");
   const [clientColor, setClientColor] = useState("#db2777");
@@ -135,6 +137,15 @@ export function AdminConversationsPage() {
   const pipelineOrder = linkedOrders?.primary ?? linkedOrders?.latest ?? null;
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(min-width: 1024px)");
+    const update = () => setIsLgUp(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  useEffect(() => {
     if (!canQueryAdmin || bootstrapped) {
       return;
     }
@@ -172,6 +183,7 @@ export function AdminConversationsPage() {
         });
         setActiveId(result.conversationId);
         setChannelFilter(result.channelId);
+        setMobileThreadOpen(true);
         router.replace("/admin/conversations", { scroll: false });
       } catch (error) {
         deepLinkHandled.current = false;
@@ -197,13 +209,21 @@ export function AdminConversationsPage() {
   }, [channels, newChannelId]);
 
   useEffect(() => {
+    // Desktop keeps a selected thread; mobile defaults to list view.
+    if (!isLgUp) {
+      if (activeId && conversations && !conversations.some((c) => c._id === activeId)) {
+        setActiveId(conversations[0]?._id ?? null);
+      }
+      return;
+    }
+
     if (conversations?.length && !activeId) {
       setActiveId(conversations[0]._id);
     }
     if (conversations && activeId && !conversations.some((c) => c._id === activeId)) {
       setActiveId(conversations[0]?._id ?? null);
     }
-  }, [conversations, activeId]);
+  }, [conversations, activeId, isLgUp]);
 
   useEffect(() => {
     setNotes(activeData?.conversation.notes ?? "");
@@ -712,7 +732,11 @@ export function AdminConversationsPage() {
             </ul>
           </aside>
 
-          <aside className="min-h-0 overflow-y-auto border-r border-border">
+          <aside
+            className={`min-h-0 overflow-y-auto border-r border-border ${
+              mobileThreadOpen ? "hidden lg:block" : ""
+            }`}
+          >
             <div className="border-b border-border p-3 lg:hidden">
               <Select value={channelFilter} onValueChange={setChannelFilter}>
                 <SelectTrigger className="h-9">
@@ -741,7 +765,10 @@ export function AdminConversationsPage() {
                 <li key={c._id}>
                   <button
                     type="button"
-                    onClick={() => setActiveId(c._id)}
+                    onClick={() => {
+                      setActiveId(c._id);
+                      setMobileThreadOpen(true);
+                    }}
                     className={`w-full border-b border-border px-3 py-3 text-left hover:bg-muted/50 ${isActive ? "" : ""}`}
                     style={{
                       backgroundColor: isActive
@@ -812,10 +839,25 @@ export function AdminConversationsPage() {
             </ul>
           </aside>
 
-          <section className="flex min-h-0 min-w-0 flex-col overflow-hidden">
+          <section
+            className={`flex min-h-0 min-w-0 flex-col overflow-hidden ${
+              !mobileThreadOpen ? "hidden lg:flex" : ""
+            }`}
+          >
             {active ? (
               <>
                 <header className="shrink-0 flex flex-wrap items-center justify-between gap-2 border-b border-border p-3">
+                  <div className="flex items-start gap-2">
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="lg:hidden mt-0.5"
+                      onClick={() => setMobileThreadOpen(false)}
+                      aria-label="Retour aux conversations"
+                    >
+                      <ArrowLeft className="size-5" />
+                    </Button>
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-medium" style={{ color: activeClientColor }}>
@@ -834,6 +876,7 @@ export function AdminConversationsPage() {
                       Ligne : {active.channelLabel}
                       {active.channelPhone ? ` (${active.channelPhone})` : ""}
                     </p>
+                  </div>
                   </div>
                   <div className="flex flex-wrap items-start gap-2">
                     <div className="flex flex-col gap-1">
