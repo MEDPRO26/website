@@ -530,6 +530,7 @@ export const completeProfile = mutation({
       services,
       status: "actif",
       profileComplete: true,
+      pwaInstallPromptDismissed: false,
       updatedAt: now,
     });
 
@@ -593,5 +594,26 @@ export const updateProfile = mutation({
     });
 
     return supplier._id;
+  },
+});
+
+export const dismissPwaInstallPrompt = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const { staff, supplier } = await requireSupplierStaff(ctx);
+
+    // If the supplier profile is not active anymore, ignore gracefully.
+    if (!supplier || supplier.status !== "actif") {
+      return { dismissed: true as const };
+    }
+
+    const now = Date.now();
+    await ctx.db.patch(supplier._id, {
+      pwaInstallPromptDismissed: true,
+      pwaInstallPromptDismissedAt: now,
+      updatedAt: now,
+    });
+
+    return { dismissed: true as const };
   },
 });

@@ -112,6 +112,12 @@ export default defineSchema({
     notes: v.optional(v.string()),
     responseAvg: v.optional(v.string()),
     profileComplete: v.optional(v.boolean()),
+    /**
+     * When false/undefined, we show a one-time popup to invite suppliers
+     * to install the web app icon on their phone.
+     */
+    pwaInstallPromptDismissed: v.optional(v.boolean()),
+    pwaInstallPromptDismissedAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

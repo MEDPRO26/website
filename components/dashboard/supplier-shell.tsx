@@ -20,6 +20,7 @@ import { useSupplierSession } from "@/hooks/use-supplier-session";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { SupplierWebappInstallPrompt } from "@/components/crm/supplier-webapp-install-prompt";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -320,6 +321,9 @@ export function SupplierShell({ children }: { children: ReactNode }) {
             onSignOut={handleSignOut}
           />
           <main className="flex-1 min-h-0 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6 pb-28 md:pb-6">
+            {profileComplete ? (
+              <SupplierWebappInstallPrompt supplier={supplier} />
+            ) : null}
             {children}
           </main>
         </div>
