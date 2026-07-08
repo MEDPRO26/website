@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Source_Serif_4 } from "next/font/google";
-import MobileBottomNav from "@/components/mobile-bottom-nav";
+import { BottomNavRoot } from "@/components/bottom-nav-root";
 import ConvexClientProvider from "@/components/convex-client-provider";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { LOGO, HOMEPAGE_OG_ALT, HOMEPAGE_OG_IMAGE, SITE_DISPLAY_NAME, SITE_URL_DEFAULT } from "@/lib/brand";
@@ -117,7 +117,7 @@ export default async function RootLayout({
         <body className="min-h-full flex flex-col font-sans">
           <GlobalSiteJsonLd />
           <ConvexClientProvider>{children}</ConvexClientProvider>
-          <MobileBottomNav />
+          <BottomNavRoot />
         </body>
       </html>
     </ConvexAuthNextjsServerProvider>

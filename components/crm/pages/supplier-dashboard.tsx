@@ -122,7 +122,7 @@ function DashboardStatCard({
   return (
     <Card
       className={cn(
-        "p-5 border-0 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)]",
+        "p-4 border-0 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)]",
         isDark ? "bg-[#111827] text-white" : "bg-white"
       )}
     >
@@ -130,17 +130,17 @@ function DashboardStatCard({
         <div className="min-w-0">
           <p
             className={cn(
-              "text-sm truncate",
+              "text-xs truncate",
               isDark ? "text-slate-300" : "text-muted-foreground"
             )}
           >
             {label}
           </p>
-          <p className="mt-1 text-2xl font-bold tracking-tight">{value}</p>
+          <p className="mt-1 text-xl font-bold tracking-tight">{value}</p>
           {hint ? (
             <p
               className={cn(
-                "mt-1 text-xs",
+                "mt-1 text-[11px] leading-snug",
                 isDark ? "text-slate-400" : "text-muted-foreground"
               )}
             >
@@ -150,13 +150,13 @@ function DashboardStatCard({
         </div>
         <div
           className={cn(
-            "grid size-11 shrink-0 place-items-center rounded-2xl",
+            "grid size-10 shrink-0 place-items-center rounded-2xl",
             isDark
               ? "bg-white/10 text-white"
               : "bg-brand-soft text-brand-deep"
           )}
         >
-          <Icon className="size-5" />
+          <Icon className="size-[18px]" />
         </div>
       </div>
     </Card>

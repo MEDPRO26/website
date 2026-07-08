@@ -160,11 +160,11 @@ function StatSummaryCard({
         : "bg-muted text-muted-foreground";
 
   return (
-    <Card className="border-0 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)]">
+    <Card className="border-0 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="min-w-0 truncate text-xs text-muted-foreground">{label}</p>
             {badge ? (
               <span
                 className={cn(
@@ -176,15 +176,17 @@ function StatSummaryCard({
               </span>
             ) : null}
           </div>
-          <p className="mt-2 text-3xl font-bold tracking-tight text-foreground">
+          <p className="mt-1 text-xl font-bold tracking-tight text-foreground">
             {typeof value === "number" ? String(value).padStart(2, "0") : value}
           </p>
           {hint ? (
-            <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+            <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
+              {hint}
+            </p>
           ) : null}
         </div>
-        <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand-deep">
-          <Icon className="size-5" />
+        <div className="grid size-10 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand-deep">
+          <Icon className="size-[18px]" />
         </div>
       </div>
     </Card>
@@ -298,7 +300,7 @@ export function SupplierOrdersPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <StatSummaryCard
           label="Total aujourd'hui"
           value={stats.totalToday}

@@ -293,8 +293,8 @@ export function SupplierShell({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="supplier-portal min-h-screen bg-[#e8ecf2]">
-      <div className="flex min-h-screen w-full">
+    <div className="supplier-portal h-[100dvh] overflow-hidden bg-[#e8ecf2]">
+      <div className="flex h-full w-full">
         <aside className="hidden md:flex w-[260px] shrink-0 flex-col bg-[#111827]">
           <SupplierSidebar supplierName={userName} onSignOut={handleSignOut} />
         </aside>
@@ -312,14 +312,14 @@ export function SupplierShell({ children }: { children: ReactNode }) {
           </SheetContent>
         </Sheet>
 
-        <div className="flex min-w-0 flex-1 flex-col supplier-main-bg">
+        <div className="flex min-w-0 min-h-0 flex-1 flex-col supplier-main-bg">
           <SupplierTopbar
             userName={userName}
             userInitials={userInitials}
             onMenu={() => setMobileOpen(true)}
             onSignOut={handleSignOut}
           />
-          <main className="flex-1 overflow-auto px-4 py-5 sm:px-6 sm:py-6 pb-24 md:pb-6">
+          <main className="flex-1 min-h-0 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6 pb-28 md:pb-6">
             {children}
           </main>
         </div>
