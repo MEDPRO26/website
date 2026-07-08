@@ -17,16 +17,16 @@ export type OrderStatus =
 export const STATUS_LABEL: Record<OrderStatus, string> = {
   nouvelle: "Nouvelle demande",
   a_qualifier: "client confirme",
-  a_affecter: "À affecter",
+  a_affecter: "Nouvelle demande",
   envoyee_fournisseur: "Envoyée fournisseur",
   vue_fournisseur: "Vue fournisseur",
   prix_recu: "Prix reçu",
   offre_envoyee: "Offre envoyée",
-  acceptee: "Acceptée client",
+  acceptee: "Prix accepté",
   planifiee: "Planifiée",
-  en_cours: "En cours",
+  en_cours: "En cours de livraison",
   location_active: "Location active",
-  terminee: "Terminée",
+  terminee: "Commande livrée",
   annulee: "Annulée",
   reclamation: "Réclamation ouverte",
 };
@@ -98,7 +98,7 @@ export const ORDERS: Order[] = [
     city: "Inezgane", district: "Centre", address: "Av. Mohammed V",
     type: "Garde-malade", item: "Garde de nuit, 7 jours",
     duration: "1 semaine", desiredDate: "2026-06-27", slot: "Nuit",
-    source: "Formulaire site", status: "a_affecter",
+    source: "Formulaire site", status: "nouvelle",
     assistant: "Salma B.", createdAt: "2026-06-26 11:02",
     message: "Ma mère sort de l'hôpital, on cherche une garde de nuit sérieuse.",
   },
@@ -302,7 +302,7 @@ export const CMS_PAGES = [
 ];
 
 export const KPI = {
-  newToday: 7, toAssign: 4, waitingSupplier: 6, pricesReceived: 3,
+  newToday: 7, waitingSupplier: 6, pricesReceived: 3,
   offersSent: 5, confirmed: 9, activeRentals: 14, openComplaints: 2, dueCommissions: 1840,
 };
 

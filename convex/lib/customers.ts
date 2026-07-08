@@ -89,7 +89,6 @@ export async function upsertCustomer(
 
   if (existing) {
     await ctx.db.patch(existing._id, {
-      name: input.name.trim(),
       email: input.email?.trim() || existing.email,
       city: input.city.trim(),
       district: input.district?.trim() || existing.district,

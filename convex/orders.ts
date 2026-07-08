@@ -1,5 +1,5 @@
 import { internalMutation, mutation, query } from "./_generated/server";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAdminPermission, requireAdminStaff } from "./lib/authz";
@@ -9,11 +9,13 @@ import { formatStatusChange } from "./lib/orderStatus";
 import { parseRentalDurationMs } from "./lib/rentalDates";
 import { upsertSupplierQuote } from "./lib/submitSupplierQuote";
 import { pushNotification } from "./lib/notifications";
+import { notifySupplierOfAssignment } from "./lib/supplierOrderNotifications";
 import { logAudit } from "./lib/auditLog";
 import {
   buildDefaultOfferMessage,
 } from "./lib/pricing";
 import { getQuotePricing } from "./lib/quotePricing";
+import { resolveOrderClientFirstName, resolveOrderClientName } from "./lib/orderClient";
 import { orderStatusValidator } from "./validators";
 
 const submitFromWebsiteArgs = {
@@ -162,6 +164,8 @@ export const createManual = mutation({
         const order = await ctx.db.get(result.orderId);
         await ctx.db.patch(args.conversationId, {
           customerId: conversation.customerId ?? order?.customerId,
+          orderId: result.orderId,
+          orderRef: result.ref,
           status: "en_cours",
           updatedAt: Date.now(),
         });
@@ -237,7 +241,7 @@ export const search = query({
         ref: order.ref,
         status: order.status,
         item: order.item,
-        clientName: customer?.name ?? "—",
+        clientName: resolveOrderClientName(order, customer),
       });
       if (matches.length >= 15) {
         break;
@@ -296,7 +300,6 @@ export const dashboardStats = query({
       "planifiee",
       "en_cours",
       "location_active",
-      "terminee",
     ]);
     const offerStatuses = new Set([
       "offre_envoyee",
@@ -310,10 +313,12 @@ export const dashboardStats = query({
     return {
       total: orders.length,
       newToday,
-      toAssign: orders.filter((order) => order.status === "a_affecter").length,
-      nouvelle: orders.filter((order) => order.status === "nouvelle").length,
+      nouvelle: orders.filter((order) =>
+        ["nouvelle", "a_qualifier", "a_affecter"].includes(order.status)
+      ).length,
       offersSent: orders.filter((order) => offerStatuses.has(order.status)).length,
       confirmed: orders.filter((order) => confirmedStatuses.has(order.status)).length,
+      delivered: orders.filter((order) => order.status === "terminee").length,
       activeRentals: orders.filter((order) => order.status === "location_active")
         .length,
       openComplaints: (await ctx.db.query("complaints").collect()).filter(
@@ -578,21 +583,26 @@ export const assignSupplier = mutation({
       throw new Error("Commande introuvable.");
     }
 
-    let supplierName: string | null = null;
+    let supplier: Doc<"suppliers"> | null = null;
     if (args.supplierId) {
-      const supplier = await ctx.db.get(args.supplierId);
+      supplier = await ctx.db.get(args.supplierId);
       if (!supplier) {
         throw new Error("Fournisseur introuvable.");
       }
       if (supplier.status !== "actif") {
         throw new Error("Ce fournisseur n'est pas actif.");
       }
-      supplierName = supplier.name;
     }
+
+    const supplierName = supplier?.name ?? null;
 
     const shouldSend =
       Boolean(args.supplierId) &&
-      ["nouvelle", "a_qualifier", "a_affecter"].includes(order.status);
+      (["nouvelle", "a_qualifier", "a_affecter"].includes(order.status) ||
+        (args.supplierId !== order.supplierId &&
+          ["envoyee_fournisseur", "vue_fournisseur", "prix_recu"].includes(
+            order.status
+          )));
 
     await ctx.db.patch(args.orderId, {
       supplierId: args.supplierId,
@@ -617,6 +627,14 @@ export const assignSupplier = mutation({
         fromStatus: order.status,
         toStatus: "envoyee_fournisseur",
         actorStaffId: actor._id,
+      });
+    }
+
+    if (shouldSend && supplier) {
+      await notifySupplierOfAssignment(ctx, {
+        supplier,
+        order,
+        orderId: args.orderId,
       });
     }
 
@@ -733,7 +751,9 @@ export const smokeTestFlow = internalMutation({
       commissionAmount: pricing.commissionAmount,
       finalPrice: pricing.finalPrice,
       message: buildDefaultOfferMessage({
-        clientFirstName: customer?.name.split(" ")[0] ?? "client",
+        clientFirstName: order
+          ? resolveOrderClientFirstName(order, customer)
+          : "client",
         requestType: order?.type ?? "Location matériel médical",
         item: order?.item ?? "Lit médicalisé",
         duration: order?.duration,
@@ -839,6 +859,46 @@ async function deleteOrderRecord(ctx: MutationCtx, orderId: Id<"orders">) {
 
   return order;
 }
+
+export const migrateClientNames = mutation({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdminStaff(ctx);
+
+    const orders = await ctx.db.query("orders").collect();
+    const notifications = await ctx.db.query("notifications").collect();
+    let updated = 0;
+
+    for (const order of orders) {
+      if (order.clientName?.trim()) {
+        continue;
+      }
+
+      const notification = notifications.find(
+        (row) =>
+          row.entityId === order._id &&
+          row.title.startsWith("Nouvelle demande — ")
+      );
+      const fromNotification = notification
+        ? notification.title.replace(/^Nouvelle demande — /, "").trim()
+        : "";
+
+      const customer = await ctx.db.get(order.customerId);
+      const clientName = fromNotification || customer?.name?.trim();
+      if (!clientName) {
+        continue;
+      }
+
+      await ctx.db.patch(order._id, {
+        clientName,
+        updatedAt: Date.now(),
+      });
+      updated += 1;
+    }
+
+    return { updated };
+  },
+});
 
 export const remove = mutation({
   args: { id: v.id("orders") },

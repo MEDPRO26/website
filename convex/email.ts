@@ -37,6 +37,37 @@ function buildInviteEmailHtml(args: {
 </html>`;
 }
 
+function buildSupplierOrderAssignmentHtml(args: {
+  supplierName: string;
+  orderRef: string;
+  orderUrl: string;
+}) {
+  return `
+<!DOCTYPE html>
+<html lang="fr">
+  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #474b56; max-width: 560px; margin: 0 auto; padding: 24px;">
+    <h1 style="color: #2890e0; font-size: 22px;">Centre SOS Santé</h1>
+    <p>Bonjour <strong>${args.supplierName}</strong>,</p>
+    <p>
+      Une nouvelle commande vous a été affectée : <strong>${args.orderRef}</strong>.
+    </p>
+    <p>
+      Connectez-vous à votre espace fournisseur pour consulter les détails
+      et envoyer votre offre de prix.
+    </p>
+    <p style="margin: 32px 0;">
+      <a href="${args.orderUrl}"
+         style="background: #32a0f3; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; display: inline-block;">
+        Voir la commande
+      </a>
+    </p>
+    <p style="font-size: 13px; color: #747782;">
+      Lien direct : <a href="${args.orderUrl}">${args.orderUrl}</a>
+    </p>
+  </body>
+</html>`;
+}
+
 function buildStaffNotificationHtml(args: {
   description: string;
   link: string;
@@ -107,6 +138,24 @@ export const sendSupplierInvitation = internalAction({
       subject: `Invitation espace fournisseur — ${args.supplierName}`,
       html: buildInviteEmailHtml(args),
       devLabel: "Supplier invitation email",
+      devPayload: args,
+    });
+  },
+});
+
+export const sendSupplierOrderAssignment = internalAction({
+  args: {
+    to: v.string(),
+    supplierName: v.string(),
+    orderRef: v.string(),
+    orderUrl: v.string(),
+  },
+  handler: async (_ctx, args) => {
+    return await sendResendEmail({
+      to: args.to,
+      subject: `Nouvelle commande affectée — ${args.orderRef}`,
+      html: buildSupplierOrderAssignmentHtml(args),
+      devLabel: "Supplier order assignment email",
       devPayload: args,
     });
   },

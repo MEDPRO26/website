@@ -134,6 +134,16 @@ body:has(.crm-app) [role="listbox"] {
   box-shadow: var(--shadow-card) !important;
 }
 
+body:has(.crm-app) [role="alertdialog"] {
+  background-color: #ffffff !important;
+  color: #474b56 !important;
+}
+
+body:has(.crm-app) [role="alertdialog"] .bg-status-error {
+  background-color: #ef4444 !important;
+  color: #ffffff !important;
+}
+
 /* Softer controls inside CRM */
 .crm-app input:not([type="checkbox"]):not([type="radio"]),
 .crm-app textarea {

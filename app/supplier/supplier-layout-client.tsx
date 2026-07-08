@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { SupplierShell } from "@/components/dashboard/app-shell";
+import { SupplierShell } from "@/components/dashboard/supplier-shell";
 
 function isPublicSupplierRoute(pathname: string) {
   return (

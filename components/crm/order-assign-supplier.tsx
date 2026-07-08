@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Handshake } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -57,19 +57,26 @@ export function OrderAssignSupplier({
   };
 
   if (supplierId && supplierName) {
+    const initial = supplierName.trim().charAt(0).toUpperCase();
     return (
-      <div className="rounded-lg border border-border p-4">
+      <div className="rounded-xl border border-success/20 bg-success-soft/20 p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <Link
-              href={`/admin/suppliers/${supplierId}`}
-              className="font-medium text-brand hover:underline"
-            >
-              {supplierName}
-            </Link>
-            <p className="text-xs text-muted-foreground">
-              Fournisseur affecté à cette commande
-            </p>
+          <div className="flex items-center gap-3">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-bold text-white shadow-sm">
+              {initial}
+            </span>
+            <div>
+              <Link
+                href={`/admin/suppliers/${supplierId}`}
+                className="font-semibold text-brand hover:underline"
+              >
+                {supplierName}
+              </Link>
+              <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Handshake className="size-3" />
+                Fournisseur certifié
+              </p>
+            </div>
           </div>
           <Tag tone="success">Affecté</Tag>
         </div>

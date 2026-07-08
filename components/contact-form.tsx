@@ -6,6 +6,10 @@ import { useSubmitLead } from "@/hooks/use-submit-lead";
 import { catalogProducts } from "@/lib/catalog-products";
 import { careServiceFormOptions } from "@/lib/care-services";
 import { activeCities, DEFAULT_DELIVERY_CITY } from "@/lib/delivery-cities";
+import {
+  getLeadRequestKindOptionLabel,
+  isLeadRequestKindDisabled,
+} from "@/lib/lead-form-request-kinds";
 
 type ContactRequestKind = "general" | "location" | "vente" | "service";
 
@@ -95,6 +99,10 @@ export default function ContactForm() {
       return;
     }
     if (showItemField && !formData.item) {
+      setFormStatus("error");
+      return;
+    }
+    if (isLeadRequestKindDisabled(formData.demandeType)) {
       setFormStatus("error");
       return;
     }
@@ -254,8 +262,12 @@ export default function ContactForm() {
           className="w-full rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         >
           {SUBJECT_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
+            <option
+              key={option.value}
+              value={option.value}
+              disabled={isLeadRequestKindDisabled(option.value)}
+            >
+              {getLeadRequestKindOptionLabel(option.label, option.value)}
             </option>
           ))}
         </select>

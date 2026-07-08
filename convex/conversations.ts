@@ -1,9 +1,18 @@
-import { mutation, query, type MutationCtx } from "./_generated/server";
+import { mutation, query, internalMutation, action, type MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { requireAdminStaff } from "./lib/authz";
 import { findCustomerByPhone, findCustomerForConversation } from "./lib/customers";
-import { resolveChannelIdForCity } from "./lib/whatsappChannelCity";
+import {
+  resolveChannelIdForCity,
+  isWebsiteFormSource,
+} from "./lib/whatsappChannelCity";
+import {
+  ensureConversationOutboundChannel,
+  findOrCreateOutboundConversation,
+  inferOrderSourceForContact,
+} from "./lib/whatsappOutboundConversation";
+import { pruneOrderThreadClientMessages } from "./lib/whatsappConversationRouting";
 import { conversationStatusValidator } from "./validators";
 import { normalizePhone } from "./lib/refs";
 import { logAudit } from "./lib/auditLog";
@@ -68,8 +77,6 @@ function summarizeOrderLink(orders: Doc<"orders">[]) {
     offreEnvoyee ??
     prixRecu ??
     nouvelle ??
-    sorted.find((order) => order.status === "a_qualifier") ??
-    sorted.find((order) => order.status === "a_affecter") ??
     acceptee ??
     latest ??
     null;
@@ -88,17 +95,13 @@ function summarizeOrderLink(orders: Doc<"orders">[]) {
     nouvelle: nouvelle ? toSummary(nouvelle) : null,
     offreEnvoyee: offreEnvoyee ? toSummary(offreEnvoyee) : null,
     acceptee: acceptee ? toSummary(acceptee) : null,
-    starColor: acceptee
-      ? ("yellow" as const)
-      : sorted.some((order) => order.status !== "nouvelle")
-        ? ("blue" as const)
-        : null,
+    starColor: acceptee ? ("yellow" as const) : null,
   };
 }
 
 const STATUS_LABEL: Record<string, string> = {
   nouveau: "Nouveau",
-  en_cours: "En cours",
+  en_cours: "En cours de livraison",
   traite: "Traité",
 };
 
@@ -142,7 +145,11 @@ export const list = query({
           const customerId =
             row.customerId ??
             (await resolveCustomerIdForConversation(ctx, row));
-          const orderLink = customerId
+          const orderLink = row.orderId
+            ? summarizeOrderLink(
+                allOrders.filter((order) => order._id === row.orderId)
+              )
+            : customerId
             ? summarizeOrderLink(ordersByCustomerId.get(customerId) ?? [])
             : {
                 latest: null,
@@ -223,6 +230,13 @@ export const getLinkedOrder = query({
       return null;
     }
 
+    if (conversation.orderId) {
+      const order = await ctx.db.get(conversation.orderId);
+      if (order) {
+        return summarizeOrderLink([order]);
+      }
+    }
+
     let customerId = await resolveCustomerIdForConversation(ctx, conversation);
     if (!customerId) {
       return null;
@@ -244,90 +258,48 @@ export const ensureForContact = mutation({
     city: v.optional(v.string()),
     message: v.optional(v.string()),
     source: v.optional(v.string()),
+    orderSource: v.optional(v.string()),
+    orderId: v.optional(v.id("orders")),
   },
   handler: async (ctx, args) => {
     await requireAdminStaff(ctx);
 
-    const channelId = await resolveChannelIdForCity(ctx, args.city);
-    if (!channelId) {
-      throw new Error("Aucune ligne WhatsApp configurée.");
-    }
-
-    const channel = await ctx.db.get(channelId);
-    if (!channel) {
-      throw new Error("Ligne WhatsApp introuvable.");
-    }
-
-    const now = Date.now();
     const phone = normalizePhone(args.phone);
     const name = args.name.trim() || `Client ${phone}`;
     const text = args.message?.trim();
     const customer = await findCustomerByPhone(ctx, phone);
-
-    const existing = await ctx.db
-      .query("conversations")
-      .withIndex("by_channelId_phone", (q) =>
-        q.eq("channelId", channelId).eq("phone", phone)
-      )
-      .first();
-
-    if (existing) {
-      if (text) {
-        await ctx.db.insert("conversationMessages", {
-          conversationId: existing._id,
-          from: "client",
-          text,
-          createdAt: now,
-        });
-        await ctx.db.patch(existing._id, {
-          lastMessage: text,
-          lastMessageAt: now,
-          unreadCount: existing.unreadCount + 1,
-          status: "nouveau",
-          customerId: existing.customerId ?? customer?._id,
-          updatedAt: now,
-        });
-      } else if (!existing.customerId && customer?._id) {
-        await ctx.db.patch(existing._id, {
-          customerId: customer._id,
-          updatedAt: now,
-        });
-      }
-
-      return {
-        conversationId: existing._id,
-        channelId,
-        created: false as const,
-      };
-    }
-
-    const conversationId = await ctx.db.insert("conversations", {
-      name,
+    const conversationSource = args.source?.trim() || "Commande CRM";
+    const orderSource = await inferOrderSourceForContact(
+      ctx,
       phone,
-      channelId,
+      args.orderSource
+    );
+    const isFormLead = isWebsiteFormSource(orderSource);
+    const clientMessage = isFormLead ? undefined : text;
+    const linkedOrder = args.orderId ? await ctx.db.get(args.orderId) : null;
+
+    const existingOnPhone = await ctx.db
+      .query("conversations")
+      .withIndex("by_phone", (q) => q.eq("phone", phone))
+      .collect();
+
+    const result = await findOrCreateOutboundConversation(ctx, {
+      phone,
+      name,
       customerId: customer?._id,
-      status: "nouveau",
-      lastMessage: text || "Contact depuis le CRM",
-      lastMessageAt: now,
-      unreadCount: text ? 1 : 0,
-      source: args.source?.trim() || `WhatsApp · ${channel.label}`,
-      createdAt: now,
-      updatedAt: now,
+      customerCity: args.city,
+      orderSource: args.orderSource,
+      orderId: args.orderId,
+      orderRef: linkedOrder?.ref,
+      source: conversationSource,
+      status: clientMessage ? "nouveau" : "en_cours",
+      clientMessage,
     });
 
-    if (text) {
-      await ctx.db.insert("conversationMessages", {
-        conversationId,
-        from: "client",
-        text,
-        createdAt: now,
-      });
-    }
-
     return {
-      conversationId,
-      channelId,
-      created: true as const,
+      conversationId: result.conversationId,
+      channelId: result.channelId,
+      created: !existingOnPhone.some((row) => row._id === result.conversationId),
     };
   },
 });
@@ -426,6 +398,11 @@ export const sendAudioReply = mutation({
       throw new Error("Conversation introuvable.");
     }
 
+    const routedConversation = await ensureConversationOutboundChannel(
+      ctx,
+      conversation
+    );
+
     const settings = await ctx.db
       .query("platformSettings")
       .withIndex("by_key", (q) => q.eq("key", "global"))
@@ -454,7 +431,7 @@ export const sendAudioReply = mutation({
     const now = Date.now();
 
     await ctx.db.insert("conversationMessages", {
-      conversationId: args.conversationId,
+      conversationId: routedConversation._id,
       from: "staff",
       text,
       mediaUrl: playbackUrl,
@@ -463,7 +440,7 @@ export const sendAudioReply = mutation({
       createdAt: now,
     });
 
-    await ctx.db.patch(args.conversationId, {
+    await ctx.db.patch(routedConversation._id, {
       lastMessage: text,
       lastMessageAt: now,
       unreadCount: 0,
@@ -473,7 +450,7 @@ export const sendAudioReply = mutation({
 
     if (settings?.whatsappProvider === "360messenger") {
       await ctx.scheduler.runAfter(0, internal.whatsappMessenger.deliverMediaReply, {
-        conversationId: args.conversationId,
+        conversationId: routedConversation._id,
         text,
         mediaUrl: deliveryUrl,
       });
@@ -484,8 +461,8 @@ export const sendAudioReply = mutation({
       actorName: staff.name,
       action: "update",
       entityType: "conversation",
-      entityId: args.conversationId,
-      entityLabel: conversation.name,
+      entityId: routedConversation._id,
+      entityLabel: routedConversation.name,
       toValue: "audio_reply",
     });
   },
@@ -552,6 +529,11 @@ export const sendReply = mutation({
       throw new Error("Conversation introuvable.");
     }
 
+    const routedConversation = await ensureConversationOutboundChannel(
+      ctx,
+      conversation
+    );
+
     const settings = await ctx.db
       .query("platformSettings")
       .withIndex("by_key", (q) => q.eq("key", "global"))
@@ -563,13 +545,14 @@ export const sendReply = mutation({
 
     const now = Date.now();
     await ctx.db.insert("conversationMessages", {
-      conversationId: args.conversationId,
+      conversationId: routedConversation._id,
       from: "staff",
       text,
+      ingestSource: "crm",
       createdAt: now,
     });
 
-    await ctx.db.patch(args.conversationId, {
+    await ctx.db.patch(routedConversation._id, {
       lastMessage: text,
       lastMessageAt: now,
       unreadCount: 0,
@@ -577,22 +560,73 @@ export const sendReply = mutation({
       updatedAt: now,
     });
 
-    if (settings?.whatsappProvider === "360messenger") {
-      await ctx.scheduler.runAfter(0, internal.whatsappMessenger.deliverReply, {
-        conversationId: args.conversationId,
-        text,
-      });
-    }
-
     await logAudit(ctx, {
       actorStaffId: staff._id,
       actorName: staff.name,
       action: "update",
       entityType: "conversation",
-      entityId: args.conversationId,
-      entityLabel: conversation.name,
+      entityId: routedConversation._id,
+      entityLabel: routedConversation.name,
       toValue: "reply",
     });
+    return routedConversation._id;
+  },
+});
+
+export const sendReplyWithWhatsApp = action({
+  args: {
+    conversationId: v.id("conversations"),
+    text: v.string(),
+  },
+  handler: async (ctx, args): Promise<{ conversationId: Id<"conversations"> }> => {
+    const conversationId: Id<"conversations"> = await ctx.runMutation(
+      api.conversations.sendReply,
+      {
+        conversationId: args.conversationId,
+        text: args.text,
+      }
+    );
+
+    await ctx.runAction(internal.whatsappMessenger.deliverReply, {
+      conversationId,
+      text: args.text.trim(),
+    });
+
+    return { conversationId };
+  },
+});
+
+export const pruneThread = mutation({
+  args: { conversationId: v.id("conversations") },
+  handler: async (ctx, args) => {
+    await requireAdminStaff(ctx);
+    return await pruneOrderThreadClientMessages(ctx, args.conversationId);
+  },
+});
+
+export const syncFrom360 = action({
+  args: { conversationId: v.id("conversations") },
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ imported: number; reason?: "no_api" }> => {
+    await ctx.runMutation(api.conversations.assertAdminForSync, {
+      conversationId: args.conversationId,
+    });
+    return await ctx.runAction(internal.whatsappMessenger.syncConversationFrom360, {
+      conversationId: args.conversationId,
+    });
+  },
+});
+
+export const assertAdminForSync = mutation({
+  args: { conversationId: v.id("conversations") },
+  handler: async (ctx, args) => {
+    await requireAdminStaff(ctx);
+    const conversation = await ctx.db.get(args.conversationId);
+    if (!conversation) {
+      throw new Error("Conversation introuvable.");
+    }
   },
 });
 
@@ -702,4 +736,56 @@ export const migrateUnassignedChannels = mutation({
     }
     return { migrated };
   },
+});
+
+async function purgeAllConversationData(ctx: MutationCtx) {
+  const messages = await ctx.db.query("conversationMessages").collect();
+  for (const message of messages) {
+    const storageId =
+      message.mediaStorageId ?? storageIdFromConvexUrl(message.mediaUrl);
+    if (storageId) {
+      try {
+        await ctx.storage.delete(storageId as Id<"_storage">);
+      } catch {
+        // Storage may already be gone.
+      }
+    }
+    await ctx.db.delete(message._id);
+  }
+
+  const conversations = await ctx.db.query("conversations").collect();
+  for (const conversation of conversations) {
+    await ctx.db.delete(conversation._id);
+  }
+
+  return {
+    conversationsDeleted: conversations.length,
+    messagesDeleted: messages.length,
+  };
+}
+
+/** Delete every WhatsApp conversation and its messages (admin maintenance). */
+export const purgeAll = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const staff = await requireAdminStaff(ctx);
+    const result = await purgeAllConversationData(ctx);
+
+    await logAudit(ctx, {
+      actorStaffId: staff._id,
+      actorName: staff.name,
+      action: "delete",
+      entityType: "conversation",
+      entityId: "all",
+      entityLabel: "Toutes les conversations WhatsApp",
+      toValue: `${result.conversationsDeleted} conversations, ${result.messagesDeleted} messages`,
+    });
+
+    return result;
+  },
+});
+
+export const purgeAllInternal = internalMutation({
+  args: {},
+  handler: async (ctx) => purgeAllConversationData(ctx),
 });

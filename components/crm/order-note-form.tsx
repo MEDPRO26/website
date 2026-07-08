@@ -39,16 +39,17 @@ export function OrderNoteForm({ orderId }: OrderNoteFormProps) {
   };
 
   return (
-    <div className="space-y-2 border-t border-border pt-4">
+    <div className="space-y-2 border-t border-border/60 bg-muted/15 px-5 py-4 -mx-5 -mb-5 mt-5 rounded-b-xl">
       <Textarea
         rows={3}
         value={note}
         onChange={(event) => setNote(event.target.value)}
         placeholder="Ajouter une note interne…"
+        className="resize-none border-border/70 bg-white"
       />
       <Button
         size="sm"
-        className="w-full"
+        className="w-full bg-brand hover:bg-brand-deep"
         disabled={submitting || !note.trim()}
         onClick={() => void handleSubmit()}
       >

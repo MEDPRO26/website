@@ -1,1 +1,7 @@
 @import "../admin/crm.css";
+
+.supplier-portal .supplier-main-bg {
+  background-color: #e8ecf2;
+  background-image: radial-gradient(circle, rgba(148, 163, 184, 0.35) 1px, transparent 1px);
+  background-size: 22px 22px;
+}

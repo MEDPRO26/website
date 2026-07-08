@@ -6,6 +6,10 @@ import { useSubmitLead } from "@/hooks/use-submit-lead";
 import { activeCities } from "@/lib/cities";
 import { careServiceFormOptions } from "@/lib/care-services";
 import { CONTACT_EMAIL } from "@/lib/products";
+import {
+  getLeadRequestKindOptionLabel,
+  isLeadRequestKindDisabled,
+} from "@/lib/lead-form-request-kinds";
 
 type RequestKind = "location" | "vente" | "service";
 
@@ -76,7 +80,7 @@ export default function QuoteRequestSection({
     nom: "",
     telephone: "",
     ville: defaultCityName,
-    demandeType: "location" as RequestKind,
+    demandeType: "vente" as RequestKind,
     materiel: "",
     message: "",
   });
@@ -105,6 +109,10 @@ export default function QuoteRequestSection({
       setFormStatus("error");
       return;
     }
+    if (isLeadRequestKindDisabled(formData.demandeType)) {
+      setFormStatus("error");
+      return;
+    }
 
     try {
       await submit({
@@ -129,7 +137,7 @@ export default function QuoteRequestSection({
       nom: "",
       telephone: "",
       ville: defaultCityName,
-      demandeType: "location",
+      demandeType: "vente",
       materiel: "",
       message: "",
     });
@@ -275,8 +283,12 @@ export default function QuoteRequestSection({
                   className="w-full rounded-xl border-0 bg-white/90 px-4 py-3 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary-fixed"
                 >
                   {REQUEST_KIND_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
+                    <option
+                      key={option.value}
+                      value={option.value}
+                      disabled={isLeadRequestKindDisabled(option.value)}
+                    >
+                      {getLeadRequestKindOptionLabel(option.label, option.value)}
                     </option>
                   ))}
                 </select>

@@ -9,7 +9,7 @@ import { prepareAudioForWhatsApp } from "@/lib/crm/convert-audio";
 import { resolveMessageMediaKind, shouldRenderAudioPlayer, shouldShowMessageText } from "@/lib/crm/media-message";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, useQuery, useAction } from "convex/react";
 import { Loader2, Mic, Paperclip, Plus, Send, Settings, Square, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -23,6 +23,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -98,15 +108,19 @@ export function AdminConversationsPage() {
   );
   const createConversation = useMutation(api.conversations.create);
   const ensureForContact = useMutation(api.conversations.ensureForContact);
-  const sendReply = useMutation(api.conversations.sendReply);
+  const sendReplyWithWhatsApp = useAction(api.conversations.sendReplyWithWhatsApp);
+  const syncFrom360 = useAction(api.conversations.syncFrom360);
   const generateAudioUploadUrl = useMutation(api.conversations.generateAudioUploadUrl);
   const sendAudioReply = useMutation(api.conversations.sendAudioReply);
   const deleteMessageMedia = useMutation(api.conversations.deleteMessageMedia);
   const updateStatus = useMutation(api.conversations.updateStatus);
-  const updateOrderStatus = useMutation(api.orders.updateStatus);
   const acceptClientOffer = useMutation(api.quotes.acceptClientOffer);
   const updateNotes = useMutation(api.conversations.updateNotes);
   const updateClientAccentColor = useMutation(api.conversations.updateClientAccentColor);
+  const purgeAll = useMutation(api.conversations.purgeAll);
+  const pruneThread = useMutation(api.conversations.pruneThread);
+  const [purging, setPurging] = useState(false);
+  const [purgeDialogOpen, setPurgeDialogOpen] = useState(false);
 
   const activeData = useQuery(
     api.conversations.get,
@@ -116,9 +130,6 @@ export function AdminConversationsPage() {
     api.conversations.getLinkedOrder,
     canQueryAdmin && activeId ? { conversationId: activeId } : "skip"
   );
-  const nouvelleOrder = linkedOrders?.nouvelle ?? null;
-  const qualifiedOrder =
-    linkedOrders?.latest && !nouvelleOrder ? linkedOrders.latest : null;
   const offreEnvoyeeOrder = linkedOrders?.offreEnvoyee ?? null;
   const acceptedOrder = linkedOrders?.acceptee ?? null;
   const pipelineOrder = linkedOrders?.primary ?? linkedOrders?.latest ?? null;
@@ -154,6 +165,10 @@ export function AdminConversationsPage() {
           city: searchParams.get("city")?.trim() || undefined,
           message: searchParams.get("message")?.trim() || undefined,
           source: "Commande CRM",
+          orderSource: searchParams.get("orderSource")?.trim() || undefined,
+          orderId: searchParams.get("orderId")?.trim()
+            ? (searchParams.get("orderId")!.trim() as Id<"orders">)
+            : undefined,
         });
         setActiveId(result.conversationId);
         setChannelFilter(result.channelId);
@@ -208,6 +223,60 @@ export function AdminConversationsPage() {
     activeId,
   ]);
 
+  useEffect(() => {
+    if (!canQueryAdmin || !activeId) {
+      return;
+    }
+
+    if (!activeData?.conversation?.orderId) {
+      return;
+    }
+
+    void (async () => {
+      await pruneThread({ conversationId: activeId });
+      if (is360Connected) {
+        await syncFrom360({ conversationId: activeId });
+      }
+    })();
+  }, [
+    activeId,
+    activeData?.conversation?.orderId,
+    canQueryAdmin,
+    is360Connected,
+    pruneThread,
+    syncFrom360,
+  ]);
+
+  useEffect(() => {
+    if (!canQueryAdmin || !activeId || !is360Connected) {
+      return;
+    }
+
+    if (activeData?.conversation?.orderId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const pullMessages = async () => {
+      try {
+        await syncFrom360({ conversationId: activeId });
+      } catch {
+        if (!cancelled) {
+          // Background sync — avoid noisy toasts on transient API errors.
+        }
+      }
+    };
+
+    void pullMessages();
+    const interval = window.setInterval(pullMessages, 20_000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [activeId, activeData?.conversation?.orderId, canQueryAdmin, is360Connected, syncFrom360]);
+
   const channelColorById = useMemo(() => {
     const map = new Map<string, string>();
     for (const channel of channels ?? []) {
@@ -251,33 +320,17 @@ export function AdminConversationsPage() {
     }
   };
 
-  const handleQualify = async () => {
-    if (!nouvelleOrder || nouvelleOrder.status !== "nouvelle") {
-      return;
-    }
-    setSubmitting(true);
-    try {
-      await updateOrderStatus({
-        orderId: nouvelleOrder._id,
-        status: "a_qualifier",
-        note: "Client confirme depuis la conversation WhatsApp.",
-      });
-      toast.success(`Commande ${nouvelleOrder.ref} passée en client confirme.`);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erreur.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const handleAcceptPrice = async () => {
-    if (!offreEnvoyeeOrder) {
+    const orderId = offreEnvoyeeOrder?._id ?? active?.orderId;
+    if (!orderId) {
       return;
     }
     setSubmitting(true);
     try {
-      await acceptClientOffer({ orderId: offreEnvoyeeOrder._id });
-      toast.success(`Prix accepté pour ${offreEnvoyeeOrder.ref}.`);
+      await acceptClientOffer({ orderId });
+      toast.success(
+        `Prix accepté pour ${offreEnvoyeeOrder?.ref ?? active?.orderRef ?? "la commande"}. Conversation clôturée.`
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erreur.");
     } finally {
@@ -289,7 +342,7 @@ export function AdminConversationsPage() {
     if (!activeId || !reply.trim()) return;
     setSubmitting(true);
     try {
-      await sendReply({ conversationId: activeId, text: reply });
+      await sendReplyWithWhatsApp({ conversationId: activeId, text: reply });
       setReply("");
       if (is360Connected) {
         toast.success("Message envoyé via WhatsApp.");
@@ -428,6 +481,22 @@ export function AdminConversationsPage() {
     }
   };
 
+  const handlePurgeAll = async () => {
+    setPurging(true);
+    try {
+      const result = await purgeAll({});
+      setActiveId(null);
+      setPurgeDialogOpen(false);
+      toast.success(
+        `${result.conversationsDeleted} conversation(s) et ${result.messagesDeleted} message(s) supprimés.`
+      );
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Impossible de tout supprimer.");
+    } finally {
+      setPurging(false);
+    }
+  };
+
   const active = activeData?.conversation;
   const activeLineColor = active
     ? resolveChannelColor(
@@ -473,6 +542,40 @@ export function AdminConversationsPage() {
         }
         actions={
           <div className="flex gap-2">
+            <AlertDialog
+              open={purgeDialogOpen}
+              onOpenChange={(open) => {
+                if (!purging) {
+                  setPurgeDialogOpen(open);
+                }
+              }}
+            >
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" className="text-danger hover:text-danger">
+                  <Trash2 className="size-4" /> Tout supprimer
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Supprimer toutes les conversations ?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Cette action efface définitivement toutes les conversations WhatsApp
+                    et leurs messages du CRM. Elle est irréversible.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={purging}>Annuler</AlertDialogCancel>
+                  <Button
+                    type="button"
+                    className="bg-status-error text-white hover:bg-status-error/90"
+                    disabled={purging}
+                    onClick={() => void handlePurgeAll()}
+                  >
+                    {purging ? "Suppression…" : "Tout supprimer"}
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Button variant="outline" size="sm" asChild>
               <Link href="/admin/settings">
                 <Settings className="size-4" /> Configurer les lignes
@@ -649,22 +752,24 @@ export function AdminConversationsPage() {
                     }}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <p
-                        className="truncate text-sm font-medium"
-                        style={{ color: clientColor }}
-                      >
-                        {c.name}
-                      </p>
+                      <div className="min-w-0">
+                        <p
+                          className="truncate text-sm font-medium"
+                          style={{ color: clientColor }}
+                        >
+                          {c.name}
+                        </p>
+                        {c.orderRef ? (
+                          <p className="truncate font-mono text-[10px] font-semibold text-muted-foreground">
+                            {c.orderRef}
+                          </p>
+                        ) : null}
+                      </div>
                       <div className="flex shrink-0 items-center gap-1">
                         {c.starColor === "yellow" ? (
                           <Star
                             className="size-3.5 fill-amber-400 text-amber-400"
                             aria-label="Prix accepté"
-                          />
-                        ) : c.starColor === "blue" ? (
-                          <Star
-                            className="size-3.5 fill-primary text-primary"
-                            aria-label="Client confirme"
                           />
                         ) : null}
                         <span className="text-[11px] text-muted-foreground">
@@ -712,9 +817,16 @@ export function AdminConversationsPage() {
               <>
                 <header className="shrink-0 flex flex-wrap items-center justify-between gap-2 border-b border-border p-3">
                   <div>
-                    <p className="text-sm font-medium" style={{ color: activeClientColor }}>
-                      {active.name}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-medium" style={{ color: activeClientColor }}>
+                        {active.name}
+                      </p>
+                      {(active.orderRef || pipelineOrder?.ref) ? (
+                        <span className="rounded-full border border-border/70 bg-muted/50 px-2 py-0.5 font-mono text-[10px] font-semibold text-foreground">
+                          {active.orderRef ?? pipelineOrder?.ref}
+                        </span>
+                      ) : null}
+                    </div>
                     <p className="text-xs font-medium" style={{ color: activeClientColor }}>
                       {active.phone}
                     </p>
@@ -725,27 +837,6 @@ export function AdminConversationsPage() {
                   </div>
                   <div className="flex flex-wrap items-start gap-2">
                     <div className="flex flex-col gap-1">
-                      {nouvelleOrder ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={submitting}
-                          className="border-gray-200 bg-gray-50 text-gray-600 shadow-none hover:bg-gray-100 hover:text-gray-700"
-                          onClick={() => void handleQualify()}
-                        >
-                          <Star className="size-3.5 fill-primary text-primary" />
-                          Client confirme {nouvelleOrder.ref}
-                        </Button>
-                      ) : qualifiedOrder ? (
-                        <Button
-                          size="sm"
-                          disabled
-                          className="disabled:opacity-100"
-                        >
-                          <Star className="size-3.5 fill-primary text-primary" />
-                          Client confirme · {qualifiedOrder.ref}
-                        </Button>
-                      ) : null}
                       {pipelineOrder ? (
                         acceptedOrder && !offreEnvoyeeOrder ? (
                           <Button

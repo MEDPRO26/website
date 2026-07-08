@@ -69,6 +69,7 @@ export default defineSchema({
   orders: defineTable({
     ref: v.string(),
     customerId: v.id("customers"),
+    clientName: v.optional(v.string()),
     status: orderStatusValidator,
     type: v.string(),
     item: v.string(),
@@ -265,6 +266,8 @@ export default defineSchema({
     phone: v.string(),
     channelId: v.optional(v.id("whatsappChannels")),
     customerId: v.optional(v.id("customers")),
+    orderId: v.optional(v.id("orders")),
+    orderRef: v.optional(v.string()),
     status: conversationStatusValidator,
     lastMessage: v.string(),
     lastMessageAt: v.number(),
@@ -272,11 +275,13 @@ export default defineSchema({
     notes: v.optional(v.string()),
     clientAccentColor: v.optional(v.string()),
     source: v.string(),
+    offerAnchorAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_phone", ["phone"])
     .index("by_channelId_phone", ["channelId", "phone"])
+    .index("by_orderId", ["orderId"])
     .index("by_channelId", ["channelId"])
     .index("by_status", ["status"])
     .index("by_lastMessageAt", ["lastMessageAt"]),
@@ -296,6 +301,9 @@ export default defineSchema({
       )
     ),
     externalId: v.optional(v.string()),
+    ingestSource: v.optional(
+      v.union(v.literal("crm"), v.literal("webhook"), v.literal("sync"))
+    ),
     createdAt: v.number(),
   })
     .index("by_conversationId", ["conversationId"])

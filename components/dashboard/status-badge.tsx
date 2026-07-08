@@ -10,8 +10,17 @@ const TONE_CLASS: Record<string, string> = {
   neutral: "bg-muted text-muted-foreground border-border",
 };
 
-export function StatusBadge({ status, className }: { status: OrderStatus; className?: string }) {
+export function StatusBadge({
+  status,
+  className,
+  labels,
+}: {
+  status: OrderStatus;
+  className?: string;
+  labels?: Partial<Record<OrderStatus, string>>;
+}) {
   const tone = STATUS_TONE[status];
+  const label = labels?.[status] ?? STATUS_LABEL[status];
   return (
     <span
       className={cn(
@@ -21,7 +30,7 @@ export function StatusBadge({ status, className }: { status: OrderStatus; classN
       )}
     >
       <span className="size-1.5 rounded-full bg-current opacity-70" />
-      {STATUS_LABEL[status]}
+      {label}
     </span>
   );
 }

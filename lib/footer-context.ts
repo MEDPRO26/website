@@ -85,7 +85,7 @@ export function buildCityFooterContext(cityOrSlug: City | CitySlug): FooterConte
       hasLocalContact && city.whatsapp
         ? whatsAppHref(
             `Bonjour ${city.brandName}, je souhaite des informations.`,
-            city.slug === "agadir" ? "general" : "garde_soins"
+            "general"
           )
         : undefined,
     email: city.email,

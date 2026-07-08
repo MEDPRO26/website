@@ -26,6 +26,8 @@ export type Inbound360Message = {
   mediaUrl?: string;
   mediaKind?: InboundMediaKind;
   apiKeyHint?: string;
+  /** Epoch ms parsed from the 360Messenger payload (Morocco local time). 0 if absent. */
+  createdAt?: number;
 };
 
 export type Delivery360Update = {
@@ -152,6 +154,8 @@ export function parseInboundPayload(raw: unknown): Inbound360Message | Delivery3
   const fallbackLabel = mediaKind ? MEDIA_LABEL[mediaKind] : "Fichier";
   const text = isFile ? caption || `[${fallbackLabel}]` : caption;
 
+  const createdAt = readMessageCreatedAt(raw);
+
   return {
     externalId: readString(record.id ?? record.whatsappid) || undefined,
     fromPhone,
@@ -162,6 +166,7 @@ export function parseInboundPayload(raw: unknown): Inbound360Message | Delivery3
     mediaUrl: resolvedMediaUrl,
     mediaKind,
     apiKeyHint: readString(record.hash) || undefined,
+    createdAt: createdAt > 0 ? createdAt : undefined,
   };
 }
 
@@ -210,7 +215,64 @@ export function classifyMediaUrl(url: string, type = "file") {
   return detectMediaKind(url, {}, type);
 }
 
-type Received360Row = Record<string, unknown>;
+export type Received360Row = Record<string, unknown>;
+
+/** Morocco is UTC+01:00 year-round (no DST since 2018, DST months excluded). */
+const MOROCCO_UTC_OFFSET = "+01:00";
+
+/**
+ * 360Messenger returns timestamps in Morocco local time without a timezone,
+ * e.g. "2026-07-07 21:10:54" or an epoch (seconds/ms). Parse to epoch ms so the
+ * CRM renders the same wall-clock time the user sees in 360Messenger.
+ */
+export function parse360Timestamp(value: string): number {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return 0;
+  }
+
+  // Numeric epoch (seconds or milliseconds).
+  if (/^\d+$/.test(trimmed)) {
+    const numeric = Number(trimmed);
+    if (!Number.isFinite(numeric) || numeric <= 0) {
+      return 0;
+    }
+    return trimmed.length <= 10 ? numeric * 1000 : numeric;
+  }
+
+  let normalized = trimmed.includes("T")
+    ? trimmed
+    : trimmed.replace(" ", "T");
+
+  const hasTimezone =
+    /[zZ]$/.test(normalized) || /[+-]\d{2}:?\d{2}$/.test(normalized);
+  if (!hasTimezone) {
+    normalized = `${normalized}${MOROCCO_UTC_OFFSET}`;
+  }
+
+  const parsed = Date.parse(normalized);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+export function readMessageCreatedAt(raw: unknown) {
+  if (!raw || typeof raw !== "object") {
+    return 0;
+  }
+
+  const record = normalizeRecord(raw as Record<string, unknown>);
+  for (const key of ["timestamp", "date", "time", "created_at", "datetime"]) {
+    const value = readString(record[key]);
+    if (!value) {
+      continue;
+    }
+    const parsed = parse360Timestamp(value);
+    if (parsed > 0) {
+      return parsed;
+    }
+  }
+
+  return 0;
+}
 
 function readReceivedRows(body: unknown): Received360Row[] {
   if (!body || typeof body !== "object") {
@@ -231,6 +293,27 @@ function readReceivedRows(body: unknown): Received360Row[] {
   }
 
   return [];
+}
+
+/** Pull recent messages for a client from 360Messenger (webhook fallback). */
+export async function fetchReceivedMessages(
+  apiKey: string,
+  clientPhone: string,
+  page = 1
+) {
+  const response = await fetch(
+    `${API_BASE}/showAllGetMessages/${encodeURIComponent(apiKey)}?page=${page}&phonenumber=${encodeURIComponent(phoneDigits(clientPhone))}`
+  );
+  if (!response.ok) {
+    return [];
+  }
+
+  try {
+    const body = await response.json();
+    return readReceivedRows(body);
+  } catch {
+    return [];
+  }
 }
 
 export type Fetched360Media = {
@@ -333,38 +416,26 @@ export async function send360Message(
     throw new Error("Message vide.");
   }
 
+  const form = new URLSearchParams();
+  form.set("phonenumber", phoneDigits(toPhone));
+  form.set("text", trimmedText);
   if (mediaUrl) {
-    const form = new URLSearchParams();
-    form.set("phonenumber", phoneDigits(toPhone));
-    form.set("text", trimmedText);
     form.set("url", mediaUrl);
-
-    const response = await fetch(
-      `${API_BASE}/sendMessage/${encodeURIComponent(apiKey)}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: form.toString(),
-      }
-    );
-    const body = await response.text();
-    if (!response.ok) {
-      throw new Error(`Envoi média 360Messenger (${response.status}): ${body}`);
-    }
-    return body.trim();
   }
 
-  const response = await fetch(`${API_BASE}/v2/sendMessage`, {
-    method: "POST",
-    headers: authHeaders(apiKey),
-    body: JSON.stringify({
-      phonenumber: phoneDigits(toPhone),
-      text: trimmedText,
-    }),
-  });
+  const response = await fetch(
+    `${API_BASE}/sendMessage/${encodeURIComponent(apiKey)}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: form.toString(),
+    }
+  );
   const body = await response.text();
   if (!response.ok) {
-    throw new Error(`Envoi 360Messenger (${response.status}): ${body}`);
+    throw new Error(
+      `Envoi 360Messenger (${response.status}): ${body || "échec inconnu"}`
+    );
   }
   return body.trim();
 }

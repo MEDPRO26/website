@@ -4,8 +4,12 @@ import Link from "next/link";
 import { useQuery } from "convex/react";
 import { useAdminSession } from "@/hooks/use-admin-session";
 import {
-  Inbox, UserCheck, Clock, Tag as TagIcon, Send, CheckCircle2,
-  CalendarClock, AlertTriangle, Wallet,
+  Inbox,
+  Tag as TagIcon,
+  Send,
+  CheckCircle2,
+  PackageCheck,
+  Wallet,
 } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -51,29 +55,55 @@ export function AdminDashboardPage() {
   const suppliersToFollowUp = analytics?.suppliersToFollowUp ?? [];
 
   return (
-    <div>
+    <div className="space-y-6 pb-8">
       <PageHeader
         title="Tableau de bord"
         description="Vue d'ensemble de l'activité du jour."
         actions={
-          <Button asChild>
+          <Button asChild className="rounded-xl">
             <Link href="/admin/orders/new">+ Nouvelle commande</Link>
           </Button>
         }
       />
-      
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Nouvelles demandes aujourd'hui" value={stats?.newToday ?? "—"} icon={Inbox} tone="brand" />
-        <StatCard label="Demandes nouvelles" value={stats?.nouvelle ?? "—"} icon={UserCheck} tone="warning" />
-        <StatCard label="Commandes à affecter" value={stats?.toAssign ?? "—"} icon={Clock} tone="info" />
-        <StatCard label="Total commandes" value={stats?.total ?? "—"} icon={TagIcon} tone="info" />
-        <StatCard label="Offres envoyées" value={stats?.offersSent ?? "—"} icon={Send} tone="brand" />
-        <StatCard label="Commandes confirmées" value={stats?.confirmed ?? "—"} icon={CheckCircle2} tone="success" />
-        <StatCard label="Locations actives" value={stats?.activeRentals ?? "—"} icon={CalendarClock} tone="success" />
-        <StatCard label="Réclamations ouvertes" value={stats?.openComplaints ?? "—"} icon={AlertTriangle} tone="danger" />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+        <StatCard
+          label="Nouvelle demande"
+          value={stats?.nouvelle ?? "—"}
+          icon={Inbox}
+          tone="brand"
+          hint="À qualifier ou affecter"
+        />
+        <StatCard
+          label="Total commandes"
+          value={stats?.total ?? "—"}
+          icon={TagIcon}
+          tone="info"
+        />
+        <StatCard
+          label="Offres envoyées"
+          value={stats?.offersSent ?? "—"}
+          icon={Send}
+          tone="brand"
+          hint="Offre transmise au client"
+        />
+        <StatCard
+          label="Commandes confirmées"
+          value={stats?.confirmed ?? "—"}
+          icon={CheckCircle2}
+          tone="success"
+          hint="Prix accepté, en cours"
+        />
+        <StatCard
+          label="Commandes livrées"
+          value={stats?.delivered ?? "—"}
+          icon={PackageCheck}
+          tone="success"
+          hint="Livraison confirmée"
+        />
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         <Card className="p-5 lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-sm font-semibold">Évolution des commandes (7 jours)</h3>
@@ -129,7 +159,7 @@ export function AdminDashboardPage() {
         </Card>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <Card className="p-5">
           <h3 className="mb-3 text-sm font-semibold">Demandes par ville</h3>
           <div className="h-52">
@@ -172,7 +202,7 @@ export function AdminDashboardPage() {
         </Card>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         <Card className="p-5 lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-sm font-semibold">Dernières commandes</h3>

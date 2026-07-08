@@ -1,5 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
+import { resolveOrderClientFirstName } from "./orderClient";
 import { buildDefaultOfferMessage } from "./pricing";
 import { getQuotePricing } from "./quotePricing";
 
@@ -15,7 +16,7 @@ export async function ensureDraftClientOffer(
 ) {
   const customer = await ctx.db.get(args.order.customerId);
   const pricing = getQuotePricing(args.quote);
-  const clientFirstName = customer?.name.split(" ")[0] ?? "client";
+  const clientFirstName = resolveOrderClientFirstName(args.order, customer);
 
   const message = buildDefaultOfferMessage({
     clientFirstName,

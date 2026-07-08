@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { useAdminSession } from "@/hooks/use-admin-session";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -32,6 +32,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { mapConvexOrderToUi } from "@/lib/crm/map-convex-order";
 import { STATUS_LABEL, type Order, type OrderStatus } from "@/lib/mock-data";
+import { KANBAN_COLUMNS, kanbanColumnForStatus } from "@/lib/crm/order-status";
 import { cities } from "@/lib/cities";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -48,11 +49,6 @@ type DeleteTarget = {
   ref: string;
   client: string;
 };
-
-const KANBAN_COLUMNS: OrderStatus[] = [
-  "nouvelle", "a_qualifier", "a_affecter", "envoyee_fournisseur",
-  "prix_recu", "offre_envoyee", "acceptee", "en_cours", "terminee", "annulee",
-];
 
 const SOURCE_FILTERS = [
   { value: "site", label: "Formulaire site", match: (source: string) =>
@@ -80,7 +76,9 @@ function filterOrders<T extends Order>(
       order.client.toLowerCase().includes(q) ||
       order.phone.replace(/\s+/g, "").includes(q.replace(/\s+/g, ""));
 
-    const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+    const matchesStatus =
+      statusFilter === "all" ||
+      kanbanColumnForStatus(order.status as OrderStatus) === statusFilter;
 
     const matchesCity =
       cityFilter === "all" ||
@@ -104,6 +102,7 @@ export function AdminOrdersPage() {
   const { canQueryAdmin, staff } = useAdminSession();
   const canDeleteOrder = staff?.role === "super_admin";
   const removeOrder = useMutation(api.orders.remove);
+  const migrateClientNames = useMutation(api.orders.migrateClientNames);
   const ordersData = useQuery(api.orders.list, canQueryAdmin ? {} : "skip");
   const orders = useMemo<KanbanOrder[]>(
     () =>
@@ -125,6 +124,13 @@ export function AdminOrdersPage() {
     cityFilter !== "all" ||
     sourceFilter !== "all";
   const isLoading = ordersData === undefined;
+
+  useEffect(() => {
+    if (!canQueryAdmin) {
+      return;
+    }
+    void migrateClientNames({});
+  }, [canQueryAdmin, migrateClientNames]);
 
   const description = isLoading
     ? "Chargement des demandes…"
@@ -411,7 +417,9 @@ function OrdersKanban({
     <div className="overflow-x-auto pb-4">
       <div className="flex min-w-max gap-4">
         {KANBAN_COLUMNS.map((status) => {
-          const items = orders.filter((order) => order.status === status);
+          const items = orders.filter(
+            (order) => kanbanColumnForStatus(order.status) === status
+          );
           return (
             <KanbanColumn
               key={status}
@@ -472,9 +480,6 @@ function priorityBarClass(status: OrderStatus, createdAtTs: number) {
   }
   if (status === "nouvelle" || status === "a_qualifier") {
     return "bg-amber-400";
-  }
-  if (status === "a_affecter") {
-    return "bg-orange-400";
   }
   return "bg-brand";
 }

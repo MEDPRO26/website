@@ -2,19 +2,22 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useMutation } from "convex/react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { formatMad, supplierTotal } from "@/lib/crm/pricing";
+import { cn } from "@/lib/utils";
 
 type SupplierQuoteFormProps = {
   orderId: Id<"orders">;
+  orderType?: string;
+  orderDuration?: string;
   existingQuote?: {
     basePrice: number;
     deliveryFee: number;
@@ -24,24 +27,35 @@ type SupplierQuoteFormProps = {
     notes?: string;
     status: string;
   } | null;
+  variant?: "default" | "sidebar";
+  readOnly?: boolean;
   onSubmitted?: () => void;
+  onUnavailable?: () => void;
 };
 
 export function SupplierQuoteForm({
   orderId,
+  orderType,
+  orderDuration,
   existingQuote,
+  variant = "default",
+  readOnly = false,
   onSubmitted,
+  onUnavailable,
 }: SupplierQuoteFormProps) {
   const submitQuote = useMutation(api.supplierPortal.submitQuote);
+  const markUnavailable = useMutation(api.supplierPortal.markUnavailable);
   const [basePrice, setBasePrice] = useState("");
   const [deliveryFee, setDeliveryFee] = useState("0");
   const [installFee, setInstallFee] = useState("0");
   const [otherFee, setOtherFee] = useState("0");
   const [commissionAmount, setCommissionAmount] = useState("");
   const [notes, setNotes] = useState("");
+  const [stockConfirmed, setStockConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const isSubmitted = existingQuote?.status === "submitted";
+  const isSubmitted = existingQuote?.status === "submitted" || readOnly;
+  const isSidebar = variant === "sidebar";
 
   useEffect(() => {
     if (!existingQuote) {
@@ -57,6 +71,9 @@ export function SupplierQuoteForm({
         : ""
     );
     setNotes(existingQuote.notes ?? "");
+    if (existingQuote.status === "submitted") {
+      setStockConfirmed(true);
+    }
   }, [existingQuote]);
 
   const preview = useMemo(() => {
@@ -69,6 +86,34 @@ export function SupplierQuoteForm({
     const commission = Number(commissionAmount) || 0;
     return { total, commission, clientPrice: total };
   }, [basePrice, deliveryFee, installFee, otherFee, commissionAmount]);
+
+  const basePriceLabel = useMemo(() => {
+    const type = orderType?.toLowerCase() ?? "";
+    if (type.includes("location")) {
+      return orderDuration
+        ? `Prix fournisseur (location ${orderDuration})`
+        : "Prix fournisseur (location)";
+    }
+    if (type.includes("service")) {
+      return "Prix fournisseur (prestation)";
+    }
+    return "Prix fournisseur";
+  }, [orderType, orderDuration]);
+
+  const handleUnavailable = async () => {
+    setSubmitting(true);
+    try {
+      await markUnavailable({ orderId });
+      toast.success("Indisponibilité signalée à SOS Santé.");
+      onUnavailable?.();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Impossible de signaler l'indisponibilité."
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const handleSubmit = async () => {
     const base = Number(basePrice);
@@ -83,6 +128,10 @@ export function SupplierQuoteForm({
       );
       return;
     }
+    if (isSidebar && !stockConfirmed) {
+      toast.error("Confirmez la disponibilité du stock avant de soumettre.");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -95,7 +144,7 @@ export function SupplierQuoteForm({
         commissionAmount: commission,
         notes: notes.trim() || undefined,
       });
-      toast.success("Prix confirmé et envoyé à SOS Santé.");
+      toast.success("Offre soumise à SOS Santé.");
       onSubmitted?.();
     } catch (err) {
       toast.error(
@@ -106,100 +155,228 @@ export function SupplierQuoteForm({
     }
   };
 
+  const priceInputClass = cn(
+    "mt-1.5 h-11 text-base font-semibold",
+    isSidebar && "rounded-xl border-border/70 bg-muted/20 pr-14"
+  );
+
+  const fieldLabelClass = cn(
+    "text-xs font-semibold uppercase tracking-wide text-muted-foreground",
+    isSidebar && "text-[10px]"
+  );
+
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
-        <div className="col-span-2 sm:col-span-1">
-          <Label className="text-xs">Prix matériel/service (MAD) *</Label>
-          <Input
-            type="number"
-            min={0}
-            className="mt-1.5"
-            value={basePrice}
-            disabled={isSubmitted}
-            onChange={(e) => setBasePrice(e.target.value)}
-            placeholder="1200"
-          />
+    <div className={cn("space-y-4", isSidebar && "space-y-5")}>
+      <div className={cn("grid gap-3", isSidebar ? "grid-cols-1" : "grid-cols-2")}>
+        <div className={isSidebar ? "" : "col-span-2 sm:col-span-1"}>
+          <Label className={fieldLabelClass}>{basePriceLabel} *</Label>
+          <div className="relative">
+            <Input
+              type="number"
+              min={0}
+              className={priceInputClass}
+              value={basePrice}
+              disabled={isSubmitted}
+              onChange={(e) => setBasePrice(e.target.value)}
+              placeholder="1200"
+            />
+            {isSidebar ? (
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                MAD
+              </span>
+            ) : null}
+          </div>
         </div>
-        <div>
-          <Label className="text-xs">Frais livraison (MAD)</Label>
-          <Input
-            type="number"
-            min={0}
-            className="mt-1.5"
-            value={deliveryFee}
-            disabled={isSubmitted}
-            onChange={(e) => setDeliveryFee(e.target.value)}
-          />
+
+        <div className={cn(isSidebar ? "grid grid-cols-2 gap-3" : "contents")}>
+          <div>
+            <Label className={fieldLabelClass}>Livraison</Label>
+            <div className="relative">
+              <Input
+                type="number"
+                min={0}
+                className={priceInputClass}
+                value={deliveryFee}
+                disabled={isSubmitted}
+                onChange={(e) => setDeliveryFee(e.target.value)}
+              />
+              {isSidebar ? (
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                  MAD
+                </span>
+              ) : null}
+            </div>
+          </div>
+          <div>
+            <Label className={fieldLabelClass}>Installation</Label>
+            <div className="relative">
+              <Input
+                type="number"
+                min={0}
+                className={priceInputClass}
+                value={installFee}
+                disabled={isSubmitted}
+                onChange={(e) => setInstallFee(e.target.value)}
+              />
+              {isSidebar ? (
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                  MAD
+                </span>
+              ) : null}
+            </div>
+          </div>
         </div>
-        <div>
-          <Label className="text-xs">Frais installation (MAD)</Label>
-          <Input
-            type="number"
-            min={0}
-            className="mt-1.5"
-            value={installFee}
-            disabled={isSubmitted}
-            onChange={(e) => setInstallFee(e.target.value)}
-          />
-        </div>
-        <div>
-          <Label className="text-xs">Autres frais (MAD)</Label>
-          <Input
-            type="number"
-            min={0}
-            className="mt-1.5"
-            value={otherFee}
-            disabled={isSubmitted}
-            onChange={(e) => setOtherFee(e.target.value)}
-          />
-        </div>
-        <div className="col-span-2">
-          <Label className="text-xs">Commission SOS Santé (MAD) *</Label>
-          <Input
-            type="number"
-            min={0}
-            className="mt-1.5"
-            value={commissionAmount}
-            disabled={isSubmitted}
-            onChange={(e) => setCommissionAmount(e.target.value)}
-            placeholder="180"
-          />
-          <p className="mt-1 text-xs text-muted-foreground">
-            Montant que vous reverserez à SOS Santé pour cette commande.
-          </p>
+
+        {!isSidebar ? (
+          <div>
+            <Label className={fieldLabelClass}>Autres frais (MAD)</Label>
+            <Input
+              type="number"
+              min={0}
+              className="mt-1.5"
+              value={otherFee}
+              disabled={isSubmitted}
+              onChange={(e) => setOtherFee(e.target.value)}
+            />
+          </div>
+        ) : null}
+
+        <div className={isSidebar ? "" : "col-span-2"}>
+          <Label className={fieldLabelClass}>Commission SOS Santé *</Label>
+          <div className="relative">
+            <Input
+              type="number"
+              min={0}
+              className={priceInputClass}
+              value={commissionAmount}
+              disabled={isSubmitted}
+              onChange={(e) => setCommissionAmount(e.target.value)}
+              placeholder="180"
+            />
+            {isSidebar ? (
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                MAD
+              </span>
+            ) : null}
+          </div>
+          {isSidebar ? (
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Montant reversé à SOS Santé pour cette commande.
+            </p>
+          ) : (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Montant que vous reverserez à SOS Santé pour cette commande.
+            </p>
+          )}
         </div>
       </div>
 
       <div>
-        <Label className="text-xs">Commentaire (optionnel)</Label>
+        <Label className={fieldLabelClass}>
+          {isSidebar ? "Commentaires / précisions" : "Commentaire (optionnel)"}
+        </Label>
         <Textarea
-          rows={3}
-          className="mt-1.5"
+          rows={isSidebar ? 4 : 3}
+          className={cn("mt-1.5", isSidebar && "rounded-xl border-border/70 bg-muted/20")}
           value={notes}
           disabled={isSubmitted}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Précisions sur le matériel, accessoires inclus…"
+          placeholder={
+            isSidebar
+              ? "Ex : Matériel de secours inclus…"
+              : "Précisions sur le matériel, accessoires inclus…"
+          }
         />
       </div>
 
-      <div className="rounded-xl border border-border bg-muted/30 p-4 text-sm space-y-2">
-        <Row label="Prix client (vos frais)" value={formatMad(preview.clientPrice)} bold />
+      {isSidebar && !isSubmitted ? (
+        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border/60 bg-muted/20 px-3 py-3">
+          <Checkbox
+            checked={stockConfirmed}
+            onCheckedChange={(checked) => setStockConfirmed(checked === true)}
+            className="mt-0.5"
+          />
+          <span className="text-sm leading-snug">
+            Confirmer la disponibilité du stock
+          </span>
+        </label>
+      ) : null}
+
+      <div
+        className={cn(
+          "space-y-2 text-sm",
+          isSidebar
+            ? "rounded-xl border border-border/60 bg-muted/20 p-4"
+            : "rounded-xl border border-border bg-muted/30 p-4"
+        )}
+      >
+        <Row label="Sous-total" value={formatMad(preview.total)} />
         <Row
           label="Commission SOS Santé"
           value={formatMad(preview.commission)}
         />
-        <Separator />
-        <p className="text-xs text-muted-foreground pt-1">
-          Le client paie {formatMad(preview.clientPrice)}. La commission SOS Santé
-          ({formatMad(preview.commission)}) vous sera réglée séparément.
-        </p>
+        <div className="border-t border-border/60 pt-2">
+          <Row
+            label="Total TTC"
+            value={formatMad(preview.clientPrice)}
+            highlight
+          />
+        </div>
+        {!isSidebar ? (
+          <p className="pt-1 text-xs text-muted-foreground">
+            Le client paie {formatMad(preview.clientPrice)}. La commission SOS
+            Santé ({formatMad(preview.commission)}) vous sera réglée séparément.
+          </p>
+        ) : null}
       </div>
 
       {isSubmitted ? (
-        <p className="rounded-lg bg-success-soft px-3 py-2 text-sm text-success">
-          Prix confirmé — visible par l&apos;équipe SOS Santé.
+        <p
+          className={cn(
+            "rounded-xl px-3 py-2.5 text-sm text-success",
+            isSidebar ? "bg-success-soft text-center" : "bg-success-soft"
+          )}
+        >
+          {readOnly && !existingQuote
+            ? "Cette commande n'accepte plus de nouveau prix."
+            : "Prix confirmé — visible par l'équipe SOS Santé."}
         </p>
+      ) : isSidebar ? (
+        <div className="space-y-3">
+          <Button
+            className="h-12 w-full rounded-xl bg-[#0f172a] text-base font-semibold hover:bg-[#1e293b]"
+            disabled={submitting}
+            onClick={() => void handleSubmit()}
+          >
+            {submitting ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Envoi…
+              </>
+            ) : (
+              <>
+                <Send className="size-4" />
+                Soumettre mon offre
+              </>
+            )}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-12 w-full rounded-xl border-brand/30 text-base font-semibold text-brand hover:bg-brand/5"
+            disabled={submitting}
+            onClick={() => void handleUnavailable()}
+          >
+            {submitting ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Envoi…
+              </>
+            ) : (
+              "Non disponible"
+            )}
+          </Button>
+        </div>
       ) : (
         <Button className="w-full" disabled={submitting} onClick={() => void handleSubmit()}>
           {submitting ? (
@@ -231,7 +408,10 @@ function Row({
     <div className="flex items-center justify-between gap-3">
       <span className="text-muted-foreground">{label}</span>
       <span
-        className={`${bold ? "font-semibold" : ""} ${highlight ? "text-base font-semibold text-brand-deep" : ""}`}
+        className={cn(
+          bold && "font-semibold",
+          highlight && "text-lg font-bold text-brand-deep"
+        )}
       >
         {value}
       </span>

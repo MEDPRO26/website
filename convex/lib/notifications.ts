@@ -11,6 +11,7 @@ type NotificationInput = {
 
 export type StaffNotificationEvent =
   | "new_order"
+  | "order_delivered"
   | "supplier_response"
   | "client_accepted"
   | "complaint_opened"
@@ -23,36 +24,28 @@ async function getPlatformSettings(ctx: MutationCtx) {
     .unique();
 }
 
-function shouldEmailForEvent(
+/** Super-admin emails only for new orders and supplier-confirmed delivery. */
+function shouldEmailSuperAdmin(
   settings: Awaited<ReturnType<typeof getPlatformSettings>>,
   event: StaffNotificationEvent
 ) {
-  if (!settings) {
-    return event === "new_order" || event === "complaint_opened";
-  }
   switch (event) {
     case "new_order":
-      return settings.notifyNewOrderEmail !== false;
-    case "supplier_response":
-      return settings.notifySupplierResponseEmail !== false;
-    case "client_accepted":
-      return settings.notifyClientAcceptedEmail !== false;
-    case "complaint_opened":
-      return settings.notifyComplaintEmail !== false;
-    case "rental_ending":
-      return settings.notifyRentalEndingEmail === true;
+      return settings?.notifyNewOrderEmail !== false;
+    case "order_delivered":
+      return true;
     default:
       return false;
   }
 }
 
-async function getStaffRecipientEmails(ctx: MutationCtx) {
+async function getSuperAdminEmails(ctx: MutationCtx) {
   const staff = await ctx.db.query("staff").collect();
   return staff
     .filter(
       (row) =>
         row.status === "actif" &&
-        ["super_admin", "admin", "assistant"].includes(row.role) &&
+        row.role === "super_admin" &&
         row.email.includes("@")
     )
     .map((row) => row.email.trim().toLowerCase());
@@ -78,11 +71,11 @@ export async function notifyStaff(
   await pushNotification(ctx, input);
 
   const settings = await getPlatformSettings(ctx);
-  if (!shouldEmailForEvent(settings, event)) {
+  if (!shouldEmailSuperAdmin(settings, event)) {
     return;
   }
 
-  const recipients = await getStaffRecipientEmails(ctx);
+  const recipients = await getSuperAdminEmails(ctx);
   if (recipients.length === 0) {
     return;
   }

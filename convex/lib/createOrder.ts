@@ -63,7 +63,8 @@ export async function createOrderRecord(ctx: MutationCtx, input: CreateOrderInpu
   const orderId = await ctx.db.insert("orders", {
     ref,
     customerId,
-    status: hasAssignee ? "a_qualifier" : "nouvelle",
+    clientName: name,
+    status: "nouvelle",
     type: input.type.trim(),
     item: input.item.trim(),
     duration: input.duration?.trim() || undefined,
@@ -82,7 +83,7 @@ export async function createOrderRecord(ctx: MutationCtx, input: CreateOrderInpu
     orderId,
     type: "created",
     label: input.createdLabel ?? "Commande créée",
-    toStatus: hasAssignee ? "a_qualifier" : "nouvelle",
+    toStatus: "nouvelle",
     actorStaffId: input.actorStaffId,
   });
 
@@ -114,7 +115,7 @@ export async function createOrderRecord(ctx: MutationCtx, input: CreateOrderInpu
     entityType: "order",
     entityId: orderId,
     entityLabel: ref,
-    toValue: hasAssignee ? "a_qualifier" : "nouvelle",
+    toValue: "nouvelle",
   });
 
   return { orderId, ref };

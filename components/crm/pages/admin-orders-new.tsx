@@ -492,12 +492,12 @@ export function AdminOrdersNewPage() {
                 {
                   value: "assign_self" as const,
                   label: `M'affecter (${staff?.name ?? "moi"})`,
-                  hint: "Statut : client confirme",
+                  hint: "Statut : Nouvelle demande",
                 },
                 {
                   value: "assign_staff" as const,
                   label: "Affecter un autre assistant",
-                  hint: "Statut : client confirme",
+                  hint: "Statut : Nouvelle demande",
                 },
               ].map((opt) => (
                 <label

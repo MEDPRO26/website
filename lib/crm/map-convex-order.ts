@@ -9,11 +9,13 @@ type OrderWithCustomer = Doc<"orders"> & {
 
 export function mapConvexOrderToUi(order: OrderWithCustomer): Order {
   const customer = order.customer;
+  const client =
+    order.clientName?.trim() || customer?.name?.trim() || "—";
 
   return {
     id: order._id,
     ref: order.ref,
-    client: customer?.name ?? "—",
+    client,
     phone: customer?.phone ?? "—",
     whatsapp: customer?.whatsapp ?? customer?.phone ?? "—",
     city: customer?.city ?? "—",

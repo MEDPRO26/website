@@ -1,0 +1,44 @@
+import { internal } from "../_generated/api";
+import type { Doc, Id } from "../_generated/dataModel";
+import type { MutationCtx } from "../_generated/server";
+
+export async function notifySupplierOfAssignment(
+  ctx: MutationCtx,
+  args: {
+    supplier: Doc<"suppliers">;
+    order: Doc<"orders">;
+    orderId: Id<"orders">;
+  }
+) {
+  const siteUrl = process.env.SITE_URL ?? "http://localhost:3000";
+  const orderUrl = `${siteUrl}/supplier/orders/${args.orderId}`;
+  const email = args.supplier.email?.trim();
+
+  if (email) {
+    await ctx.scheduler.runAfter(0, internal.email.sendSupplierOrderAssignment, {
+      to: email,
+      supplierName: args.supplier.name,
+      orderRef: args.order.ref,
+      orderUrl,
+    });
+  }
+
+  const phone = args.supplier.whatsapp?.trim() || args.supplier.phone?.trim();
+  if (phone) {
+    const text = [
+      `Bonjour ${args.supplier.name},`,
+      "",
+      `Une nouvelle commande vous a été affectée (${args.order.ref}).`,
+      "Consultez les détails et répondez avec votre offre :",
+      orderUrl,
+      "",
+      "— Centre SOS Santé",
+    ].join("\n");
+
+    await ctx.scheduler.runAfter(0, internal.whatsappMessenger.sendDirectMessage, {
+      phone,
+      text,
+      city: args.supplier.city,
+    });
+  }
+}

@@ -8,9 +8,9 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { OrderStatus } from "@/lib/crm/mock-data";
 import {
-  ALL_ORDER_STATUSES,
   ORDER_STATUS_LABELS,
   SUGGESTED_NEXT_STATUSES,
+  WORKFLOW_STATUSES,
 } from "@/lib/crm/order-status";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+
+const SUGGESTED_BUTTON_TONE: Partial<Record<OrderStatus, string>> = {
+  envoyee_fournisseur: "border-warning/30 bg-warning-soft/50 hover:bg-warning-soft",
+  prix_recu: "border-success/30 bg-success-soft/40 text-success hover:bg-success-soft",
+  offre_envoyee: "border-brand/30 bg-brand-soft/40 text-brand-deep hover:bg-brand-soft",
+  acceptee: "border-success/30 bg-success-soft/50 text-success hover:bg-success-soft",
+  planifiee: "border-info/30 bg-info-soft/40 text-info hover:bg-info-soft",
+  en_cours: "border-brand/30 bg-brand-soft/40 text-brand-deep hover:bg-brand-soft",
+  annulee: "border-danger/30 bg-danger-soft/40 text-danger hover:bg-danger-soft",
+};
 
 type OrderWorkflowActionsProps = {
   orderId: Id<"orders">;
@@ -46,8 +57,9 @@ export function OrderWorkflowActions({
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const workflowSet = new Set(WORKFLOW_STATUSES);
   const suggested = SUGGESTED_NEXT_STATUSES[currentStatus].filter(
-    (status) => status !== currentStatus
+    (status) => status !== currentStatus && workflowSet.has(status)
   );
 
   const applyStatus = async (status: OrderStatus, statusNote?: string) => {
@@ -89,6 +101,11 @@ export function OrderWorkflowActions({
             size="sm"
             variant="outline"
             disabled={submitting}
+            className={cn(
+              "border",
+              SUGGESTED_BUTTON_TONE[status] ??
+                "border-border bg-background hover:bg-muted/50"
+            )}
             onClick={() => void applyStatus(status)}
           >
             {ORDER_STATUS_LABELS[status]}
@@ -123,7 +140,7 @@ export function OrderWorkflowActions({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {ALL_ORDER_STATUSES.map((status) => (
+                  {WORKFLOW_STATUSES.map((status) => (
                     <SelectItem
                       key={status}
                       value={status}

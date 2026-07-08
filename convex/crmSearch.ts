@@ -1,6 +1,7 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAdminStaff } from "./lib/authz";
+import { resolveOrderClientName } from "./lib/orderClient";
 
 export const global = query({
   args: { q: v.string() },
@@ -23,7 +24,7 @@ export const global = query({
 
     for (const order of orders) {
       const customer = await ctx.db.get(order.customerId);
-      const clientName = customer?.name ?? "";
+      const clientName = resolveOrderClientName(order, customer);
       const phone = customer?.phone ?? "";
       const matches =
         order.ref.toLowerCase().includes(q) ||

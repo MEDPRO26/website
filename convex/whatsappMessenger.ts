@@ -17,15 +17,26 @@ import {
   detectMediaKind,
   enable360Receive,
   fetchReceivedMessageMedia,
+  fetchReceivedMessages,
   parseHttpBody,
   parseInboundPayload,
   phoneDigits,
+  readMessageCreatedAt,
   send360Message,
   set360Webhook,
   webhookUrl,
   type Inbound360Message,
 } from "./lib/messenger360";
 import { ensurePlatformSettings } from "./platformSettings";
+import { resolveOutboundChannelForCity } from "./lib/whatsappChannelCity";
+import {
+  conversationImportMinTimestamp,
+  getLastStaffMessageAt,
+  pruneOrderThreadClientMessages,
+  resolveInboundConversation,
+  shouldAcceptClientMessage,
+} from "./lib/whatsappConversationRouting";
+import { resolveOutboundChannelForContact } from "./lib/whatsappOutboundConversation";
 import {
   assertWhatsAppAudioContentType,
   buildWhatsAppMediaUrl,
@@ -190,33 +201,51 @@ async function storeInboundMessage(ctx: MutationCtx, message: Inbound360Message)
     }
   }
 
-  const now = Date.now();
-  const phone = normalizePhone(message.fromPhone);
-  const text = message.text.trim();
-  const customer = await findCustomerByPhone(ctx, phone);
+  const businessDigits = channel.phone ? phoneDigits(channel.phone) : "";
+  const fromDigits = phoneDigits(message.fromPhone);
+  const toDigits = message.toPhone ? phoneDigits(message.toPhone) : "";
+  const isOutboundEcho =
+    Boolean(businessDigits) &&
+    fromDigits === businessDigits &&
+    Boolean(toDigits);
 
-  const existing = await ctx.db
-    .query("conversations")
-    .withIndex("by_channelId_phone", (q) =>
-      q.eq("channelId", channel._id).eq("phone", phone)
-    )
-    .first();
+  const contactPhone = normalizePhone(isOutboundEcho ? toDigits : message.fromPhone);
+  const messageFrom = isOutboundEcho ? ("staff" as const) : ("client" as const);
+  const text = message.text.trim();
+  const customer = await findCustomerByPhone(ctx, contactPhone);
+
+  const existing = await resolveInboundConversation(ctx, channel._id, contactPhone);
+
+  const now = Date.now();
+  // Use 360Messenger's own timestamp (Morocco local) so the CRM shows the same
+  // wall-clock time the client saw. Fall back to server time if absent.
+  const messageAt = message.createdAt && message.createdAt > 0 ? message.createdAt : now;
 
   if (existing) {
+    if (messageFrom === "client") {
+      const order = existing.orderId ? await ctx.db.get(existing.orderId) : null;
+      const lastStaffAt = await getLastStaffMessageAt(ctx, existing);
+      if (!shouldAcceptClientMessage(existing, order, messageAt, lastStaffAt)) {
+        return { ignored: true as const, reason: "not_for_thread" as const };
+      }
+    }
+
     await ctx.db.insert("conversationMessages", {
       conversationId: existing._id,
-      from: "client",
+      from: messageFrom,
       text,
       mediaUrl: message.mediaUrl,
       mediaKind: message.mediaKind,
       externalId: message.externalId,
-      createdAt: now,
+      ingestSource: "webhook",
+      createdAt: messageAt,
     });
     await ctx.db.patch(existing._id, {
       lastMessage: text,
-      lastMessageAt: now,
-      unreadCount: existing.unreadCount + 1,
-      status: "nouveau",
+      lastMessageAt: messageAt,
+      unreadCount:
+        messageFrom === "client" ? existing.unreadCount + 1 : existing.unreadCount,
+      status: messageFrom === "client" ? "nouveau" : existing.status,
       customerId: existing.customerId ?? customer?._id,
       updatedAt: now,
     });
@@ -224,14 +253,14 @@ async function storeInboundMessage(ctx: MutationCtx, message: Inbound360Message)
   }
 
   const conversationId = await ctx.db.insert("conversations", {
-    name: customer?.name ?? `Client ${phone}`,
-    phone,
+    name: customer?.name ?? `Client ${contactPhone}`,
+    phone: contactPhone,
     channelId: channel._id,
     customerId: customer?._id,
-    status: "nouveau",
+    status: messageFrom === "client" ? "nouveau" : "en_cours",
     lastMessage: text,
-    lastMessageAt: now,
-    unreadCount: 1,
+    lastMessageAt: messageAt,
+    unreadCount: messageFrom === "client" ? 1 : 0,
     source: `WhatsApp · ${channel.label}`,
     createdAt: now,
     updatedAt: now,
@@ -239,12 +268,13 @@ async function storeInboundMessage(ctx: MutationCtx, message: Inbound360Message)
 
   await ctx.db.insert("conversationMessages", {
     conversationId,
-    from: "client",
+    from: messageFrom,
     text,
     mediaUrl: message.mediaUrl,
     mediaKind: message.mediaKind,
     externalId: message.externalId,
-    createdAt: now,
+    ingestSource: "webhook",
+    createdAt: messageAt,
   });
 
   return { conversationId, created: true as const };
@@ -278,7 +308,7 @@ export const processInboundWebhook = internalAction({
     payload: v.any(),
   },
   handler: async (ctx, args): Promise<
-    | { ignored: true; reason: "unparseable" | "delivery_status" | "no_channel" | "duplicate" }
+    | { ignored: true; reason: "unparseable" | "delivery_status" | "no_channel" | "duplicate" | "not_for_thread" }
     | { conversationId: string; created: boolean }
   > => {
     const parsed = parseInboundPayload(args.payload);
@@ -350,6 +380,64 @@ export const ingestInbound = internalMutation({
   },
 });
 
+export const getDirectSendContext = internalQuery({
+  args: {
+    phone: v.string(),
+    text: v.string(),
+    city: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const channels = await ctx.db.query("whatsappChannels").collect();
+    const channel = resolveOutboundChannelForCity(channels, args.city);
+
+    if (!channel?.messenger360ApiKey) {
+      return null;
+    }
+
+    const settings = await ctx.db
+      .query("platformSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .unique();
+
+    return {
+      apiKey: channel.messenger360ApiKey,
+      phone: normalizePhone(args.phone),
+      text: args.text,
+      provider: settings?.whatsappProvider ?? "manual",
+    };
+  },
+});
+
+export const sendDirectMessage = internalAction({
+  args: {
+    phone: v.string(),
+    text: v.string(),
+    city: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const context = await ctx.runQuery(
+      internal.whatsappMessenger.getDirectSendContext,
+      args
+    );
+
+    if (!context || context.provider !== "360messenger") {
+      console.log(
+        "[DEV] Supplier WhatsApp skipped (360Messenger not active):",
+        args.phone
+      );
+      return { sent: false as const };
+    }
+
+    try {
+      await send360Message(context.apiKey, context.phone, context.text);
+      return { sent: true as const };
+    } catch (error) {
+      console.error("Supplier WhatsApp failed:", error);
+      return { sent: false as const };
+    }
+  },
+});
+
 export const getReplyContext = internalQuery({
   args: {
     conversationId: v.id("conversations"),
@@ -357,11 +445,20 @@ export const getReplyContext = internalQuery({
   },
   handler: async (ctx, args) => {
     const conversation = await ctx.db.get(args.conversationId);
-    if (!conversation?.channelId) {
+    if (!conversation) {
       return null;
     }
 
-    const channel = await ctx.db.get(conversation.channelId);
+    const customer = conversation.customerId
+      ? await ctx.db.get(conversation.customerId)
+      : await findCustomerByPhone(ctx, conversation.phone);
+
+    const channelId = await resolveOutboundChannelForContact(ctx, {
+      phone: conversation.phone,
+      customerCity: customer?.city,
+    });
+    const channel = channelId ? await ctx.db.get(channelId) : null;
+
     if (!channel?.messenger360ApiKey) {
       return null;
     }
@@ -393,7 +490,9 @@ export const deliverMediaReply = internalAction({
     });
 
     if (!context || context.provider !== "360messenger") {
-      return { skipped: true as const };
+      throw new Error(
+        "360Messenger non configuré pour cette conversation. Vérifiez Paramètres → WhatsApp."
+      );
     }
 
     await send360Message(
@@ -418,7 +517,9 @@ export const deliverReply = internalAction({
     });
 
     if (!context || context.provider !== "360messenger") {
-      return { skipped: true as const };
+      throw new Error(
+        "360Messenger non configuré pour cette conversation. Vérifiez Paramètres → WhatsApp."
+      );
     }
 
     await send360Message(context.apiKey, context.phone, context.text);
@@ -472,4 +573,193 @@ export const webhook = httpAction(async (ctx, request) => {
   }
 
   return new Response("OK", { status: 200 });
+});
+
+export const getSyncContext = internalQuery({
+  args: { conversationId: v.id("conversations") },
+  handler: async (ctx, args) => {
+    const conversation = await ctx.db.get(args.conversationId);
+    if (!conversation?.channelId) {
+      return null;
+    }
+
+    const channel = await ctx.db.get(conversation.channelId);
+    if (!channel?.messenger360ApiKey) {
+      return null;
+    }
+
+    return {
+      apiKey: channel.messenger360ApiKey,
+      clientPhone: conversation.phone,
+      businessPhone: channel.phone ?? "",
+    };
+  },
+});
+
+export const importSyncedMessages = internalMutation({
+  args: {
+    conversationId: v.id("conversations"),
+    clientPhone: v.string(),
+    businessPhone: v.string(),
+    rows: v.array(v.any()),
+  },
+  handler: async (ctx, args) => {
+    const conversation = await ctx.db.get(args.conversationId);
+    if (!conversation) {
+      return { imported: 0 };
+    }
+
+    const businessDigits = args.businessPhone
+      ? phoneDigits(args.businessPhone)
+      : "";
+    const clientDigits = phoneDigits(args.clientPhone);
+    const minCreatedAt = await conversationImportMinTimestamp(ctx, conversation);
+    const lastStaffAt = await getLastStaffMessageAt(ctx, conversation);
+    const order = conversation.orderId
+      ? await ctx.db.get(conversation.orderId)
+      : null;
+    let imported = 0;
+    let latestText = conversation.lastMessage;
+    let latestAt = conversation.lastMessageAt;
+    let unread = conversation.unreadCount;
+
+    for (const raw of args.rows) {
+      const parsed = parseInboundPayload(raw);
+      if (!parsed || "delivery" in parsed) {
+        continue;
+      }
+
+      const externalId = parsed.externalId;
+      if (externalId) {
+        const duplicate = await ctx.db
+          .query("conversationMessages")
+          .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
+          .first();
+        if (duplicate) {
+          continue;
+        }
+      }
+
+      const fromDigits = phoneDigits(parsed.fromPhone);
+      const toDigits = parsed.toPhone ? phoneDigits(parsed.toPhone) : "";
+      const isOutboundEcho =
+        Boolean(businessDigits) &&
+        fromDigits === businessDigits &&
+        toDigits === clientDigits;
+      const isInbound =
+        fromDigits === clientDigits &&
+        (!businessDigits || !toDigits || toDigits === businessDigits);
+
+      if (!isOutboundEcho && !isInbound) {
+        continue;
+      }
+
+      const messageFrom = isOutboundEcho ? ("staff" as const) : ("client" as const);
+      const text = parsed.text.trim();
+      if (!text) {
+        continue;
+      }
+
+      if (conversation.orderId && messageFrom === "client") {
+        const createdAt = readMessageCreatedAt(raw);
+        if (createdAt <= 0 || createdAt < minCreatedAt) {
+          continue;
+        }
+        if (!shouldAcceptClientMessage(conversation, order, createdAt, lastStaffAt)) {
+          continue;
+        }
+      } else if (conversation.orderId && messageFrom === "staff") {
+        continue;
+      }
+
+      const createdAt =
+        messageFrom === "staff"
+          ? readMessageCreatedAt(raw) || Date.now()
+          : readMessageCreatedAt(raw);
+      if (createdAt <= 0) {
+        continue;
+      }
+      if (createdAt < minCreatedAt) {
+        continue;
+      }
+      if (
+        messageFrom === "client" &&
+        !conversation.orderId &&
+        !shouldAcceptClientMessage(conversation, order, createdAt, lastStaffAt)
+      ) {
+        continue;
+      }
+      await ctx.db.insert("conversationMessages", {
+        conversationId: args.conversationId,
+        from: messageFrom,
+        text,
+        mediaUrl: parsed.mediaUrl,
+        mediaKind: parsed.mediaKind,
+        externalId,
+        ingestSource: "sync",
+        createdAt,
+      });
+      imported += 1;
+
+      if (createdAt >= latestAt) {
+        latestAt = createdAt;
+        latestText = text;
+      }
+      if (messageFrom === "client") {
+        unread += 1;
+      }
+    }
+
+    if (imported > 0) {
+      await ctx.db.patch(args.conversationId, {
+        lastMessage: latestText,
+        lastMessageAt: latestAt,
+        unreadCount: unread,
+        updatedAt: Date.now(),
+      });
+    }
+
+    if (conversation.orderId) {
+      await pruneOrderThreadClientMessages(ctx, args.conversationId);
+    }
+
+    return { imported };
+  },
+});
+
+export const syncConversationFrom360 = internalAction({
+  args: { conversationId: v.id("conversations") },
+  handler: async (ctx, args) => {
+    const context = await ctx.runQuery(internal.whatsappMessenger.getSyncContext, {
+      conversationId: args.conversationId,
+    });
+    if (!context?.apiKey) {
+      return { imported: 0, reason: "no_api" as const };
+    }
+
+    let imported = 0;
+    for (let page = 1; page <= 3; page += 1) {
+      const rows = await fetchReceivedMessages(
+        context.apiKey,
+        context.clientPhone,
+        page
+      );
+      if (rows.length === 0) {
+        break;
+      }
+
+      const result = await ctx.runMutation(
+        internal.whatsappMessenger.importSyncedMessages,
+        {
+          conversationId: args.conversationId,
+          clientPhone: context.clientPhone,
+          businessPhone: context.businessPhone,
+          rows,
+        }
+      );
+      imported += result.imported;
+    }
+
+    return { imported };
+  },
 });
