@@ -16,6 +16,9 @@ export const list = query({
     const rows = await Promise.all(
       quotes.map(async (quote) => {
         const order = await ctx.db.get(quote.orderId);
+        if (order?.status === "annulee" || order?.status !== "terminee") {
+          return null;
+        }
         const supplier = await ctx.db.get(quote.supplierId);
         const offers = await ctx.db
           .query("clientOffers")
@@ -42,7 +45,9 @@ export const list = query({
       })
     );
 
-    return rows.sort((a, b) => b.submittedAt - a.submittedAt);
+    return rows
+      .filter((row) => row !== null)
+      .sort((a, b) => b.submittedAt - a.submittedAt);
   },
 });
 
@@ -57,10 +62,16 @@ export const stats = query({
     let totalCommission = 0;
     let pendingCommission = 0;
     let unpaidCommission = 0;
+    let quoteCount = 0;
 
     for (const quote of submitted) {
+      const order = await ctx.db.get(quote.orderId);
+      if (order?.status === "annulee" || order?.status !== "terminee") {
+        continue;
+      }
       const pricing = getQuotePricing(quote);
       totalCommission += pricing.commissionAmount;
+      quoteCount += 1;
 
       const offers = await ctx.db
         .query("clientOffers")
@@ -79,7 +90,7 @@ export const stats = query({
       totalCommission,
       pendingCommission,
       unpaidCommission,
-      quoteCount: submitted.length,
+      quoteCount,
     };
   },
 });

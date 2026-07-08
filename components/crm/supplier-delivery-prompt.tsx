@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Loader2, PackageCheck, Phone, Truck } from "lucide-react";
+import { Loader2, PackageCheck, Phone, Truck, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { telUrl, whatsAppUrl } from "@/lib/crm/phone-links";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,8 @@ type SupplierDeliveryPromptProps = {
   className?: string;
   onMarkDelivered?: () => void | Promise<void>;
   markingDelivered?: boolean;
+  onCancelByClient?: () => void | Promise<void>;
+  cancelling?: boolean;
 };
 
 function deliveryMessage(clientName?: string, item?: string) {
@@ -32,6 +34,8 @@ export function SupplierDeliveryPrompt({
   className,
   onMarkDelivered,
   markingDelivered = false,
+  onCancelByClient,
+  cancelling = false,
 }: SupplierDeliveryPromptProps) {
   const phone = clientPhone?.trim();
   const message = deliveryMessage(clientName, item);
@@ -141,7 +145,7 @@ export function SupplierDeliveryPrompt({
                   type="button"
                   size="sm"
                   className="rounded-lg"
-                  disabled={markingDelivered}
+                  disabled={markingDelivered || cancelling}
                   onClick={() => void onMarkDelivered()}
                 >
                   {markingDelivered ? (
@@ -152,23 +156,59 @@ export function SupplierDeliveryPrompt({
                   Marquer comme livrée
                 </Button>
               ) : null}
+              {onCancelByClient ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="rounded-lg border-status-error/30 text-status-error hover:bg-status-error/10 hover:text-status-error"
+                  disabled={cancelling || markingDelivered}
+                  onClick={() => void onCancelByClient()}
+                >
+                  {cancelling ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <XCircle className="size-3.5" />
+                  )}
+                  Commande annulée (client)
+                </Button>
+              ) : null}
             </div>
           ) : onMarkDelivered ? (
             <div className="mt-3">
-              <Button
-                type="button"
-                size="sm"
-                className="rounded-lg"
-                disabled={markingDelivered}
-                onClick={() => void onMarkDelivered()}
-              >
-                {markingDelivered ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <PackageCheck className="size-3.5" />
-                )}
-                Marquer comme livrée
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  className="rounded-lg"
+                  disabled={markingDelivered || cancelling}
+                  onClick={() => void onMarkDelivered()}
+                >
+                  {markingDelivered ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <PackageCheck className="size-3.5" />
+                  )}
+                  Marquer comme livrée
+                </Button>
+                {onCancelByClient ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="rounded-lg border-status-error/30 text-status-error hover:bg-status-error/10 hover:text-status-error"
+                    disabled={cancelling || markingDelivered}
+                    onClick={() => void onCancelByClient()}
+                  >
+                    {cancelling ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <XCircle className="size-3.5" />
+                    )}
+                    Commande annulée (client)
+                  </Button>
+                ) : null}
+              </div>
             </div>
           ) : null}
         </div>

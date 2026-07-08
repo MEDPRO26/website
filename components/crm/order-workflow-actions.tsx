@@ -112,7 +112,7 @@ export function OrderWorkflowActions({
             <ArrowRight className="size-3.5 opacity-60" />
           </Button>
         ))}
-        <Button size="sm" variant="secondary" disabled={submitting} onClick={openDialog}>
+        <Button size="sm" disabled={submitting} onClick={openDialog}>
           Changer statut…
         </Button>
       </div>

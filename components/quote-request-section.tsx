@@ -11,15 +11,17 @@ import {
   isLeadRequestKindDisabled,
 } from "@/lib/lead-form-request-kinds";
 
-type RequestKind = "location" | "vente" | "service";
+type RequestKind = "general" | "location" | "vente" | "service";
 
 const REQUEST_KIND_OPTIONS: { value: RequestKind; label: string }[] = [
+  { value: "general", label: "Demande générale" },
   { value: "location", label: "Location matériel médical" },
   { value: "vente", label: "Vente matériel médical" },
   { value: "service", label: "Service à domicile" },
 ];
 
 const REQUEST_KIND_LABEL: Record<RequestKind, string> = {
+  general: "Demande générale",
   location: "Location matériel médical",
   vente: "Vente matériel médical",
   service: "Service à domicile",
@@ -86,7 +88,12 @@ export default function QuoteRequestSection({
   });
   const { submit, isSubmitting } = useSubmitLead();
 
+  const showItemField = formData.demandeType !== "general";
+
   const requestChoices = useMemo(() => {
+    if (!showItemField) {
+      return [];
+    }
     if (formData.demandeType === "vente") {
       return productNames;
     }
@@ -94,7 +101,7 @@ export default function QuoteRequestSection({
       return careServiceFormOptions;
     }
     return rentalMaterialOptions;
-  }, [formData.demandeType, productNames]);
+  }, [formData.demandeType, productNames, showItemField]);
 
   const requestChoiceLabel =
     formData.demandeType === "service" ? "Service souhaité" : "Matériel souhaité";
@@ -105,7 +112,11 @@ export default function QuoteRequestSection({
 
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!formData.nom || !formData.telephone || !formData.ville || !formData.materiel) {
+    if (!formData.nom || !formData.telephone || !formData.ville) {
+      setFormStatus("error");
+      return;
+    }
+    if (showItemField && !formData.materiel) {
       setFormStatus("error");
       return;
     }
@@ -120,7 +131,7 @@ export default function QuoteRequestSection({
         phone: formData.telephone,
         city: formData.ville,
         type: REQUEST_KIND_LABEL[formData.demandeType],
-        item: formData.materiel,
+        item: formData.demandeType === "general" ? "Demande générale" : formData.materiel,
         message: formData.message,
         pagePath,
         source: "Formulaire site",
@@ -293,34 +304,36 @@ export default function QuoteRequestSection({
                   ))}
                 </select>
               </div>
-              <div>
-                <label
-                  htmlFor={`${id}-materiel`}
-                  className="mb-1.5 block text-sm font-medium text-white"
-                >
-                  {requestChoiceLabel}
-                </label>
-                <select
-                  id={`${id}-materiel`}
-                  name="materiel"
-                  required
-                  value={formData.materiel}
-                  onChange={(e) =>
-                    setFormData({ ...formData, materiel: e.target.value })
-                  }
-                  className="w-full rounded-xl border-0 bg-white/90 px-4 py-3 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary-fixed"
-                >
-                  <option value="" disabled>
-                    {requestChoicePlaceholder}
-                  </option>
-                  {requestChoices.map((choice) => (
-                    <option key={choice} value={choice}>
-                      {choice}
+              {showItemField ? (
+                <div>
+                  <label
+                    htmlFor={`${id}-materiel`}
+                    className="mb-1.5 block text-sm font-medium text-white"
+                  >
+                    {requestChoiceLabel}
+                  </label>
+                  <select
+                    id={`${id}-materiel`}
+                    name="materiel"
+                    required
+                    value={formData.materiel}
+                    onChange={(e) =>
+                      setFormData({ ...formData, materiel: e.target.value })
+                    }
+                    className="w-full rounded-xl border-0 bg-white/90 px-4 py-3 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary-fixed"
+                  >
+                    <option value="" disabled>
+                      {requestChoicePlaceholder}
                     </option>
-                  ))}
-                  <option value={otherChoiceLabel}>{otherChoiceLabel}</option>
-                </select>
-              </div>
+                    {requestChoices.map((choice) => (
+                      <option key={choice} value={choice}>
+                        {choice}
+                      </option>
+                    ))}
+                    <option value={otherChoiceLabel}>{otherChoiceLabel}</option>
+                  </select>
+                </div>
+              ) : null}
               <div>
                 <label
                   htmlFor={`${id}-message`}

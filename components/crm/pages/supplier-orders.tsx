@@ -636,23 +636,13 @@ function SupplierOrderRow({ order }: { order: SupplierOrder }) {
         )}
       </td>
       <td className="px-5 py-4">
-        <div className="flex items-center justify-end gap-1">
-          <Button
-            asChild
-            size="icon"
-            variant="ghost"
-            className="size-8 text-muted-foreground hover:text-brand"
-          >
-            <Link href={`/supplier/orders/${order._id}`} aria-label="Voir la commande">
-              <Eye className="size-4" />
-            </Link>
-          </Button>
+        <div className="flex items-center justify-end gap-2">
           {needsDelivery ? (
             <div className="flex flex-col items-end gap-1.5">
               <Button
                 type="button"
                 size="sm"
-                className="h-8 rounded-lg px-3 text-xs"
+                className="h-8 w-[220px] justify-center rounded-lg px-3 text-xs"
                 disabled={markingDelivered || cancelling || isCancelled}
                 onClick={() => void handleMarkDelivered()}
               >
@@ -667,7 +657,7 @@ function SupplierOrderRow({ order }: { order: SupplierOrder }) {
                 type="button"
                 size="sm"
                 variant="outline"
-                className="h-8 rounded-lg border-status-error/30 px-3 text-xs text-status-error hover:bg-status-error/10 hover:text-status-error"
+                className="h-8 w-[220px] justify-center rounded-lg border-status-error/30 px-3 text-xs text-status-error hover:bg-status-error/10 hover:text-status-error"
                 disabled={cancelling || markingDelivered || isDelivered || isCancelled}
                 onClick={() => void handleCancel()}
               >
@@ -689,6 +679,16 @@ function SupplierOrderRow({ order }: { order: SupplierOrder }) {
               <Link href={`/supplier/orders/${order._id}`}>Répondre</Link>
             </Button>
           ) : null}
+          <Button
+            asChild
+            size="icon"
+            variant="ghost"
+            className="size-8 text-muted-foreground hover:text-brand"
+          >
+            <Link href={`/supplier/orders/${order._id}`} aria-label="Voir la commande">
+              <Eye className="size-4" />
+            </Link>
+          </Button>
         </div>
       </td>
     </tr>

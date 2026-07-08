@@ -58,7 +58,9 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
   const { canQuerySupplier, supplier, staff } = useSupplierSession();
   const markViewed = useMutation(api.supplierPortal.markViewed);
   const markAsDelivered = useMutation(api.supplierPortal.markAsDelivered);
+  const cancelByClient = useMutation(api.supplierPortal.cancelByClient);
   const [markingDelivered, setMarkingDelivered] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const data = useQuery(
     api.supplierPortal.getOrder,
     canQuerySupplier ? { orderId: orderId as Id<"orders"> } : "skip"
@@ -102,6 +104,7 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
   const needsDelivery =
     clientContactVisible && supplierShouldDeliverOrder(order.status);
   const isDelivered = order.status === "terminee";
+  const isCancelled = order.status === "annulee";
 
   const handleMarkDelivered = async () => {
     setMarkingDelivered(true);
@@ -116,6 +119,20 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
       );
     } finally {
       setMarkingDelivered(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    setCancelling(true);
+    try {
+      await cancelByClient({ orderId: order._id });
+      toast.success("Commande annulée.");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Impossible d'annuler la commande."
+      );
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -160,7 +177,7 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
 
       {isDelivered ? (
         <SupplierDeliveredBanner />
-      ) : needsDelivery ? (
+      ) : needsDelivery && !isCancelled ? (
         <SupplierDeliveryPrompt
           clientName={customer?.name}
           clientPhone={customer?.phone}
@@ -168,6 +185,8 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
           item={order.item}
           onMarkDelivered={handleMarkDelivered}
           markingDelivered={markingDelivered}
+          onCancelByClient={handleCancel}
+          cancelling={cancelling}
         />
       ) : null}
 
