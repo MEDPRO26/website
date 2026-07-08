@@ -315,7 +315,11 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </aside>
 
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetContent side="left" className="w-[280px] p-0 flex flex-col bg-[var(--sidebar)] border-[var(--sidebar-border)] rounded-r-2xl">
+          <SheetContent
+            side="left"
+            style={{ backgroundColor: "#ffffff" }}
+            className="crm-app w-[280px] p-0 flex flex-col border-[#e2e5eb] rounded-r-2xl"
+          >
             <SidebarContent onNavigate={() => setMobileOpen(false)} can={can} />
           </SheetContent>
         </Sheet>
