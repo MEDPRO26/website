@@ -530,7 +530,6 @@ export const completeProfile = mutation({
       services,
       status: "actif",
       profileComplete: true,
-      pwaInstallPromptDismissed: false,
       updatedAt: now,
     });
 

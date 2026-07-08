@@ -1,16 +1,43 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
+import { Smartphone } from "lucide-react";
 import type { Doc } from "@/convex/_generated/dataModel";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
 import { useMutation } from "convex/react";
+import { LOGO } from "@/lib/brand";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
+
+function isStandaloneMode() {
+  if (typeof window === "undefined") return false;
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    ("standalone" in navigator &&
+      (navigator as Navigator & { standalone?: boolean }).standalone === true)
+  );
+}
+
+function isMobileDevice() {
+  if (typeof window === "undefined") return false;
+  return (
+    /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
+    window.matchMedia("(max-width: 768px)").matches
+  );
+}
 
 export function SupplierWebappInstallPrompt({
   supplier,
@@ -19,38 +46,48 @@ export function SupplierWebappInstallPrompt({
 }) {
   const dismissPrompt = useMutation(api.supplierPortal.dismissPwaInstallPrompt);
 
-  // Only show when explicitly set by onboarding completion.
-  // (Existing suppliers won't have this field yet.)
-  const shouldShow = supplier.pwaInstallPromptDismissed === false;
-
   const [open, setOpen] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [hasOpened, setHasOpened] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
   const [dismissing, setDismissing] = useState(false);
+  const [installing, setInstalling] = useState(false);
 
   const isIos = useMemo(() => {
     if (typeof navigator === "undefined") return false;
     return /iPad|iPhone|iPod/i.test(navigator.userAgent);
   }, []);
 
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const ev = e as BeforeInstallPromptEvent;
-      // Required by the browser so we can trigger the install ourselves.
-      ev.preventDefault();
-      setDeferredPrompt(ev);
-    };
+  const shouldShow =
+    supplier.pwaInstallPromptDismissed !== true &&
+    isMobileDevice() &&
+    !isStandaloneMode();
 
-    window.addEventListener("beforeinstallprompt", handler as EventListener);
-    return () => window.removeEventListener("beforeinstallprompt", handler as EventListener);
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    void navigator.serviceWorker.register("/sw.js").catch(() => undefined);
   }, []);
 
   useEffect(() => {
-    if (!shouldShow) return;
-    if (hasOpened) return;
-    setHasOpened(true);
-    setOpen(true);
-  }, [shouldShow, hasOpened]);
+    const handler = (event: Event) => {
+      const installEvent = event as BeforeInstallPromptEvent;
+      installEvent.preventDefault();
+      setDeferredPrompt(installEvent);
+    };
+
+    window.addEventListener("beforeinstallprompt", handler as EventListener);
+    return () =>
+      window.removeEventListener("beforeinstallprompt", handler as EventListener);
+  }, []);
+
+  useEffect(() => {
+    if (!shouldShow) {
+      setOpen(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => setOpen(true), 600);
+    return () => window.clearTimeout(timer);
+  }, [shouldShow]);
 
   const dismissOnce = async () => {
     if (dismissing) return;
@@ -64,70 +101,103 @@ export function SupplierWebappInstallPrompt({
   };
 
   const handleInstall = async () => {
+    if (!deferredPrompt) return;
+
+    setInstalling(true);
     try {
-      if (deferredPrompt) {
-        await deferredPrompt.prompt();
-        // Wait so we don't dismiss before the browser registers the install attempt.
-        await deferredPrompt.userChoice.catch(() => null);
+      await deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice.catch(() => null);
+      if (choice?.outcome === "accepted") {
+        await dismissOnce();
       }
     } finally {
-      await dismissOnce();
+      setInstalling(false);
     }
   };
 
-  const title = "Ajouter SOS Santé à l’écran d’accueil";
-  const canDirectInstall = deferredPrompt !== null;
-  const installLabel = canDirectInstall ? "Installer" : "Compris";
+  if (!shouldShow) {
+    return null;
+  }
 
   return (
     <Dialog
       open={open}
       onOpenChange={(nextOpen) => {
         if (!nextOpen) {
-          void dismissOnce();
-        } else {
-          setOpen(true);
+          setOpen(false);
         }
       }}
     >
-      <DialogContent className="border-border/60 bg-[#0f172a] text-white sm:max-w-xl">
-        <DialogHeader>
-          <DialogTitle className="text-xl">{title}</DialogTitle>
-          <DialogDescription className="text-slate-300">
-            Pour ouvrir facilement votre espace fournisseur depuis votre telephone, installez l'icone webapp.
-          </DialogDescription>
+      <DialogContent className="gap-5 border-border/60 bg-white p-6 sm:max-w-md">
+        <DialogHeader className="space-y-3 text-left">
+          <div className="flex items-center gap-3">
+            <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-brand-soft">
+              <Image
+                src={LOGO.crm}
+                alt="SOS Santé"
+                width={32}
+                height={32}
+                className="size-8 object-contain"
+              />
+            </div>
+            <div className="min-w-0">
+              <DialogTitle className="text-lg leading-snug">
+                Installer l&apos;application
+              </DialogTitle>
+              <DialogDescription className="mt-1 text-sm">
+                Ajoutez SOS Santé sur votre téléphone pour ouvrir votre espace
+                fournisseur en un clic.
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <div className="space-y-3 text-sm">
+        <div className="space-y-3 rounded-2xl bg-muted/50 p-4 text-sm text-foreground">
           {deferredPrompt ? (
-            <p className="text-slate-200">
-              Appuyez sur <span className="font-semibold">Installer</span> pour que le navigateur ajoute l’application.
+            <p>
+              Appuyez sur <strong>Installer l&apos;application</strong> pour
+              ajouter l&apos;icône sur votre écran d&apos;accueil.
             </p>
           ) : isIos ? (
-            <div className="space-y-2">
-              <p className="text-slate-200">
-                Sur iPhone, utilisez l'action <span className="font-semibold">Partager</span> puis <span className="font-semibold">Ajouter a l'ecran d'accueil</span>.
-              </p>
-              <p className="text-xs text-slate-400">
-                Conseil: apres l'ajout, l'icone ouvrira automatiquement la page de votre tableau de bord.
-              </p>
-            </div>
+            <ol className="list-decimal space-y-2 pl-4">
+              <li>
+                Appuyez sur <strong>Partager</strong> en bas de Safari.
+              </li>
+              <li>
+                Choisissez <strong>Sur l&apos;écran d&apos;accueil</strong>.
+              </li>
+              <li>
+                Confirmez avec <strong>Ajouter</strong>.
+              </li>
+            </ol>
           ) : (
-            <p className="text-slate-200">
-              Si votre navigateur ne propose pas “Installer”, vous pouvez toujours ajouter le site à l’écran d’accueil via le menu du navigateur.
+            <p className="inline-flex items-start gap-2">
+              <Smartphone className="mt-0.5 size-4 shrink-0 text-brand" />
+              <span>
+                Ouvrez le menu de votre navigateur, puis choisissez{" "}
+                <strong>Installer l&apos;application</strong> ou{" "}
+                <strong>Ajouter à l&apos;écran d&apos;accueil</strong>.
+              </span>
             </p>
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:flex-col">
+          {deferredPrompt || isIos ? (
+            <Button
+              className="w-full rounded-xl"
+              onClick={() => void (deferredPrompt ? handleInstall() : undefined)}
+              disabled={installing || dismissing}
+            >
+              {installing ? "Installation…" : "Installer l'application"}
+            </Button>
+          ) : null}
           <Button
-            onClick={() => void (canDirectInstall ? handleInstall() : dismissOnce())}
-            disabled={false}
-            className="rounded-xl"
+            variant={deferredPrompt || isIos ? "outline" : "default"}
+            className="w-full rounded-xl"
+            onClick={() => void dismissOnce()}
+            disabled={dismissing || installing}
           >
-            {installLabel}
-          </Button>
-          <Button variant="secondary" onClick={() => void dismissOnce()} className="rounded-xl bg-slate-800 text-white hover:bg-slate-700">
             Plus tard
           </Button>
         </DialogFooter>
@@ -135,4 +205,3 @@ export function SupplierWebappInstallPrompt({
     </Dialog>
   );
 }
-
