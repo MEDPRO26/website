@@ -50,6 +50,7 @@ import type * as platformSettings from "../platformSettings.js";
 import type * as quotes from "../quotes.js";
 import type * as rentalReminders from "../rentalReminders.js";
 import type * as staff from "../staff.js";
+import type * as staffInvitations from "../staffInvitations.js";
 import type * as supplierInvitations from "../supplierInvitations.js";
 import type * as supplierPortal from "../supplierPortal.js";
 import type * as suppliers from "../suppliers.js";
@@ -106,6 +107,7 @@ declare const fullApi: ApiFromModules<{
   quotes: typeof quotes;
   rentalReminders: typeof rentalReminders;
   staff: typeof staff;
+  staffInvitations: typeof staffInvitations;
   supplierInvitations: typeof supplierInvitations;
   supplierPortal: typeof supplierPortal;
   suppliers: typeof suppliers;

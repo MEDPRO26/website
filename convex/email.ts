@@ -126,6 +126,58 @@ async function sendResendEmail(args: {
   return { sent: true, dev: false };
 }
 
+function buildAssistantInviteEmailHtml(args: {
+  inviteUrl: string;
+  role: string;
+}) {
+  const roleLabel = args.role === "admin" ? "administrateur" : "assistant";
+  return `
+<!DOCTYPE html>
+<html lang="fr">
+  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #474b56; max-width: 560px; margin: 0 auto; padding: 24px;">
+    <h1 style="color: #2890e0; font-size: 22px;">Centre SOS Santé</h1>
+    <p>Bonjour,</p>
+    <p>
+      Vous êtes invité à rejoindre l'équipe SOS Santé en tant que
+      <strong>${roleLabel}</strong>.
+    </p>
+    <p>
+      Cliquez sur le bouton ci-dessous pour créer votre mot de passe et accéder
+      au tableau de bord.
+    </p>
+    <p style="margin: 32px 0;">
+      <a href="${args.inviteUrl}"
+         style="background: #32a0f3; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; display: inline-block;">
+        Créer mon compte
+      </a>
+    </p>
+    <p style="font-size: 13px; color: #747782;">
+      Ce lien expire dans 7 jours. Si vous n'êtes pas concerné, ignorez cet email.
+    </p>
+    <p style="font-size: 13px; color: #747782;">
+      Lien direct : <a href="${args.inviteUrl}">${args.inviteUrl}</a>
+    </p>
+  </body>
+</html>`;
+}
+
+export const sendAssistantInvitation = internalAction({
+  args: {
+    to: v.string(),
+    inviteUrl: v.string(),
+    role: v.string(),
+  },
+  handler: async (_ctx, args) => {
+    return await sendResendEmail({
+      to: args.to,
+      subject: "Invitation équipe SOS Santé",
+      html: buildAssistantInviteEmailHtml(args),
+      devLabel: "Assistant invitation email",
+      devPayload: args,
+    });
+  },
+});
+
 export const sendSupplierInvitation = internalAction({
   args: {
     to: v.string(),

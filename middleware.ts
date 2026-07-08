@@ -19,6 +19,7 @@ import {
 const legacyCategorySlugs = Object.keys(seoCategoryToCatalogParam);
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
 const isAdminLogin = createRouteMatcher(["/admin/login"]);
+const isAdminInvite = createRouteMatcher(["/admin/invite(.*)"]);
 const isSupplierRoute = createRouteMatcher(["/supplier(.*)"]);
 const isSupplierInvite = createRouteMatcher(["/supplier/invite(.*)"]);
 const isPrivateCrmRoute = createRouteMatcher(["/admin(.*)", "/supplier(.*)"]);
@@ -105,6 +106,7 @@ export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
   if (
     isAdminRoute(request) &&
     !isAdminLogin(request) &&
+    !isAdminInvite(request) &&
     !(await convexAuth.isAuthenticated())
   ) {
     return withNoIndex(nextjsMiddlewareRedirect(request, "/admin/login"));

@@ -17,6 +17,16 @@ async function hasPendingSupplierInvite(ctx: QueryCtx, email: string) {
   );
 }
 
+async function hasPendingStaffInvite(ctx: QueryCtx, email: string) {
+  const invites = await ctx.db
+    .query("staffInvitations")
+    .withIndex("by_email", (q) => q.eq("email", email))
+    .collect();
+  return invites.some(
+    (invite) => invite.status === "pending" && invite.expiresAt > Date.now()
+  );
+}
+
 export const ensureProfile = mutation({
   args: {},
   handler: async (ctx) => {
@@ -42,14 +52,26 @@ export const ensureProfile = mutation({
       );
     }
 
+    if (email && (await hasPendingStaffInvite(ctx, email))) {
+      throw new Error(
+        "Acceptez d'abord votre invitation assistant reçue par email."
+      );
+    }
+
     const staffCount = (await ctx.db.query("staff").collect()).length;
+    if (staffCount > 0) {
+      throw new Error(
+        "Accès réservé. Utilisez le lien d'invitation envoyé par un administrateur."
+      );
+    }
+
     const now = Date.now();
 
     return await ctx.db.insert("staff", {
       userId,
       name: authUser?.name ?? authUser?.email ?? "Utilisateur",
       email: authUser?.email ?? "",
-      role: staffCount === 0 ? "super_admin" : "assistant",
+      role: "super_admin",
       status: "actif",
       createdAt: now,
       updatedAt: now,

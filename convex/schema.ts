@@ -140,6 +140,20 @@ export default defineSchema({
     .index("by_email", ["email"])
     .index("by_supplierId", ["supplierId"]),
 
+  staffInvitations: defineTable({
+    token: v.string(),
+    email: v.string(),
+    role: roleValidator,
+    status: supplierInvitationStatusValidator,
+    invitedByStaffId: v.optional(v.id("staff")),
+    expiresAt: v.number(),
+    acceptedAt: v.optional(v.number()),
+    acceptedByUserId: v.optional(v.id("users")),
+    createdAt: v.number(),
+  })
+    .index("by_token", ["token"])
+    .index("by_email", ["email"]),
+
   orderEvents: defineTable({
     orderId: v.id("orders"),
     type: orderEventTypeValidator,

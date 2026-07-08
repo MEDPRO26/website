@@ -16,7 +16,7 @@ function homeForRole(role: string | undefined) {
   return role === "supplier" ? "/supplier" : "/admin";
 }
 
-function loginErrorMessage(err: unknown, mode: "signIn" | "signUp"): string {
+function loginErrorMessage(err: unknown): string {
   const raw =
     err instanceof Error
       ? err.message
@@ -39,22 +39,15 @@ function loginErrorMessage(err: unknown, mode: "signIn" | "signUp"): string {
     normalized.includes("account not found") ||
     normalized.includes("could not find")
   ) {
-    return mode === "signIn"
-      ? "Aucun compte pour cet email. Créez un accès admin."
-      : "Compte introuvable.";
+    return "Aucun compte pour cet email. Contactez un administrateur pour recevoir une invitation.";
   }
 
-  if (
-    normalized.includes("already exists") ||
-    normalized.includes("accountalreadyexists")
-  ) {
-    return "Un compte existe déjà pour cet email. Connectez-vous ou contactez le support.";
+  if (normalized.includes("invitation")) {
+    return raw;
   }
 
   if (normalized.includes("server error")) {
-    return mode === "signIn"
-      ? "Connexion impossible. Vérifiez email et mot de passe, ou recréez un accès admin si l'inscription a échoué."
-      : "Inscription impossible. Réessayez ou contactez le support.";
+    return "Connexion impossible. Vérifiez email et mot de passe.";
   }
 
   return raw || "Connexion impossible. Vérifiez vos identifiants.";
@@ -67,8 +60,6 @@ export default function AdminLoginPage() {
   const ensureProfile = useMutation(api.staff.ensureProfile);
   const staff = useQuery(api.staff.current, isAuthenticated ? {} : "skip");
 
-  const [mode, setMode] = useState<"signIn" | "signUp">("signIn");
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -89,15 +80,13 @@ export default function AdminLoginPage() {
 
     try {
       await signIn("password", {
-        flow: mode,
+        flow: "signIn",
         email,
         password,
-        ...(mode === "signUp" ? { name } : {}),
       });
-      // Create staff profile if missing (signup or recovery after partial signup).
       await ensureProfile();
     } catch (err) {
-      setError(loginErrorMessage(err, mode));
+      setError(loginErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
@@ -126,19 +115,6 @@ export default function AdminLoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === "signUp" ? (
-            <div className="space-y-2">
-              <Label htmlFor="name">Nom complet</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                placeholder="Prénom et nom"
-              />
-            </div>
-          ) : null}
-
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -171,43 +147,12 @@ export default function AdminLoginPage() {
           ) : null}
 
           <Button type="submit" className="h-11 w-full rounded-xl" disabled={submitting}>
-            {submitting
-              ? "Connexion…"
-              : mode === "signIn"
-                ? "Se connecter"
-                : "Créer mon compte"}
+            {submitting ? "Connexion…" : "Se connecter"}
           </Button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-muted-foreground">
-          {mode === "signIn" ? (
-            <>
-              Premier compte admin ?{" "}
-              <button
-                type="button"
-                className="font-semibold text-primary hover:underline"
-                onClick={() => setMode("signUp")}
-              >
-                Créer un accès admin
-              </button>
-            </>
-          ) : (
-            <>
-              Déjà un compte ?{" "}
-              <button
-                type="button"
-                className="font-semibold text-primary hover:underline"
-                onClick={() => setMode("signIn")}
-              >
-                Se connecter
-              </button>
-            </>
-          )}
-        </div>
-
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Le premier compte créé devient super administrateur. Les fournisseurs
-          reçoivent un accès activé par l&apos;équipe SOS Santé.
+          L&apos;accès est réservé aux comptes invités par l&apos;équipe SOS Santé.
         </p>
 
         <p className="mt-4 text-center">
