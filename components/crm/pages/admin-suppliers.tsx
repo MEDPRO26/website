@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Tag } from "@/components/dashboard/status-badge";
@@ -43,14 +43,12 @@ type DeleteTarget = {
 export function AdminSuppliersPage() {
   const { canQueryAdmin, staff } = useAdminSession();
   const canDeleteSupplier = staff?.role === "super_admin";
-  const ensureDemo = useMutation(api.suppliers.ensureDemoSuppliers);
   const removeSupplier = useMutation(api.suppliers.remove);
   const [search, setSearch] = useState("");
   const [city, setCity] = useState(ALL);
   const [type, setType] = useState(ALL);
   const [status, setStatus] = useState(ALL);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [seedAttempted, setSeedAttempted] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -68,17 +66,6 @@ export function AdminSuppliersPage() {
         }
       : "skip"
   );
-
-  useEffect(() => {
-    if (!canQueryAdmin || seedAttempted || suppliers === undefined) {
-      return;
-    }
-    if (suppliers.length === 0) {
-      void ensureDemo({}).finally(() => setSeedAttempted(true));
-    } else {
-      setSeedAttempted(true);
-    }
-  }, [canQueryAdmin, ensureDemo, seedAttempted, suppliers]);
 
   const stats = useMemo(() => {
     const list = suppliers ?? [];

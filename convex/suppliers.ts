@@ -406,6 +406,13 @@ export const ensureDemoSuppliers = mutation({
   args: {},
   handler: async (ctx) => {
     await requireAdminStaff(ctx);
+    if (process.env.DEMO_SUPPLIER_SEED !== "1") {
+      return {
+        seeded: false,
+        count: (await ctx.db.query("suppliers").collect()).length,
+        disabled: true as const,
+      };
+    }
     return await seedDemoSuppliersImpl(ctx);
   },
 });
