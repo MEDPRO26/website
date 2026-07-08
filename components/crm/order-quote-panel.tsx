@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAction, useMutation, useQuery } from "convex/react";
-import { CheckCircle2, Loader2, Send } from "lucide-react";
+import { CheckCircle2, Loader2, Send, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -36,13 +36,13 @@ export function OrderQuotePanel({
     api.quotes.getForOrder,
     canQueryAdmin ? { orderId } : "skip"
   );
-  const prepareOffer = useMutation(api.quotes.prepareClientOffer);
-  const sendOffer = useMutation(api.quotes.sendClientOffer);
   const sendOfferWhatsApp = useAction(api.quotes.sendClientOfferWithWhatsApp);
   const acceptOffer = useMutation(api.quotes.acceptClientOffer);
+  const updateStatus = useMutation(api.orders.updateStatus);
 
   const [offerMessage, setOfferMessage] = useState("");
   const [submittingOffer, setSubmittingOffer] = useState(false);
+  const [cancellingOrder, setCancellingOrder] = useState(false);
 
   useEffect(() => {
     const message =
@@ -96,46 +96,22 @@ export function OrderQuotePanel({
   const offerAccepted = activeOffer?.status === "accepted";
   const canSendOffer =
     !offerAccepted && (!offerSent || orderStatus === "prix_recu");
+  const canCancelOrder = orderStatus !== "annulee" && orderStatus !== "terminee";
   const waitingForSupplier = !quote || quote.status !== "submitted";
   const usesDeclaredCommission = pricing?.usesDeclaredCommission ?? false;
 
-  const handlePrepareOffer = async () => {
-    setSubmittingOffer(true);
-    try {
-      await prepareOffer({
-        orderId,
-        message: offerMessage.trim() || undefined,
-      });
-      toast.success("Offre client préparée.");
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Impossible de préparer l'offre."
-      );
-    } finally {
-      setSubmittingOffer(false);
-    }
-  };
-
-  const handleSendOffer = async (viaWhatsApp?: boolean) => {
-    if (viaWhatsApp && !offerMessage.trim()) {
-      toast.error("Préparez d'abord le message client.");
+  const handleSendOfferViaWhatsApp = async () => {
+    if (!offerMessage.trim()) {
+      toast.error("Message client vide.");
       return;
     }
     setSubmittingOffer(true);
     try {
-      if (viaWhatsApp) {
-        await sendOfferWhatsApp({
-          orderId,
-          message: offerMessage.trim() || undefined,
-        });
-        toast.success("Offre envoyée au client via WhatsApp.");
-      } else {
-        await sendOffer({
-          orderId,
-          message: offerMessage.trim() || undefined,
-        });
-        toast.success("Offre marquée comme envoyée.");
-      }
+      await sendOfferWhatsApp({
+        orderId,
+        message: offerMessage.trim() || undefined,
+      });
+      toast.success("Offre envoyée au client via WhatsApp.");
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Impossible d'envoyer l'offre."
@@ -159,6 +135,23 @@ export function OrderQuotePanel({
     }
   };
 
+  const handleCancelByClient = async () => {
+    setCancellingOrder(true);
+    try {
+      await updateStatus({
+        orderId,
+        status: "annulee",
+        note: "Commande annulée par le client",
+      });
+      toast.success("Commande annulée par le client.");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Impossible d'annuler la commande."
+      );
+    } finally {
+      setCancellingOrder(false);
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -250,16 +243,8 @@ export function OrderQuotePanel({
               <div className="flex flex-wrap gap-2">
                 <Button
                   size="sm"
-                  variant="outline"
                   disabled={submittingOffer || !canSendOffer}
-                  onClick={() => void handlePrepareOffer()}
-                >
-                  Préparer
-                </Button>
-                <Button
-                  size="sm"
-                  disabled={submittingOffer || !canSendOffer}
-                  onClick={() => void handleSendOffer(true)}
+                  onClick={() => void handleSendOfferViaWhatsApp()}
                 >
                   {submittingOffer ? (
                     <Loader2 className="size-4 animate-spin" />
@@ -267,14 +252,6 @@ export function OrderQuotePanel({
                     <Send className="size-4" />
                   )}
                   Envoyer sur WhatsApp
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={submittingOffer || !canSendOffer}
-                  onClick={() => void handleSendOffer()}
-                >
-                  Marquer comme envoyée
                 </Button>
                 {offerSent && !offerAccepted ? (
                   <Button
@@ -292,6 +269,25 @@ export function OrderQuotePanel({
                   </Button>
                 ) : null}
               </div>
+            </div>
+            <div className="mt-4 border-t border-border/60 pt-4">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="border-status-error/30 text-status-error hover:bg-status-error/10 hover:text-status-error"
+                disabled={cancellingOrder || !canCancelOrder}
+                onClick={() => void handleCancelByClient()}
+              >
+                {cancellingOrder ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <XCircle className="size-4" />
+                )}
+                {orderStatus === "annulee"
+                  ? "Commande déjà annulée"
+                  : "Commande annulée par le client"}
+              </Button>
             </div>
           </div>
         </>

@@ -345,6 +345,61 @@ export const markAsDelivered = mutation({
   },
 });
 
+export const cancelByClient = mutation({
+  args: { orderId: v.id("orders") },
+  handler: async (ctx, args) => {
+    const { staff, supplier } = await requireSupplierStaff(ctx);
+    const order = await ctx.db.get(args.orderId);
+    if (!order || order.supplierId !== supplier._id) {
+      throw new Error("Commande introuvable.");
+    }
+
+    if (order.status === "annulee") {
+      return { alreadyCancelled: true as const };
+    }
+    if (order.status === "terminee") {
+      throw new Error("Cette commande est déjà livrée.");
+    }
+
+    const now = Date.now();
+    const fromStatus = order.status;
+    await ctx.db.patch(args.orderId, {
+      status: "annulee",
+      updatedAt: now,
+    });
+
+    await appendOrderEvent(ctx, {
+      orderId: args.orderId,
+      type: "status_change",
+      label: `${supplier.name} — commande annulée par le client`,
+      fromStatus,
+      toStatus: "annulee",
+      actorStaffId: staff._id,
+    });
+
+    await notifyStaff(ctx, "supplier_response", {
+      type: "order",
+      title: `${supplier.name} — commande annulée par le client`,
+      description: `${order.ref} · annulation signalée par le fournisseur`,
+      link: `/admin/orders/${args.orderId}`,
+      entityId: args.orderId,
+    });
+
+    await logAudit(ctx, {
+      actorStaffId: staff._id,
+      actorName: staff.name,
+      action: "status_change",
+      entityType: "order",
+      entityId: args.orderId,
+      entityLabel: order.ref,
+      fromValue: fromStatus,
+      toValue: "annulee",
+    });
+
+    return { alreadyCancelled: false as const };
+  },
+});
+
 export const dashboardStats = query({
   args: {},
   handler: async (ctx) => {

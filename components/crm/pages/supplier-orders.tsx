@@ -21,6 +21,7 @@ import {
   Search,
   Truck,
   User,
+  XCircle,
 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -512,7 +513,9 @@ function OrderItemThumbnail({
 
 function SupplierOrderRow({ order }: { order: SupplierOrder }) {
   const markAsDelivered = useMutation(api.supplierPortal.markAsDelivered);
+  const cancelByClient = useMutation(api.supplierPortal.cancelByClient);
   const [markingDelivered, setMarkingDelivered] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   const location = order.district
     ? `${order.city} (${order.district})`
@@ -524,6 +527,7 @@ function SupplierOrderRow({ order }: { order: SupplierOrder }) {
   const needsDelivery =
     order.clientContactVisible && supplierShouldDeliverOrder(order.status);
   const isDelivered = order.status === "terminee";
+  const isCancelled = order.status === "annulee";
 
   const handleMarkDelivered = async () => {
     setMarkingDelivered(true);
@@ -538,6 +542,20 @@ function SupplierOrderRow({ order }: { order: SupplierOrder }) {
       );
     } finally {
       setMarkingDelivered(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    setCancelling(true);
+    try {
+      await cancelByClient({ orderId: order._id as Id<"orders"> });
+      toast.success("Commande annulée.");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Impossible d'annuler la commande."
+      );
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -630,20 +648,37 @@ function SupplierOrderRow({ order }: { order: SupplierOrder }) {
             </Link>
           </Button>
           {needsDelivery ? (
-            <Button
-              type="button"
-              size="sm"
-              className="h-8 rounded-lg px-3 text-xs"
-              disabled={markingDelivered}
-              onClick={() => void handleMarkDelivered()}
-            >
-              {markingDelivered ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <PackageCheck className="size-3.5" />
-              )}
-              Marquer livrée
-            </Button>
+            <div className="flex flex-col items-end gap-1.5">
+              <Button
+                type="button"
+                size="sm"
+                className="h-8 rounded-lg px-3 text-xs"
+                disabled={markingDelivered || cancelling || isCancelled}
+                onClick={() => void handleMarkDelivered()}
+              >
+                {markingDelivered ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <PackageCheck className="size-3.5" />
+                )}
+                Marquer livrée
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-8 rounded-lg border-status-error/30 px-3 text-xs text-status-error hover:bg-status-error/10 hover:text-status-error"
+                disabled={cancelling || markingDelivered || isDelivered || isCancelled}
+                onClick={() => void handleCancel()}
+              >
+                {cancelling ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <XCircle className="size-3.5" />
+                )}
+                Commande annulée (client)
+              </Button>
+            </div>
           ) : null}
           {needsResponse ? (
             <Button

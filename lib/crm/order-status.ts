@@ -42,6 +42,7 @@ const SUPPLIER_STATUS_LABEL_OVERRIDES: Partial<Record<OrderStatus, string>> = {
   vue_fournisseur: "Prix non envoyé",
   prix_recu: "Prix envoyé à SOS Santé",
   terminee: "Commande livrée",
+  annulee: "Commande annulée par le client",
 };
 
 export const SUPPLIER_STATUS_LABELS = SUPPLIER_STATUS_LABEL_OVERRIDES;
