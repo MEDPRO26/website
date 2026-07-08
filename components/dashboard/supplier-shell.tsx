@@ -15,12 +15,16 @@ import {
   HelpCircle,
   Bell,
   Search,
+  Download,
 } from "lucide-react";
 import { useSupplierSession } from "@/hooks/use-supplier-session";
+import { useSupplierPwaInstall } from "@/hooks/use-supplier-pwa-install";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { SupplierWebappInstallPrompt } from "@/components/crm/supplier-webapp-install-prompt";
+import {
+  SupplierWebappInstallPrompt,
+} from "@/components/crm/supplier-webapp-install-prompt";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -242,6 +246,7 @@ export function SupplierShell({ children }: { children: ReactNode }) {
   const { signOut } = useAuthActions();
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const { staff, supplier, profileComplete, sessionLoading } = useSupplierSession();
+  const pwaInstall = useSupplierPwaInstall(supplier);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -322,14 +327,19 @@ export function SupplierShell({ children }: { children: ReactNode }) {
           />
           <main className="flex-1 min-h-0 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6 pb-28 md:pb-6">
             {profileComplete ? (
-              <SupplierWebappInstallPrompt supplier={supplier} />
+              <SupplierWebappInstallPrompt install={pwaInstall} />
             ) : null}
             {children}
           </main>
         </div>
       </div>
 
-      <nav className="md:hidden fixed bottom-3 inset-x-3 z-40 grid grid-cols-3 rounded-2xl border border-border/60 bg-white/95 shadow-[0_8px_32px_rgba(15,23,42,0.12)] backdrop-blur-md">
+      <nav
+        className={cn(
+          "md:hidden fixed bottom-3 inset-x-3 z-40 grid rounded-2xl border border-border/60 bg-white/95 shadow-[0_8px_32px_rgba(15,23,42,0.12)] backdrop-blur-md",
+          pwaInstall.showNavInstall ? "grid-cols-4" : "grid-cols-3"
+        )}
+      >
         {SUPPLIER_NAV.map((item) => {
           const Icon = item.icon;
           const active = item.exact
@@ -349,6 +359,16 @@ export function SupplierShell({ children }: { children: ReactNode }) {
             </Link>
           );
         })}
+        {pwaInstall.showNavInstall ? (
+          <button
+            type="button"
+            onClick={pwaInstall.openInstallDialog}
+            className="flex flex-col items-center justify-center gap-0.5 py-2.5 text-[10px] font-medium text-muted-foreground"
+          >
+            <Download className="size-5" />
+            Install app
+          </button>
+        ) : null}
       </nav>
     </div>
   );
