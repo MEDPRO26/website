@@ -401,8 +401,12 @@ export const cancelByClient = mutation({
 });
 
 export const dashboardStats = query({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    range: v.optional(
+      v.union(v.literal("7d"), v.literal("30d"), v.literal("90d"), v.literal("all"))
+    ),
+  },
+  handler: async (ctx, args) => {
     const { staff, supplier } = await requireSupplierStaff(ctx);
     if (!isSupplierProfileComplete(supplier)) {
       return {
@@ -422,11 +426,24 @@ export const dashboardStats = query({
       .withIndex("by_supplierId", (q) => q.eq("supplierId", staff.supplierId!))
       .collect();
 
-    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const range = args.range ?? "30d";
+    const now = Date.now();
+    const since =
+      range === "7d"
+        ? now - 7 * 24 * 60 * 60 * 1000
+        : range === "30d"
+          ? now - 30 * 24 * 60 * 60 * 1000
+          : range === "90d"
+            ? now - 90 * 24 * 60 * 60 * 1000
+            : null;
+
     let monthlyRevenue = 0;
 
     for (const order of orders) {
-      if (order.status !== "terminee" || order.updatedAt < thirtyDaysAgo) {
+      if (order.status !== "terminee") {
+        continue;
+      }
+      if (since !== null && order.updatedAt < since) {
         continue;
       }
       const quote = await ctx.db

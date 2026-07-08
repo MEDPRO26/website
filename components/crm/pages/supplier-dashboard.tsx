@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import {
   ArrowUpRight,
-  ChevronDown,
   Clock3,
   Inbox,
   MapPin,
@@ -21,6 +20,13 @@ import { SupplierDeliveryPrompt } from "@/components/crm/supplier-delivery-promp
 import { StatusBadge, Tag } from "@/components/dashboard/status-badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { OrderStatus } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -165,9 +171,11 @@ function DashboardStatCard({
 
 export function SupplierDashboardPage() {
   const { supplier, canQuerySupplier } = useSupplierSession();
+  const [range, setRange] = useState<"7d" | "30d" | "90d" | "all">("30d");
+
   const stats = useQuery(
     api.supplierPortal.dashboardStats,
-    canQuerySupplier ? {} : "skip"
+    canQuerySupplier ? { range } : "skip"
   );
   const allOrders = useQuery(
     api.supplierPortal.listOrders,
@@ -215,6 +223,20 @@ export function SupplierDashboardPage() {
     );
   }
 
+  const rangeLabel =
+    range === "7d"
+      ? "7 derniers jours"
+      : range === "30d"
+        ? "Derniers 30 jours"
+        : range === "90d"
+          ? "Derniers 90 jours"
+          : "Tout";
+
+  const revenueHint =
+    range === "all"
+      ? "Commandes terminées (total)"
+      : `Commandes terminées (${range.replace("d", " j")})`;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -226,13 +248,17 @@ export function SupplierDashboardPage() {
             Voici l&apos;état de votre activité pour aujourd&apos;hui.
           </p>
         </div>
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 rounded-xl border border-border/60 bg-white px-4 py-2.5 text-sm font-medium text-foreground shadow-sm"
-        >
-          Derniers 30 jours
-          <ChevronDown className="size-4 text-muted-foreground" />
-        </button>
+        <Select value={range} onValueChange={(v) => setRange(v as typeof range)}>
+          <SelectTrigger className="w-[220px] rounded-xl border-border/60 bg-white px-4 py-2.5 text-sm font-medium text-foreground shadow-sm">
+            <SelectValue>{rangeLabel}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="7d">7 derniers jours</SelectItem>
+            <SelectItem value="30d">Derniers 30 jours</SelectItem>
+            <SelectItem value="90d">Derniers 90 jours</SelectItem>
+            <SelectItem value="all">Tout</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
@@ -263,7 +289,7 @@ export function SupplierDashboardPage() {
           value={`${formatMad(stats.monthlyRevenue)} MAD`}
           hint={
             stats.monthlyRevenue > 0
-              ? "Commandes terminées (30 j)"
+              ? revenueHint
               : "Aucun revenu ce mois"
           }
           icon={TrendingUp}
