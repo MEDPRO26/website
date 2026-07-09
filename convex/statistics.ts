@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { requireAdminPermission } from "./lib/authz";
 import { dateKeyInSiteTimezone } from "./presence";
+import { formatVisitorLocation, isMorocco } from "../lib/visitor-geo";
 
 const ONLINE_THRESHOLD_MS = 60_000;
 const FAST_CLAIM_MS = 5 * 60 * 1000;
@@ -222,6 +223,10 @@ export const overview = query({
         .map((session) => ({
           sessionKey: session.sessionKey.slice(0, 8),
           path: session.path ?? "/",
+          location: formatVisitorLocation(session),
+          city: session.city ?? null,
+          country: session.country ?? null,
+          countryCode: session.countryCode ?? null,
           lastSeenAt: session.lastSeenAt,
           lastSeenLabel: formatRelativeTime(session.lastSeenAt, now),
         }))
@@ -415,6 +420,83 @@ export const visitorHistory = query({
       granularity: args.granularity,
       totalUniqueVisitors,
       points,
+    };
+  },
+});
+
+export const visitorLocations = query({
+  args: {
+    startDate: v.optional(v.string()),
+    endDate: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireAdminPermission(ctx, "statistics.view");
+
+    const today = dateKeyInSiteTimezone();
+    const startDate = args.startDate ?? addDays(today, -29);
+    const endDate = args.endDate ?? today;
+
+    if (startDate > endDate) {
+      return {
+        startDate,
+        endDate,
+        moroccoCities: [] as { city: string; visitors: number }[],
+        abroad: [] as { location: string; visitors: number }[],
+        totals: { morocco: 0, abroad: 0, unknown: 0 },
+      };
+    }
+
+    const rows = await ctx.db
+      .query("visitorDailySessions")
+      .withIndex("by_dateKey", (q) =>
+        q.gte("dateKey", startDate).lte("dateKey", endDate)
+      )
+      .collect();
+
+    const moroccoCities = new Map<string, Set<string>>();
+    const abroad = new Map<string, Set<string>>();
+    const moroccoSessions = new Set<string>();
+    const abroadSessions = new Set<string>();
+    const unknownSessions = new Set<string>();
+
+    for (const row of rows) {
+      const code = row.countryCode?.toUpperCase();
+      const city = row.city?.trim() || "Ville inconnue";
+
+      if (!code && !row.city && !row.country) {
+        unknownSessions.add(row.sessionKey);
+        continue;
+      }
+
+      if (isMorocco(code)) {
+        moroccoSessions.add(row.sessionKey);
+        const bucket = moroccoCities.get(city) ?? new Set<string>();
+        bucket.add(row.sessionKey);
+        moroccoCities.set(city, bucket);
+        continue;
+      }
+
+      abroadSessions.add(row.sessionKey);
+      const location = formatVisitorLocation(row);
+      const bucket = abroad.get(location) ?? new Set<string>();
+      bucket.add(row.sessionKey);
+      abroad.set(location, bucket);
+    }
+
+    return {
+      startDate,
+      endDate,
+      moroccoCities: [...moroccoCities.entries()]
+        .map(([city, sessions]) => ({ city, visitors: sessions.size }))
+        .sort((a, b) => b.visitors - a.visitors),
+      abroad: [...abroad.entries()]
+        .map(([location, sessions]) => ({ location, visitors: sessions.size }))
+        .sort((a, b) => b.visitors - a.visitors),
+      totals: {
+        morocco: moroccoSessions.size,
+        abroad: abroadSessions.size,
+        unknown: unknownSessions.size,
+      },
     };
   },
 });

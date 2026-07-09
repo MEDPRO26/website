@@ -16,7 +16,12 @@ export function dateKeyInSiteTimezone(timestamp = Date.now()) {
 async function recordVisitorDailySession(
   ctx: MutationCtx,
   sessionKey: string,
-  now: number
+  now: number,
+  geo?: {
+    city?: string;
+    country?: string;
+    countryCode?: string;
+  }
 ) {
   const dateKey = dateKeyInSiteTimezone(now);
   const existing = await ctx.db
@@ -26,8 +31,21 @@ async function recordVisitorDailySession(
     )
     .unique();
 
+  const geoPatch = {
+    city: geo?.city,
+    country: geo?.country,
+    countryCode: geo?.countryCode,
+  };
+
   if (existing) {
-    await ctx.db.patch(existing._id, { lastSeenAt: now });
+    await ctx.db.patch(existing._id, {
+      lastSeenAt: now,
+      ...(!existing.city && geo?.city ? { city: geo.city } : {}),
+      ...(!existing.country && geo?.country ? { country: geo.country } : {}),
+      ...(!existing.countryCode && geo?.countryCode
+        ? { countryCode: geo.countryCode }
+        : {}),
+    });
     return;
   }
 
@@ -36,6 +54,7 @@ async function recordVisitorDailySession(
     sessionKey,
     firstSeenAt: now,
     lastSeenAt: now,
+    ...geoPatch,
   });
 }
 
@@ -73,11 +92,18 @@ export const heartbeat = mutation({
   args: {
     sessionKey: v.string(),
     path: v.optional(v.string()),
+    city: v.optional(v.string()),
+    country: v.optional(v.string()),
+    countryCode: v.optional(v.string()),
   },
-  handler: async (ctx, { sessionKey, path }) => {
+  handler: async (ctx, { sessionKey, path, city, country, countryCode }) => {
     const now = Date.now();
     const staff = await getStaffProfile(ctx);
     const profile = await resolvePresenceProfile(ctx, staff);
+    const geo =
+      city || country || countryCode
+        ? { city, country, countryCode }
+        : undefined;
 
     const existing = await ctx.db
       .query("presenceSessions")
@@ -91,12 +117,23 @@ export const heartbeat = mutation({
       staffId: profile.kind !== "visitor" ? profile.staffId : undefined,
       supplierId: profile.kind === "supplier" ? profile.supplierId : undefined,
       label: profile.kind !== "visitor" ? profile.label : undefined,
+      ...(profile.kind === "visitor" && geo
+        ? {
+            city: city ?? existing?.city,
+            country: country ?? existing?.country,
+            countryCode: countryCode ?? existing?.countryCode,
+          }
+        : {
+            city: undefined,
+            country: undefined,
+            countryCode: undefined,
+          }),
     };
 
     if (existing) {
       await ctx.db.patch(existing._id, patch);
       if (profile.kind === "visitor") {
-        await recordVisitorDailySession(ctx, sessionKey, now);
+        await recordVisitorDailySession(ctx, sessionKey, now, geo);
       }
       return existing._id;
     }
@@ -108,7 +145,7 @@ export const heartbeat = mutation({
     });
 
     if (profile.kind === "visitor") {
-      await recordVisitorDailySession(ctx, sessionKey, now);
+      await recordVisitorDailySession(ctx, sessionKey, now, geo);
     }
 
     return id;

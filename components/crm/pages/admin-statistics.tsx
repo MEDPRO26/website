@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
 import { useAdminSession } from "@/hooks/use-admin-session";
 import { VisitorHistoryChart } from "@/components/crm/visitor-history-chart";
+import { VisitorLocationsCard } from "@/components/crm/visitor-locations-card";
 
 function formatDuration(ms: number | null) {
   if (ms === null) return "—";
@@ -93,6 +94,8 @@ export function AdminStatisticsPage() {
 
       <VisitorHistoryChart enabled={canQuery("statistics.view")} />
 
+      <VisitorLocationsCard enabled={canQuery("statistics.view")} />
+
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
         <Card className="p-0 overflow-hidden">
           <div className="border-b border-border/60 px-4 py-3">
@@ -153,7 +156,9 @@ export function AdminStatisticsPage() {
                       <OnlineDot online />
                       Visiteur ···{row.sessionKey}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">{row.path}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {row.location} · {row.path}
+                    </p>
                   </div>
                   <span className="shrink-0 text-xs text-muted-foreground">
                     {row.lastSeenLabel}
@@ -256,7 +261,6 @@ export function AdminStatisticsPage() {
           <li>Heures de pointe (visiteurs et réclamations par créneau horaire)</li>
           <li>Délai moyen entre réclamation et confirmation de livraison</li>
           <li>Taux de règlement des commissions SOS par fournisseur</li>
-          <li>Carte des villes avec le plus de demandes actives</li>
           <li>Alertes si un fournisseur actif laisse expirer plusieurs commandes d&apos;affilée</li>
         </ul>
         <div className="mt-4">

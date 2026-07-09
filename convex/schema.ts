@@ -370,6 +370,9 @@ export default defineSchema({
     staffId: v.optional(v.id("staff")),
     supplierId: v.optional(v.id("suppliers")),
     label: v.optional(v.string()),
+    city: v.optional(v.string()),
+    country: v.optional(v.string()),
+    countryCode: v.optional(v.string()),
     createdAt: v.number(),
   })
     .index("by_sessionKey", ["sessionKey"])
@@ -381,6 +384,9 @@ export default defineSchema({
     sessionKey: v.string(),
     firstSeenAt: v.number(),
     lastSeenAt: v.number(),
+    city: v.optional(v.string()),
+    country: v.optional(v.string()),
+    countryCode: v.optional(v.string()),
   })
     .index("by_dateKey", ["dateKey"])
     .index("by_dateKey_sessionKey", ["dateKey", "sessionKey"]),
