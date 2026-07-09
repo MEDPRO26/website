@@ -59,7 +59,7 @@ const ALL_CHANNELS = "all";
 export function AdminConversationsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { canQueryAdmin } = useAdminSession();
+  const { canQueryAdmin, canQuery } = useAdminSession();
   const ensureChannels = useMutation(api.whatsappChannels.ensureDefaults);
   const migrateChannels = useMutation(api.conversations.migrateUnassignedChannels);
 
@@ -93,8 +93,8 @@ export function AdminConversationsPage() {
     canQueryAdmin ? {} : "skip"
   );
   const settings = useQuery(
-    api.platformSettings.get,
-    canQueryAdmin ? {} : "skip"
+    api.platformSettings.getWhatsappIntegration,
+    canQuery("whatsapp.view_conversations") ? {} : "skip"
   );
   const is360Connected = settings?.whatsappProvider === "360messenger";
   const conversations = useQuery(

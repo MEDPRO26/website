@@ -80,6 +80,18 @@ export const get = query({
   },
 });
 
+export const getWhatsappIntegration = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdminPermission(ctx, "whatsapp.view_conversations");
+    const settings = await getSettingsDoc(ctx);
+    const merged = withDefaults(settings);
+    return {
+      whatsappProvider: merged.whatsappProvider,
+    };
+  },
+});
+
 /** Public read for site metadata (no auth). */
 export const getPublic = query({
   args: {},
