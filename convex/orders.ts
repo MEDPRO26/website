@@ -148,6 +148,17 @@ export const createManual = mutation({
           });
         }
 
+        if (shouldSend && supplier) {
+          const updatedOrder = await ctx.db.get(result.orderId);
+          if (updatedOrder) {
+            await notifySupplierOfAssignment(ctx, {
+              supplier,
+              order: updatedOrder,
+              orderId: result.orderId,
+            });
+          }
+        }
+
         await pushNotification(ctx, {
           type: "supplier",
           title: `Commande envoyée à ${supplier?.name ?? "fournisseur"}`,

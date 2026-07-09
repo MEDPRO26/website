@@ -4,11 +4,12 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { useEffect, useMemo, useState } from "react";
-import { Check, ChevronRight, Loader2 } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { FrenchDatePicker } from "@/components/ui/french-date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,15 +23,27 @@ import {
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useAdminSession } from "@/hooks/use-admin-session";
+import {
+  getOrderRequestKindOptionLabel,
+  isOrderRequestKindDisabled,
+  ORDER_REQUEST_KIND_LABEL,
+  ORDER_REQUEST_KIND_OPTIONS,
+  orderRequestItemChoices,
+  orderRequestItemLabel,
+  orderRequestItemPlaceholder,
+  orderRequestOtherItemLabel,
+  orderShowsSchedulingForKind,
+  type OrderRequestKind,
+} from "@/lib/order-request-kinds";
+import {
+  formatDesiredDateRange,
+  formatTimeSlots,
+  type TimeSlotInput,
+  validateDesiredDateRange,
+  validateTimeSlots,
+} from "@/lib/crm/order-scheduling";
+import { FrenchTimePicker } from "@/components/ui/french-time-picker";
 import { cn } from "@/lib/utils";
-
-const STEPS = [
-  { key: "source", label: "Source" },
-  { key: "client", label: "Client" },
-  { key: "demande", label: "Demande" },
-  { key: "affectation", label: "Affectation" },
-  { key: "resume", label: "Résumé" },
-];
 
 const SOURCES = [
   "Formulaire site",
@@ -50,23 +63,9 @@ const CITIES = [
   { value: "Autre", label: "Autre" },
 ];
 
-const REQUEST_TYPES = [
-  { value: "Location matériel médical", label: "Location matériel médical" },
-  { value: "Livraison matériel", label: "Livraison matériel" },
-  { value: "Aide à domicile", label: "Aide à domicile" },
-  { value: "Garde-malade", label: "Garde-malade" },
-  { value: "Soin à domicile", label: "Soin à domicile" },
-  { value: "Autre", label: "Autre" },
-];
-
-const SLOTS = [
-  { value: "Matin (9h-12h)", label: "Matin (9h-12h)" },
-  { value: "Après-midi (14h-18h)", label: "Après-midi (14h-18h)" },
-  { value: "Soir (18h-20h)", label: "Soir (18h-20h)" },
-  { value: "Flexible", label: "Flexible" },
-];
-
 type AssignmentMode = "create_only" | "assign_self" | "assign_staff";
+
+const EMPTY_TIME_SLOT: TimeSlotInput = { from: "", to: "" };
 
 type FormState = {
   source: string;
@@ -77,16 +76,19 @@ type FormState = {
   city: string;
   district: string;
   address: string;
-  type: string;
+  requestKind: OrderRequestKind;
   item: string;
-  duration: string;
-  desiredDate: string;
-  slot: string;
+  customItem: string;
+  desiredDateFrom: string;
+  desiredDateTo: string;
+  timeSlots: TimeSlotInput[];
   message: string;
   assignmentMode: AssignmentMode;
   assignedStaffId: string;
   supplierId: string;
 };
+
+const ADMIN_REQUEST_OPTIONS = { allowService: true } as const;
 
 const INITIAL_FORM: FormState = {
   source: "WhatsApp manuel",
@@ -97,22 +99,23 @@ const INITIAL_FORM: FormState = {
   city: "Agadir",
   district: "",
   address: "",
-  type: "Location matériel médical",
+  requestKind: "vente",
   item: "",
-  duration: "",
-  desiredDate: "",
-  slot: "Matin (9h-12h)",
+  customItem: "",
+  desiredDateFrom: "",
+  desiredDateTo: "",
+  timeSlots: [{ ...EMPTY_TIME_SLOT }],
   message: "",
   assignmentMode: "assign_self",
   assignedStaffId: "",
   supplierId: "",
 };
 
-const CHANNEL_ORDER_TYPE: Record<string, string> = {
-  location_materiel: "Location matériel médical",
-  aide_domicile: "Aide à domicile",
-  garde_soins: "Garde-malade / soins à domicile",
-  general: "Demande générale",
+const CHANNEL_ORDER_KIND: Record<string, OrderRequestKind> = {
+  location_materiel: "location",
+  aide_domicile: "service",
+  garde_soins: "service",
+  general: "vente",
 };
 
 export function AdminOrdersNewPage() {
@@ -126,7 +129,6 @@ export function AdminOrdersNewPage() {
     canQueryAdmin ? { status: "actif" } : "skip"
   );
 
-  const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [conversationId, setConversationId] = useState<string | undefined>();
@@ -147,8 +149,12 @@ export function AdminOrdersNewPage() {
       ...(phone ? { phone, whatsapp: phone } : {}),
       ...(name ? { client: name } : {}),
       ...(source ? { source } : {}),
-      ...(channelPurpose && CHANNEL_ORDER_TYPE[channelPurpose]
-        ? { type: CHANNEL_ORDER_TYPE[channelPurpose] }
+      ...(channelPurpose && CHANNEL_ORDER_KIND[channelPurpose]
+        ? {
+            requestKind: CHANNEL_ORDER_KIND[channelPurpose],
+            item: "",
+            customItem: "",
+          }
         : {}),
     }));
 
@@ -173,68 +179,99 @@ export function AdminOrdersNewPage() {
     setForm((current) => ({ ...current, ...updates }));
   };
 
-  const assignmentLabel = useMemo(() => {
-    if (form.assignmentMode === "create_only") {
-      return "Créer seulement (sans affectation)";
-    }
-    if (form.assignmentMode === "assign_self") {
-      return staff?.name ?? "Moi";
-    }
-    const selected = assignableStaff.find((m) => m._id === form.assignedStaffId);
-    return selected?.name ?? "Assistant non sélectionné";
-  }, [form.assignmentMode, form.assignedStaffId, assignableStaff, staff]);
+  const updateTimeSlot = (index: number, updates: Partial<TimeSlotInput>) => {
+    setForm((current) => ({
+      ...current,
+      timeSlots: current.timeSlots.map((slot, slotIndex) =>
+        slotIndex === index ? { ...slot, ...updates } : slot
+      ),
+    }));
+  };
 
-  const supplierLabel = useMemo(() => {
-    if (!form.supplierId) {
-      return "—";
-    }
-    return (
-      suppliers?.find((row) => row._id === form.supplierId)?.name ??
-      "Fournisseur"
-    );
-  }, [form.supplierId, suppliers]);
+  const addTimeSlot = () => {
+    patch({ timeSlots: [...form.timeSlots, { ...EMPTY_TIME_SLOT }] });
+  };
 
-  const validateStep = (index: number): string | null => {
-    if (index === 0 && !form.source.trim()) {
-      return "Choisissez une source.";
+  const removeTimeSlot = (index: number) => {
+    if (form.timeSlots.length <= 1) {
+      return;
     }
-    if (index === 1) {
-      if (!form.client.trim()) return "Le nom du client est obligatoire.";
-      if (!form.phone.trim()) return "Le téléphone est obligatoire.";
-      if (!form.city.trim()) return "La ville est obligatoire.";
+    patch({
+      timeSlots: form.timeSlots.filter((_, slotIndex) => slotIndex !== index),
+    });
+  };
+
+  const itemChoices = useMemo(
+    () => orderRequestItemChoices(form.requestKind, ADMIN_REQUEST_OPTIONS),
+    [form.requestKind]
+  );
+
+  const otherItemLabel = orderRequestOtherItemLabel(form.requestKind);
+  const showItemField = !isOrderRequestKindDisabled(
+    form.requestKind,
+    ADMIN_REQUEST_OPTIONS
+  );
+  const showScheduling = orderShowsSchedulingForKind(form.requestKind);
+  const isOtherItemSelected = form.item === otherItemLabel;
+  const resolvedItem =
+    isOtherItemSelected ? form.customItem.trim() : form.item.trim();
+
+  const handleRequestKindChange = (kind: OrderRequestKind) => {
+    if (isOrderRequestKindDisabled(kind, ADMIN_REQUEST_OPTIONS)) {
+      return;
     }
-    if (index === 2) {
-      if (!form.type.trim()) return "Le type de demande est obligatoire.";
-      if (!form.item.trim()) return "Le matériel ou service est obligatoire.";
+    patch({
+      requestKind: kind,
+      item: "",
+      customItem: "",
+      ...(orderShowsSchedulingForKind(kind)
+        ? {}
+        : {
+            desiredDateFrom: "",
+            desiredDateTo: "",
+            timeSlots: [{ ...EMPTY_TIME_SLOT }],
+          }),
+    });
+  };
+
+  const validateForm = (): string | null => {
+    if (!form.source.trim()) return "Choisissez une source.";
+    if (!form.client.trim()) return "Le nom du client est obligatoire.";
+    if (!form.phone.trim()) return "Le téléphone est obligatoire.";
+    if (!form.city.trim()) return "La ville est obligatoire.";
+    if (isOrderRequestKindDisabled(form.requestKind, ADMIN_REQUEST_OPTIONS)) {
+      return "Ce type de demande n'est pas encore disponible.";
     }
-    if (index === 3) {
-      if (
-        form.assignmentMode === "assign_staff" &&
-        !form.assignedStaffId
-      ) {
-        return "Choisissez un assistant.";
+    if (showItemField && !form.item.trim()) {
+      return `Choisissez un ${form.requestKind === "service" ? "service" : "matériel"}.`;
+    }
+    if (showItemField && form.item === otherItemLabel && !form.customItem.trim()) {
+      return `Précisez le ${form.requestKind === "service" ? "service" : "matériel"}.`;
+    }
+    if (form.assignmentMode === "assign_staff" && !form.assignedStaffId) {
+      return "Choisissez un assistant.";
+    }
+    if (showScheduling) {
+      const dateError = validateDesiredDateRange(
+        form.desiredDateFrom,
+        form.desiredDateTo
+      );
+      if (dateError) {
+        return dateError;
+      }
+      const timeError = validateTimeSlots(form.timeSlots);
+      if (timeError) {
+        return timeError;
       }
     }
     return null;
   };
 
-  const goNext = () => {
-    const error = validateStep(step);
+  const handleSubmit = async () => {
+    const error = validateForm();
     if (error) {
       toast.error(error);
       return;
-    }
-    setStep((current) => Math.min(current + 1, STEPS.length - 1));
-  };
-
-  const handleSubmit = async () => {
-    for (let i = 0; i < STEPS.length - 1; i += 1) {
-      const error = validateStep(i);
-      if (error) {
-        toast.error(error);
-        setStep(i);
-        return;
-      }
     }
 
     setSubmitting(true);
@@ -248,11 +285,13 @@ export function AdminOrdersNewPage() {
         city: form.city,
         district: form.district.trim() || undefined,
         address: form.address.trim() || undefined,
-        type: form.type,
-        item: form.item,
-        duration: form.duration.trim() || undefined,
-        desiredDate: form.desiredDate.trim() || undefined,
-        slot: form.slot.trim() || undefined,
+        type: ORDER_REQUEST_KIND_LABEL[form.requestKind],
+        item: resolvedItem,
+        duration: undefined,
+        desiredDate: showScheduling
+          ? formatDesiredDateRange(form.desiredDateFrom, form.desiredDateTo)
+          : undefined,
+        slot: showScheduling ? formatTimeSlots(form.timeSlots) : undefined,
         message: form.message.trim() || undefined,
         assignToSelf: form.assignmentMode === "assign_self",
         assignedStaffId:
@@ -279,10 +318,10 @@ export function AdminOrdersNewPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-4xl pb-8">
       <PageHeader
         title="Nouvelle commande"
-        description="Créer une commande manuelle en 5 étapes (site, WhatsApp, appel…)."
+        description="Créer une commande manuelle (site, WhatsApp, appel…)."
         actions={
           <Button variant="outline" asChild>
             <Link href="/admin/orders">Annuler</Link>
@@ -290,66 +329,39 @@ export function AdminOrdersNewPage() {
         }
       />
 
-      <div className="mb-6 flex items-center gap-2 overflow-x-auto pb-1">
-        {STEPS.map((s, i) => (
-          <button
-            key={s.key}
-            type="button"
-            onClick={() => i < step && setStep(i)}
-            className={cn(
-              "flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium",
-              i === step
-                ? "border-brand bg-brand-soft text-brand-deep"
-                : i < step
-                  ? "border-success/30 bg-success-soft text-success"
-                  : "border-border bg-card text-muted-foreground"
-            )}
-          >
-            <span
-              className={cn(
-                "grid size-5 place-items-center rounded-full text-[10px]",
-                i === step
-                  ? "bg-brand text-primary-foreground"
-                  : i < step
-                    ? "bg-success text-primary-foreground"
-                    : "bg-muted"
-              )}
-            >
-              {i < step ? <Check className="size-3" /> : i + 1}
-            </span>
-            {s.label}
-          </button>
-        ))}
-      </div>
-
-      <Card className="p-6">
-        {step === 0 && (
-          <div>
-            <h3 className="mb-1 text-base font-semibold">Source de la demande</h3>
-            <p className="mb-4 text-sm text-muted-foreground">
-              Comment cette demande nous est-elle parvenue ?
-            </p>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {SOURCES.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => patch({ source: s })}
-                  className={cn(
-                    "rounded-lg border p-3 text-left text-sm transition-colors",
-                    form.source === s
-                      ? "border-brand bg-brand-soft text-brand-deep"
-                      : "border-border hover:bg-muted"
-                  )}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
+      <form
+        className="space-y-6"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void handleSubmit();
+        }}
+      >
+        <Card className="p-6">
+          <SectionTitle
+            title="Source de la demande"
+            description="Comment cette demande nous est-elle parvenue ?"
+          />
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {SOURCES.map((source) => (
+              <button
+                key={source}
+                type="button"
+                onClick={() => patch({ source })}
+                className={cn(
+                  "rounded-lg border p-3 text-left text-sm transition-colors",
+                  form.source === source
+                    ? "border-brand bg-brand-soft text-brand-deep"
+                    : "border-border hover:bg-muted"
+                )}
+              >
+                {source}
+              </button>
+            ))}
           </div>
-        )}
+        </Card>
 
-        {step === 1 && (
+        <Card className="p-6">
+          <SectionTitle title="Client" />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Nom complet *">
               <Input
@@ -411,59 +423,178 @@ export function AdminOrdersNewPage() {
               />
             </div>
           </div>
-        )}
+        </Card>
 
-        {step === 2 && (
+        <Card className="p-6">
+          <SectionTitle title="Demande" />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Type de demande *">
-              <Select value={form.type} onValueChange={(value) => patch({ type: value })}>
+              <Select
+                value={form.requestKind}
+                onValueChange={(value) =>
+                  handleRequestKindChange(value as OrderRequestKind)
+                }
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {REQUEST_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
+                  {ORDER_REQUEST_KIND_OPTIONS.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      disabled={isOrderRequestKindDisabled(
+                        option.value,
+                        ADMIN_REQUEST_OPTIONS
+                      )}
+                    >
+                      {getOrderRequestKindOptionLabel(
+                        option.label,
+                        option.value,
+                        ADMIN_REQUEST_OPTIONS
+                      )}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Matériel ou service *">
-              <Input
-                value={form.item}
-                onChange={(e) => patch({ item: e.target.value })}
-                placeholder="Lit médicalisé électrique"
-              />
-            </Field>
-            <Field label="Durée">
-              <Input
-                value={form.duration}
-                onChange={(e) => patch({ duration: e.target.value })}
-                placeholder="1 mois"
-              />
-            </Field>
-            <Field label="Date souhaitée">
-              <Input
-                type="date"
-                value={form.desiredDate}
-                onChange={(e) => patch({ desiredDate: e.target.value })}
-              />
-            </Field>
-            <Field label="Créneau">
-              <Select value={form.slot} onValueChange={(value) => patch({ slot: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SLOTS.map((slot) => (
-                    <SelectItem key={slot.value} value={slot.value}>
-                      {slot.label}
-                    </SelectItem>
+
+            {isOrderRequestKindDisabled(form.requestKind, ADMIN_REQUEST_OPTIONS) ? (
+              <div className="sm:col-span-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                {ORDER_REQUEST_KIND_LABEL[form.requestKind]} — bientôt disponible.
+              </div>
+            ) : showItemField ? (
+              <>
+                <Field label={`${orderRequestItemLabel(form.requestKind)} *`}>
+                  <Select
+                    value={form.item || undefined}
+                    onValueChange={(value) =>
+                      patch({ item: value, customItem: "" })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={orderRequestItemPlaceholder(form.requestKind)}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {itemChoices.map((choice) => (
+                        <SelectItem key={choice} value={choice}>
+                          {choice}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value={otherItemLabel}>{otherItemLabel}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+                {isOtherItemSelected ? (
+                  <div className="sm:col-span-2">
+                    <Field
+                      label={
+                        form.requestKind === "service"
+                          ? "Nom du service *"
+                          : "Nom du matériel *"
+                      }
+                    >
+                      <Input
+                        value={form.customItem}
+                        onChange={(e) => patch({ customItem: e.target.value })}
+                        placeholder={
+                          form.requestKind === "service"
+                            ? "Ex. Garde de nuit"
+                            : "Ex. Matelas anti-escarres"
+                        }
+                      />
+                    </Field>
+                  </div>
+                ) : null}
+              </>
+            ) : null}
+
+            {showScheduling ? (
+              <>
+                <div className="sm:col-span-2">
+                  <Label className="mb-1.5 block">Période souhaitée</Label>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <Label className="mb-1.5 block text-xs text-muted-foreground">
+                        Du
+                      </Label>
+                      <FrenchDatePicker
+                        value={form.desiredDateFrom}
+                        onChange={(value) => patch({ desiredDateFrom: value })}
+                        placeholder="Date de début"
+                      />
+                    </div>
+                    <div>
+                      <Label className="mb-1.5 block text-xs text-muted-foreground">
+                        Au
+                      </Label>
+                      <FrenchDatePicker
+                        value={form.desiredDateTo}
+                        min={form.desiredDateFrom || undefined}
+                        onChange={(value) => patch({ desiredDateTo: value })}
+                        placeholder="Date de fin"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="sm:col-span-2 space-y-3">
+                  <Label className="block">Créneau horaire</Label>
+                  {form.timeSlots.map((slot, index) => (
+                    <div
+                      key={`time-slot-${index}`}
+                      className="flex flex-col gap-3 rounded-xl border border-border/70 bg-muted/20 p-3 sm:flex-row sm:items-center"
+                    >
+                      <div className="flex flex-1 items-center gap-3">
+                        <span className="w-8 shrink-0 text-sm text-muted-foreground">
+                          De
+                        </span>
+                        <FrenchTimePicker
+                          value={slot.from}
+                          onChange={(value) => updateTimeSlot(index, { from: value })}
+                          className="flex-1"
+                        />
+                      </div>
+                      <div className="flex flex-1 items-center gap-3">
+                        <span className="w-8 shrink-0 text-sm text-muted-foreground">
+                          à
+                        </span>
+                        <FrenchTimePicker
+                          value={slot.to}
+                          min={slot.from || undefined}
+                          onChange={(value) => updateTimeSlot(index, { to: value })}
+                          className="flex-1"
+                        />
+                      </div>
+                      {form.timeSlots.length > 1 ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="shrink-0 text-muted-foreground hover:text-destructive"
+                          onClick={() => removeTimeSlot(index)}
+                          aria-label={`Supprimer le créneau ${index + 1}`}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      ) : null}
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
-            </Field>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="rounded-lg"
+                    onClick={addTimeSlot}
+                  >
+                    <Plus className="size-4" />
+                    Ajouter un créneau
+                  </Button>
+                </div>
+              </>
+            ) : null}
+
             <div className="sm:col-span-2">
               <Label className="mb-1.5 block">Message du client</Label>
               <Textarea
@@ -474,164 +605,130 @@ export function AdminOrdersNewPage() {
               />
             </div>
           </div>
-        )}
+        </Card>
 
-        {step === 3 && (
-          <div>
-            <h3 className="mb-1 text-base font-semibold">Affectation</h3>
-            <p className="mb-4 text-sm text-muted-foreground">
-              Qui prend en charge cette demande ?
-            </p>
-            <div className="space-y-2">
-              {[
-                {
-                  value: "create_only" as const,
-                  label: "Créer seulement (sans affectation)",
-                  hint: "Statut : Nouvelle demande",
-                },
-                {
-                  value: "assign_self" as const,
-                  label: `M'affecter (${staff?.name ?? "moi"})`,
-                  hint: "Statut : Nouvelle demande",
-                },
-                {
-                  value: "assign_staff" as const,
-                  label: "Affecter un autre assistant",
-                  hint: "Statut : Nouvelle demande",
-                },
-              ].map((opt) => (
-                <label
-                  key={opt.value}
-                  className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3 hover:bg-muted"
-                >
-                  <input
-                    type="radio"
-                    name="assignment"
-                    className="mt-1 accent-brand"
-                    checked={form.assignmentMode === opt.value}
-                    onChange={() => patch({ assignmentMode: opt.value })}
-                  />
-                  <span>
-                    <span className="block text-sm font-medium">{opt.label}</span>
-                    <span className="text-xs text-muted-foreground">{opt.hint}</span>
-                  </span>
-                </label>
-              ))}
-            </div>
+        <Card className="p-6">
+          <SectionTitle
+            title="Affectation"
+            description="Qui prend en charge cette demande ?"
+          />
+          <div className="space-y-2">
+            {[
+              {
+                value: "create_only" as const,
+                label: "Créer seulement (sans affectation)",
+                hint: "Statut : Nouvelle demande",
+              },
+              {
+                value: "assign_self" as const,
+                label: `M'affecter (${staff?.name ?? "moi"})`,
+                hint: "Statut : Nouvelle demande",
+              },
+              {
+                value: "assign_staff" as const,
+                label: "Affecter un autre assistant",
+                hint: "Statut : Nouvelle demande",
+              },
+            ].map((opt) => (
+              <label
+                key={opt.value}
+                className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3 hover:bg-muted"
+              >
+                <input
+                  type="radio"
+                  name="assignment"
+                  className="mt-1 accent-brand"
+                  checked={form.assignmentMode === opt.value}
+                  onChange={() => patch({ assignmentMode: opt.value })}
+                />
+                <span>
+                  <span className="block text-sm font-medium">{opt.label}</span>
+                  <span className="text-xs text-muted-foreground">{opt.hint}</span>
+                </span>
+              </label>
+            ))}
+          </div>
 
-            {form.assignmentMode === "assign_staff" ? (
-              <div className="mt-4">
-                <Label className="mb-1.5 block">Assistant *</Label>
-                <Select
-                  value={form.assignedStaffId || undefined}
-                  onValueChange={(value) => patch({ assignedStaffId: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choisir un assistant" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {assignableStaff.map((member) => (
-                      <SelectItem key={member._id} value={member._id}>
-                        {member.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : null}
-
-            <p className="mt-4 text-xs text-muted-foreground">
-              Optionnel : envoyez directement au fournisseur lors de la création.
-            </p>
+          {form.assignmentMode === "assign_staff" ? (
             <div className="mt-4">
-              <Label className="mb-1.5 block">Fournisseur (optionnel)</Label>
+              <Label className="mb-1.5 block">Assistant *</Label>
               <Select
-                value={form.supplierId || "none"}
-                onValueChange={(value) =>
-                  patch({ supplierId: value === "none" ? "" : value })
-                }
+                value={form.assignedStaffId || undefined}
+                onValueChange={(value) => patch({ assignedStaffId: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Affecter plus tard" />
+                  <SelectValue placeholder="Choisir un assistant" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Affecter plus tard</SelectItem>
-                  {(suppliers ?? []).map((row) => (
-                    <SelectItem key={row._id} value={row._id}>
-                      {row.name} · {row.city}
+                  {assignableStaff.map((member) => (
+                    <SelectItem key={member._id} value={member._id}>
+                      {member.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          </div>
-        )}
+          ) : null}
 
-        {step === 4 && (
-          <div>
-            <h3 className="mb-3 text-base font-semibold">Résumé de la commande</h3>
-            <div className="divide-y divide-border rounded-lg border border-border">
-              {[
-                ["Source", form.source],
-                ["Client", form.client],
-                ["Téléphone", form.phone],
-                ["WhatsApp", form.whatsapp || form.phone],
-                ["Email", form.email || "—"],
-                ["Ville", `${form.city}${form.district ? ` · ${form.district}` : ""}`],
-                ["Adresse", form.address || "—"],
-                ["Type", form.type],
-                ["Matériel", form.item],
-                ["Durée", form.duration || "—"],
-                ["Date souhaitée", form.desiredDate || "—"],
-                ["Créneau", form.slot || "—"],
-                ["Affectation", assignmentLabel],
-                ["Fournisseur", supplierLabel],
-              ].map(([k, v]) => (
-                <div
-                  key={k}
-                  className="grid grid-cols-[140px_minmax(0,1fr)] px-4 py-2.5 text-sm"
-                >
-                  <span className="text-muted-foreground">{k}</span>
-                  <span className="font-medium">{v}</span>
-                </div>
-              ))}
-            </div>
-            {form.message ? (
-              <div className="mt-4 rounded-lg bg-muted p-3 text-sm">
-                <p className="mb-1 text-xs font-medium text-muted-foreground">Message</p>
-                {form.message}
-              </div>
-            ) : null}
+          <p className="mt-4 text-xs text-muted-foreground">
+            Optionnel : envoyez directement au fournisseur lors de la création.
+          </p>
+          <div className="mt-4">
+            <Label className="mb-1.5 block">Fournisseur (optionnel)</Label>
+            <Select
+              value={form.supplierId || "none"}
+              onValueChange={(value) =>
+                patch({ supplierId: value === "none" ? "" : value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Affecter plus tard" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Affecter plus tard</SelectItem>
+                {(suppliers ?? []).map((row) => (
+                  <SelectItem key={row._id} value={row._id}>
+                    {row.name} · {row.city}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        )}
+        </Card>
 
-        <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
-          <Button
-            type="button"
-            variant="ghost"
-            disabled={step === 0 || submitting}
-            onClick={() => setStep((current) => current - 1)}
-          >
-            Précédent
+        <div className="flex items-center justify-end gap-3">
+          <Button type="button" variant="outline" asChild>
+            <Link href="/admin/orders">Annuler</Link>
           </Button>
-          {step < STEPS.length - 1 ? (
-            <Button type="button" onClick={goNext}>
-              Suivant <ChevronRight className="size-4" />
-            </Button>
-          ) : (
-            <Button type="button" disabled={submitting} onClick={() => void handleSubmit()}>
-              {submitting ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Création…
-                </>
-              ) : (
-                "Créer la commande"
-              )}
-            </Button>
-          )}
+          <Button type="submit" disabled={submitting}>
+            {submitting ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Création…
+              </>
+            ) : (
+              "Créer la commande"
+            )}
+          </Button>
         </div>
-      </Card>
+      </form>
+    </div>
+  );
+}
+
+function SectionTitle({
+  title,
+  description,
+}: {
+  title: string;
+  description?: string;
+}) {
+  return (
+    <div className="mb-4">
+      <h3 className="text-base font-semibold">{title}</h3>
+      {description ? (
+        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+      ) : null}
     </div>
   );
 }
