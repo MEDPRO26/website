@@ -29,6 +29,7 @@ type FrenchDatePickerProps = {
   onChange: (value: string) => void;
   placeholder?: string;
   min?: string;
+  max?: string;
   disabled?: boolean;
   id?: string;
 };
@@ -38,12 +39,14 @@ export function FrenchDatePicker({
   onChange,
   placeholder = "Choisir une date",
   min,
+  max,
   disabled,
   id,
 }: FrenchDatePickerProps) {
   const [open, setOpen] = useState(false);
   const selected = isoToDate(value);
   const minDate = min ? isoToDate(min) : undefined;
+  const maxDate = max ? isoToDate(max) : undefined;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -70,7 +73,11 @@ export function FrenchDatePicker({
           selected={selected}
           locale={fr}
           weekStartsOn={1}
-          disabled={minDate ? { before: minDate } : undefined}
+          disabled={(date) => {
+            if (minDate && date < minDate) return true;
+            if (maxDate && date > maxDate) return true;
+            return false;
+          }}
           onSelect={(date) => {
             onChange(dateToIso(date));
             setOpen(false);

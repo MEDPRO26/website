@@ -375,4 +375,13 @@ export default defineSchema({
     .index("by_sessionKey", ["sessionKey"])
     .index("by_kind_lastSeen", ["kind", "lastSeenAt"])
     .index("by_staffId", ["staffId"]),
+
+  visitorDailySessions: defineTable({
+    dateKey: v.string(),
+    sessionKey: v.string(),
+    firstSeenAt: v.number(),
+    lastSeenAt: v.number(),
+  })
+    .index("by_dateKey", ["dateKey"])
+    .index("by_dateKey_sessionKey", ["dateKey", "sessionKey"]),
 });

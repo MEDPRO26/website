@@ -18,6 +18,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
 import { useAdminSession } from "@/hooks/use-admin-session";
+import { VisitorHistoryChart } from "@/components/crm/visitor-history-chart";
 
 function formatDuration(ms: number | null) {
   if (ms === null) return "—";
@@ -89,6 +90,8 @@ export function AdminStatisticsPage() {
           tone="success"
         />
       </div>
+
+      <VisitorHistoryChart enabled={canQuery("statistics.view")} />
 
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
         <Card className="p-0 overflow-hidden">

@@ -1,6 +1,8 @@
 import { query } from "./_generated/server";
+import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { requireAdminPermission } from "./lib/authz";
+import { dateKeyInSiteTimezone } from "./presence";
 
 const ONLINE_THRESHOLD_MS = 60_000;
 const FAST_CLAIM_MS = 5 * 60 * 1000;
@@ -243,6 +245,176 @@ export const overview = query({
         fastClaims: supplierPerformance.reduce((sum, row) => sum + row.fastClaims, 0),
         deliveries: supplierPerformance.reduce((sum, row) => sum + row.delivered, 0),
       },
+    };
+  },
+});
+
+const visitorGranularityValidator = v.union(
+  v.literal("day"),
+  v.literal("month"),
+  v.literal("year")
+);
+
+function periodKey(dateKey: string, granularity: "day" | "month" | "year") {
+  if (granularity === "day") return dateKey;
+  if (granularity === "month") return dateKey.slice(0, 7);
+  return dateKey.slice(0, 4);
+}
+
+function formatPeriodLabel(period: string, granularity: "day" | "month" | "year") {
+  if (granularity === "year") return period;
+  if (granularity === "month") {
+    const [year, month] = period.split("-");
+    const date = new Date(Number(year), Number(month) - 1, 1);
+    return date.toLocaleDateString("fr-FR", { month: "short", year: "numeric" });
+  }
+  const date = new Date(`${period}T12:00:00`);
+  return date.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function addDays(dateKey: string, days: number) {
+  const date = new Date(`${dateKey}T12:00:00`);
+  date.setDate(date.getDate() + days);
+  return dateKeyInSiteTimezone(date.getTime());
+}
+
+function addMonths(dateKey: string, months: number) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const date = new Date(year, month - 1 + months, day);
+  return dateKeyInSiteTimezone(date.getTime());
+}
+
+function defaultVisitorRange(granularity: "day" | "month" | "year") {
+  const today = dateKeyInSiteTimezone();
+  if (granularity === "year") {
+    const year = Number(today.slice(0, 4));
+    return {
+      startDate: `${year - 4}-01-01`,
+      endDate: today,
+    };
+  }
+  if (granularity === "month") {
+    return {
+      startDate: addMonths(today, -11).slice(0, 7) + "-01",
+      endDate: today,
+    };
+  }
+  return {
+    startDate: addDays(today, -29),
+    endDate: today,
+  };
+}
+
+function buildPeriodSeries(
+  startDate: string,
+  endDate: string,
+  granularity: "day" | "month" | "year"
+) {
+  const periods: string[] = [];
+  if (granularity === "year") {
+    const startYear = Number(startDate.slice(0, 4));
+    const endYear = Number(endDate.slice(0, 4));
+    for (let year = startYear; year <= endYear; year += 1) {
+      periods.push(String(year));
+    }
+    return periods;
+  }
+
+  if (granularity === "month") {
+    const [startYear, startMonth] = startDate.slice(0, 7).split("-").map(Number);
+    const [endYear, endMonth] = endDate.slice(0, 7).split("-").map(Number);
+    let cursor = new Date(startYear, startMonth - 1, 1);
+    const end = new Date(endYear, endMonth - 1, 1);
+    while (cursor <= end) {
+      periods.push(
+        `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`
+      );
+      cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+    }
+    return periods;
+  }
+
+  let cursor = startDate;
+  while (cursor <= endDate) {
+    periods.push(cursor);
+    cursor = addDays(cursor, 1);
+  }
+  return periods;
+}
+
+export const visitorHistory = query({
+  args: {
+    startDate: v.optional(v.string()),
+    endDate: v.optional(v.string()),
+    granularity: visitorGranularityValidator,
+  },
+  handler: async (ctx, args) => {
+    await requireAdminPermission(ctx, "statistics.view");
+
+    const defaults = defaultVisitorRange(args.granularity);
+    const startDate = args.startDate ?? defaults.startDate;
+    const endDate = args.endDate ?? defaults.endDate;
+
+    if (startDate > endDate) {
+      return {
+        startDate,
+        endDate,
+        granularity: args.granularity,
+        totalUniqueVisitors: 0,
+        points: [] as { period: string; label: string; visitors: number }[],
+      };
+    }
+
+    const rows = await ctx.db
+      .query("visitorDailySessions")
+      .withIndex("by_dateKey", (q) =>
+        q.gte("dateKey", startDate).lte("dateKey", endDate)
+      )
+      .collect();
+
+    const counts = new Map<string, number>();
+    const sessionSets = new Map<string, Set<string>>();
+
+    for (const row of rows) {
+      const period = periodKey(row.dateKey, args.granularity);
+      if (args.granularity === "day") {
+        counts.set(period, (counts.get(period) ?? 0) + 1);
+        continue;
+      }
+
+      const bucket = sessionSets.get(period) ?? new Set<string>();
+      bucket.add(row.sessionKey);
+      sessionSets.set(period, bucket);
+    }
+
+    if (args.granularity !== "day") {
+      for (const [period, sessions] of sessionSets) {
+        counts.set(period, sessions.size);
+      }
+    }
+
+    const periods = buildPeriodSeries(startDate, endDate, args.granularity);
+    const points = periods.map((period) => ({
+      period,
+      label: formatPeriodLabel(period, args.granularity),
+      visitors: counts.get(period) ?? 0,
+    }));
+
+    const totalUniqueVisitors =
+      args.granularity === "day"
+        ? points.reduce((sum, point) => sum + point.visitors, 0)
+        : new Set(rows.map((row) => row.sessionKey)).size;
+
+    return {
+      startDate,
+      endDate,
+      granularity: args.granularity,
+      totalUniqueVisitors,
+      points,
     };
   },
 });

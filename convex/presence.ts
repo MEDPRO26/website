@@ -1,9 +1,43 @@
 import { v } from "convex/values";
 import { internalMutation, mutation } from "./_generated/server";
+import type { MutationCtx } from "./_generated/server";
 import { getStaffProfile } from "./lib/authz";
 import type { Doc } from "./_generated/dataModel";
 
 const ADMIN_ROLES = new Set(["super_admin", "admin", "assistant"]);
+const SITE_TIMEZONE = "Africa/Casablanca";
+
+export function dateKeyInSiteTimezone(timestamp = Date.now()) {
+  return new Date(timestamp).toLocaleDateString("en-CA", {
+    timeZone: SITE_TIMEZONE,
+  });
+}
+
+async function recordVisitorDailySession(
+  ctx: MutationCtx,
+  sessionKey: string,
+  now: number
+) {
+  const dateKey = dateKeyInSiteTimezone(now);
+  const existing = await ctx.db
+    .query("visitorDailySessions")
+    .withIndex("by_dateKey_sessionKey", (q) =>
+      q.eq("dateKey", dateKey).eq("sessionKey", sessionKey)
+    )
+    .unique();
+
+  if (existing) {
+    await ctx.db.patch(existing._id, { lastSeenAt: now });
+    return;
+  }
+
+  await ctx.db.insert("visitorDailySessions", {
+    dateKey,
+    sessionKey,
+    firstSeenAt: now,
+    lastSeenAt: now,
+  });
+}
 
 async function resolvePresenceProfile(
   ctx: Parameters<typeof getStaffProfile>[0],
@@ -61,14 +95,23 @@ export const heartbeat = mutation({
 
     if (existing) {
       await ctx.db.patch(existing._id, patch);
+      if (profile.kind === "visitor") {
+        await recordVisitorDailySession(ctx, sessionKey, now);
+      }
       return existing._id;
     }
 
-    return await ctx.db.insert("presenceSessions", {
+    const id = await ctx.db.insert("presenceSessions", {
       sessionKey,
       ...patch,
       createdAt: now,
     });
+
+    if (profile.kind === "visitor") {
+      await recordVisitorDailySession(ctx, sessionKey, now);
+    }
+
+    return id;
   },
 });
 
