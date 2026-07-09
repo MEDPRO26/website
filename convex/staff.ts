@@ -4,6 +4,7 @@ import { v } from "convex/values";
 import { linkSupplierStaff } from "./lib/linkSupplierStaff";
 import { requireAdminPermission, requireAdminStaff } from "./lib/authz";
 import { logAudit } from "./lib/auditLog";
+import { purgeAuthUserById } from "./lib/purgeAuthUser";
 import { roleValidator, staffStatusValidator } from "./validators";
 import type { QueryCtx } from "./_generated/server";
 
@@ -205,6 +206,87 @@ export const updateStatus = mutation({
       fromValue: target.status,
       toValue: args.status,
     });
+  },
+});
+
+export const removeStaffUser = mutation({
+  args: {
+    staffId: v.id("staff"),
+  },
+  handler: async (ctx, args) => {
+    const actor = await requireAdminStaff(ctx);
+    if (actor.role !== "super_admin" && actor.role !== "admin") {
+      throw new Error("Seuls les administrateurs peuvent supprimer un utilisateur.");
+    }
+
+    if (actor._id === args.staffId) {
+      throw new Error("Vous ne pouvez pas supprimer votre propre compte.");
+    }
+
+    const target = await ctx.db.get(args.staffId);
+    if (!target) {
+      throw new Error("Utilisateur introuvable.");
+    }
+
+    if (target.role !== "assistant" && target.role !== "supplier") {
+      throw new Error(
+        "Seuls les comptes assistant et fournisseur peuvent être supprimés ici."
+      );
+    }
+
+    const email = target.email.trim().toLowerCase();
+
+    if (target.role === "assistant") {
+      const pendingInvites = await ctx.db
+        .query("staffInvitations")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .collect();
+
+      for (const invite of pendingInvites) {
+        if (invite.status === "pending") {
+          await ctx.db.patch(invite._id, { status: "cancelled" });
+        }
+      }
+    }
+
+    if (target.role === "supplier") {
+      const supplierInvites = target.supplierId
+        ? await ctx.db
+            .query("supplierInvitations")
+            .withIndex("by_supplierId", (q) =>
+              q.eq("supplierId", target.supplierId!)
+            )
+            .collect()
+        : [];
+
+      for (const invite of supplierInvites) {
+        if (invite.status === "pending" && invite.email === email) {
+          await ctx.db.patch(invite._id, { status: "cancelled" });
+        }
+      }
+    }
+
+    await logAudit(ctx, {
+      actorStaffId: actor._id,
+      actorName: actor.name,
+      action: "delete",
+      entityType: "staff",
+      entityId: args.staffId,
+      entityLabel: target.name,
+      fromValue: target.role,
+      toValue: "supprimé",
+    });
+
+    const result = await purgeAuthUserById(ctx, target.userId);
+    if (!result.deleted) {
+      await ctx.db.delete(args.staffId);
+    }
+
+    return {
+      email: result.email || email,
+      role: target.role,
+      staffRemoved: result.staffRemoved || 1,
+    };
   },
 });
 

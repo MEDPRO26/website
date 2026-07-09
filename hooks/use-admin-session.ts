@@ -1,25 +1,29 @@
 "use client";
 
-import { useConvexAuth, useMutation, useQuery } from "convex/react";
-import { useEffect } from "react";
+import { useConvexAuth, useQuery } from "convex/react";
+import { useMemo } from "react";
 import { api } from "@/convex/_generated/api";
 import { isAdminStaffRole } from "@/lib/crm/staff-roles";
+import {
+  hasPermission,
+  type Permission,
+  type Role,
+} from "@/lib/permissions";
 
 export function useAdminSession() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
-  const ensureProfile = useMutation(api.staff.ensureProfile);
   const staff = useQuery(
     api.staff.current,
     isAuthenticated ? {} : "skip"
   );
 
   const isAdminStaff = isAdminStaffRole(staff?.role);
+  const role = (staff?.role ?? "assistant") as Role;
 
-  useEffect(() => {
-    if (isAuthenticated && staff === null) {
-      void ensureProfile();
-    }
-  }, [isAuthenticated, staff, ensureProfile]);
+  const can = useMemo(
+    () => (permission: Permission) => hasPermission(role, permission),
+    [role]
+  );
 
   const sessionLoading =
     authLoading ||
@@ -28,6 +32,9 @@ export function useAdminSession() {
 
   const canQueryAdmin = isAuthenticated && isAdminStaff;
 
+  const canQuery = (permission: Permission) =>
+    canQueryAdmin && can(permission);
+
   return {
     isAuthenticated,
     authLoading,
@@ -35,5 +42,7 @@ export function useAdminSession() {
     isAdminStaff,
     sessionLoading,
     canQueryAdmin,
+    can,
+    canQuery,
   };
 }

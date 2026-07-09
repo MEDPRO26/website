@@ -33,7 +33,7 @@ const CHART_COLORS = [
 ];
 
 export function AdminDashboardPage() {
-  const { canQueryAdmin } = useAdminSession();
+  const { canQueryAdmin, canQuery, can } = useAdminSession();
   const stats = useQuery(
     api.orders.dashboardStats,
     canQueryAdmin ? {} : "skip"
@@ -44,7 +44,7 @@ export function AdminDashboardPage() {
   );
   const commissionStats = useQuery(
     api.commissions.stats,
-    canQueryAdmin ? {} : "skip"
+    canQuery("commissions.view") ? {} : "skip"
   );
   const recentOrders = useQuery(api.orders.list, canQueryAdmin ? {} : "skip");
 
@@ -274,25 +274,27 @@ export function AdminDashboardPage() {
             )}
           </Card>
 
-          <Card className="p-5">
-            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-              <Wallet className="size-4 text-brand" /> Commissions
-            </h3>
-            <p className="text-2xl font-semibold">
-              {(commissionStats?.totalCommission ?? 0).toLocaleString("fr-FR")}{" "}
-              <span className="text-sm font-normal text-muted-foreground">MAD</span>
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {commissionStats?.quoteCount ?? 0} devis confirmé
-              {(commissionStats?.quoteCount ?? 0) > 1 ? "s" : ""}
-              {(commissionStats?.pendingCommission ?? 0) > 0
-                ? ` · ${commissionStats!.pendingCommission.toLocaleString("fr-FR")} MAD en attente d'offre`
-                : ""}
-            </p>
-            <Button asChild variant="outline" size="sm" className="mt-3 w-full">
-              <Link href="/admin/commissions">Voir le détail</Link>
-            </Button>
-          </Card>
+          {can("commissions.view") ? (
+            <Card className="p-5">
+              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
+                <Wallet className="size-4 text-brand" /> Commissions
+              </h3>
+              <p className="text-2xl font-semibold">
+                {(commissionStats?.totalCommission ?? 0).toLocaleString("fr-FR")}{" "}
+                <span className="text-sm font-normal text-muted-foreground">MAD</span>
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {commissionStats?.quoteCount ?? 0} devis confirmé
+                {(commissionStats?.quoteCount ?? 0) > 1 ? "s" : ""}
+                {(commissionStats?.pendingCommission ?? 0) > 0
+                  ? ` · ${commissionStats!.pendingCommission.toLocaleString("fr-FR")} MAD en attente d'offre`
+                  : ""}
+              </p>
+              <Button asChild variant="outline" size="sm" className="mt-3 w-full">
+                <Link href="/admin/commissions">Voir le détail</Link>
+              </Button>
+            </Card>
+          ) : null}
         </div>
       </div>
     </div>

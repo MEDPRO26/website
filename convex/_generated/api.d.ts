@@ -34,6 +34,7 @@ import type * as lib_orderClient from "../lib/orderClient.js";
 import type * as lib_orderEvents from "../lib/orderEvents.js";
 import type * as lib_orderStatus from "../lib/orderStatus.js";
 import type * as lib_pricing from "../lib/pricing.js";
+import type * as lib_purgeAuthUser from "../lib/purgeAuthUser.js";
 import type * as lib_quotePricing from "../lib/quotePricing.js";
 import type * as lib_refs from "../lib/refs.js";
 import type * as lib_rentalDates from "../lib/rentalDates.js";
@@ -91,6 +92,7 @@ declare const fullApi: ApiFromModules<{
   "lib/orderEvents": typeof lib_orderEvents;
   "lib/orderStatus": typeof lib_orderStatus;
   "lib/pricing": typeof lib_pricing;
+  "lib/purgeAuthUser": typeof lib_purgeAuthUser;
   "lib/quotePricing": typeof lib_quotePricing;
   "lib/refs": typeof lib_refs;
   "lib/rentalDates": typeof lib_rentalDates;

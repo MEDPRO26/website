@@ -92,8 +92,20 @@ export function AssistantInvitePage({ token }: AssistantInvitePageProps) {
   const finishAcceptance = async () => {
     await waitForServerAuth(convex, inviteEmail);
     await acceptInvite({ token });
-    toast.success("Compte assistant activé.");
-    router.replace("/admin");
+
+    for (let attempt = 0; attempt < 30; attempt += 1) {
+      const profile = await convex.query(api.staff.current, {});
+      if (profile && profile.role !== "supplier") {
+        toast.success("Compte assistant activé.");
+        router.replace("/admin");
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+
+    throw new Error(
+      "Compte activé mais la session met du temps à se synchroniser. Rechargez la page dans quelques secondes."
+    );
   };
 
   const handleAuthenticatedAccept = async () => {

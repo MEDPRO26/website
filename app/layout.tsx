@@ -116,8 +116,10 @@ export default async function RootLayout({
         </head>
         <body className="min-h-full flex flex-col font-sans">
           <GlobalSiteJsonLd />
-          <ConvexClientProvider>{children}</ConvexClientProvider>
-          <BottomNavRoot />
+          <ConvexClientProvider>
+            {children}
+            <BottomNavRoot />
+          </ConvexClientProvider>
         </body>
       </html>
     </ConvexAuthNextjsServerProvider>

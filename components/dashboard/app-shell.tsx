@@ -271,6 +271,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
       router.replace("/admin/login");
       return;
     }
+    if (!authLoading && isAuthenticated && staff === null) {
+      router.replace("/admin/login");
+      return;
+    }
     if (staff && !isAdminStaffRole(staff.role)) {
       router.replace(staff.role === "supplier" ? "/supplier" : "/admin/login");
     }

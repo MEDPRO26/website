@@ -36,9 +36,9 @@ function offerStatusLabel(status: string) {
 }
 
 export function AdminCommissionsPage() {
-  const { canQueryAdmin } = useAdminSession();
-  const rows = useQuery(api.commissions.list, canQueryAdmin ? {} : "skip");
-  const stats = useQuery(api.commissions.stats, canQueryAdmin ? {} : "skip");
+  const { canQuery } = useAdminSession();
+  const rows = useQuery(api.commissions.list, canQuery("commissions.view") ? {} : "skip");
+  const stats = useQuery(api.commissions.stats, canQuery("commissions.view") ? {} : "skip");
   const markPaid = useMutation(api.commissions.markPaid);
 
   const handleMarkPaid = async (quoteId: Id<"orderSupplierQuotes">) => {

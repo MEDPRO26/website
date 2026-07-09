@@ -2,12 +2,22 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { Loader2, UserPlus } from "lucide-react";
+import { Loader2, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Tag } from "@/components/dashboard/status-badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -57,11 +67,15 @@ export function AdminUsersPage() {
   );
   const updateRole = useMutation(api.staff.updateRole);
   const updateStatus = useMutation(api.staff.updateStatus);
+  const removeStaffUser = useMutation(api.staff.removeStaffUser);
   const inviteAssistant = useMutation(api.staffInvitations.inviteAssistant);
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState<StaffRow | null>(null);
+  const [removing, setRemoving] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editing, setEditing] = useState<StaffRow | null>(null);
   const [role, setRole] = useState("assistant");
@@ -80,6 +94,11 @@ export function AdminUsersPage() {
     setStatus(member.status);
     setSupplierId(member.supplierId ?? "");
     setEditOpen(true);
+  };
+
+  const openDelete = (member: StaffRow) => {
+    setDeleting(member);
+    setDeleteOpen(true);
   };
 
   const handleSave = async () => {
@@ -110,6 +129,28 @@ export function AdminUsersPage() {
       setSubmitting(false);
     }
   };
+
+  const handleDelete = async () => {
+    if (!deleting) return;
+    setRemoving(true);
+    try {
+      await removeStaffUser({ staffId: deleting._id });
+      toast.success(`${deleting.name} a été supprimé.`);
+      setDeleteOpen(false);
+      setDeleting(null);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Impossible de supprimer l'utilisateur."
+      );
+    } finally {
+      setRemoving(false);
+    }
+  };
+
+  const canDeleteUser = (member: StaffRow) =>
+    canManage &&
+    (member.role === "assistant" || member.role === "supplier") &&
+    member._id !== currentStaff?._id;
 
   const handleInvite = async () => {
     const email = inviteEmail.trim();
@@ -223,14 +264,26 @@ export function AdminUsersPage() {
                       {member.createdLabel}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={!canManage}
-                        onClick={() => openEdit(member)}
-                      >
-                        Modifier
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={!canManage}
+                          onClick={() => openEdit(member)}
+                        >
+                          Modifier
+                        </Button>
+                        {canDeleteUser(member) ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => openDelete(member)}
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -334,6 +387,50 @@ export function AdminUsersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={deleteOpen}
+        onOpenChange={(open) => {
+          setDeleteOpen(open);
+          if (!open) {
+            setDeleting(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Supprimer{" "}
+              {deleting?.role === "supplier" ? "ce compte fournisseur" : "cet assistant"} ?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Le compte de <strong>{deleting?.name}</strong> ({deleting?.email})
+              sera définitivement supprimé du CRM et de la base de données.
+              {deleting?.role === "supplier" ? (
+                <>
+                  {" "}
+                  La fiche fournisseur <strong>{deleting.supplierName ?? "liée"}</strong>{" "}
+                  restera dans le système — seul l&apos;accès portail est retiré.
+                </>
+              ) : null}{" "}
+              Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removing}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={removing}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(event) => {
+                event.preventDefault();
+                void handleDelete();
+              }}
+            >
+              {removing ? <Loader2 className="size-4 animate-spin" /> : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

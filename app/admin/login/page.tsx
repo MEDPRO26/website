@@ -67,9 +67,15 @@ export default function AdminLoginPage() {
   const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated && staff !== undefined && !redirecting) {
+    if (
+      !isLoading &&
+      isAuthenticated &&
+      staff !== undefined &&
+      staff !== null &&
+      !redirecting
+    ) {
       setRedirecting(true);
-      router.replace(homeForRole(staff?.role));
+      router.replace(homeForRole(staff.role));
     }
   }, [isAuthenticated, isLoading, staff, router, redirecting]);
 
