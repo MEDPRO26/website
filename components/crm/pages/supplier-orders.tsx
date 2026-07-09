@@ -215,13 +215,19 @@ export function SupplierOrdersPage() {
   );
 
   const combinedOrders = useMemo(() => {
-    const active = allOrders ?? [];
+    const active = (allOrders ?? []).map((order) => ({
+      ...order,
+      isMissed: false as boolean,
+      missedAt: undefined as number | undefined,
+    }));
     const missed = (missedOrders ?? []).map((order) => ({
       ...order,
       _id: order._id,
       duration: undefined as string | undefined,
       desiredDate: undefined as string | undefined,
       clientContactVisible: false,
+      isMissed: true as boolean,
+      missedAt: order.missedAt as number | undefined,
     }));
     return [...active, ...missed].sort((a, b) => b.createdAt - a.createdAt);
   }, [allOrders, missedOrders]);

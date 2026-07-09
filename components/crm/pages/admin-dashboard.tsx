@@ -286,8 +286,8 @@ export function AdminDashboardPage() {
               <p className="mt-1 text-xs text-muted-foreground">
                 {commissionStats?.quoteCount ?? 0} devis confirmé
                 {(commissionStats?.quoteCount ?? 0) > 1 ? "s" : ""}
-                {(commissionStats?.pendingCommission ?? 0) > 0
-                  ? ` · ${commissionStats!.pendingCommission.toLocaleString("fr-FR")} MAD en attente d'offre`
+                {(commissionStats?.unpaidCommission ?? 0) > 0
+                  ? ` · ${commissionStats!.unpaidCommission.toLocaleString("fr-FR")} MAD non réglé`
                   : ""}
               </p>
               <Button asChild variant="outline" size="sm" className="mt-3 w-full">
