@@ -2,7 +2,7 @@ import { query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import { requireAdminPermission } from "./lib/authz";
 
-const ONLINE_THRESHOLD_MS = 90_000;
+const ONLINE_THRESHOLD_MS = 60_000;
 const FAST_CLAIM_MS = 5 * 60 * 1000;
 
 type SupplierAccumulator = {
