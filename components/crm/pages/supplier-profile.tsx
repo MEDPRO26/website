@@ -34,13 +34,12 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useSupplierSession } from "@/hooks/use-supplier-session";
 import { useQuery } from "convex/react";
 
-const SUPPLIER_TYPES = [
-  "Matériel médical",
-  "Aide à domicile",
-  "Soins à domicile",
-  "Garde-malade",
-  "Autre",
-];
+import {
+  buildSupplierTypes,
+  splitSupplierTypes,
+  SUPPLIER_ACTIVITY_TYPES,
+  SUPPLIER_OTHER_TYPE,
+} from "@/lib/supplier-activity-types";
 
 const CITIES = ["Agadir", "Inezgane", "Dcheira", "Aourir", "Biougra", "Autre"];
 
@@ -62,36 +61,38 @@ export function SupplierProfilePage() {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [types, setTypes] = useState<string[]>([]);
+  const [otherTypeText, setOtherTypeText] = useState("");
   const [city, setCity] = useState("Agadir");
   const [zonesText, setZonesText] = useState("");
   const [phone, setPhone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
-  const [itemsText, setItemsText] = useState("");
-  const [servicesText, setServicesText] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!supplier) return;
     setName(supplier.name);
-    setTypes(
+    const storedTypes =
       supplier.types?.length
         ? supplier.types
         : supplier.type && supplier.type !== "—"
-          ? [supplier.type]
-          : []
-    );
+          ? supplier.type.split(",").map((item) => item.trim()).filter(Boolean)
+          : [];
+    const parsed = splitSupplierTypes(storedTypes);
+    setTypes(parsed.selected);
+    setOtherTypeText(parsed.otherText);
     setCity(supplier.city);
     setZonesText(supplier.zones.join(", "));
     setPhone(supplier.phone === "—" ? "" : supplier.phone);
     setWhatsapp(supplier.whatsapp ?? "");
-    setItemsText(supplier.items.join(", "));
-    setServicesText(supplier.services.join(", "));
   }, [supplier]);
 
   const toggleType = (value: string, checked: boolean) => {
     setTypes((current) => {
       if (checked) {
         return current.includes(value) ? current : [...current, value];
+      }
+      if (value === SUPPLIER_OTHER_TYPE) {
+        setOtherTypeText("");
       }
       return current.filter((item) => item !== value);
     });
@@ -111,21 +112,26 @@ export function SupplierProfilePage() {
     .toUpperCase();
 
   const handleSave = async () => {
-    if (types.length === 0) {
-      toast.error("Sélectionnez au moins un type.");
+    const resolvedTypes = buildSupplierTypes(types, otherTypeText);
+    if (!resolvedTypes) {
+      toast.error(
+        types.includes(SUPPLIER_OTHER_TYPE) && !otherTypeText.trim()
+          ? "Précisez votre activité dans le champ Autre."
+          : "Sélectionnez au moins un type."
+      );
       return;
     }
     setSubmitting(true);
     try {
       await updateProfile({
         name,
-        types,
+        types: resolvedTypes,
         city,
         zones: parseLines(zonesText),
         phone,
         whatsapp,
-        items: parseLines(itemsText),
-        services: parseLines(servicesText),
+        items: supplier.items,
+        services: supplier.services,
       });
       toast.success("Profil mis à jour.");
       setEditing(false);
@@ -210,7 +216,7 @@ export function SupplierProfilePage() {
           <div>
             <Label>Type *</Label>
             <div className="mt-2 space-y-2 rounded-xl border border-border p-3">
-              {SUPPLIER_TYPES.map((item) => (
+              {SUPPLIER_ACTIVITY_TYPES.map((item) => (
                 <label key={item} className="flex cursor-pointer items-center gap-3 text-sm">
                   <Checkbox
                     checked={types.includes(item)}
@@ -220,6 +226,18 @@ export function SupplierProfilePage() {
                 </label>
               ))}
             </div>
+            {types.includes(SUPPLIER_OTHER_TYPE) ? (
+              <div className="mt-3">
+                <Label htmlFor="other-type">Précisez l&apos;autre activité *</Label>
+                <Input
+                  id="other-type"
+                  className="mt-1.5"
+                  value={otherTypeText}
+                  onChange={(e) => setOtherTypeText(e.target.value)}
+                  placeholder="Ex. Transport médical, orthoprothèse…"
+                />
+              </div>
+            ) : null}
           </div>
           <div>
             <Label>Ville *</Label>
@@ -237,7 +255,7 @@ export function SupplierProfilePage() {
             </Select>
           </div>
           <div>
-            <Label>Zones couvertes *</Label>
+            <Label>Zones couvertes (optionnel)</Label>
             <Input className="mt-1.5" value={zonesText} onChange={(e) => setZonesText(e.target.value)} />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -249,14 +267,6 @@ export function SupplierProfilePage() {
               <Label>WhatsApp *</Label>
               <Input className="mt-1.5" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
             </div>
-          </div>
-          <div>
-            <Label>Matériels proposés *</Label>
-            <Input className="mt-1.5" value={itemsText} onChange={(e) => setItemsText(e.target.value)} />
-          </div>
-          <div>
-            <Label>Services proposés *</Label>
-            <Input className="mt-1.5" value={servicesText} onChange={(e) => setServicesText(e.target.value)} />
           </div>
         </Card>
       ) : (

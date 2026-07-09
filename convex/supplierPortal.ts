@@ -510,12 +510,6 @@ export const completeProfile = mutation({
     if (!whatsapp) {
       throw new Error("WhatsApp est obligatoire.");
     }
-    if (items.length === 0) {
-      throw new Error("Indiquez au moins un matériel proposé.");
-    }
-    if (services.length === 0) {
-      throw new Error("Indiquez au moins un service proposé.");
-    }
 
     const now = Date.now();
     await ctx.db.patch(supplier._id, {

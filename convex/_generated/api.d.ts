@@ -50,6 +50,7 @@ import type * as orders from "../orders.js";
 import type * as platformSettings from "../platformSettings.js";
 import type * as quotes from "../quotes.js";
 import type * as rentalReminders from "../rentalReminders.js";
+import type * as seedTestSupplier from "../seedTestSupplier.js";
 import type * as staff from "../staff.js";
 import type * as staffInvitations from "../staffInvitations.js";
 import type * as supplierInvitations from "../supplierInvitations.js";
@@ -108,6 +109,7 @@ declare const fullApi: ApiFromModules<{
   platformSettings: typeof platformSettings;
   quotes: typeof quotes;
   rentalReminders: typeof rentalReminders;
+  seedTestSupplier: typeof seedTestSupplier;
   staff: typeof staff;
   staffInvitations: typeof staffInvitations;
   supplierInvitations: typeof supplierInvitations;

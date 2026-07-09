@@ -18,14 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const SUPPLIER_TYPES = [
-  "Matériel médical",
-  "Aide à domicile",
-  "Soins à domicile",
-  "Garde-malade",
-  "Autre",
-];
+import {
+  buildSupplierTypes,
+  SUPPLIER_ACTIVITY_TYPES,
+  SUPPLIER_OTHER_TYPE,
+} from "@/lib/supplier-activity-types";
 
 const CITIES = ["Agadir", "Inezgane", "Dcheira", "Aourir", "Biougra", "Autre"];
 
@@ -42,19 +39,21 @@ export function SupplierOnboardingPage() {
   const completeProfile = useMutation(api.supplierPortal.completeProfile);
 
   const [name, setName] = useState("");
-  const [types, setTypes] = useState<string[]>(["Matériel médical"]);
+  const [types, setTypes] = useState<string[]>([]);
+  const [otherTypeText, setOtherTypeText] = useState("");
   const [city, setCity] = useState("Agadir");
-  const [zonesText, setZonesText] = useState("Agadir");
+  const [zonesText, setZonesText] = useState("");
   const [phone, setPhone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
-  const [itemsText, setItemsText] = useState("");
-  const [servicesText, setServicesText] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const toggleType = (value: string, checked: boolean) => {
     setTypes((current) => {
       if (checked) {
         return current.includes(value) ? current : [...current, value];
+      }
+      if (value === SUPPLIER_OTHER_TYPE) {
+        setOtherTypeText("");
       }
       return current.filter((item) => item !== value);
     });
@@ -76,8 +75,13 @@ export function SupplierOnboardingPage() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (types.length === 0) {
-      toast.error("Sélectionnez au moins un type d'activité.");
+    const resolvedTypes = buildSupplierTypes(types, otherTypeText);
+    if (!resolvedTypes) {
+      toast.error(
+        types.includes(SUPPLIER_OTHER_TYPE) && !otherTypeText.trim()
+          ? "Précisez votre activité dans le champ Autre."
+          : "Sélectionnez au moins un type d'activité."
+      );
       return;
     }
 
@@ -90,13 +94,13 @@ export function SupplierOnboardingPage() {
     try {
       await completeProfile({
         name,
-        types,
+        types: resolvedTypes,
         city,
         zones: parseLines(zonesText),
         phone,
         whatsapp,
-        items: parseLines(itemsText),
-        services: parseLines(servicesText),
+        items: [],
+        services: [],
       });
       toast.success("Profil enregistré. Bienvenue !");
       router.replace("/supplier");
@@ -138,7 +142,7 @@ export function SupplierOnboardingPage() {
               Vous pouvez en sélectionner plusieurs.
             </p>
             <div className="mt-2 space-y-2 rounded-xl border border-border p-3">
-              {SUPPLIER_TYPES.map((item) => (
+              {SUPPLIER_ACTIVITY_TYPES.map((item) => (
                 <label
                   key={item}
                   className="flex cursor-pointer items-center gap-3 text-sm text-foreground"
@@ -151,6 +155,19 @@ export function SupplierOnboardingPage() {
                 </label>
               ))}
             </div>
+            {types.includes(SUPPLIER_OTHER_TYPE) ? (
+              <div className="mt-3">
+                <Label htmlFor="other-type">Précisez l&apos;autre activité *</Label>
+                <Input
+                  id="other-type"
+                  className="mt-1.5"
+                  value={otherTypeText}
+                  onChange={(e) => setOtherTypeText(e.target.value)}
+                  placeholder="Ex. Transport médical, orthoprothèse…"
+                  required
+                />
+              </div>
+            ) : null}
           </div>
 
           <div>
@@ -170,13 +187,12 @@ export function SupplierOnboardingPage() {
           </div>
 
           <div>
-            <Label>Zones couvertes *</Label>
+            <Label>Zones couvertes (optionnel)</Label>
             <Input
               className="mt-1.5"
               value={zonesText}
               onChange={(e) => setZonesText(e.target.value)}
               placeholder="Agadir, Inezgane, Dcheira"
-              required
             />
           </div>
 
@@ -199,28 +215,6 @@ export function SupplierOnboardingPage() {
                 required
               />
             </div>
-          </div>
-
-          <div>
-            <Label>Matériels proposés *</Label>
-            <Input
-              className="mt-1.5"
-              value={itemsText}
-              onChange={(e) => setItemsText(e.target.value)}
-              placeholder="Lit médicalisé, Fauteuil roulant"
-              required
-            />
-          </div>
-
-          <div>
-            <Label>Services proposés *</Label>
-            <Input
-              className="mt-1.5"
-              value={servicesText}
-              onChange={(e) => setServicesText(e.target.value)}
-              placeholder="Livraison, Installation"
-              required
-            />
           </div>
 
           <Button type="submit" className="w-full" disabled={submitting}>
