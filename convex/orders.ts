@@ -3,6 +3,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAdminPermission, requireAdminStaff } from "./lib/authz";
+import { hasPermission, type Role } from "../lib/permissions";
 import { createOrderRecord } from "./lib/createOrder";
 import { appendOrderEvent } from "./lib/orderEvents";
 import { formatStatusChange } from "./lib/orderStatus";
@@ -192,14 +193,24 @@ export const list = query({
     status: v.optional(orderStatusValidator),
   },
   handler: async (ctx, args) => {
-    await requireAdminStaff(ctx);
+    const staff = await requireAdminStaff(ctx);
 
-    const orders = args.status
+    const allOrders = args.status
       ? await ctx.db
           .query("orders")
           .withIndex("by_status", (q) => q.eq("status", args.status!))
           .collect()
       : await ctx.db.query("orders").collect();
+
+    // Staff without "orders.view_all" (e.g. assistants) only see orders
+    // assigned to them plus the shared pool of unassigned demandes.
+    const canViewAll = hasPermission(staff.role as Role, "orders.view_all");
+    const orders = canViewAll
+      ? allOrders
+      : allOrders.filter(
+          (order) =>
+            !order.assignedStaffId || order.assignedStaffId === staff._id
+        );
 
     const enriched = await Promise.all(
       orders.map(async (order) => {
@@ -227,13 +238,20 @@ export const list = query({
 export const search = query({
   args: { q: v.string() },
   handler: async (ctx, args) => {
-    await requireAdminStaff(ctx);
+    const staff = await requireAdminStaff(ctx);
     const q = args.q.trim().toLowerCase();
     if (q.length < 2) {
       return [];
     }
 
-    const orders = await ctx.db.query("orders").collect();
+    const canViewAll = hasPermission(staff.role as Role, "orders.view_all");
+    const allOrders = await ctx.db.query("orders").collect();
+    const orders = canViewAll
+      ? allOrders
+      : allOrders.filter(
+          (order) =>
+            !order.assignedStaffId || order.assignedStaffId === staff._id
+        );
     const matches: Array<{
       _id: (typeof orders)[0]["_id"];
       ref: string;

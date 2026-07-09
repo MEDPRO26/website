@@ -78,7 +78,6 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     "customers.view",
   ],
   assistant: [
-    "orders.view_all",
     "orders.view_assigned",
     "orders.create_manual",
     "orders.assign_supplier",

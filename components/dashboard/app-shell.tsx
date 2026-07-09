@@ -16,6 +16,7 @@ import {
   Plus,
   MessageCircle,
   Truck,
+  UserRound,
   Users,
   Wallet,
   AlertTriangle,
@@ -54,9 +55,10 @@ type NavItem = {
 
 export const ADMIN_NAV: NavItem[] = [
   { href: "/admin", label: "Tableau de bord", icon: LayoutDashboard, exact: true },
-  { href: "/admin/orders", label: "Commandes", icon: ClipboardList, permission: "orders.view_all" },
+  { href: "/admin/orders", label: "Commandes", icon: ClipboardList },
   { href: "/admin/conversations", label: "WhatsApp", icon: MessageCircle, permission: "whatsapp.view_conversations" },
   { href: "/admin/suppliers", label: "Fournisseurs", icon: Truck, permission: "suppliers.view" },
+  { href: "/admin/assistants", label: "Assistants", icon: UserRound, permission: "users.invite" },
   { href: "/admin/customers", label: "Clients", icon: Users, permission: "customers.view" },
   { href: "/admin/commissions", label: "Commissions", icon: Wallet, permission: "commissions.view" },
 ];

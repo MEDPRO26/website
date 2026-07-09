@@ -21,7 +21,7 @@ const ADMIN_BOTTOM_NAV: {
   permission?: Permission;
 }[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/admin/orders", label: "Commandes", icon: ClipboardList, permission: "orders.view_all" },
+  { href: "/admin/orders", label: "Commandes", icon: ClipboardList },
   { href: "/admin/conversations", label: "WhatsApp", icon: MessageCircle, permission: "whatsapp.view_conversations" },
   { href: "/admin/suppliers", label: "Fournisseurs", icon: Truck, permission: "suppliers.view" },
   { href: "/admin/commissions", label: "Commissions", icon: Wallet, permission: "commissions.view" },

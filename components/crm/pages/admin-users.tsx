@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { Loader2, Trash2, UserPlus } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Tag } from "@/components/dashboard/status-badge";
@@ -25,7 +25,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -68,11 +67,7 @@ export function AdminUsersPage() {
   const updateRole = useMutation(api.staff.updateRole);
   const updateStatus = useMutation(api.staff.updateStatus);
   const removeStaffUser = useMutation(api.staff.removeStaffUser);
-  const inviteAssistant = useMutation(api.staffInvitations.inviteAssistant);
 
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviting, setInviting] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState<StaffRow | null>(null);
   const [removing, setRemoving] = useState(false);
@@ -152,28 +147,6 @@ export function AdminUsersPage() {
     (member.role === "assistant" || member.role === "supplier") &&
     member._id !== currentStaff?._id;
 
-  const handleInvite = async () => {
-    const email = inviteEmail.trim();
-    if (!email) {
-      toast.error("Indiquez une adresse email.");
-      return;
-    }
-
-    setInviting(true);
-    try {
-      await inviteAssistant({ email });
-      toast.success(`Invitation envoyée à ${email}.`);
-      setInviteOpen(false);
-      setInviteEmail("");
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Impossible d'envoyer l'invitation."
-      );
-    } finally {
-      setInviting(false);
-    }
-  };
-
   return (
     <div>
       <PageHeader
@@ -182,14 +155,6 @@ export function AdminUsersPage() {
           staffList === undefined
             ? "Chargement…"
             : `${rows.length} utilisateur${rows.length > 1 ? "s" : ""} · comptes CRM et fournisseurs`
-        }
-        actions={
-          canManage ? (
-            <Button className="rounded-xl" onClick={() => setInviteOpen(true)}>
-              <UserPlus className="size-4" />
-              Ajouter un assistant
-            </Button>
-          ) : null
         }
       />
 
@@ -292,39 +257,6 @@ export function AdminUsersPage() {
           </table>
         </div>
       </Card>
-
-      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Ajouter un assistant</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Un email d&apos;invitation sera envoyé. La personne pourra créer son
-              mot de passe et accéder au CRM.
-            </p>
-            <div>
-              <Label htmlFor="invite-email">Email Gmail</Label>
-              <Input
-                id="invite-email"
-                type="email"
-                className="mt-1.5"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                placeholder="assistant@gmail.com"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setInviteOpen(false)}>
-              Annuler
-            </Button>
-            <Button disabled={inviting} onClick={() => void handleInvite()}>
-              {inviting ? <Loader2 className="size-4 animate-spin" /> : "Envoyer l'invitation"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>

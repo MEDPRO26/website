@@ -75,7 +75,6 @@ export function FrenchDatePicker({
             onChange(dateToIso(date));
             setOpen(false);
           }}
-          initialFocus
         />
         <div className="flex items-center justify-between border-t border-border px-3 py-2">
           <Button
