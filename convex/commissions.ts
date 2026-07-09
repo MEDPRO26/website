@@ -16,7 +16,7 @@ export const list = query({
     const rows = await Promise.all(
       quotes.map(async (quote) => {
         const order = await ctx.db.get(quote.orderId);
-        if (order?.status === "annulee" || order?.status !== "terminee") {
+        if (order?.status === "annulee") {
           return null;
         }
         const supplier = await ctx.db.get(quote.supplierId);
@@ -66,7 +66,7 @@ export const stats = query({
 
     for (const quote of submitted) {
       const order = await ctx.db.get(quote.orderId);
-      if (order?.status === "annulee" || order?.status !== "terminee") {
+      if (order?.status === "annulee") {
         continue;
       }
       const pricing = getQuotePricing(quote);

@@ -41,7 +41,15 @@ function buildSupplierOrderAssignmentHtml(args: {
   supplierName: string;
   orderRef: string;
   orderUrl: string;
+  clientName?: string;
+  clientPhone?: string;
 }) {
+  const clientBlock =
+    args.clientName || args.clientPhone
+      ? `<p style="margin-top: 10px;"><strong>Client :</strong> ${args.clientName ?? "—"}${
+          args.clientPhone ? ` · ${args.clientPhone}` : ""
+        }</p>`
+      : "";
   return `
 <!DOCTYPE html>
 <html lang="fr">
@@ -51,6 +59,7 @@ function buildSupplierOrderAssignmentHtml(args: {
     <p>
       Une nouvelle commande vous a été affectée : <strong>${args.orderRef}</strong>.
     </p>
+    ${clientBlock}
     <p>
       Connectez-vous à votre espace fournisseur pour consulter les détails
       et envoyer votre offre de prix.
@@ -201,6 +210,8 @@ export const sendSupplierOrderAssignment = internalAction({
     supplierName: v.string(),
     orderRef: v.string(),
     orderUrl: v.string(),
+    clientName: v.optional(v.string()),
+    clientPhone: v.optional(v.string()),
   },
   handler: async (_ctx, args) => {
     return await sendResendEmail({

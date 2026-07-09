@@ -41,6 +41,11 @@ export function formatStatusChange(from: OrderStatus, to: OrderStatus) {
 }
 
 const SUPPLIER_CLIENT_CONTACT_STATUSES = new Set<OrderStatus>([
+  // Supplier needs client contact immediately after assignment
+  "envoyee_fournisseur",
+  "vue_fournisseur",
+  "prix_recu",
+  "offre_envoyee",
   "acceptee",
   "planifiee",
   "en_cours",
@@ -49,7 +54,7 @@ const SUPPLIER_CLIENT_CONTACT_STATUSES = new Set<OrderStatus>([
   "reclamation",
 ]);
 
-/** Supplier may see client name and phone once the client accepts the offer. */
+/** Supplier may see client name and phone once assigned (to close the deal). */
 export function supplierCanSeeClientContact(status: OrderStatus) {
   return SUPPLIER_CLIENT_CONTACT_STATUSES.has(status);
 }

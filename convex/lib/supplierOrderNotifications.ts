@@ -1,6 +1,7 @@
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
+import { resolveOrderClientName } from "./orderClient";
 
 export async function notifySupplierOfAssignment(
   ctx: MutationCtx,
@@ -13,6 +14,9 @@ export async function notifySupplierOfAssignment(
   const siteUrl = process.env.SITE_URL ?? "http://localhost:3000";
   const orderUrl = `${siteUrl}/supplier/orders/${args.orderId}`;
   const email = args.supplier.email?.trim();
+  const customer = await ctx.db.get(args.order.customerId);
+  const clientName = customer ? resolveOrderClientName(args.order, customer) : "Client";
+  const clientPhone = customer?.phone?.trim() || "";
 
   if (email) {
     await ctx.scheduler.runAfter(0, internal.email.sendSupplierOrderAssignment, {
@@ -20,6 +24,8 @@ export async function notifySupplierOfAssignment(
       supplierName: args.supplier.name,
       orderRef: args.order.ref,
       orderUrl,
+      clientName,
+      clientPhone,
     });
   }
 
@@ -29,6 +35,8 @@ export async function notifySupplierOfAssignment(
       `Bonjour ${args.supplier.name},`,
       "",
       `Une nouvelle commande vous a été affectée (${args.order.ref}).`,
+      "",
+      `Client: ${clientName}${clientPhone ? ` · ${clientPhone}` : ""}`,
       "Consultez les détails et répondez avec votre offre :",
       orderUrl,
       "",
