@@ -17,6 +17,7 @@ import {
   orderStatusValidator,
   presenceKindValidator,
   roleValidator,
+  visitorDeviceValidator,
   staffStatusValidator,
   supplierInvitationStatusValidator,
   supplierQuoteStatusValidator,
@@ -373,6 +374,7 @@ export default defineSchema({
     city: v.optional(v.string()),
     country: v.optional(v.string()),
     countryCode: v.optional(v.string()),
+    deviceType: v.optional(visitorDeviceValidator),
     createdAt: v.number(),
   })
     .index("by_sessionKey", ["sessionKey"])
@@ -387,6 +389,7 @@ export default defineSchema({
     city: v.optional(v.string()),
     country: v.optional(v.string()),
     countryCode: v.optional(v.string()),
+    deviceType: v.optional(visitorDeviceValidator),
   })
     .index("by_dateKey", ["dateKey"])
     .index("by_dateKey_sessionKey", ["dateKey", "sessionKey"]),

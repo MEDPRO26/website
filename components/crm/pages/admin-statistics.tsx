@@ -7,6 +7,8 @@ import {
   BarChart3,
   Clock3,
   Globe,
+  Monitor,
+  Smartphone,
   Truck,
   Users,
   Zap,
@@ -55,7 +57,7 @@ export function AdminStatisticsPage() {
     );
   }
 
-  const { online, totals } = data;
+  const { online, totals, deviceStats30d } = data;
 
   return (
     <div>
@@ -89,6 +91,35 @@ export function AdminStatisticsPage() {
           hint="< 5 min"
           icon={Zap}
           tone="success"
+        />
+      </div>
+
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard
+          label="Mobile en ligne"
+          value={online.mobile}
+          icon={Smartphone}
+          tone="info"
+        />
+        <StatCard
+          label="Desktop en ligne"
+          value={online.desktop}
+          icon={Monitor}
+          tone="brand"
+        />
+        <StatCard
+          label="Visiteurs mobile"
+          value={deviceStats30d.mobile}
+          hint="30 derniers jours"
+          icon={Smartphone}
+          tone="info"
+        />
+        <StatCard
+          label="Visiteurs desktop"
+          value={deviceStats30d.desktop}
+          hint="30 derniers jours"
+          icon={Monitor}
+          tone="brand"
         />
       </div>
 
@@ -155,6 +186,9 @@ export function AdminStatisticsPage() {
                     <p className="font-medium flex items-center gap-2">
                       <OnlineDot online />
                       Visiteur ···{row.sessionKey}
+                      <Tag tone={row.deviceType === "mobile" ? "info" : "neutral"}>
+                        {row.deviceLabel}
+                      </Tag>
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
                       {row.location} · {row.path}

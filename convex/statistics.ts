@@ -4,6 +4,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { requireAdminPermission } from "./lib/authz";
 import { dateKeyInSiteTimezone } from "./presence";
 import { formatVisitorLocation, isMorocco } from "../lib/visitor-geo";
+import { visitorDeviceLabel } from "../lib/visitor-device";
 
 const ONLINE_THRESHOLD_MS = 60_000;
 const FAST_CLAIM_MS = 5 * 60 * 1000;
@@ -197,12 +198,38 @@ export const overview = query({
       visitorPages.set(path, (visitorPages.get(path) ?? 0) + 1);
     }
 
+    const today = dateKeyInSiteTimezone();
+    const deviceRows = await ctx.db
+      .query("visitorDailySessions")
+      .withIndex("by_dateKey", (q) =>
+        q.gte("dateKey", addDays(today, -29)).lte("dateKey", today)
+      )
+      .collect();
+    const mobileSessions30d = new Set(
+      deviceRows
+        .filter((row) => row.deviceType === "mobile")
+        .map((row) => row.sessionKey)
+    );
+    const desktopSessions30d = new Set(
+      deviceRows
+        .filter((row) => row.deviceType === "desktop")
+        .map((row) => row.sessionKey)
+    );
+
     return {
       generatedAt: now,
       online: {
         suppliers: supplierSessions.length,
         visitors: visitorSessions.length,
         staff: staffSessions.length,
+        mobile: visitorSessions.filter((session) => session.deviceType === "mobile")
+          .length,
+        desktop: visitorSessions.filter((session) => session.deviceType === "desktop")
+          .length,
+      },
+      deviceStats30d: {
+        mobile: mobileSessions30d.size,
+        desktop: desktopSessions30d.size,
       },
       onlineSuppliers: supplierSessions
         .map((session) => {
@@ -227,6 +254,8 @@ export const overview = query({
           city: session.city ?? null,
           country: session.country ?? null,
           countryCode: session.countryCode ?? null,
+          deviceType: session.deviceType ?? null,
+          deviceLabel: visitorDeviceLabel(session.deviceType),
           lastSeenAt: session.lastSeenAt,
           lastSeenLabel: formatRelativeTime(session.lastSeenAt, now),
         }))

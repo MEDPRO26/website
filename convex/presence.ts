@@ -3,6 +3,7 @@ import { internalMutation, mutation } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import { getStaffProfile } from "./lib/authz";
 import type { Doc } from "./_generated/dataModel";
+import { visitorDeviceValidator } from "./validators";
 
 const ADMIN_ROLES = new Set(["super_admin", "admin", "assistant"]);
 const SITE_TIMEZONE = "Africa/Casablanca";
@@ -17,10 +18,11 @@ async function recordVisitorDailySession(
   ctx: MutationCtx,
   sessionKey: string,
   now: number,
-  geo?: {
+  meta?: {
     city?: string;
     country?: string;
     countryCode?: string;
+    deviceType?: "mobile" | "desktop";
   }
 ) {
   const dateKey = dateKeyInSiteTimezone(now);
@@ -31,19 +33,23 @@ async function recordVisitorDailySession(
     )
     .unique();
 
-  const geoPatch = {
-    city: geo?.city,
-    country: geo?.country,
-    countryCode: geo?.countryCode,
+  const metaPatch = {
+    city: meta?.city,
+    country: meta?.country,
+    countryCode: meta?.countryCode,
+    deviceType: meta?.deviceType,
   };
 
   if (existing) {
     await ctx.db.patch(existing._id, {
       lastSeenAt: now,
-      ...(!existing.city && geo?.city ? { city: geo.city } : {}),
-      ...(!existing.country && geo?.country ? { country: geo.country } : {}),
-      ...(!existing.countryCode && geo?.countryCode
-        ? { countryCode: geo.countryCode }
+      ...(!existing.city && meta?.city ? { city: meta.city } : {}),
+      ...(!existing.country && meta?.country ? { country: meta.country } : {}),
+      ...(!existing.countryCode && meta?.countryCode
+        ? { countryCode: meta.countryCode }
+        : {}),
+      ...(!existing.deviceType && meta?.deviceType
+        ? { deviceType: meta.deviceType }
         : {}),
     });
     return;
@@ -54,7 +60,7 @@ async function recordVisitorDailySession(
     sessionKey,
     firstSeenAt: now,
     lastSeenAt: now,
-    ...geoPatch,
+    ...metaPatch,
   });
 }
 
@@ -95,14 +101,15 @@ export const heartbeat = mutation({
     city: v.optional(v.string()),
     country: v.optional(v.string()),
     countryCode: v.optional(v.string()),
+    deviceType: v.optional(visitorDeviceValidator),
   },
-  handler: async (ctx, { sessionKey, path, city, country, countryCode }) => {
+  handler: async (ctx, { sessionKey, path, city, country, countryCode, deviceType }) => {
     const now = Date.now();
     const staff = await getStaffProfile(ctx);
     const profile = await resolvePresenceProfile(ctx, staff);
-    const geo =
-      city || country || countryCode
-        ? { city, country, countryCode }
+    const meta =
+      city || country || countryCode || deviceType
+        ? { city, country, countryCode, deviceType }
         : undefined;
 
     const existing = await ctx.db
@@ -117,23 +124,25 @@ export const heartbeat = mutation({
       staffId: profile.kind !== "visitor" ? profile.staffId : undefined,
       supplierId: profile.kind === "supplier" ? profile.supplierId : undefined,
       label: profile.kind !== "visitor" ? profile.label : undefined,
-      ...(profile.kind === "visitor" && geo
+      ...(profile.kind === "visitor"
         ? {
             city: city ?? existing?.city,
             country: country ?? existing?.country,
             countryCode: countryCode ?? existing?.countryCode,
+            deviceType: deviceType ?? existing?.deviceType,
           }
         : {
             city: undefined,
             country: undefined,
             countryCode: undefined,
+            deviceType: undefined,
           }),
     };
 
     if (existing) {
       await ctx.db.patch(existing._id, patch);
       if (profile.kind === "visitor") {
-        await recordVisitorDailySession(ctx, sessionKey, now, geo);
+        await recordVisitorDailySession(ctx, sessionKey, now, meta);
       }
       return existing._id;
     }
@@ -145,7 +154,7 @@ export const heartbeat = mutation({
     });
 
     if (profile.kind === "visitor") {
-      await recordVisitorDailySession(ctx, sessionKey, now, geo);
+      await recordVisitorDailySession(ctx, sessionKey, now, meta);
     }
 
     return id;

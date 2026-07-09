@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { api } from "@/convex/_generated/api";
 import type { VisitorGeo } from "@/lib/visitor-geo";
+import { detectVisitorDevice } from "@/lib/visitor-device";
 
 const SESSION_KEY_STORAGE = "sos_presence_sk";
 const GEO_STORAGE = "sos_visitor_geo";
@@ -48,6 +49,7 @@ export function PresenceHeartbeat() {
   const heartbeat = useMutation(api.presence.heartbeat);
   const sessionKeyRef = useRef("");
   const geoRef = useRef<VisitorGeo | null>(null);
+  const deviceTypeRef = useRef(detectVisitorDevice());
 
   useEffect(() => {
     sessionKeyRef.current = getOrCreateSessionKey();
@@ -68,6 +70,7 @@ export function PresenceHeartbeat() {
         city: geo?.city ?? undefined,
         country: geo?.country ?? undefined,
         countryCode: geo?.countryCode ?? undefined,
+        deviceType: deviceTypeRef.current,
       }).catch(() => {
         // Ignore transient network errors; next interval will retry.
       });

@@ -140,3 +140,8 @@ export const presenceKindValidator = v.union(
   v.literal("supplier"),
   v.literal("staff")
 );
+
+export const visitorDeviceValidator = v.union(
+  v.literal("mobile"),
+  v.literal("desktop")
+);
