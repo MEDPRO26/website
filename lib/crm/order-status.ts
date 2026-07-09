@@ -39,7 +39,7 @@ export function kanbanColumnForStatus(status: OrderStatus): OrderStatus {
 
 const SUPPLIER_STATUS_LABEL_OVERRIDES: Partial<Record<OrderStatus, string>> = {
   envoyee_fournisseur: "Prix non envoyé",
-  vue_fournisseur: "Prix non envoyé",
+  vue_fournisseur: "Commande réclamée",
   prix_recu: "Prix envoyé à SOS Santé",
   terminee: "Commande livrée",
   annulee: "Commande annulée par le client",

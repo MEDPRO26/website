@@ -9,6 +9,7 @@ import { useEffect, useState, type ComponentType, type FormEvent, type ReactNode
 import {
   LayoutDashboard,
   ClipboardList,
+  Wallet,
   UserCog,
   Menu,
   LogOut,
@@ -45,6 +46,7 @@ const SUPPLIER_NAV: {
 }[] = [
   { href: "/supplier", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/supplier/orders", label: "Mes commandes", icon: ClipboardList },
+  { href: "/supplier/commissions", label: "SOS commission", icon: Wallet },
   { href: "/supplier/profile", label: "Profil", icon: UserCog },
 ];
 
@@ -337,7 +339,7 @@ export function SupplierShell({ children }: { children: ReactNode }) {
       <nav
         className={cn(
           "md:hidden fixed bottom-3 inset-x-3 z-40 grid rounded-2xl border border-border/60 bg-white/95 shadow-[0_8px_32px_rgba(15,23,42,0.12)] backdrop-blur-md",
-          pwaInstall.showNavInstall ? "grid-cols-4" : "grid-cols-3"
+          pwaInstall.showNavInstall ? "grid-cols-5" : "grid-cols-4"
         )}
       >
         {SUPPLIER_NAV.map((item) => {
@@ -355,7 +357,11 @@ export function SupplierShell({ children }: { children: ReactNode }) {
               )}
             >
               <Icon className="size-5" />
-              {item.label === "Mes commandes" ? "Commandes" : item.label}
+              {item.label === "Mes commandes"
+                ? "Commandes"
+                : item.label === "SOS commission"
+                  ? "Commission"
+                  : item.label}
             </Link>
           );
         })}

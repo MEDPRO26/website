@@ -283,15 +283,10 @@ export function AdminOrderDetailPage({ orderId }: AdminOrderDetailPageProps) {
             />
           </SectionCard>
 
-          <SectionCard tone="quote" icon={Receipt} title="Prix fournisseur & offre client">
+          <SectionCard tone="quote" icon={Receipt} title="Prix fournisseur & SOS commission">
             <OrderQuotePanel
               orderId={data.order._id}
-              orderStatus={data.order.status}
               supplierId={data.order.supplierId}
-              clientName={o.client}
-              item={o.item}
-              desiredDate={o.desiredDate}
-              slot={o.slot}
             />
           </SectionCard>
 

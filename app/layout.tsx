@@ -6,6 +6,7 @@ import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { LOGO, HOMEPAGE_OG_ALT, HOMEPAGE_OG_IMAGE, SITE_DISPLAY_NAME, SITE_URL_DEFAULT } from "@/lib/brand";
 import { getRobotsMetadata } from "@/lib/indexing";
 import GlobalSiteJsonLd from "@/components/global-site-json-ld";
+import { PresenceHeartbeat } from "@/components/presence/presence-heartbeat";
 import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -117,6 +118,7 @@ export default async function RootLayout({
         <body className="min-h-full flex flex-col font-sans">
           <GlobalSiteJsonLd />
           <ConvexClientProvider>
+            <PresenceHeartbeat />
             {children}
             <BottomNavRoot />
           </ConvexClientProvider>

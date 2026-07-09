@@ -19,6 +19,7 @@ import {
   UserRound,
   Users,
   Wallet,
+  BarChart3,
   AlertTriangle,
   Bell,
   UserCog,
@@ -61,6 +62,7 @@ export const ADMIN_NAV: NavItem[] = [
   { href: "/admin/assistants", label: "Assistants", icon: UserRound, permission: "users.invite" },
   { href: "/admin/customers", label: "Clients", icon: Users, permission: "customers.view" },
   { href: "/admin/commissions", label: "Commissions", icon: Wallet, permission: "commissions.view" },
+  { href: "/admin/statistics", label: "Statistiques", icon: BarChart3, permission: "statistics.view" },
 ];
 
 const ADMIN_NAV_SECONDARY: NavItem[] = [

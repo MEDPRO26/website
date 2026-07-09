@@ -131,14 +131,27 @@ export function validateTimeSlots(slots: TimeSlotInput[]): string | null {
   return null;
 }
 
-const SUPPLIER_DELIVERY_STATUSES = new Set([
+const SUPPLIER_CLIENT_ACTION_STATUSES = new Set([
+  "envoyee_fournisseur",
+  "vue_fournisseur",
+  "prix_recu",
+  "offre_envoyee",
   "acceptee",
   "planifiee",
   "en_cours",
   "location_active",
 ]);
 
-/** Supplier should contact the client to deliver or perform the service. */
+/** Supplier may contact the client and use delivery actions once assigned. */
 export function supplierShouldDeliverOrder(status: string) {
-  return SUPPLIER_DELIVERY_STATUSES.has(status);
+  return SUPPLIER_CLIENT_ACTION_STATUSES.has(status);
+}
+
+export function supplierIsEarlyClientContactPhase(status: string) {
+  return (
+    status === "envoyee_fournisseur" ||
+    status === "vue_fournisseur" ||
+    status === "prix_recu" ||
+    status === "offre_envoyee"
+  );
 }

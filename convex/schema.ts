@@ -15,6 +15,7 @@ import {
   notificationTypeValidator,
   orderEventTypeValidator,
   orderStatusValidator,
+  presenceKindValidator,
   roleValidator,
   staffStatusValidator,
   supplierInvitationStatusValidator,
@@ -185,6 +186,22 @@ export default defineSchema({
     .index("by_supplierId", ["supplierId"])
     .index("by_orderId_supplierId", ["orderId", "supplierId"]),
 
+  supplierMissedOrders: defineTable({
+    supplierId: v.id("suppliers"),
+    orderId: v.id("orders"),
+    orderRef: v.string(),
+    orderType: v.string(),
+    orderItem: v.string(),
+    city: v.string(),
+    district: v.optional(v.string()),
+    assignedAt: v.number(),
+    missedAt: v.number(),
+    createdAt: v.number(),
+  })
+    .index("by_supplierId", ["supplierId"])
+    .index("by_orderId", ["orderId"])
+    .index("by_orderId_supplierId", ["orderId", "supplierId"]),
+
   clientOffers: defineTable({
     orderId: v.id("orders"),
     quoteId: v.id("orderSupplierQuotes"),
@@ -344,4 +361,18 @@ export default defineSchema({
   })
     .index("by_slug", ["slug"])
     .index("by_status", ["status"]),
+
+  presenceSessions: defineTable({
+    sessionKey: v.string(),
+    kind: presenceKindValidator,
+    lastSeenAt: v.number(),
+    path: v.optional(v.string()),
+    staffId: v.optional(v.id("staff")),
+    supplierId: v.optional(v.id("suppliers")),
+    label: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_sessionKey", ["sessionKey"])
+    .index("by_kind_lastSeen", ["kind", "lastSeenAt"])
+    .index("by_staffId", ["staffId"]),
 });

@@ -134,3 +134,9 @@ export const auditActionValidator = v.union(
   v.literal("status_change"),
   v.literal("system")
 );
+
+export const presenceKindValidator = v.union(
+  v.literal("visitor"),
+  v.literal("supplier"),
+  v.literal("staff")
+);

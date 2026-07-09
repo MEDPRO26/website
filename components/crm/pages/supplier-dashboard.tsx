@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
+import { toast } from "sonner";
 import {
   ArrowUpRight,
   Clock3,
@@ -13,10 +15,15 @@ import {
   Truck,
 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { useSupplierSession } from "@/hooks/use-supplier-session";
 import { resolveOrderItemPreview } from "@/lib/crm/resolve-order-item-link";
 import { supplierShouldDeliverOrder } from "@/lib/crm/order-scheduling";
 import { SupplierDeliveryPrompt } from "@/components/crm/supplier-delivery-prompt";
+import {
+  SupplierResponseCountdown,
+  isSupplierResponseExpired,
+} from "@/components/crm/supplier-response-countdown";
 import { StatusBadge, Tag } from "@/components/dashboard/status-badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -169,6 +176,171 @@ function DashboardStatCard({
   );
 }
 
+type PriorityOrder = {
+  _id: string;
+  ref: string;
+  type: string;
+  item: string;
+  city: string;
+  district?: string;
+  status: string;
+  hasQuote: boolean;
+  supplierAssignedAt?: number;
+};
+
+function PriorityOrderItem({ order }: { order: PriorityOrder }) {
+  const router = useRouter();
+  const claimOrder = useMutation(api.supplierPortal.claimOrder);
+  const [claiming, setClaiming] = useState(false);
+
+  const needsClaim =
+    order.status === "envoyee_fournisseur" && !order.hasQuote;
+  const hasDeadline = needsClaim && Boolean(order.supplierAssignedAt);
+  const [expired, setExpired] = useState(
+    () =>
+      hasDeadline &&
+      isSupplierResponseExpired(order.supplierAssignedAt!)
+  );
+
+  const handleClaim = async () => {
+    setClaiming(true);
+    try {
+      await claimOrder({ orderId: order._id as Id<"orders"> });
+      toast.success("Commande réclamée — vous en prenez charge.");
+      router.push(`/supplier/orders/${order._id}`);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Impossible de réclamer la commande."
+      );
+    } finally {
+      setClaiming(false);
+    }
+  };
+
+  const actionButton = needsClaim ? (
+    <Button
+      size="sm"
+      className="w-full rounded-xl sm:w-auto"
+      disabled={claiming || expired}
+      onClick={() => void handleClaim()}
+    >
+      {claiming ? "Réclamation…" : "Réclamer la commande"}
+    </Button>
+  ) : (
+    <Button asChild size="sm" className="w-full rounded-xl sm:w-auto">
+      <Link href={`/supplier/orders/${order._id}`}>
+        {order.hasQuote ? "Voir détail" : "Voir la commande"}
+      </Link>
+    </Button>
+  );
+
+  const expiredBadge = (
+    <span className="inline-flex w-full items-center justify-center rounded-xl bg-status-error/10 px-4 py-2.5 text-sm font-semibold text-status-error sm:w-auto">
+      Commande épuisée
+    </span>
+  );
+
+  return (
+    <li className="px-5 py-4">
+      <div className="flex items-start gap-3 sm:items-center sm:gap-4">
+        <ProductThumbnail type={order.type} item={order.item} city={order.city} />
+        <div className="min-w-0 flex-1">
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <Tag tone={priorityTone(order)}>{priorityLabel(order)}</Tag>
+            <span className="font-mono text-xs font-semibold text-brand">
+              {order.ref}
+            </span>
+          </div>
+          <p className="truncate font-medium">{order.item}</p>
+          <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground">
+            <MapPin className="size-3 shrink-0" />
+            {order.district || order.city}
+            {order.district ? ` · ${order.city}` : ""}
+          </p>
+        </div>
+
+        <div className="hidden shrink-0 sm:flex sm:items-center sm:gap-4">
+          {expired ? (
+            expiredBadge
+          ) : (
+            <>
+              {hasDeadline ? (
+                <SupplierResponseCountdown
+                  assignedAt={order.supplierAssignedAt!}
+                  size="lg"
+                  onExpire={() => setExpired(true)}
+                />
+              ) : null}
+              {actionButton}
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-3 flex flex-col gap-2 sm:hidden">
+        {expired ? (
+          expiredBadge
+        ) : (
+          <>
+            {hasDeadline ? (
+              <SupplierResponseCountdown
+                assignedAt={order.supplierAssignedAt!}
+                size="lg"
+                className="w-full"
+                onExpire={() => setExpired(true)}
+              />
+            ) : null}
+            {actionButton}
+          </>
+        )}
+      </div>
+    </li>
+  );
+}
+
+function MissedOrderItem({
+  order,
+}: {
+  order: {
+    ref: string;
+    type: string;
+    item: string;
+    city: string;
+    district?: string;
+    missedAt: number;
+  };
+}) {
+  return (
+    <li className="px-5 py-4 opacity-80">
+      <div className="flex items-start gap-3 sm:items-center sm:gap-4">
+        <ProductThumbnail type={order.type} item={order.item} city={order.city} />
+        <div className="min-w-0 flex-1">
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <Tag tone="danger">MANQUÉE</Tag>
+            <span className="font-mono text-xs font-semibold text-muted-foreground">
+              {order.ref}
+            </span>
+          </div>
+          <p className="truncate font-medium text-muted-foreground">{order.item}</p>
+          <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground">
+            <MapPin className="size-3 shrink-0" />
+            {order.district || order.city}
+            {order.district ? ` · ${order.city}` : ""}
+          </p>
+        </div>
+        <span className="hidden shrink-0 rounded-xl bg-status-error/10 px-4 py-2.5 text-sm font-semibold text-status-error sm:inline-flex">
+          Commande épuisée
+        </span>
+      </div>
+      <div className="mt-3 sm:hidden">
+        <span className="inline-flex w-full items-center justify-center rounded-xl bg-status-error/10 px-4 py-2.5 text-sm font-semibold text-status-error">
+          Commande épuisée
+        </span>
+      </div>
+    </li>
+  );
+}
+
 export function SupplierDashboardPage() {
   const { supplier, canQuerySupplier } = useSupplierSession();
   const [range, setRange] = useState<"7d" | "30d" | "90d" | "all">("30d");
@@ -179,6 +351,10 @@ export function SupplierDashboardPage() {
   );
   const allOrders = useQuery(
     api.supplierPortal.listOrders,
+    canQuerySupplier ? {} : "skip"
+  );
+  const missedOrders = useQuery(
+    api.supplierPortal.listMissedOrders,
     canQuerySupplier ? {} : "skip"
   );
 
@@ -217,7 +393,7 @@ export function SupplierDashboardPage() {
     );
   }, [allOrders]);
 
-  if (stats === undefined || allOrders === undefined) {
+  if (stats === undefined || allOrders === undefined || missedOrders === undefined) {
     return (
       <p className="text-sm text-muted-foreground">Chargement du tableau de bord…</p>
     );
@@ -336,7 +512,7 @@ export function SupplierDashboardPage() {
             </Link>
           </div>
 
-          {priorityOrders.length === 0 ? (
+          {priorityOrders.length === 0 && missedOrders.length === 0 ? (
             <div className="px-5 py-10 text-center">
               <Package className="mx-auto mb-3 size-10 text-muted-foreground/40" />
               <p className="font-medium">Aucune demande prioritaire</p>
@@ -347,38 +523,22 @@ export function SupplierDashboardPage() {
           ) : (
             <ul className="divide-y divide-border/60">
               {priorityOrders.map((order) => (
-                <li
-                  key={order._id}
-                  className="flex flex-wrap items-center gap-4 px-5 py-4"
-                >
-                  <ProductThumbnail
-                    type={order.type}
-                    item={order.item}
-                    city={order.city}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-1 flex flex-wrap items-center gap-2">
-                      <Tag tone={priorityTone(order)}>
-                        {priorityLabel(order)}
-                      </Tag>
-                      <span className="font-mono text-xs font-semibold text-brand">
-                        {order.ref}
-                      </span>
-                    </div>
-                    <p className="truncate font-medium">{order.item}</p>
-                    <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground">
-                      <MapPin className="size-3 shrink-0" />
-                      {order.district || order.city}
-                      {order.district ? ` · ${order.city}` : ""}
-                    </p>
-                  </div>
-                  <Button asChild size="sm" className="shrink-0 rounded-xl">
-                    <Link href={`/supplier/orders/${order._id}`}>
-                      {order.hasQuote ? "Voir détail" : "Soumettre un prix"}
-                    </Link>
-                  </Button>
-                </li>
+                <PriorityOrderItem key={order._id} order={order} />
               ))}
+              {missedOrders.length > 0 ? (
+                <>
+                  {priorityOrders.length > 0 ? (
+                    <li className="border-t border-border/60 bg-muted/20 px-5 py-2">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Commandes manquées ({missedOrders.length})
+                      </p>
+                    </li>
+                  ) : null}
+                  {missedOrders.slice(0, 5).map((order) => (
+                    <MissedOrderItem key={order._id} order={order} />
+                  ))}
+                </>
+              ) : null}
             </ul>
           )}
         </Card>

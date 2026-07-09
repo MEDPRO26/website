@@ -859,6 +859,14 @@ async function deleteOrderRecord(ctx: MutationCtx, orderId: Id<"orders">) {
     await ctx.db.delete(quote._id);
   }
 
+  const missedOrders = await ctx.db
+    .query("supplierMissedOrders")
+    .withIndex("by_orderId", (q) => q.eq("orderId", orderId))
+    .collect();
+  for (const missed of missedOrders) {
+    await ctx.db.delete(missed._id);
+  }
+
   const complaints = await ctx.db
     .query("complaints")
     .withIndex("by_orderId", (q) => q.eq("orderId", orderId))

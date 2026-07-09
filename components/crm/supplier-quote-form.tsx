@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useMutation } from "convex/react";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, PackageCheck } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { formatMad, supplierTotal } from "@/lib/crm/pricing";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +30,7 @@ type SupplierQuoteFormProps = {
   readOnly?: boolean;
   onSubmitted?: () => void;
   onUnavailable?: () => void;
+  onCancelledByClient?: () => void;
 };
 
 export function SupplierQuoteForm({
@@ -42,16 +42,17 @@ export function SupplierQuoteForm({
   readOnly = false,
   onSubmitted,
   onUnavailable,
+  onCancelledByClient,
 }: SupplierQuoteFormProps) {
   const submitQuote = useMutation(api.supplierPortal.submitQuote);
   const markUnavailable = useMutation(api.supplierPortal.markUnavailable);
+  const cancelByClient = useMutation(api.supplierPortal.cancelByClient);
   const [basePrice, setBasePrice] = useState("");
   const [deliveryFee, setDeliveryFee] = useState("0");
   const [installFee, setInstallFee] = useState("0");
   const [otherFee, setOtherFee] = useState("0");
   const [commissionAmount, setCommissionAmount] = useState("");
   const [notes, setNotes] = useState("");
-  const [stockConfirmed, setStockConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const isSubmitted = existingQuote?.status === "submitted" || readOnly;
@@ -71,9 +72,6 @@ export function SupplierQuoteForm({
         : ""
     );
     setNotes(existingQuote.notes ?? "");
-    if (existingQuote.status === "submitted") {
-      setStockConfirmed(true);
-    }
   }, [existingQuote]);
 
   const preview = useMemo(() => {
@@ -115,6 +113,21 @@ export function SupplierQuoteForm({
     }
   };
 
+  const handleCancelByClient = async () => {
+    setSubmitting(true);
+    try {
+      await cancelByClient({ orderId });
+      toast.success("Commande annulée par le client.");
+      onCancelledByClient?.();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Impossible d'annuler la commande."
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleSubmit = async () => {
     const base = Number(basePrice);
     const commission = Number(commissionAmount);
@@ -124,12 +137,8 @@ export function SupplierQuoteForm({
     }
     if (!commissionAmount.trim() || Number.isNaN(commission) || commission <= 0) {
       toast.error(
-        "La commission SOS Santé est obligatoire. Indiquez le montant en MAD avant d'envoyer votre offre."
+        "La commission SOS Santé est obligatoire. Indiquez le montant en MAD avant de confirmer la livraison."
       );
-      return;
-    }
-    if (isSidebar && !stockConfirmed) {
-      toast.error("Confirmez la disponibilité du stock avant de soumettre.");
       return;
     }
 
@@ -144,7 +153,7 @@ export function SupplierQuoteForm({
         commissionAmount: commission,
         notes: notes.trim() || undefined,
       });
-      toast.success("Offre soumise à SOS Santé.");
+      toast.success("Livraison confirmée — commande clôturée.");
       onSubmitted?.();
     } catch (err) {
       toast.error(
@@ -289,19 +298,6 @@ export function SupplierQuoteForm({
         />
       </div>
 
-      {isSidebar && !isSubmitted ? (
-        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border/60 bg-muted/20 px-3 py-3">
-          <Checkbox
-            checked={stockConfirmed}
-            onCheckedChange={(checked) => setStockConfirmed(checked === true)}
-            className="mt-0.5"
-          />
-          <span className="text-sm leading-snug">
-            Confirmer la disponibilité du stock
-          </span>
-        </label>
-      ) : null}
-
       <div
         className={cn(
           "space-y-2 text-sm",
@@ -339,7 +335,7 @@ export function SupplierQuoteForm({
         >
           {readOnly && !existingQuote
             ? "Cette commande n'accepte plus de nouveau prix."
-            : "Prix confirmé — visible par l'équipe SOS Santé."}
+            : "Livraison confirmée — commande clôturée."}
         </p>
       ) : isSidebar ? (
         <div className="space-y-3">
@@ -351,12 +347,12 @@ export function SupplierQuoteForm({
             {submitting ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
-                Envoi…
+                Confirmation…
               </>
             ) : (
               <>
-                <Send className="size-4" />
-                Soumettre mon offre
+                <PackageCheck className="size-4" />
+                Confirmer la livraison
               </>
             )}
           </Button>
@@ -376,16 +372,32 @@ export function SupplierQuoteForm({
               "Non disponible"
             )}
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-12 w-full rounded-xl border-status-error/30 text-base font-semibold text-status-error hover:bg-status-error/10 hover:text-status-error"
+            disabled={submitting}
+            onClick={() => void handleCancelByClient()}
+          >
+            {submitting ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Envoi…
+              </>
+            ) : (
+              "Commande annulée par client"
+            )}
+          </Button>
         </div>
       ) : (
         <Button className="w-full" disabled={submitting} onClick={() => void handleSubmit()}>
           {submitting ? (
             <>
               <Loader2 className="size-4 animate-spin" />
-              Envoi…
+              Confirmation…
             </>
           ) : (
-            "Confirmer et envoyer le prix"
+            "Confirmer la livraison"
           )}
         </Button>
       )}

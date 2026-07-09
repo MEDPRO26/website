@@ -8,8 +8,76 @@ import { formatStatusChange, supplierCanSeeClientContact } from "./lib/orderStat
 import { resolveOrderClientName } from "./lib/orderClient";
 import { getQuotePricing } from "./lib/quotePricing";
 import { upsertSupplierQuote } from "./lib/submitSupplierQuote";
-import { notifyStaff } from "./lib/notifications";
+import { notifyStaff, pushNotification } from "./lib/notifications";
 import { logAudit } from "./lib/auditLog";
+import type { Doc, Id } from "./_generated/dataModel";
+import type { MutationCtx } from "./_generated/server";
+
+const DELIVERABLE_STATUSES = new Set([
+  "envoyee_fournisseur",
+  "vue_fournisseur",
+  "prix_recu",
+  "offre_envoyee",
+  "acceptee",
+  "planifiee",
+  "en_cours",
+  "location_active",
+]);
+
+async function markOrderDeliveredBySupplier(
+  ctx: MutationCtx,
+  args: {
+    order: Doc<"orders">;
+    orderId: Id<"orders">;
+    staff: Doc<"staff">;
+    supplier: Doc<"suppliers">;
+  }
+) {
+  if (args.order.status === "terminee") {
+    return { alreadyDelivered: true as const };
+  }
+
+  if (!DELIVERABLE_STATUSES.has(args.order.status)) {
+    throw new Error("Cette commande ne peut pas encore être confirmée.");
+  }
+
+  const now = Date.now();
+  const fromStatus = args.order.status;
+  await ctx.db.patch(args.orderId, {
+    status: "terminee",
+    updatedAt: now,
+  });
+
+  await appendOrderEvent(ctx, {
+    orderId: args.orderId,
+    type: "status_change",
+    label: `${args.supplier.name} — commande livrée`,
+    fromStatus,
+    toStatus: "terminee",
+    actorStaffId: args.staff._id,
+  });
+
+  await notifyStaff(ctx, "order_delivered", {
+    type: "order",
+    title: `${args.supplier.name} — commande livrée`,
+    description: `${args.order.ref} · livraison confirmée au client`,
+    link: `/admin/orders/${args.orderId}`,
+    entityId: args.orderId,
+  });
+
+  await logAudit(ctx, {
+    actorStaffId: args.staff._id,
+    actorName: args.staff.name,
+    action: "update",
+    entityType: "order",
+    entityId: args.orderId,
+    entityLabel: args.order.ref,
+    fromValue: fromStatus,
+    toValue: "terminee",
+  });
+
+  return { alreadyDelivered: false as const };
+}
 
 export const current = query({
   args: {},
@@ -54,12 +122,22 @@ export const listOrders = query({
         const clientContactVisible = supplierCanSeeClientContact(order.status);
         const quoteStatus = quote?.status;
 
+        const events = await ctx.db
+          .query("orderEvents")
+          .withIndex("by_orderId", (q) => q.eq("orderId", order._id))
+          .collect();
+        const supplierAssignedAt =
+          events
+            .filter((event) => event.toStatus === "envoyee_fournisseur")
+            .sort((a, b) => b.createdAt - a.createdAt)[0]?.createdAt ?? order.updatedAt;
+
         return {
           ...order,
           city: customer?.city ?? "—",
           district: customer?.district ?? "",
           hasQuote: quoteStatus === "submitted",
           clientContactVisible,
+          supplierAssignedAt,
           clientName: clientContactVisible
             ? resolveOrderClientName(order, customer)
             : undefined,
@@ -69,6 +147,39 @@ export const listOrders = query({
     );
 
     return enriched.sort((a, b) => b.createdAt - a.createdAt);
+  },
+});
+
+export const listMissedOrders = query({
+  args: {},
+  handler: async (ctx) => {
+    const { staff, supplier } = await requireSupplierStaff(ctx);
+    if (!isSupplierProfileComplete(supplier)) {
+      return [];
+    }
+
+    const rows = await ctx.db
+      .query("supplierMissedOrders")
+      .withIndex("by_supplierId", (q) => q.eq("supplierId", staff.supplierId!))
+      .collect();
+
+    return rows
+      .sort((a, b) => b.missedAt - a.missedAt)
+      .map((row) => ({
+        _id: row._id,
+        orderId: row.orderId,
+        ref: row.orderRef,
+        type: row.orderType,
+        item: row.orderItem,
+        city: row.city,
+        district: row.district ?? "",
+        assignedAt: row.assignedAt,
+        missedAt: row.missedAt,
+        status: "missed" as const,
+        isMissed: true as const,
+        hasQuote: false,
+        createdAt: row.missedAt,
+      }));
   },
 });
 
@@ -124,7 +235,7 @@ export const markViewed = mutation({
     }
 
     if (order.status !== "envoyee_fournisseur") {
-      return;
+      return { alreadyClaimed: true as const };
     }
 
     const now = Date.now();
@@ -141,6 +252,63 @@ export const markViewed = mutation({
       toStatus: "vue_fournisseur",
       actorStaffId: staff._id,
     });
+
+    return { alreadyClaimed: false as const };
+  },
+});
+
+export const claimOrder = mutation({
+  args: { orderId: v.id("orders") },
+  handler: async (ctx, args) => {
+    const { staff, supplier } = await requireSupplierStaff(ctx);
+    const order = await ctx.db.get(args.orderId);
+    if (!order || order.supplierId !== supplier._id) {
+      throw new Error("Commande introuvable.");
+    }
+
+    if (order.status === "vue_fournisseur") {
+      return { alreadyClaimed: true as const };
+    }
+
+    if (order.status !== "envoyee_fournisseur") {
+      throw new Error("Cette commande ne peut plus être réclamée.");
+    }
+
+    const now = Date.now();
+    await ctx.db.patch(args.orderId, {
+      status: "vue_fournisseur",
+      updatedAt: now,
+    });
+
+    await appendOrderEvent(ctx, {
+      orderId: args.orderId,
+      type: "status_change",
+      label: `${supplier.name} a réclamé la commande`,
+      fromStatus: "envoyee_fournisseur",
+      toStatus: "vue_fournisseur",
+      actorStaffId: staff._id,
+    });
+
+    await notifyStaff(ctx, "supplier_response", {
+      type: "supplier",
+      title: `${supplier.name} a réclamé la commande`,
+      description: `${order.ref} · le fournisseur prend en charge la demande`,
+      link: `/admin/orders/${args.orderId}`,
+      entityId: args.orderId,
+    });
+
+    await logAudit(ctx, {
+      actorStaffId: staff._id,
+      actorName: staff.name,
+      action: "status_change",
+      entityType: "order",
+      entityId: args.orderId,
+      entityLabel: order.ref,
+      fromValue: "envoyee_fournisseur",
+      toValue: "vue_fournisseur",
+    });
+
+    return { alreadyClaimed: false as const };
   },
 });
 
@@ -155,21 +323,65 @@ export const submitQuote = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { staff, supplier } = await requireSupplierStaff(ctx);
-    if (!isSupplierProfileComplete(supplier)) {
-      throw new Error("Complétez votre profil fournisseur avant de répondre.");
-    }
+    return await confirmDeliveryHandler(ctx, {
+      orderId: args.orderId,
+      basePrice: args.basePrice,
+      deliveryFee: args.deliveryFee,
+      installFee: args.installFee,
+      otherFee: args.otherFee,
+      commissionAmount: args.commissionAmount,
+      notes: args.notes,
+    });
+  },
+});
 
+async function confirmDeliveryHandler(
+  ctx: MutationCtx,
+  args: {
+    orderId: Id<"orders">;
+    basePrice?: number;
+    deliveryFee?: number;
+    installFee?: number;
+    otherFee?: number;
+    commissionAmount?: number;
+    notes?: string;
+  }
+) {
+  const { staff, supplier } = await requireSupplierStaff(ctx);
+  if (!isSupplierProfileComplete(supplier)) {
+    throw new Error("Complétez votre profil fournisseur avant de répondre.");
+  }
+
+  const order = await ctx.db.get(args.orderId);
+  if (!order || order.supplierId !== supplier._id) {
+    throw new Error("Commande introuvable.");
+  }
+
+  if (order.status === "annulee") {
+    throw new Error("Cette commande est annulée.");
+  }
+
+  const existingQuote = await ctx.db
+    .query("orderSupplierQuotes")
+    .withIndex("by_orderId_supplierId", (q) =>
+      q.eq("orderId", args.orderId).eq("supplierId", supplier._id)
+    )
+    .unique();
+
+  const hasPriceInput = args.basePrice !== undefined && args.basePrice > 0;
+
+  if (hasPriceInput) {
+    const basePrice = args.basePrice!;
     if (!args.commissionAmount || args.commissionAmount <= 0) {
       throw new Error(
         "La commission SOS Santé est obligatoire. Indiquez le montant en MAD."
       );
     }
 
-    return await upsertSupplierQuote(ctx, {
+    await upsertSupplierQuote(ctx, {
       orderId: args.orderId,
       supplierId: supplier._id,
-      basePrice: args.basePrice,
+      basePrice,
       deliveryFee: args.deliveryFee ?? 0,
       installFee: args.installFee ?? 0,
       otherFee: args.otherFee ?? 0,
@@ -179,7 +391,31 @@ export const submitQuote = mutation({
       actorStaffId: staff._id,
       submittedBySupplier: true,
     });
+  } else if (!existingQuote || existingQuote.status !== "submitted") {
+    throw new Error(
+      "Indiquez le prix et la commission dans le formulaire avant de confirmer la livraison."
+    );
+  }
+
+  return await markOrderDeliveredBySupplier(ctx, {
+    order,
+    orderId: args.orderId,
+    staff,
+    supplier,
+  });
+}
+
+export const confirmDelivery = mutation({
+  args: {
+    orderId: v.id("orders"),
+    basePrice: v.optional(v.number()),
+    deliveryFee: v.optional(v.number()),
+    installFee: v.optional(v.number()),
+    otherFee: v.optional(v.number()),
+    commissionAmount: v.optional(v.number()),
+    notes: v.optional(v.string()),
   },
+  handler: async (ctx, args) => confirmDeliveryHandler(ctx, args),
 });
 
 export const markUnavailable = mutation({
@@ -285,64 +521,7 @@ export const markUnavailable = mutation({
 
 export const markAsDelivered = mutation({
   args: { orderId: v.id("orders") },
-  handler: async (ctx, args) => {
-    const { staff, supplier } = await requireSupplierStaff(ctx);
-    const order = await ctx.db.get(args.orderId);
-    if (!order || order.supplierId !== supplier._id) {
-      throw new Error("Commande introuvable.");
-    }
-
-    if (order.status === "terminee") {
-      return { alreadyDelivered: true as const };
-    }
-
-    const deliverable = new Set([
-      "acceptee",
-      "planifiee",
-      "en_cours",
-      "location_active",
-    ]);
-    if (!deliverable.has(order.status)) {
-      throw new Error("Cette commande ne peut pas encore être marquée comme livrée.");
-    }
-
-    const now = Date.now();
-    const fromStatus = order.status;
-    await ctx.db.patch(args.orderId, {
-      status: "terminee",
-      updatedAt: now,
-    });
-
-    await appendOrderEvent(ctx, {
-      orderId: args.orderId,
-      type: "status_change",
-      label: `${supplier.name} — commande livrée`,
-      fromStatus,
-      toStatus: "terminee",
-      actorStaffId: staff._id,
-    });
-
-    await notifyStaff(ctx, "order_delivered", {
-      type: "order",
-      title: `${supplier.name} — commande livrée`,
-      description: `${order.ref} · livraison confirmée au client`,
-      link: `/admin/orders/${args.orderId}`,
-      entityId: args.orderId,
-    });
-
-    await logAudit(ctx, {
-      actorStaffId: staff._id,
-      actorName: staff.name,
-      action: "update",
-      entityType: "order",
-      entityId: args.orderId,
-      entityLabel: order.ref,
-      fromValue: fromStatus,
-      toValue: "terminee",
-    });
-
-    return { alreadyDelivered: false as const };
-  },
+  handler: async (ctx, args) => confirmDeliveryHandler(ctx, { orderId: args.orderId }),
 });
 
 export const cancelByClient = mutation({
@@ -417,6 +596,7 @@ export const dashboardStats = query({
         activeOrders: 0,
         confirmed: 0,
         completed: 0,
+        missedOrders: 0,
         monthlyRevenue: 0,
       };
     }
@@ -438,6 +618,15 @@ export const dashboardStats = query({
             : null;
 
     let monthlyRevenue = 0;
+
+    const missedOrders = await ctx.db
+      .query("supplierMissedOrders")
+      .withIndex("by_supplierId", (q) => q.eq("supplierId", staff.supplierId!))
+      .collect();
+    const missedInRange =
+      since === null
+        ? missedOrders.length
+        : missedOrders.filter((row) => row.missedAt >= since).length;
 
     for (const order of orders) {
       if (order.status !== "terminee") {
@@ -473,6 +662,7 @@ export const dashboardStats = query({
         ["acceptee", "planifiee", "location_active"].includes(o.status)
       ).length,
       completed: orders.filter((o) => o.status === "terminee").length,
+      missedOrders: missedInRange,
       monthlyRevenue,
     };
   },
@@ -608,5 +798,96 @@ export const dismissPwaInstallPrompt = mutation({
     });
 
     return { dismissed: true as const };
+  },
+});
+
+export const listCommissions = query({
+  args: {},
+  handler: async (ctx) => {
+    const { staff, supplier } = await requireSupplierStaff(ctx);
+    if (!isSupplierProfileComplete(supplier)) {
+      return [];
+    }
+
+    const quotes = await ctx.db
+      .query("orderSupplierQuotes")
+      .withIndex("by_supplierId", (q) => q.eq("supplierId", staff.supplierId!))
+      .collect();
+
+    const rows = await Promise.all(
+      quotes
+        .filter((quote) => quote.status === "submitted")
+        .map(async (quote) => {
+          const order = await ctx.db.get(quote.orderId);
+          if (!order || order.status !== "terminee") {
+            return null;
+          }
+          const pricing = getQuotePricing(quote);
+          return {
+            quoteId: quote._id,
+            orderId: quote.orderId,
+            orderRef: order.ref,
+            commissionAmount: pricing.commissionAmount,
+            finalPrice: pricing.finalPrice,
+            commissionPaid: Boolean(quote.commissionPaidAt),
+            commissionPaidAt: quote.commissionPaidAt,
+            deliveredAt: order.updatedAt,
+          };
+        })
+    );
+
+    return rows
+      .filter((row) => row !== null)
+      .sort((a, b) => b.deliveredAt - a.deliveredAt);
+  },
+});
+
+export const markCommissionSettled = mutation({
+  args: { quoteId: v.id("orderSupplierQuotes") },
+  handler: async (ctx, args) => {
+    const { staff, supplier } = await requireSupplierStaff(ctx);
+    const quote = await ctx.db.get(args.quoteId);
+    if (!quote || quote.supplierId !== supplier._id) {
+      throw new Error("Commission introuvable.");
+    }
+    if (quote.status !== "submitted") {
+      throw new Error("Cette commission n'est pas confirmée.");
+    }
+    if (quote.commissionPaidAt) {
+      return { alreadySettled: true as const };
+    }
+
+    const order = await ctx.db.get(quote.orderId);
+    if (!order || order.status !== "terminee") {
+      throw new Error("La commande doit être livrée avant de régler la commission.");
+    }
+
+    const now = Date.now();
+    await ctx.db.patch(args.quoteId, {
+      commissionPaidAt: now,
+      updatedAt: now,
+    });
+
+    const pricing = getQuotePricing(quote);
+
+    await pushNotification(ctx, {
+      type: "commission",
+      title: `${supplier.name} — commission réglée`,
+      description: `${order.ref} · ${pricing.commissionAmount.toLocaleString("fr-FR")} MAD`,
+      link: `/admin/commissions`,
+      entityId: args.quoteId,
+    });
+
+    await logAudit(ctx, {
+      actorStaffId: staff._id,
+      actorName: staff.name,
+      action: "update",
+      entityType: "commission",
+      entityId: args.quoteId,
+      entityLabel: order.ref,
+      toValue: "paid",
+    });
+
+    return { alreadySettled: false as const };
   },
 });

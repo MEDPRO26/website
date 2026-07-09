@@ -9,4 +9,16 @@ crons.daily(
   internal.rentalReminders.checkEndingRentals
 );
 
+crons.interval(
+  "expire stale supplier assignments",
+  { minutes: 1 },
+  internal.supplierTimeouts.expireStaleAssignments
+);
+
+crons.interval(
+  "cleanup stale presence sessions",
+  { hours: 1 },
+  internal.presence.cleanupStaleSessions
+);
+
 export default crons;

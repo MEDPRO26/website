@@ -43,6 +43,7 @@ export const PERMISSIONS = [
   "complaints.manage",
   "notifications.view",
   "customers.view",
+  "statistics.view",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -76,6 +77,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     "complaints.manage",
     "notifications.view",
     "customers.view",
+    "statistics.view",
   ],
   assistant: [
     "orders.view_assigned",
@@ -94,6 +96,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     "complaints.manage",
     "notifications.view",
     "customers.view",
+    "statistics.view",
   ],
   supplier: [
     "orders.view_assigned",

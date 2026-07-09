@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Loader2, PackageCheck, Phone, Truck, XCircle } from "lucide-react";
+import { PackageCheck, Phone, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { telUrl, whatsAppUrl } from "@/lib/crm/phone-links";
+import { supplierIsEarlyClientContactPhase } from "@/lib/crm/order-scheduling";
 import { cn } from "@/lib/utils";
 
 type SupplierDeliveryPromptProps = {
@@ -10,18 +11,25 @@ type SupplierDeliveryPromptProps = {
   orderRef?: string;
   item?: string;
   orderId?: string;
+  orderStatus?: string;
   variant?: "banner" | "card" | "compact" | "delivered";
   className?: string;
-  onMarkDelivered?: () => void | Promise<void>;
-  markingDelivered?: boolean;
-  onCancelByClient?: () => void | Promise<void>;
-  cancelling?: boolean;
 };
 
-function deliveryMessage(clientName?: string, item?: string) {
+function contactMessage(clientName?: string, item?: string, orderStatus?: string) {
   const who = clientName?.trim() ? clientName.trim() : "le client";
   const what = item?.trim() ? ` « ${item.trim()} »` : "";
+  if (orderStatus && supplierIsEarlyClientContactPhase(orderStatus)) {
+    return `Contactez ${who} pour confirmer le prix${what}, puis confirmez la livraison dans le formulaire.`;
+  }
   return `Le prix a été accepté. Contactez ${who} pour organiser la livraison${what}.`;
+}
+
+function contactTitle(orderStatus?: string) {
+  if (orderStatus && supplierIsEarlyClientContactPhase(orderStatus)) {
+    return "Contactez le client";
+  }
+  return "Livrez la commande au client";
 }
 
 export function SupplierDeliveryPrompt({
@@ -30,15 +38,16 @@ export function SupplierDeliveryPrompt({
   orderRef,
   item,
   orderId,
+  orderStatus,
   variant = "card",
   className,
-  onMarkDelivered,
-  markingDelivered = false,
-  onCancelByClient,
-  cancelling = false,
 }: SupplierDeliveryPromptProps) {
   const phone = clientPhone?.trim();
-  const message = deliveryMessage(clientName, item);
+  const message = contactMessage(clientName, item, orderStatus);
+  const title = contactTitle(orderStatus);
+  const whatsappIntro = orderStatus && supplierIsEarlyClientContactPhase(orderStatus)
+    ? `Bonjour ${clientName?.split(" ")[0] ?? ""}, je vous contacte au sujet de votre demande${orderRef ? ` ${orderRef}` : ""}${item ? ` (${item})` : ""}.`
+    : `Bonjour ${clientName?.split(" ")[0] ?? ""}, nous organisons la livraison de votre commande${orderRef ? ` ${orderRef}` : ""}.`;
 
   if (variant === "compact") {
     return (
@@ -85,9 +94,7 @@ export function SupplierDeliveryPrompt({
             <Truck className="size-5" />
           </div>
           <div className="min-w-0">
-            <p className="font-semibold text-foreground">
-              Livrez la commande au client
-            </p>
+            <p className="font-semibold text-foreground">{title}</p>
             <p className="mt-0.5 text-sm text-muted-foreground">{message}</p>
           </div>
         </div>
@@ -114,9 +121,7 @@ export function SupplierDeliveryPrompt({
           <Truck className="size-4" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-semibold text-foreground">
-            Livrez la commande au client
-          </p>
+          <p className="font-semibold text-foreground">{title}</p>
           <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
             {message}
           </p>
@@ -130,85 +135,13 @@ export function SupplierDeliveryPrompt({
               </Button>
               <Button asChild size="sm" className="rounded-lg">
                 <a
-                  href={whatsAppUrl(
-                    phone,
-                    `Bonjour ${clientName?.split(" ")[0] ?? ""}, nous organisons la livraison de votre commande${orderRef ? ` ${orderRef}` : ""}.`
-                  )}
+                  href={whatsAppUrl(phone, whatsappIntro)}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   WhatsApp
                 </a>
               </Button>
-              {onMarkDelivered ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  className="rounded-lg"
-                  disabled={markingDelivered || cancelling}
-                  onClick={() => void onMarkDelivered()}
-                >
-                  {markingDelivered ? (
-                    <Loader2 className="size-3.5 animate-spin" />
-                  ) : (
-                    <PackageCheck className="size-3.5" />
-                  )}
-                  Marquer comme livrée
-                </Button>
-              ) : null}
-              {onCancelByClient ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="rounded-lg border-status-error/30 text-status-error hover:bg-status-error/10 hover:text-status-error"
-                  disabled={cancelling || markingDelivered}
-                  onClick={() => void onCancelByClient()}
-                >
-                  {cancelling ? (
-                    <Loader2 className="size-3.5 animate-spin" />
-                  ) : (
-                    <XCircle className="size-3.5" />
-                  )}
-                  Commande annulée (client)
-                </Button>
-              ) : null}
-            </div>
-          ) : onMarkDelivered ? (
-            <div className="mt-3">
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  className="rounded-lg"
-                  disabled={markingDelivered || cancelling}
-                  onClick={() => void onMarkDelivered()}
-                >
-                  {markingDelivered ? (
-                    <Loader2 className="size-3.5 animate-spin" />
-                  ) : (
-                    <PackageCheck className="size-3.5" />
-                  )}
-                  Marquer comme livrée
-                </Button>
-                {onCancelByClient ? (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="rounded-lg border-status-error/30 text-status-error hover:bg-status-error/10 hover:text-status-error"
-                    disabled={cancelling || markingDelivered}
-                    onClick={() => void onCancelByClient()}
-                  >
-                    {cancelling ? (
-                      <Loader2 className="size-3.5 animate-spin" />
-                    ) : (
-                      <XCircle className="size-3.5" />
-                    )}
-                    Commande annulée (client)
-                  </Button>
-                ) : null}
-              </div>
             </div>
           ) : null}
         </div>

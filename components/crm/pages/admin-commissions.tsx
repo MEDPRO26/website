@@ -1,16 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useMutation, useQuery } from "convex/react";
-import { Check, ClipboardList, Clock, Wallet } from "lucide-react";
-import { toast } from "sonner";
+import { useQuery } from "convex/react";
+import { CheckCircle2, ClipboardList, Wallet } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Tag } from "@/components/dashboard/status-badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
 import { useAdminSession } from "@/hooks/use-admin-session";
 import { formatMad } from "@/lib/crm/pricing";
 
@@ -22,35 +20,10 @@ function formatDate(ts: number) {
   });
 }
 
-function offerStatusLabel(status: string) {
-  if (status === "accepted") {
-    return { label: "Client a accepté", tone: "success" as const };
-  }
-  if (status === "sent") {
-    return { label: "Offre envoyée", tone: "success" as const };
-  }
-  if (status === "draft") {
-    return { label: "Offre préparée", tone: "warning" as const };
-  }
-  return { label: "En attente offre", tone: "neutral" as const };
-}
-
 export function AdminCommissionsPage() {
   const { canQuery } = useAdminSession();
   const rows = useQuery(api.commissions.list, canQuery("commissions.view") ? {} : "skip");
   const stats = useQuery(api.commissions.stats, canQuery("commissions.view") ? {} : "skip");
-  const markPaid = useMutation(api.commissions.markPaid);
-
-  const handleMarkPaid = async (quoteId: Id<"orderSupplierQuotes">) => {
-    try {
-      await markPaid({ quoteId });
-      toast.success("Commission marquée comme réglée.");
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Impossible de marquer la commission."
-      );
-    }
-  };
 
   if (rows === undefined || stats === undefined) {
     return (
@@ -73,10 +46,10 @@ export function AdminCommissionsPage() {
           tone="brand"
         />
         <StatCard
-          label="En attente d'offre client"
-          value={formatMad(stats.pendingCommission)}
-          icon={Clock}
-          tone="warning"
+          label="Commissions réglées"
+          value={formatMad(stats.paidCommission)}
+          icon={CheckCircle2}
+          tone="success"
         />
         <StatCard
           label="Non réglées"
@@ -111,18 +84,13 @@ export function AdminCommissionsPage() {
                   <th className="px-4 py-2.5 font-medium text-right whitespace-nowrap">
                     Commission
                   </th>
-                  <th className="px-4 py-2.5 font-medium whitespace-nowrap min-w-[140px]">
-                    Offre client
-                  </th>
                   <th className="px-4 py-2.5 font-medium whitespace-nowrap">Règlement</th>
                   <th className="px-4 py-2.5 font-medium whitespace-nowrap">Date</th>
                   <th className="px-4 py-2.5"></th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row) => {
-                  const offer = offerStatusLabel(row.offerStatus);
-                  return (
+                {rows.map((row) => (
                     <tr key={row.quoteId} className="border-t border-border">
                       <td className="px-4 py-3 font-mono text-xs text-brand">
                         {row.orderRef}
@@ -135,21 +103,10 @@ export function AdminCommissionsPage() {
                         {formatMad(row.commissionAmount)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <Tag tone={offer.tone}>{offer.label}</Tag>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
                         {row.commissionPaid ? (
-                          <Tag tone="success">
-                            <Check className="size-3" /> Payée
-                          </Tag>
+                          <Tag tone="success">Réglé</Tag>
                         ) : (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => void handleMarkPaid(row.quoteId)}
-                          >
-                            Marquer réglée
-                          </Button>
+                          <Tag tone="warning">Non réglé</Tag>
                         )}
                       </td>
                       <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
@@ -161,8 +118,7 @@ export function AdminCommissionsPage() {
                         </Button>
                       </td>
                     </tr>
-                  );
-                })}
+                  ))}
               </tbody>
             </table>
           </div>

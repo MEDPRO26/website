@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { toast } from "sonner";
 import { StatusBadge, Tag } from "@/components/dashboard/status-badge";
 import { SupplierQuoteForm } from "@/components/crm/supplier-quote-form";
 import { OrderClientRemarks } from "@/components/crm/order-client-remarks";
@@ -57,10 +56,6 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
   const router = useRouter();
   const { canQuerySupplier, supplier, staff } = useSupplierSession();
   const markViewed = useMutation(api.supplierPortal.markViewed);
-  const markAsDelivered = useMutation(api.supplierPortal.markAsDelivered);
-  const cancelByClient = useMutation(api.supplierPortal.cancelByClient);
-  const [markingDelivered, setMarkingDelivered] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
   const data = useQuery(
     api.supplierPortal.getOrder,
     canQuerySupplier ? { orderId: orderId as Id<"orders"> } : "skip"
@@ -105,36 +100,6 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
     clientContactVisible && supplierShouldDeliverOrder(order.status);
   const isDelivered = order.status === "terminee";
   const isCancelled = order.status === "annulee";
-
-  const handleMarkDelivered = async () => {
-    setMarkingDelivered(true);
-    try {
-      await markAsDelivered({ orderId: order._id });
-      toast.success("Commande marquée comme livrée.");
-    } catch (err) {
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : "Impossible de confirmer la livraison."
-      );
-    } finally {
-      setMarkingDelivered(false);
-    }
-  };
-
-  const handleCancel = async () => {
-    setCancelling(true);
-    try {
-      await cancelByClient({ orderId: order._id });
-      toast.success("Commande annulée.");
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Impossible d'annuler la commande."
-      );
-    } finally {
-      setCancelling(false);
-    }
-  };
 
   return (
     <div className="space-y-5 pb-10">
@@ -183,10 +148,7 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
           clientPhone={customer?.phone}
           orderRef={order.ref}
           item={order.item}
-          onMarkDelivered={handleMarkDelivered}
-          markingDelivered={markingDelivered}
-          onCancelByClient={handleCancel}
-          cancelling={cancelling}
+          orderStatus={order.status}
         />
       ) : null}
 
@@ -257,7 +219,7 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
                 <p className="mt-1 text-xs text-muted-foreground">
                   {clientContactVisible
                     ? "Coordonnées complètes dans la section Informations client."
-                    : "Quartier exact communiqué après validation du devis."}
+                    : "Coordonnées client disponibles dès l'affectation au fournisseur."}
                 </p>
               </div>
             </div>
@@ -296,8 +258,8 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
             ) : (
               <div className="p-5">
                 <p className="text-sm text-muted-foreground">
-                  Les coordonnées du client (nom, ville et téléphone) seront
-                  visibles ici une fois le prix accepté par le client.
+                  Les coordonnées du client seront visibles dès que la commande
+                  vous est affectée par SOS Santé.
                 </p>
               </div>
             )}
@@ -362,6 +324,7 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
                         : null
                     }
                     onUnavailable={() => router.push("/supplier/orders")}
+                    onCancelledByClient={() => router.push("/supplier/orders")}
                   />
                 ) : (
                   <div className="space-y-4">

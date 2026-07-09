@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type ComponentType } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
@@ -14,18 +15,17 @@ import {
   Eye,
   FileText,
   Filter,
-  Loader2,
   Package,
-  PackageCheck,
-  Phone,
   Search,
   Truck,
-  User,
-  XCircle,
 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { StatusBadge } from "@/components/dashboard/status-badge";
+import {
+  SupplierResponseCountdown,
+  isSupplierResponseExpired,
+} from "@/components/crm/supplier-response-countdown";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,8 +39,7 @@ import {
 import { useSupplierSession } from "@/hooks/use-supplier-session";
 import { resolveOrderItemPreview } from "@/lib/crm/resolve-order-item-link";
 import { getSupplierStatusLabel, SUPPLIER_STATUS_LABELS } from "@/lib/crm/order-status";
-import { orderShowsSchedulingFields, supplierShouldDeliverOrder } from "@/lib/crm/order-scheduling";
-import { SupplierDeliveryPrompt } from "@/components/crm/supplier-delivery-prompt";
+import { orderShowsSchedulingFields } from "@/lib/crm/order-scheduling";
 import { type OrderStatus } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -66,6 +65,7 @@ const SUPPLIER_STATUS_FILTERS: { value: string; label: string }[] = [
   { value: "all", label: "Tous les statuts" },
   { value: "pending", label: "À répondre" },
   { value: "active", label: "En cours de livraison" },
+  { value: "missed", label: "Commandes manquées" },
   { value: "done", label: "Terminées" },
   ...[
     "envoyee_fournisseur",
@@ -96,6 +96,9 @@ type SupplierOrder = {
   clientContactVisible?: boolean;
   clientName?: string;
   clientPhone?: string;
+  isMissed?: boolean;
+  missedAt?: number;
+  supplierAssignedAt?: number;
 };
 
 function formatOrderDate(ts: number) {
@@ -129,7 +132,13 @@ function typeLabel(type: string) {
   return type.slice(0, 12).toUpperCase();
 }
 
-function matchesStatusFilter(status: string, filter: string) {
+function matchesStatusFilter(
+  status: string,
+  filter: string,
+  isMissed?: boolean
+) {
+  if (filter === "missed") return Boolean(isMissed);
+  if (isMissed) return filter === "all";
   if (filter === "all") return true;
   if (filter === "pending") return PENDING_STATUSES.includes(status as OrderStatus);
   if (filter === "active") return ACTIVE_STATUSES.includes(status as OrderStatus);
@@ -200,6 +209,22 @@ export function SupplierOrdersPage() {
     api.supplierPortal.listOrders,
     canQuerySupplier ? {} : "skip"
   );
+  const missedOrders = useQuery(
+    api.supplierPortal.listMissedOrders,
+    canQuerySupplier ? {} : "skip"
+  );
+
+  const combinedOrders = useMemo(() => {
+    const active = allOrders ?? [];
+    const missed = (missedOrders ?? []).map((order) => ({
+      ...order,
+      _id: order._id,
+      duration: undefined as string | undefined,
+      desiredDate: undefined as string | undefined,
+      clientContactVisible: false,
+    }));
+    return [...active, ...missed].sort((a, b) => b.createdAt - a.createdAt);
+  }, [allOrders, missedOrders]);
 
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [statusFilter, setStatusFilter] = useState(
@@ -217,13 +242,14 @@ export function SupplierOrdersPage() {
   useEffect(() => {
     setQuery(searchParams.get("q") ?? "");
     const tab = searchParams.get("tab");
-    if (tab === "active" || tab === "pending" || tab === "done") {
+    if (tab === "active" || tab === "pending" || tab === "done" || tab === "missed") {
       setStatusFilter(tab);
     }
   }, [searchParams]);
 
   const stats = useMemo(() => {
     const list = allOrders ?? [];
+    const missed = missedOrders ?? [];
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
     const dayStart = startOfDay.getTime();
@@ -242,14 +268,15 @@ export function SupplierOrdersPage() {
         ACTIVE_STATUSES.includes(order.status as OrderStatus)
       ).length,
       pricesSent: list.filter((order) => order.hasQuote).length,
+      missed: missed.length,
     };
-  }, [allOrders]);
+  }, [allOrders, missedOrders]);
 
   const filteredOrders = useMemo(() => {
-    if (!allOrders) return [];
+    if (!allOrders || missedOrders === undefined) return [];
     const q = query.trim().toLowerCase();
 
-    return allOrders.filter((order) => {
+    return combinedOrders.filter((order) => {
       const matchesQuery =
         !q ||
         order.ref.toLowerCase().includes(q) ||
@@ -257,15 +284,20 @@ export function SupplierOrdersPage() {
         order.city.toLowerCase().includes(q) ||
         order.type.toLowerCase().includes(q);
 
-      const matchesStatus = matchesStatusFilter(order.status, statusFilter);
+      const matchesStatus = matchesStatusFilter(
+        order.status,
+        statusFilter,
+        order.isMissed
+      );
 
+      const dateTs = order.isMissed ? order.missedAt ?? order.createdAt : order.createdAt;
       const matchesDate =
         !dateFilter ||
-        new Date(order.createdAt).toISOString().slice(0, 10) === dateFilter;
+        new Date(dateTs).toISOString().slice(0, 10) === dateFilter;
 
       return matchesQuery && matchesStatus && matchesDate;
     });
-  }, [allOrders, query, statusFilter, dateFilter]);
+  }, [combinedOrders, allOrders, missedOrders, query, statusFilter, dateFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -278,7 +310,7 @@ export function SupplierOrdersPage() {
     setPage(1);
   }, [query, statusFilter, dateFilter]);
 
-  if (allOrders === undefined) {
+  if (allOrders === undefined || missedOrders === undefined) {
     return (
       <p className="text-sm text-muted-foreground">Chargement des commandes…</p>
     );
@@ -295,8 +327,9 @@ export function SupplierOrdersPage() {
           Gestion des commandes
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {supplier?.name ?? "Fournisseur"} · {allOrders.length} commande
-          {allOrders.length > 1 ? "s" : ""} affectée{allOrders.length > 1 ? "s" : ""}
+          {supplier?.name ?? "Fournisseur"} · {combinedOrders.length} commande
+          {combinedOrders.length > 1 ? "s" : ""} au total
+          {stats.missed > 0 ? ` · ${stats.missed} manquée${stats.missed > 1 ? "s" : ""}` : ""}
         </p>
       </div>
 
@@ -409,7 +442,7 @@ export function SupplierOrdersPage() {
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1000px] text-sm">
+              <table className="w-full min-w-[860px] text-sm">
                 <thead className="bg-muted/30">
                   <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                     <th className="px-5 py-3">Référence</th>
@@ -417,7 +450,6 @@ export function SupplierOrdersPage() {
                     <th className="px-3 py-3">Ville / Quartier</th>
                     <th className="px-3 py-3">Date</th>
                     <th className="px-3 py-3">Statut</th>
-                    <th className="px-3 py-3">Info client</th>
                     <th className="px-5 py-3 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -514,62 +546,68 @@ function OrderItemThumbnail({
 }
 
 function SupplierOrderRow({ order }: { order: SupplierOrder }) {
-  const markAsDelivered = useMutation(api.supplierPortal.markAsDelivered);
-  const cancelByClient = useMutation(api.supplierPortal.cancelByClient);
-  const [markingDelivered, setMarkingDelivered] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
+  const router = useRouter();
+  const claimOrder = useMutation(api.supplierPortal.claimOrder);
+  const [claiming, setClaiming] = useState(false);
 
   const location = order.district
     ? `${order.city} (${order.district})`
     : order.city;
 
+  const needsClaim =
+    !order.isMissed &&
+    order.status === "envoyee_fournisseur" &&
+    !order.hasQuote;
+  const showCountdown = needsClaim && Boolean(order.supplierAssignedAt);
+  const [expired, setExpired] = useState(
+    () =>
+      showCountdown &&
+      isSupplierResponseExpired(order.supplierAssignedAt!)
+  );
+
   const needsResponse =
-    PENDING_STATUSES.includes(order.status as OrderStatus) && !order.hasQuote;
+    !order.isMissed &&
+    PENDING_STATUSES.includes(order.status as OrderStatus) &&
+    !order.hasQuote &&
+    !expired;
   const showScheduling = orderShowsSchedulingFields(order.type);
-  const needsDelivery =
-    order.clientContactVisible && supplierShouldDeliverOrder(order.status);
-  const isDelivered = order.status === "terminee";
-  const isCancelled = order.status === "annulee";
+  const displayDate = order.isMissed
+    ? order.missedAt ?? order.createdAt
+    : order.createdAt;
 
-  const handleMarkDelivered = async () => {
-    setMarkingDelivered(true);
+  const handleClaim = async () => {
+    setClaiming(true);
     try {
-      await markAsDelivered({ orderId: order._id as Id<"orders"> });
-      toast.success("Commande marquée comme livrée.");
+      await claimOrder({ orderId: order._id as Id<"orders"> });
+      toast.success("Commande réclamée — vous en prenez charge.");
+      router.push(`/supplier/orders/${order._id}`);
     } catch (err) {
       toast.error(
-        err instanceof Error
-          ? err.message
-          : "Impossible de confirmer la livraison."
+        err instanceof Error ? err.message : "Impossible de réclamer la commande."
       );
     } finally {
-      setMarkingDelivered(false);
-    }
-  };
-
-  const handleCancel = async () => {
-    setCancelling(true);
-    try {
-      await cancelByClient({ orderId: order._id as Id<"orders"> });
-      toast.success("Commande annulée.");
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Impossible d'annuler la commande."
-      );
-    } finally {
-      setCancelling(false);
+      setClaiming(false);
     }
   };
 
   return (
-    <tr className="border-t border-border/60 transition-colors hover:bg-muted/20">
+    <tr className={cn(
+      "border-t border-border/60 transition-colors hover:bg-muted/20",
+      order.isMissed && "opacity-75"
+    )}>
       <td className="px-5 py-4">
-        <Link
-          href={`/supplier/orders/${order._id}`}
-          className="font-mono text-xs font-semibold text-brand hover:underline"
-        >
-          {order.ref}
-        </Link>
+        {order.isMissed ? (
+          <span className="font-mono text-xs font-semibold text-muted-foreground">
+            {order.ref}
+          </span>
+        ) : (
+          <Link
+            href={`/supplier/orders/${order._id}`}
+            className="font-mono text-xs font-semibold text-brand hover:underline"
+          >
+            {order.ref}
+          </Link>
+        )}
       </td>
       <td className="px-3 py-4">
         <div className="flex items-center gap-3">
@@ -602,95 +640,69 @@ function SupplierOrderRow({ order }: { order: SupplierOrder }) {
       <td className="px-3 py-4 whitespace-nowrap text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">
           <Calendar className="size-3.5 shrink-0" />
-          {formatOrderDate(order.createdAt)}
+          {formatOrderDate(displayDate)}
         </span>
       </td>
       <td className="px-3 py-4">
-        <StatusBadge
-          status={order.status as OrderStatus}
-          labels={SUPPLIER_STATUS_LABELS}
-        />
-      </td>
-      <td className="px-3 py-4">
-        {order.clientContactVisible ? (
-          <div className="min-w-[140px] space-y-2">
-            <div className="space-y-1">
-              <p className="inline-flex items-center gap-1.5 font-medium text-foreground">
-                <User className="size-3.5 shrink-0 text-muted-foreground" />
-                {order.clientName ?? "—"}
-              </p>
-              <p className="text-xs text-muted-foreground">{location}</p>
-              {order.clientPhone ? (
-                <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Phone className="size-3 shrink-0" />
-                  {order.clientPhone}
-                </p>
-              ) : null}
-            </div>
-            {needsDelivery ? (
-              <SupplierDeliveryPrompt variant="compact" />
-            ) : isDelivered && order.clientContactVisible ? (
-              <SupplierDeliveryPrompt variant="delivered" />
-            ) : null}
-          </div>
+        {order.isMissed || (needsClaim && expired) ? (
+          <span className="inline-flex rounded-full bg-status-error/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-status-error">
+            Commande épuisée
+          </span>
         ) : (
-          <span className="text-xs text-muted-foreground">—</span>
+          <StatusBadge
+            status={order.status as OrderStatus}
+            labels={SUPPLIER_STATUS_LABELS}
+          />
         )}
       </td>
       <td className="px-5 py-4">
         <div className="flex items-center justify-end gap-2">
-          {needsDelivery ? (
-            <div className="flex flex-col items-end gap-1.5">
+          {order.isMissed ? (
+            <span className="text-xs text-muted-foreground">—</span>
+          ) : needsClaim && expired ? (
+            <span className="rounded-lg bg-status-error/10 px-3 py-1.5 text-xs font-semibold text-status-error">
+              Commande épuisée
+            </span>
+          ) : (
+            <>
+              {showCountdown ? (
+                <SupplierResponseCountdown
+                  assignedAt={order.supplierAssignedAt!}
+                  size="sm"
+                  onExpire={() => setExpired(true)}
+                />
+              ) : null}
+              {needsClaim ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-8 rounded-lg px-3 text-xs"
+                  disabled={claiming}
+                  onClick={() => void handleClaim()}
+                >
+                  {claiming ? "…" : "Réclamer la commande"}
+                </Button>
+              ) : needsResponse ? (
+                <Button
+                  asChild
+                  size="sm"
+                  className="h-8 rounded-lg px-3 text-xs"
+                >
+                  <Link href={`/supplier/orders/${order._id}`}>Répondre</Link>
+                </Button>
+              ) : null}
               <Button
-                type="button"
-                size="sm"
-                className="h-8 w-[220px] justify-center rounded-lg px-3 text-xs"
-                disabled={markingDelivered || cancelling || isCancelled}
-                onClick={() => void handleMarkDelivered()}
+                asChild
+                size="icon"
+                variant="ghost"
+                className="size-8 text-muted-foreground hover:text-brand"
               >
-                {markingDelivered ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <PackageCheck className="size-3.5" />
-                )}
-                Marquer livrée
+                <Link href={`/supplier/orders/${order._id}`} aria-label="Voir la commande">
+                  <Eye className="size-4" />
+                </Link>
               </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="h-8 w-[220px] justify-center rounded-lg border-status-error/30 px-3 text-xs text-status-error hover:bg-status-error/10 hover:text-status-error"
-                disabled={cancelling || markingDelivered || isDelivered || isCancelled}
-                onClick={() => void handleCancel()}
-              >
-                {cancelling ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <XCircle className="size-3.5" />
-                )}
-                Commande annulée (client)
-              </Button>
-            </div>
-          ) : null}
-          {needsResponse ? (
-            <Button
-              asChild
-              size="sm"
-              className="h-8 rounded-lg px-3 text-xs"
-            >
-              <Link href={`/supplier/orders/${order._id}`}>Répondre</Link>
-            </Button>
-          ) : null}
-          <Button
-            asChild
-            size="icon"
-            variant="ghost"
-            className="size-8 text-muted-foreground hover:text-brand"
-          >
-            <Link href={`/supplier/orders/${order._id}`} aria-label="Voir la commande">
-              <Eye className="size-4" />
-            </Link>
-          </Button>
+            </>
+          )}
         </div>
       </td>
     </tr>
