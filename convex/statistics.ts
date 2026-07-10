@@ -5,15 +5,40 @@ import { requireAdminPermission } from "./lib/authz";
 import { dateKeyInSiteTimezone } from "./presence";
 import { formatVisitorLocation, isMorocco } from "../lib/visitor-geo";
 import { visitorDeviceLabel } from "../lib/visitor-device";
+import { getQuotePricing } from "./lib/quotePricing";
 
 const ONLINE_THRESHOLD_MS = 60_000;
 const FAST_CLAIM_MS = 5 * 60 * 1000;
+const CONSECUTIVE_MISS_ALERT_THRESHOLD = 2;
+
+type SupplierTimelineEvent = {
+  at: number;
+  kind: "miss" | "claim";
+};
+
+function computeConsecutiveMisses(events: SupplierTimelineEvent[]) {
+  const sorted = [...events].sort((a, b) => a.at - b.at);
+  let current = 0;
+  let max = 0;
+
+  for (const event of sorted) {
+    if (event.kind === "miss") {
+      current += 1;
+      max = Math.max(max, current);
+    } else {
+      current = 0;
+    }
+  }
+
+  return { currentConsecutiveMisses: current, maxConsecutiveMisses: max };
+}
 
 type SupplierAccumulator = {
   supplierId: Id<"suppliers">;
   claims: number;
   fastClaims: number;
   responseTimes: number[];
+  deliveryTimes: number[];
   missed: number;
   delivered: number;
 };
@@ -24,6 +49,7 @@ function emptySupplierStats(supplierId: Id<"suppliers">): SupplierAccumulator {
     claims: 0,
     fastClaims: 0,
     responseTimes: [],
+    deliveryTimes: [],
     missed: 0,
     delivered: 0,
   };
@@ -153,6 +179,25 @@ export const overview = query({
       const bucket =
         statsBySupplier.get(order.supplierId) ?? emptySupplierStats(order.supplierId);
       bucket.delivered += 1;
+
+      const events = eventsByOrder.get(order._id) ?? [];
+      const claimEvent = events.find(
+        (event) =>
+          event.toStatus === "vue_fournisseur" &&
+          event.fromStatus === "envoyee_fournisseur" &&
+          event.actorStaffId
+      );
+      const deliveryEvent = events.find(
+        (event) =>
+          event.toStatus === "terminee" &&
+          event.actorStaffId &&
+          (!claimEvent || event.createdAt >= claimEvent.createdAt)
+      );
+
+      if (claimEvent && deliveryEvent) {
+        bucket.deliveryTimes.push(deliveryEvent.createdAt - claimEvent.createdAt);
+      }
+
       statsBySupplier.set(order.supplierId, bucket);
     }
 
@@ -162,11 +207,76 @@ export const overview = query({
         .filter((id): id is Id<"suppliers"> => id !== undefined)
     );
 
+    const timelineBySupplier = new Map<Id<"suppliers">, SupplierTimelineEvent[]>();
+
+    for (const missed of missedOrders) {
+      const list = timelineBySupplier.get(missed.supplierId) ?? [];
+      list.push({ at: missed.missedAt, kind: "miss" });
+      timelineBySupplier.set(missed.supplierId, list);
+    }
+
+    for (const events of eventsByOrder.values()) {
+      for (const event of events) {
+        if (
+          event.toStatus !== "vue_fournisseur" ||
+          event.fromStatus !== "envoyee_fournisseur" ||
+          !event.actorStaffId
+        ) {
+          continue;
+        }
+
+        const supplierId = supplierIdByStaffId.get(event.actorStaffId);
+        if (!supplierId) continue;
+
+        const list = timelineBySupplier.get(supplierId) ?? [];
+        list.push({ at: event.createdAt, kind: "claim" });
+        timelineBySupplier.set(supplierId, list);
+      }
+    }
+
+    const supplierMissedAlerts = suppliers
+      .map((supplier) => {
+        const events = timelineBySupplier.get(supplier._id) ?? [];
+        const { currentConsecutiveMisses, maxConsecutiveMisses } =
+          computeConsecutiveMisses(events);
+        const supplierMisses = missedOrders
+          .filter((row) => row.supplierId === supplier._id)
+          .sort((a, b) => b.missedAt - a.missedAt);
+        const lastMissed = supplierMisses[0];
+
+        return {
+          supplierId: supplier._id,
+          name: supplier.name,
+          city: supplier.city,
+          isOnline: onlineSupplierIds.has(supplier._id),
+          currentConsecutiveMisses,
+          maxConsecutiveMisses,
+          totalMissed: supplierMisses.length,
+          lastMissedOrderRef: lastMissed?.orderRef ?? null,
+          lastMissedAt: lastMissed?.missedAt ?? null,
+          lastMissedLabel: lastMissed
+            ? formatRelativeTime(lastMissed.missedAt, now)
+            : null,
+        };
+      })
+      .filter(
+        (row) =>
+          row.isOnline &&
+          row.currentConsecutiveMisses >= CONSECUTIVE_MISS_ALERT_THRESHOLD
+      )
+      .sort((a, b) => b.currentConsecutiveMisses - a.currentConsecutiveMisses);
+
+    const allDeliveryTimes: number[] = [];
+    for (const bucket of statsBySupplier.values()) {
+      allDeliveryTimes.push(...bucket.deliveryTimes);
+    }
+
     const supplierPerformance = suppliers
       .map((supplier) => {
         const bucket = statsBySupplier.get(supplier._id) ?? emptySupplierStats(supplier._id);
         const opportunities = bucket.claims + bucket.missed;
         const avgResponseMs = average(bucket.responseTimes);
+        const avgDeliveryMs = average(bucket.deliveryTimes);
         const responseRate =
           opportunities > 0 ? Math.round((bucket.claims / opportunities) * 100) : null;
 
@@ -181,6 +291,8 @@ export const overview = query({
           missed: bucket.missed,
           delivered: bucket.delivered,
           avgResponseMs,
+          avgDeliveryMs,
+          deliveryConfirmations: bucket.deliveryTimes.length,
           responseRate,
         };
       })
@@ -214,6 +326,89 @@ export const overview = query({
       deviceRows
         .filter((row) => row.deviceType === "desktop")
         .map((row) => row.sessionKey)
+    );
+
+    const commissionBySupplier = new Map<
+      Id<"suppliers">,
+      {
+        commissionCount: number;
+        paidCount: number;
+        totalAmount: number;
+        paidAmount: number;
+      }
+    >();
+
+    const submittedQuotes = (await ctx.db.query("orderSupplierQuotes").collect()).filter(
+      (quote) => quote.status === "submitted"
+    );
+
+    for (const quote of submittedQuotes) {
+      const order = await ctx.db.get(quote.orderId);
+      if (!order || order.status !== "terminee") continue;
+
+      const pricing = getQuotePricing(quote);
+      const bucket = commissionBySupplier.get(quote.supplierId) ?? {
+        commissionCount: 0,
+        paidCount: 0,
+        totalAmount: 0,
+        paidAmount: 0,
+      };
+
+      bucket.commissionCount += 1;
+      bucket.totalAmount += pricing.commissionAmount;
+      if (quote.commissionPaidAt) {
+        bucket.paidCount += 1;
+        bucket.paidAmount += pricing.commissionAmount;
+      }
+
+      commissionBySupplier.set(quote.supplierId, bucket);
+    }
+
+    const commissionSettlement = suppliers
+      .map((supplier) => {
+        const bucket = commissionBySupplier.get(supplier._id);
+        const totalAmount = bucket?.totalAmount ?? 0;
+        const paidAmount = bucket?.paidAmount ?? 0;
+        const commissionCount = bucket?.commissionCount ?? 0;
+        const paidCount = bucket?.paidCount ?? 0;
+
+        return {
+          supplierId: supplier._id,
+          name: supplier.name,
+          city: supplier.city,
+          commissionCount,
+          paidCount,
+          unpaidCount: commissionCount - paidCount,
+          totalAmount,
+          paidAmount,
+          unpaidAmount: totalAmount - paidAmount,
+          settlementRate:
+            totalAmount > 0 ? Math.round((paidAmount / totalAmount) * 100) : null,
+        };
+      })
+      .filter((row) => row.commissionCount > 0)
+      .sort((a, b) => {
+        if ((a.settlementRate ?? -1) !== (b.settlementRate ?? -1)) {
+          return (a.settlementRate ?? -1) - (b.settlementRate ?? -1);
+        }
+        return b.unpaidAmount - a.unpaidAmount;
+      });
+
+    const commissionTotals = commissionSettlement.reduce(
+      (acc, row) => ({
+        totalAmount: acc.totalAmount + row.totalAmount,
+        paidAmount: acc.paidAmount + row.paidAmount,
+        unpaidAmount: acc.unpaidAmount + row.unpaidAmount,
+        commissionCount: acc.commissionCount + row.commissionCount,
+        paidCount: acc.paidCount + row.paidCount,
+      }),
+      {
+        totalAmount: 0,
+        paidAmount: 0,
+        unpaidAmount: 0,
+        commissionCount: 0,
+        paidCount: 0,
+      }
     );
 
     return {
@@ -273,11 +468,27 @@ export const overview = query({
         .sort((a, b) => b.count - a.count)
         .slice(0, 8),
       supplierPerformance,
+      commissionSettlement,
+      commissionTotals: {
+        ...commissionTotals,
+        settlementRate:
+          commissionTotals.totalAmount > 0
+            ? Math.round(
+                (commissionTotals.paidAmount / commissionTotals.totalAmount) * 100
+              )
+            : null,
+      },
+      supplierMissedAlerts,
       totals: {
         assignmentsResponded: supplierPerformance.reduce((sum, row) => sum + row.claims, 0),
         assignmentsMissed: supplierPerformance.reduce((sum, row) => sum + row.missed, 0),
         fastClaims: supplierPerformance.reduce((sum, row) => sum + row.fastClaims, 0),
         deliveries: supplierPerformance.reduce((sum, row) => sum + row.delivered, 0),
+        deliveryConfirmations: supplierPerformance.reduce(
+          (sum, row) => sum + row.deliveryConfirmations,
+          0
+        ),
+        avgDeliveryMs: average(allDeliveryTimes),
       },
     };
   },
@@ -314,6 +525,25 @@ function addDays(dateKey: string, days: number) {
   const date = new Date(`${dateKey}T12:00:00`);
   date.setDate(date.getDate() + days);
   return dateKeyInSiteTimezone(date.getTime());
+}
+
+function hourInSiteTimezone(timestamp: number) {
+  return Number(
+    new Date(timestamp).toLocaleString("en-US", {
+      timeZone: "Africa/Casablanca",
+      hour: "numeric",
+      hour12: false,
+    })
+  );
+}
+
+function buildHourlyBuckets() {
+  return Array.from({ length: 24 }, (_, hour) => ({
+    hour,
+    label: `${String(hour).padStart(2, "0")}h`,
+    visitors: 0,
+    claims: 0,
+  }));
 }
 
 function addMonths(dateKey: string, months: number) {
@@ -526,6 +756,68 @@ export const visitorLocations = query({
         abroad: abroadSessions.size,
         unknown: unknownSessions.size,
       },
+    };
+  },
+});
+
+export const peakHours = query({
+  args: {
+    startDate: v.optional(v.string()),
+    endDate: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireAdminPermission(ctx, "statistics.view");
+
+    const today = dateKeyInSiteTimezone();
+    const startDate = args.startDate ?? addDays(today, -29);
+    const endDate = args.endDate ?? today;
+
+    const buckets = buildHourlyBuckets();
+
+    if (startDate <= endDate) {
+      const visitorRows = await ctx.db
+        .query("visitorDailySessions")
+        .withIndex("by_dateKey", (q) =>
+          q.gte("dateKey", startDate).lte("dateKey", endDate)
+        )
+        .collect();
+
+      for (const row of visitorRows) {
+        buckets[hourInSiteTimezone(row.firstSeenAt)].visitors += 1;
+      }
+
+      const orderEvents = await ctx.db.query("orderEvents").collect();
+      for (const event of orderEvents) {
+        if (
+          event.toStatus !== "vue_fournisseur" ||
+          event.fromStatus !== "envoyee_fournisseur" ||
+          !event.actorStaffId
+        ) {
+          continue;
+        }
+
+        const eventDate = dateKeyInSiteTimezone(event.createdAt);
+        if (eventDate < startDate || eventDate > endDate) {
+          continue;
+        }
+
+        buckets[hourInSiteTimezone(event.createdAt)].claims += 1;
+      }
+    }
+
+    const peakVisitors = buckets.reduce((best, row) =>
+      row.visitors > best.visitors ? row : best
+    );
+    const peakClaims = buckets.reduce((best, row) =>
+      row.claims > best.claims ? row : best
+    );
+
+    return {
+      startDate,
+      endDate,
+      buckets,
+      peakVisitors: peakVisitors.visitors > 0 ? peakVisitors : null,
+      peakClaims: peakClaims.claims > 0 ? peakClaims : null,
     };
   },
 });

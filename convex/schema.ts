@@ -22,6 +22,7 @@ import {
   supplierInvitationStatusValidator,
   supplierQuoteStatusValidator,
   supplierStatusValidator,
+  commissionPaymentMethodValidator,
 } from "./validators";
 
 /**
@@ -176,6 +177,8 @@ export default defineSchema({
     commissionPct: v.number(),
     commissionAmount: v.optional(v.number()),
     commissionPaidAt: v.optional(v.number()),
+    commissionPaymentMethod: v.optional(commissionPaymentMethodValidator),
+    commissionReceiptStorageId: v.optional(v.id("_storage")),
     notes: v.optional(v.string()),
     status: supplierQuoteStatusValidator,
     createdByStaffId: v.optional(v.id("staff")),

@@ -145,3 +145,9 @@ export const visitorDeviceValidator = v.union(
   v.literal("mobile"),
   v.literal("desktop")
 );
+
+export const commissionPaymentMethodValidator = v.union(
+  v.literal("versement_bancaire"),
+  v.literal("virement_bancaire"),
+  v.literal("especes_en_main")
+);

@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useQuery } from "convex/react";
-import { CheckCircle2, ClipboardList, Wallet } from "lucide-react";
+import { CheckCircle2, ClipboardList, Loader2, Wallet } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Tag } from "@/components/dashboard/status-badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { useAdminSession } from "@/hooks/use-admin-session";
 import { formatMad } from "@/lib/crm/pricing";
 
@@ -85,6 +86,7 @@ export function AdminCommissionsPage() {
                     Commission
                   </th>
                   <th className="px-4 py-2.5 font-medium whitespace-nowrap">Règlement</th>
+                  <th className="px-4 py-2.5 font-medium whitespace-nowrap">Mode</th>
                   <th className="px-4 py-2.5 font-medium whitespace-nowrap">Date</th>
                   <th className="px-4 py-2.5"></th>
                 </tr>
@@ -110,12 +112,20 @@ export function AdminCommissionsPage() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                        {row.commissionPaid ? row.commissionPaymentLabel : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
                         {formatDate(row.submittedAt)}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <Button size="sm" variant="outline" asChild>
-                          <Link href={`/admin/orders/${row.orderId}`}>Voir</Link>
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          {row.hasReceipt ? (
+                            <AdminCommissionReceiptButton quoteId={row.quoteId} />
+                          ) : null}
+                          <Button size="sm" variant="outline" asChild>
+                            <Link href={`/admin/orders/${row.orderId}`}>Voir</Link>
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -125,5 +135,33 @@ export function AdminCommissionsPage() {
         </Card>
       )}
     </div>
+  );
+}
+
+function AdminCommissionReceiptButton({
+  quoteId,
+}: {
+  quoteId: Id<"orderSupplierQuotes">;
+}) {
+  const receiptUrl = useQuery(api.supplierPortal.getCommissionReceiptUrl, { quoteId });
+
+  if (receiptUrl === undefined) {
+    return (
+      <Button size="sm" variant="outline" disabled>
+        <Loader2 className="size-4 animate-spin" />
+      </Button>
+    );
+  }
+
+  if (!receiptUrl) {
+    return null;
+  }
+
+  return (
+    <Button size="sm" variant="outline" asChild>
+      <a href={receiptUrl} target="_blank" rel="noreferrer">
+        Reçu
+      </a>
+    </Button>
   );
 }

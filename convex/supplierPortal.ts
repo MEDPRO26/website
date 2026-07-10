@@ -12,6 +12,8 @@ import { notifyStaff, pushNotification } from "./lib/notifications";
 import { logAudit } from "./lib/auditLog";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
+import { commissionPaymentMethodValidator } from "./validators";
+import { commissionPaymentLabel } from "../lib/crm/commission-payment";
 
 const DELIVERABLE_STATUSES = new Set([
   "envoyee_fournisseur",
@@ -831,6 +833,9 @@ export const listCommissions = query({
             finalPrice: pricing.finalPrice,
             commissionPaid: Boolean(quote.commissionPaidAt),
             commissionPaidAt: quote.commissionPaidAt,
+            commissionPaymentMethod: quote.commissionPaymentMethod ?? null,
+            commissionPaymentLabel: commissionPaymentLabel(quote.commissionPaymentMethod),
+            hasReceipt: Boolean(quote.commissionReceiptStorageId),
             deliveredAt: order.updatedAt,
           };
         })
@@ -842,8 +847,46 @@ export const listCommissions = query({
   },
 });
 
-export const markCommissionSettled = mutation({
+export const generateCommissionReceiptUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    await requireSupplierStaff(ctx);
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+export const getCommissionReceiptUrl = query({
   args: { quoteId: v.id("orderSupplierQuotes") },
+  handler: async (ctx, args) => {
+    const quote = await ctx.db.get(args.quoteId);
+    if (!quote?.commissionReceiptStorageId) {
+      return null;
+    }
+
+    const staff = await getStaffProfile(ctx);
+    if (!staff || staff.status !== "actif") {
+      return null;
+    }
+
+    const isAdmin = ["super_admin", "admin", "assistant"].includes(staff.role);
+    const isOwner =
+      staff.role === "supplier" &&
+      staff.supplierId === quote.supplierId;
+
+    if (!isAdmin && !isOwner) {
+      return null;
+    }
+
+    return await ctx.storage.getUrl(quote.commissionReceiptStorageId);
+  },
+});
+
+export const markCommissionSettled = mutation({
+  args: {
+    quoteId: v.id("orderSupplierQuotes"),
+    paymentMethod: commissionPaymentMethodValidator,
+    receiptStorageId: v.optional(v.id("_storage")),
+  },
   handler: async (ctx, args) => {
     const { staff, supplier } = await requireSupplierStaff(ctx);
     const quote = await ctx.db.get(args.quoteId);
@@ -862,18 +905,29 @@ export const markCommissionSettled = mutation({
       throw new Error("La commande doit être livrée avant de régler la commission.");
     }
 
+    const requiresReceipt =
+      args.paymentMethod === "versement_bancaire" ||
+      args.paymentMethod === "virement_bancaire";
+
+    if (requiresReceipt && !args.receiptStorageId) {
+      throw new Error("Une photo du reçu est obligatoire pour ce mode de règlement.");
+    }
+
     const now = Date.now();
     await ctx.db.patch(args.quoteId, {
       commissionPaidAt: now,
+      commissionPaymentMethod: args.paymentMethod,
+      commissionReceiptStorageId: requiresReceipt ? args.receiptStorageId : undefined,
       updatedAt: now,
     });
 
     const pricing = getQuotePricing(quote);
+    const paymentLabel = commissionPaymentLabel(args.paymentMethod);
 
     await pushNotification(ctx, {
       type: "commission",
       title: `${supplier.name} — commission réglée`,
-      description: `${order.ref} · ${pricing.commissionAmount.toLocaleString("fr-FR")} MAD`,
+      description: `${order.ref} · ${pricing.commissionAmount.toLocaleString("fr-FR")} MAD · ${paymentLabel}`,
       link: `/admin/commissions`,
       entityId: args.quoteId,
     });
@@ -885,7 +939,7 @@ export const markCommissionSettled = mutation({
       entityType: "commission",
       entityId: args.quoteId,
       entityLabel: order.ref,
-      toValue: "paid",
+      toValue: `paid:${args.paymentMethod}`,
     });
 
     return { alreadySettled: false as const };

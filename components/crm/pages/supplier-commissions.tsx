@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from "convex/react";
 import { CheckCircle2, Loader2, Wallet } from "lucide-react";
-import { toast } from "sonner";
+import { useState } from "react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Tag } from "@/components/dashboard/status-badge";
 import { Card } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useSupplierSession } from "@/hooks/use-supplier-session";
+import { SupplierCommissionSettleDialog } from "@/components/crm/supplier-commission-settle-dialog";
 import { formatMad } from "@/lib/crm/pricing";
 
 function formatDate(ts: number) {
@@ -26,25 +27,11 @@ export function SupplierCommissionsPage() {
     api.supplierPortal.listCommissions,
     canQuerySupplier ? {} : "skip"
   );
-  const markSettled = useMutation(api.supplierPortal.markCommissionSettled);
-
-  const handleSettle = async (quoteId: Id<"orderSupplierQuotes">, orderRef: string) => {
-    const confirmed = window.confirm(
-      `Confirmez avoir réglé la commission SOS Santé pour la commande ${orderRef} (espèces ou virement).`
-    );
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      await markSettled({ quoteId });
-      toast.success("Commission marquée comme réglée.");
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Impossible de confirmer le règlement."
-      );
-    }
-  };
+  const [settleTarget, setSettleTarget] = useState<{
+    quoteId: Id<"orderSupplierQuotes">;
+    orderRef: string;
+    commissionAmount: number;
+  } | null>(null);
 
   if (rows === undefined) {
     return (
@@ -110,6 +97,7 @@ export function SupplierCommissionsPage() {
                     Commission SOS
                   </th>
                   <th className="px-4 py-2.5 font-medium whitespace-nowrap">Statut</th>
+                  <th className="px-4 py-2.5 font-medium whitespace-nowrap">Mode</th>
                   <th className="px-4 py-2.5 font-medium whitespace-nowrap">Date</th>
                   <th className="px-4 py-2.5"></th>
                 </tr>
@@ -134,16 +122,25 @@ export function SupplierCommissionsPage() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                      {row.commissionPaid ? row.commissionPaymentLabel : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
                       {formatDate(row.deliveredAt)}
                     </td>
                     <td className="px-4 py-3 text-right">
                       {row.commissionPaid ? (
-                        <span className="text-xs text-muted-foreground">—</span>
+                        <CommissionReceiptButton quoteId={row.quoteId} hasReceipt={row.hasReceipt} />
                       ) : (
                         <Button
                           size="sm"
                           className="rounded-lg"
-                          onClick={() => void handleSettle(row.quoteId, row.orderRef)}
+                          onClick={() =>
+                            setSettleTarget({
+                              quoteId: row.quoteId,
+                              orderRef: row.orderRef,
+                              commissionAmount: row.commissionAmount,
+                            })
+                          }
                         >
                           Régler
                         </Button>
@@ -156,6 +153,45 @@ export function SupplierCommissionsPage() {
           </div>
         </Card>
       )}
+
+      <SupplierCommissionSettleDialog
+        open={settleTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setSettleTarget(null);
+        }}
+        target={settleTarget}
+        onSettled={() => setSettleTarget(null)}
+      />
     </div>
+  );
+}
+
+function CommissionReceiptButton({
+  quoteId,
+  hasReceipt,
+}: {
+  quoteId: Id<"orderSupplierQuotes">;
+  hasReceipt: boolean;
+}) {
+  const receiptUrl = useQuery(api.supplierPortal.getCommissionReceiptUrl, { quoteId });
+
+  if (!hasReceipt) {
+    return <span className="text-xs text-muted-foreground">—</span>;
+  }
+
+  if (receiptUrl === undefined) {
+    return <Loader2 className="ml-auto size-4 animate-spin text-muted-foreground" />;
+  }
+
+  if (!receiptUrl) {
+    return <span className="text-xs text-muted-foreground">—</span>;
+  }
+
+  return (
+    <Button size="sm" variant="outline" asChild>
+      <a href={receiptUrl} target="_blank" rel="noreferrer">
+        Voir reçu
+      </a>
+    </Button>
   );
 }

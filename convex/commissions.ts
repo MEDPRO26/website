@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { requireAdminPermission } from "./lib/authz";
 import { getQuotePricing } from "./lib/quotePricing";
 import { logAudit } from "./lib/auditLog";
+import { commissionPaymentLabel } from "../lib/crm/commission-payment";
 
 export const list = query({
   args: {},
@@ -38,6 +39,9 @@ export const list = query({
           commissionAmount: latestOffer?.commissionAmount ?? pricing.commissionAmount,
           commissionPaid: Boolean(quote.commissionPaidAt),
           commissionPaidAt: quote.commissionPaidAt,
+          commissionPaymentMethod: quote.commissionPaymentMethod ?? null,
+          commissionPaymentLabel: commissionPaymentLabel(quote.commissionPaymentMethod),
+          hasReceipt: Boolean(quote.commissionReceiptStorageId),
           offerStatus: latestOffer?.status ?? "none",
           orderStatus: order?.status ?? "nouvelle",
           submittedAt: quote.submittedAt ?? quote.createdAt,
