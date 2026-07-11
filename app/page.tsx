@@ -267,7 +267,7 @@ export default function Home() {
       <JsonLd data={homeSchema} />
       <Navbar />
 
-      <main className="flex-1 pb-20 pt-16 md:pb-0 md:pt-20">
+      <main className="flex-1 pb-20 md:pb-0">
         <HeroScrollSection
           images={heroGalleryImages}
           galleryOverlay={

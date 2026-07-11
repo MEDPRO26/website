@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
 :root {
+  --site-header-top: 0px;
+  --site-header-height: 4rem;
+  --site-header-offset: 4rem;
+
   --brand-blue: #32a0f3;
   --brand-gray: #747782;
 

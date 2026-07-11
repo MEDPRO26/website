@@ -269,29 +269,31 @@ export default function HeroScrollSection({
     <div
       ref={trackRef}
       id="accueil"
-      className="relative scroll-mt-16 md:scroll-mt-20"
+      className="relative scroll-mt-[var(--site-header-offset,4rem)]"
       style={isDesktop ? { height: `${scrollHeightVh}vh` } : undefined}
     >
       {/* Mobile: swipeable carousel */}
-      <div className="px-4 pb-6 pt-4 sm:px-6 lg:hidden">
-        <GalleryFrame
-          images={images}
-          activeIndex={mobileIndex}
-          galleryOverlay={galleryOverlay}
-          className="aspect-[16/10] max-h-[220px] touch-pan-y sm:max-h-[260px]"
-          onTouchStart={handleMobileTouchStart}
-          onTouchEnd={handleMobileTouchEnd}
-        />
-        <GalleryDots
-          images={images}
-          activeIndex={mobileIndex}
-          onSelect={goToMobileSlide}
-        />
+      <div className="px-4 pb-6 pt-[calc(var(--site-header-offset,4rem)+0.5rem)] sm:px-6 lg:hidden">
+        <div id="accueil-hero-gallery">
+          <GalleryFrame
+            images={images}
+            activeIndex={mobileIndex}
+            galleryOverlay={galleryOverlay}
+            className="aspect-[16/10] max-h-[220px] touch-pan-y sm:max-h-[260px]"
+            onTouchStart={handleMobileTouchStart}
+            onTouchEnd={handleMobileTouchEnd}
+          />
+          <GalleryDots
+            images={images}
+            activeIndex={mobileIndex}
+            onSelect={goToMobileSlide}
+          />
+        </div>
         <div className="mt-6">{children}</div>
       </div>
 
       {/* Desktop: sticky scroll-driven gallery */}
-      <div className="sticky top-16 hidden h-[calc(100vh-4rem)] flex-col overflow-hidden md:top-20 md:h-[calc(100vh-5rem)] lg:flex">
+      <div className="sticky top-[var(--site-header-offset,4rem)] hidden h-[calc(100vh-var(--site-header-offset,4rem))] flex-col overflow-hidden lg:flex">
         <div className="relative flex min-h-0 flex-1 flex-col justify-center px-4 sm:px-6 lg:px-8">
           <div className="absolute inset-0 -z-10">
             <div className="absolute -left-[20%] -top-[20%] h-[70%] w-[70%] rounded-full bg-primary/5 blur-[100px]" />
