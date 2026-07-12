@@ -10,7 +10,8 @@ import SiteFooter from "@/components/site-footer";
 import { activeCities, getCityBySlug, type CitySlug } from "@/lib/cities";
 import { getCityHubContent } from "@/lib/city-hub-content";
 import { blogPosts } from "@/lib/blog";
-import { getProductsByCity, whatsAppHref } from "@/lib/products";
+import { getProductsByCity } from "@/lib/products";
+import { cityWhatsAppHref } from "@/lib/whatsapp-lines";
 import {
   hubCityPath,
   venteCategoryPath,
@@ -507,7 +508,7 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
         <QuoteRequestSection
           title={`Besoin d'un devis à ${city.name} ?`}
           description={`Contactez ${content.badgeLabel} pour la vente, la location ou l'aide à domicile. Nos experts vous répondent en moins de 15 minutes pour organiser la livraison de votre matériel médical.`}
-          whatsappHref={whatsAppHref(whatsappText, "materiel")}
+          whatsappHref={cityWhatsAppHref(city, whatsappText, "materiel")}
           defaultCityName={city.name}
           pagePath={path}
           productNames={productNames}

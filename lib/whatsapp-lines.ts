@@ -27,9 +27,24 @@ export function whatsAppDigits(line: WhatsAppLine = "general") {
   return WHATSAPP_LINES[line];
 }
 
-export function whatsAppHref(text?: string, line: WhatsAppLine = "general") {
-  const base = `https://wa.me/${WHATSAPP_LINES[line]}`;
+export function whatsAppHref(
+  text?: string,
+  line: WhatsAppLine = "general",
+  digits?: string
+) {
+  const number = digits?.replace(/\D/g, "") || WHATSAPP_LINES[line];
+  const base = `https://wa.me/${number}`;
   return text ? `${base}?text=${encodeURIComponent(text)}` : base;
+}
+
+export function cityWhatsAppHref(
+  city: { contactReady: boolean; whatsapp: string },
+  text?: string,
+  line: WhatsAppLine = "general"
+) {
+  const digits =
+    city.contactReady && city.whatsapp ? city.whatsapp : undefined;
+  return whatsAppHref(text, line, digits);
 }
 
 /** CRM webhook URL for 360Messenger (uses public Convex site URL). */

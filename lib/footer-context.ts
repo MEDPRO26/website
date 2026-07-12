@@ -12,6 +12,7 @@ import {
   PHONE_NUMBER,
   whatsAppHref,
 } from "@/lib/products";
+import { cityWhatsAppHref } from "@/lib/whatsapp-lines";
 import {
   SITE_NATIONAL_DESCRIPTION,
   SITE_NATIONAL_NAME,
@@ -83,7 +84,8 @@ export function buildCityFooterContext(cityOrSlug: City | CitySlug): FooterConte
     phoneHref: hasLocalContact ? `tel:${city.phone}` : undefined,
     whatsappHref:
       hasLocalContact && city.whatsapp
-        ? whatsAppHref(
+        ? cityWhatsAppHref(
+            city,
             `Bonjour ${city.brandName}, je souhaite des informations.`,
             "general"
           )

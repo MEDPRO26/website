@@ -21,9 +21,9 @@ import { formatProductAchatHeading } from "@/lib/french";
 import { venteCityPath, venteCategoryPath, venteProductPath, hubCityPath } from "@/lib/routes";
 import {
   PRICE_ON_REQUEST,
-  whatsAppHref,
   type Product,
 } from "@/lib/products";
+import { cityWhatsAppHref } from "@/lib/whatsapp-lines";
 
 function MaterialIcon({
   name,
@@ -543,7 +543,7 @@ export default function ProductDetail({
                     </div>
 
                     <a
-                      href={whatsAppHref(whatsappText, "materiel")}
+                      href={cityWhatsAppHref(city, whatsappText, "materiel")}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#25D366]/30 bg-[#25D366]/5 py-3 text-sm font-semibold text-[#128C7E] transition-colors hover:bg-[#25D366]/10"

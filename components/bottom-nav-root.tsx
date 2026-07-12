@@ -3,6 +3,8 @@
 import { usePathname } from "next/navigation";
 import MobileBottomNav from "@/components/mobile-bottom-nav";
 import { AdminBottomNav } from "@/components/admin-bottom-nav";
+import { getFooterContextFromPath } from "@/lib/footer-context";
+import { whatsAppHref } from "@/lib/products";
 
 export function BottomNavRoot() {
   const pathname = usePathname();
@@ -19,6 +21,14 @@ export function BottomNavRoot() {
     return <AdminBottomNav />;
   }
 
-  return <MobileBottomNav />;
+  const footerContext = getFooterContextFromPath(pathname ?? "/");
+
+  return (
+    <MobileBottomNav
+      whatsappHref={
+        footerContext.whatsappHref ?? whatsAppHref(undefined, "general")
+      }
+    />
+  );
 }
 
