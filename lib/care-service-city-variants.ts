@@ -16,7 +16,7 @@ const rabatVariants: Record<string, CareServiceCityContentVariant> = {
       {
         number: "01",
         title: "Réactivité locale",
-        text: "Notre cellule de coordination à Rabat traite les demandes en continu et cherche un créneau compatible avec votre quartier — Hay Riad, Agdal, Souissi, Salé ou Temara.",
+        text: "Notre cellule de coordination à Rabat traite les demandes en continu et cherche un créneau compatible avec votre quartier - Hay Riad, Agdal, Souissi, Salé ou Temara.",
       },
       {
         number: "02",
@@ -47,7 +47,7 @@ const rabatVariants: Record<string, CareServiceCityContentVariant> = {
       },
       {
         title: "Plan individualisé",
-        text: "Chaque protocole tient compte de votre logement, de vos escaliers et de vos objectifs — retour au travail, marche autonome ou douleur chronique.",
+        text: "Chaque protocole tient compte de votre logement, de vos escaliers et de vos objectifs - retour au travail, marche autonome ou douleur chronique.",
         accent: "rose",
       },
       {
@@ -60,7 +60,7 @@ const rabatVariants: Record<string, CareServiceCityContentVariant> = {
       title: "Un réseau de kinésithérapeutes couvrant Rabat et environs",
       paragraphs: [
         "Notre équipe de coordination à Rabat identifie le profil de kinésithérapeute le plus adapté : rééducation du membre inférieur, épaule, colonne vertébrale, rééducation respiratoire ou prise en charge neurologique.",
-        "Travailler dans votre salon ou votre chambre permet d'intégrer des exercices fonctionnels concrets — se lever du lit, monter quelques marches, s'asseoir sur une chaise — directement dans votre cadre de vie.",
+        "Travailler dans votre salon ou votre chambre permet d'intégrer des exercices fonctionnels concrets - se lever du lit, monter quelques marches, s'asseoir sur une chaise - directement dans votre cadre de vie.",
       ],
       bullets: [
         "Rééducation post-chirurgicale à Rabat",
@@ -332,7 +332,7 @@ const rabatVariants: Record<string, CareServiceCityContentVariant> = {
       "Consultation médicale à domicile à Rabat : SOS Santé coordonne la visite d'un médecin généraliste partenaire pour les personnes immobilisées, convalescentes ou pressées.",
     seoIntroHeading: "Médecin à domicile à Rabat : un généraliste qui vient chez vous",
     seoIntro:
-      "Fièvre, infection, impossibilité de se déplacer ou simple besoin de consultation sans salle d'attente : SOS Santé Rabat organise la mise en relation avec un médecin généraliste partenaire disponible dans votre secteur. Examen clinique, prescription et orientation si besoin — le tout coordonné avec transparence sur les honoraires.",
+      "Fièvre, infection, impossibilité de se déplacer ou simple besoin de consultation sans salle d'attente : SOS Santé Rabat organise la mise en relation avec un médecin généraliste partenaire disponible dans votre secteur. Examen clinique, prescription et orientation si besoin - le tout coordonné avec transparence sur les honoraires.",
     whyChoose: [
       {
         number: "01",
@@ -407,7 +407,7 @@ const rabatVariants: Record<string, CareServiceCityContentVariant> = {
       {
         title: "Diagnostic contextualisé",
         paragraphs: [
-          "Observer le logement aide le médecin à formuler des recommandations pratiques — prévention des chutes, aération, organisation des soins.",
+          "Observer le logement aide le médecin à formuler des recommandations pratiques - prévention des chutes, aération, organisation des soins.",
         ],
       },
     ],
@@ -488,7 +488,7 @@ const rabatVariants: Record<string, CareServiceCityContentVariant> = {
       {
         number: "01",
         title: "Réponse adaptée",
-        text: "Nous qualifions votre besoin — quelques heures par semaine ou garde prolongée — et cherchons un aide-soignant disponible dans votre secteur à Rabat.",
+        text: "Nous qualifions votre besoin - quelques heures par semaine ou garde prolongée - et cherchons un aide-soignant disponible dans votre secteur à Rabat.",
       },
       {
         number: "02",

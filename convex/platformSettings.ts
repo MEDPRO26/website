@@ -7,7 +7,7 @@ import { whatsappProviderValidator } from "./validators";
 const DEFAULTS = {
   defaultCity: "Agadir",
   contactEmail: "contact@sossante.ma",
-  seoSiteTitle: "SOS Santé Agadir — Matériel médical et aide à domicile",
+  seoSiteTitle: "SOS Santé Agadir - Matériel médical et aide à domicile",
   seoSiteDescription:
     "Coordination locale pour location matériel médical, garde-malade et aide à domicile à Agadir.",
   notifyNewOrderEmail: true,

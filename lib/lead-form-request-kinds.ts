@@ -7,7 +7,7 @@ export function isLeadRequestKindDisabled(value: string) {
 
 export function getLeadRequestKindOptionLabel(baseLabel: string, value: string) {
   if (isLeadRequestKindDisabled(value)) {
-    return `${baseLabel} — bientôt disponible`;
+    return `${baseLabel} - bientôt disponible`;
   }
   return baseLabel;
 }

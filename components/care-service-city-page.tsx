@@ -281,7 +281,7 @@ export function CareServiceCityPage({
               <div className="relative min-h-[220px] overflow-hidden rounded-3xl sm:row-span-2 sm:min-h-[460px]">
                 <Image
                   src={images.bentoMain}
-                  alt={`${images.altWithCity} — accompagnement`}
+                  alt={`${images.altWithCity} - accompagnement`}
                   fill
                   className="object-cover"
                   sizes="(min-width: 1024px) 25vw, 100vw"
@@ -303,7 +303,7 @@ export function CareServiceCityPage({
               <div className="relative min-h-[200px] overflow-hidden rounded-3xl sm:col-span-2 lg:col-span-1">
                 <Image
                   src={images.bentoSecondary}
-                  alt={`${images.altWithCity} — service de proximité`}
+                  alt={`${images.altWithCity} - service de proximité`}
                   fill
                   className="object-cover"
                   sizes="(min-width: 1024px) 25vw, 100vw"
@@ -325,7 +325,7 @@ export function CareServiceCityPage({
               paragraphs={expertise.paragraphs}
               bullets={expertise.bullets}
               imageSrc={images.expertise}
-              imageAlt={`${images.altWithCity} — expertise`}
+              imageAlt={`${images.altWithCity} - expertise`}
               imagePosition="left"
             />
           </div>
@@ -392,7 +392,7 @@ export function CareServiceCityPage({
                       images.specialties[index] ??
                       images.expertise
                     }
-                    imageAlt={`${images.altWithCity} — ${specialty.title}`}
+                    imageAlt={`${images.altWithCity} - ${specialty.title}`}
                     imagePosition={index % 2 === 0 ? "right" : "left"}
                   />
                 ))}
@@ -407,7 +407,7 @@ export function CareServiceCityPage({
               title={trust.title}
               paragraphs={trust.paragraphs}
               imageSrc={images.trust}
-              imageAlt={`${images.altWithCity} — confiance`}
+              imageAlt={`${images.altWithCity} - confiance`}
               imagePosition="left"
             />
           </div>

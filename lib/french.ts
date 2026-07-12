@@ -10,20 +10,30 @@ export function frenchDe(phrase: string): string {
 
 const SEO_TITLE_SUFFIX = " | SOS Santé";
 
+/** ASCII hyphen in public titles and labels (not em/en dashes). */
+export function normalizePublicDash(text: string): string {
+  return text.replace(/[\u2013\u2014]/g, "-");
+}
+
 /** Normalizes product SEO titles: "Achat aspirateur..." → "Achat d'aspirateur..." */
 export function formatAchatSeoTitle(seoTitle: string): string {
-  if (!seoTitle.endsWith(SEO_TITLE_SUFFIX)) return seoTitle;
+  const normalized = normalizePublicDash(seoTitle);
+  if (!normalized.endsWith(SEO_TITLE_SUFFIX)) return normalized;
 
-  const label = seoTitle.slice(0, -SEO_TITLE_SUFFIX.length);
-  if (!label.startsWith("Achat ")) return seoTitle;
+  const label = normalized.slice(0, -SEO_TITLE_SUFFIX.length);
+  if (!label.startsWith("Achat ")) return normalized;
 
   const productPart = label.slice(6);
-  return `Achat ${frenchDe(productPart)}${SEO_TITLE_SUFFIX}`;
+  return normalizePublicDash(
+    `Achat ${frenchDe(productPart)}${SEO_TITLE_SUFFIX}`
+  );
 }
 
 export function formatProductAchatHeading(
   productName: string,
   city: string
 ): string {
-  return `Achat ${frenchDe(productName)} — ${city}`;
+  return normalizePublicDash(
+    `Achat ${frenchDe(normalizePublicDash(productName))} - ${city}`
+  );
 }

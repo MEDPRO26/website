@@ -94,7 +94,7 @@ export function buildCityFooterContext(cityOrSlug: City | CitySlug): FooterConte
   return {
     variant: "city",
     city,
-    brandTitle: `${city.brandName} – Matériel Médical & Aide à Domicile`,
+    brandTitle: `${city.brandName} - Matériel Médical & Aide à Domicile`,
     description: `Location, vente et livraison de matériel médical à domicile à ${city.name} selon disponibilité.`,
     zones: city.zones,
     phone: hasLocalContact ? city.phone : undefined,
@@ -113,7 +113,7 @@ export function buildCityFooterContext(cityOrSlug: City | CitySlug): FooterConte
     websiteHref: `${SITE_URL_DEFAULT}${landingPath}`,
     showAddress: Boolean(city.contactReady && city.showAddress && city.address),
     address: city.address,
-    copyrightName: `${city.brandName} – Matériel Médical & Aide à Domicile`,
+    copyrightName: `${city.brandName} - Matériel Médical & Aide à Domicile`,
   };
 }
 

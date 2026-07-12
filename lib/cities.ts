@@ -133,7 +133,7 @@ export const cities: City[] = [
       "Ain Sebaâ",
     ],
     deliveryText:
-      "Livraison 24–48h à Casablanca et sa métropole. Frais selon distance.",
+      "Livraison 24-48h à Casablanca et sa métropole. Frais selon distance.",
     locationSlug: "location-materiel-medical-casablanca",
     venteSlug: "vente-de-materiel-medical-casablanca",
     hubSlug: "location-vente-materiel-medical-casablanca",
@@ -166,7 +166,7 @@ export const cities: City[] = [
     contactReady: false,
     available: false,
     zones: ["Tanger"],
-    deliveryText: "Livraison à Tanger et sa région sous 48–72h.",
+    deliveryText: "Livraison à Tanger et sa région sous 48-72h.",
     locationSlug: "location-materiel-medical-tanger",
     venteSlug: "vente-de-materiel-medical-tanger",
     hubSlug: "location-vente-materiel-medical-tanger",

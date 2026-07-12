@@ -15,7 +15,7 @@ export function computeFinalPrice(supplierTotalAmount: number, commissionPct: nu
   return supplierTotalAmount + computeCommission(supplierTotalAmount, commissionPct);
 }
 
-/** Client price from quote — declared commission model uses line total only. */
+/** Client price from quote - declared commission model uses line total only. */
 export function clientPriceFromQuote(args: {
   basePrice: number;
   deliveryFee: number;
@@ -89,16 +89,16 @@ export function buildDefaultOfferMessage(args: {
     `Bonjour ${args.clientFirstName},`,
     "",
     `Suite à votre demande de ${requestLabel} :`,
-    `— ${itemLabel} : ${args.item}`,
+    `- ${itemLabel} : ${args.item}`,
   ];
 
   if (args.duration?.trim()) {
-    lines.push(`— Durée : ${args.duration.trim()}`);
+    lines.push(`- Durée : ${args.duration.trim()}`);
   }
 
   lines.push(
-    `— Prix : ${formatMad(args.finalPrice)} (livraison & installation incluses)`,
-    `— Disponibilité : ${availability}`,
+    `- Prix : ${formatMad(args.finalPrice)} (livraison & installation incluses)`,
+    `- Disponibilité : ${availability}`,
     "",
     "Merci de confirmer pour planification.",
     "Équipe SOS Santé Agadir"

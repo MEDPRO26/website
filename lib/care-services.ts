@@ -4,6 +4,7 @@ import {
   resolveCareServiceSeo,
   type CareServiceResolvedSeo,
 } from "@/lib/care-service-seo";
+import { normalizePublicDash } from "@/lib/french";
 import { getCareServiceCityImages } from "@/lib/care-service-city-images";
 import { getCareServiceCityContentVariant } from "@/lib/care-service-city-variants";
 
@@ -313,7 +314,9 @@ export function getCareServicePageContent(
     citySlug,
     path: careServiceCityPath(serviceSlug, citySlug),
     h1: `${service.title} à ${cityName}`,
-    metaTitle: `${service.title} à ${cityName} | SOS Santé`,
+    metaTitle: normalizePublicDash(
+      `${service.title} à ${cityName} | SOS Santé`
+    ),
     metaDescription: `${resolvedSeo.seoIntro.slice(0, 155)}…`,
     keywords: service.keywords(cityName),
     icon: service.icon,
@@ -344,7 +347,7 @@ export function getCareServicePageContent(
       hero: cityImages.hero,
       section: cityImages.bentoMain,
       alt: cityImages.alt,
-      altWithCity: `${cityImages.alt} — ${cityName}`,
+      altWithCity: `${cityImages.alt} - ${cityName}`,
       bentoMain: cityImages.bentoMain,
       bentoSecondary: cityImages.bentoSecondary,
       expertise: cityImages.expertise,

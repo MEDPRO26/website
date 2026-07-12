@@ -31,7 +31,7 @@ export const diagnosticProducts: Product[] = [
     alt: "Amplificateur auditif Beurer",
     specs: [
       { label: "Amplification max.", value: "40 dB" },
-      { label: "Plage de fréquences", value: "200–5 000 Hz" },
+      { label: "Plage de fréquences", value: "200-5 000 Hz" },
       { label: "Embouts", value: "3 tailles" },
     ],
     included: ["Amplificateur auditif", "3 embouts", "Boîte de rangement"],
@@ -145,7 +145,7 @@ export const diagnosticProducts: Product[] = [
   }),
   diagnosticProduct({
     slug: "atlas-moniteur-multiparametrique",
-    name: "ATLAS – Moniteur multiparamétrique",
+    name: "ATLAS - Moniteur multiparamétrique",
     shortName: "Moniteur ATLAS",
     tagline: "Moniteur patient multiparamétrique pour la surveillance clinique.",
     description:
@@ -178,7 +178,7 @@ export const diagnosticProducts: Product[] = [
       },
     ],
     related: [],
-    seoTitle: "Achat moniteur multiparamétrique ATLAS | SOS Santé",
+    seoTitle: "Achat ATLAS - moniteur multiparamétrique | SOS Santé",
     seoDescription:
       "Achetez un moniteur multiparamétrique ATLAS au Maroc. Livraison et conseil avec SOS Santé.",
   }),
@@ -425,7 +425,7 @@ export const diagnosticProducts: Product[] = [
     description:
       "Analyseur numérique portable conçu pour mesurer le taux d'hémoglobine à partir d'un échantillon capillaire, avec affichage numérique et utilisation simplifiée.",
     extendedDescription:
-      "Format compact adapté à un usage en cabinet ou en déplacement. Fournit un résultat rapide après prélèvement. Les bandelettes de test sont généralement fournies séparément selon le modèle — contactez-nous pour connaître la configuration disponible.",
+      "Format compact adapté à un usage en cabinet ou en déplacement. Fournit un résultat rapide après prélèvement. Les bandelettes de test sont généralement fournies séparément selon le modèle - contactez-nous pour connaître la configuration disponible.",
     image: "/products/hemoglobinometre-numerique-anemie.webp",
     alt: "Hémoglobinomètre numérique pour anémie",
     specs: [
@@ -510,7 +510,7 @@ export const diagnosticProducts: Product[] = [
       { label: "Modèle", value: "OP-6500" },
       { label: "Écran", value: "TFT couleur 2,8″" },
       { label: "Paramètres", value: "SpO2, NIBP, température, pouls" },
-      { label: "Alimentation", value: "100–240 V + batterie lithium" },
+      { label: "Alimentation", value: "100-240 V + batterie lithium" },
     ],
     included: ["Moniteur multiparamétrique OP-6500"],
     useCases: [
@@ -582,7 +582,7 @@ export const diagnosticProducts: Product[] = [
     description:
       "Négatoscope ultra-fin à rétroéclairage LED avec régulateur de luminosité numérique et activation automatique des clichés.",
     extendedDescription:
-      "Structure en alliage d'aluminium, écran en polymère méthacrylique et épaisseur d'environ 2,4 cm. Disponible en version 1 à 4 plages selon les références OP-NL01 à OP-NL04. Alimentation 100–240 V.",
+      "Structure en alliage d'aluminium, écran en polymère méthacrylique et épaisseur d'environ 2,4 cm. Disponible en version 1 à 4 plages selon les références OP-NL01 à OP-NL04. Alimentation 100-240 V.",
     image: "/products/negatoscope-ultra-fin-led.webp",
     alt: "Négatoscope ultra-fin LED",
     specs: [
@@ -787,7 +787,7 @@ export const diagnosticProducts: Product[] = [
       { label: "Référence", value: "BC-28" },
       { label: "Marque", value: "Beurer" },
       { label: "Type", value: "Poignet" },
-      { label: "Manchette", value: "14–19,5 cm" },
+      { label: "Manchette", value: "14-19,5 cm" },
     ],
     included: ["Tensiomètre électronique de poignet"],
     useCases: [
@@ -866,7 +866,7 @@ export const diagnosticProducts: Product[] = [
       { label: "Référence", value: "FT-85" },
       { label: "Marque", value: "Beurer" },
       { label: "Type", value: "Infrarouge sans contact" },
-      { label: "Distance", value: "≈ 2–3 cm" },
+      { label: "Distance", value: "≈ 2-3 cm" },
     ],
     included: ["Thermomètre infrarouge sans contact"],
     useCases: [

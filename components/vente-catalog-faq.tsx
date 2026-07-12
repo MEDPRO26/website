@@ -26,7 +26,7 @@ export default function VenteCatalogFaq({ citySlug }: { citySlug: CitySlug }) {
     <section className="bg-surface-container-low px-4 py-10 sm:px-6 sm:py-14">
       <div className="mx-auto max-w-3xl">
         <h2 className="font-heading mb-6 text-center text-2xl font-semibold text-secondary sm:text-3xl">
-          Questions fréquentes — achat matériel médical
+          Questions fréquentes - achat matériel médical
         </h2>
         <div className="space-y-3">
           {faqs.map((faq, index) => {

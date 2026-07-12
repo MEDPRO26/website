@@ -100,7 +100,7 @@ const sharedCommunity: CareServiceContentBlock = {
 export const careServiceSeoProfiles: Record<string, CareServiceSeoProfile> = {
   "kinesitherapie-a-domicile": {
     heroSubheadline: (city) =>
-      `SOS Santé met à votre disposition des kinésithérapeutes partenaires à ${city}, prêts à intervenir à domicile selon disponibilité — rééducation motrice, respiratoire et neurologique.`,
+      `SOS Santé met à votre disposition des kinésithérapeutes partenaires à ${city}, prêts à intervenir à domicile selon disponibilité - rééducation motrice, respiratoire et neurologique.`,
     seoIntroHeading: (city) =>
       `Kiné à domicile à ${city} : soins de qualité à votre porte`,
     seoIntro: (city) =>
@@ -142,7 +142,7 @@ export const careServiceSeoProfiles: Record<string, CareServiceSeoProfile> = {
       title: "L'expertise de notre réseau de kinésithérapeutes",
       paragraphs: (city) => [
         `SOS Santé coordonne à ${city} la mise en relation avec des kinésithérapeutes partenaires capables de prendre en charge une large variété de situations : rééducation après fracture, entorse, chirurgie orthopédique, pathologies respiratoires, troubles neurologiques ou pédiatriques.`,
-        `Intervenir à domicile permet au professionnel d'adapter les exercices à votre espace de vie réel — escaliers, salle de bain, chambre — pour une rééducation plus concrète et plus efficace.`,
+        `Intervenir à domicile permet au professionnel d'adapter les exercices à votre espace de vie réel - escaliers, salle de bain, chambre - pour une rééducation plus concrète et plus efficace.`,
       ],
       bullets: (city) => [
         `Kiné urgence à domicile à ${city}`,
@@ -180,7 +180,7 @@ export const careServiceSeoProfiles: Record<string, CareServiceSeoProfile> = {
         title: (city) => `Kiné urgente et soins immédiats à ${city}`,
         paragraphs: (city) => [
           `Pour certaines situations nécessitant une prise en charge rapide à ${city}, SOS Santé tente de vous orienter vers un kinésithérapeute partenaire disponible dans les meilleurs délais. Contactez-nous par WhatsApp ou formulaire pour qualifier votre urgence.`,
-          `Nous couvrons ${city} et les communes avoisinantes. En cas d'urgence vitale, composez les numéros d'urgence compétents — SOS Santé coordonne des soins à domicile, pas les urgences hospitalières.`,
+          `Nous couvrons ${city} et les communes avoisinantes. En cas d'urgence vitale, composez les numéros d'urgence compétents - SOS Santé coordonne des soins à domicile, pas les urgences hospitalières.`,
         ],
       },
       {

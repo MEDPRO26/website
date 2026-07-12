@@ -485,7 +485,7 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
         <section className="px-4 py-10 sm:px-6 sm:py-14">
           <div className="mx-auto max-w-3xl">
             <h2 className="font-heading mb-6 text-center text-2xl font-semibold text-secondary sm:text-3xl">
-              Questions fréquentes — matériel médical à {city.name}
+              Questions fréquentes - matériel médical à {city.name}
             </h2>
             <div className="space-y-4">
               {content.faqs.map((faq) => (

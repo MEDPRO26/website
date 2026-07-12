@@ -61,7 +61,7 @@ function buildInogenLanding(): ProductLandingContent {
     path: nationalProductPath(INOGEN_LANDING_SLUG),
     product,
     metaTitle:
-      "Inogen Rove G6 au Maroc | Concentrateur d'oxygène portable | SOS Santé",
+      "Inogen Rove G6 - concentrateur portable au Maroc | SOS Santé",
     metaDescription:
       "Achetez l'Inogen Rove G6 au Maroc : concentrateur d'oxygène portable ultra-léger (2,6 kg), 6 réglages, jusqu'à 13 h d'autonomie. Livraison nationale, conseil médical et devis gratuit.",
     keywords: [
@@ -77,7 +77,7 @@ function buildInogenLanding(): ProductLandingContent {
     h1Accent: "Liberté & autonomie partout au Maroc",
     heroBadge: "Concentrateur portable · Livraison nationale",
     heroIntro:
-      "Le concentrateur d'oxygène portable le plus avancé d'Inogen : seulement 2,6 kg, 6 réglages de débit pulsé et jusqu'à 13 heures d'autonomie. Retrouvez une vie active — sorties, voyages et oxygénothérapie sans contrainte, avec l'accompagnement SOS Santé.",
+      "Le concentrateur d'oxygène portable le plus avancé d'Inogen : seulement 2,6 kg, 6 réglages de débit pulsé et jusqu'à 13 heures d'autonomie. Retrouvez une vie active - sorties, voyages et oxygénothérapie sans contrainte, avec l'accompagnement SOS Santé.",
     heroImage: product.image,
     heroImageAlt: product.alt,
     benefits: [
@@ -129,7 +129,7 @@ function buildInogenLanding(): ProductLandingContent {
         title: "Oxygénothérapie mobile pour une vie active",
         paragraphs: [
           "L'Inogen Rove G6 (successeur de l'Inogen One G5) est conçu pour les patients nécessitant une oxygénothérapie à domicile ou en déplacement : BPCO, emphysème, fibrose pulmonaire ou insuffisance respiratoire chronique.",
-          "Contrairement à un concentrateur fixe 5 L/min, le Rove 6 vous accompagne partout — courses, promenade, visite familiale ou voyage — sans bouteilles d'oxygène encombrantes.",
+          "Contrairement à un concentrateur fixe 5 L/min, le Rove 6 vous accompagne partout - courses, promenade, visite familiale ou voyage - sans bouteilles d'oxygène encombrantes.",
         ],
         bullets: [
           "Utilisation 24 h/24, 7 j/7",

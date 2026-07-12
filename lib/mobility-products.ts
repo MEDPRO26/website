@@ -112,7 +112,7 @@ export const mobilityProducts: Product[] = [
     image: "/products/canne-3eme-age-pliable.webp",
     alt: "Canne pliable 3ème âge en aluminium",
     specs: [
-      { label: "Hauteur réglable", value: "82–92 cm" },
+      { label: "Hauteur réglable", value: "82-92 cm" },
       { label: "Poids", value: "0,3 kg" },
       { label: "Matériau", value: "Aluminium" },
     ],
@@ -190,7 +190,7 @@ export const mobilityProducts: Product[] = [
     image: "/products/canne-quadripode.webp",
     alt: "Canne quadripode en aluminium",
     specs: [
-      { label: "Hauteur réglable", value: "72,5–95 cm" },
+      { label: "Hauteur réglable", value: "72,5-95 cm" },
       { label: "Poids", value: "1,1 kg" },
       { label: "Base", value: "4 pieds" },
     ],
@@ -390,7 +390,7 @@ export const mobilityProducts: Product[] = [
     image: "/products/deambulateur-articule-pliable.webp",
     alt: "Déambulateur articulé pliable en aluminium",
     specs: [
-      { label: "Hauteur réglable", value: "74,5–92 cm" },
+      { label: "Hauteur réglable", value: "74,5-92 cm" },
       { label: "Dimensions replié", value: "56 × 57 cm" },
       { label: "Capacité de charge", value: "100 kg" },
     ],
@@ -864,7 +864,7 @@ export const mobilityProducts: Product[] = [
     alt: "Lit médicalisé électrique trois articulations",
     specs: [
       { label: "Plan de couchage", value: "192,5 × 90 cm" },
-      { label: "Hauteur variable", value: "43,5–74 cm" },
+      { label: "Hauteur variable", value: "43,5-74 cm" },
       { label: "Relève buste", value: "75° ± 10°" },
     ],
     included: ["Lit électrique", "Potence à sérum", "Barrières latérales"],
@@ -904,7 +904,7 @@ export const mobilityProducts: Product[] = [
     specs: [
       { label: "Dimensions", value: "212 × 96 cm" },
       { label: "Capacité de charge", value: "175 kg" },
-      { label: "Relève buste", value: "0–80°" },
+      { label: "Relève buste", value: "0-80°" },
     ],
     included: ["Lit électrique", "Barrières latérales", "Roulettes avec frein"],
     useCases: [
@@ -942,8 +942,8 @@ export const mobilityProducts: Product[] = [
     alt: "Lit médicalisé mécanique deux articulations",
     specs: [
       { label: "Plan de couchage", value: "192,5 × 83 cm" },
-      { label: "Relève buste", value: "0–75° ± 10°" },
-      { label: "Relève jambes", value: "0–35° ± 10°" },
+      { label: "Relève buste", value: "0-75° ± 10°" },
+      { label: "Relève jambes", value: "0-35° ± 10°" },
     ],
     included: [
       "Lit mécanique",
@@ -1102,7 +1102,7 @@ export const mobilityProducts: Product[] = [
     image: "/products/potence-perfusion-mobile.webp",
     alt: "Potence à perfusion mobile standard",
     specs: [
-      { label: "Hauteur réglable", value: "110–210 cm" },
+      { label: "Hauteur réglable", value: "110-210 cm" },
       { label: "Crochets", value: "4 (inox)" },
       { label: "Base", value: "5 branches avec roulettes" },
     ],
@@ -1180,7 +1180,7 @@ export const mobilityProducts: Product[] = [
     image: "/products/rollator-aluminium-4-roues.webp",
     alt: "Rollator en aluminium à quatre roues avec siège",
     specs: [
-      { label: "Hauteur poignées", value: "77–87 cm (réglable)" },
+      { label: "Hauteur poignées", value: "77-87 cm (réglable)" },
       { label: "Hauteur assise", value: "54 cm" },
       { label: "Freins", value: "2 freins à main" },
     ],
@@ -1259,7 +1259,7 @@ export const mobilityProducts: Product[] = [
     alt: "Table d'examen médicale avec dossier réglable",
     specs: [
       { label: "Dimensions", value: "190 × 60 × 68 cm" },
-      { label: "Dossier", value: "0–60° (crémaillère)" },
+      { label: "Dossier", value: "0-60° (crémaillère)" },
       { label: "Mousse", value: "Haute densité (30 kg/m³)" },
     ],
     included: ["Table d'examen"],

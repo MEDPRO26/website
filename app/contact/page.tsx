@@ -207,7 +207,7 @@ export default function ContactPage() {
                 </h3>
                 <ul className="space-y-3 font-body text-on-surface-variant">
                   <li className="flex items-center justify-between">
-                    <span>Lundi – Dimanche</span>
+                    <span>Lundi - Dimanche</span>
                     <span className="font-semibold text-on-surface">
                       24h/24, 7j/7
                     </span>

@@ -38,7 +38,7 @@ export function getOrderRequestKindOptionLabel(
   options?: { allowService?: boolean }
 ) {
   if (isOrderRequestKindDisabled(kind, options)) {
-    return `${baseLabel} — bientôt disponible`;
+    return `${baseLabel} - bientôt disponible`;
   }
   return baseLabel;
 }

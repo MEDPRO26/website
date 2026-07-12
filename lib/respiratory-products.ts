@@ -32,7 +32,7 @@ export const respiratoryProducts: Product[] = [
     alt: "Aspirateur chirurgical électrique OP-AC05 sur roulettes",
     specs: [
       { label: "Débit d'aspiration", value: "30 L/min" },
-      { label: "Autonomie", value: "0–30 min" },
+      { label: "Autonomie", value: "0-30 min" },
       { label: "Poids", value: "11,5 kg" },
     ],
     included: ["2 bocaux 2 500 ml", "Régulateur de dépression", "4 roulettes antistatiques"],
@@ -59,7 +59,7 @@ export const respiratoryProducts: Product[] = [
     alt: "Nébuliseur électrique Beurer IH 21",
     specs: [
       { label: "Technologie", value: "Compresseur / air comprimé" },
-      { label: "Pression de travail", value: "0,8–1,45 bar" },
+      { label: "Pression de travail", value: "0,8-1,45 bar" },
       { label: "Performance", value: "~0,3 ml/min" },
     ],
     included: ["Accessoires nébulisation", "Compartiment rangement", "Alimentation secteur"],
@@ -129,7 +129,7 @@ export const respiratoryProducts: Product[] = [
   }),
   respiratoryProduct({
     slug: "inogen-rove-g6",
-    name: "Inogen Rove G6 — concentrateur portable",
+    name: "Inogen Rove G6 - concentrateur portable",
     shortName: "Inogen G6",
     tagline: "Concentrateur d'oxygène portable léger pour une vie active.",
     description:
@@ -155,7 +155,7 @@ export const respiratoryProducts: Product[] = [
       { icon: "air", title: "Oxygénothérapie mobile", description: "Jusqu'à 6 L/min en débit pulsé." },
     ],
     related: [],
-    seoTitle: "Achat Inogen Rove G6 portable | SOS Santé",
+    seoTitle: "Achat Inogen Rove G6 - concentrateur portable | SOS Santé",
     seoDescription:
       "Achetez un concentrateur d'oxygène portable Inogen G6 au Maroc. Conseil personnalisé SOS Santé.",
   }),
@@ -344,7 +344,7 @@ export const respiratoryProducts: Product[] = [
     image: "/products/concentrateur-oxygene-10l-nebuliseur.webp",
     alt: "Concentrateur d'oxygène 10 litres avec port nébuliseur",
     specs: [
-      { label: "Débit", value: "1–10 L/min" },
+      { label: "Débit", value: "1-10 L/min" },
       { label: "Nébulisation", value: "≥ 0,15 ml/min" },
       { label: "Niveau sonore", value: "55 dB(A)" },
     ],
@@ -372,7 +372,7 @@ export const respiratoryProducts: Product[] = [
     alt: "Concentrateur d'oxygène 5L Optimox",
     specs: [
       { label: "Débit max", value: "5 L/min" },
-      { label: "Pureté O₂", value: "93–96 %" },
+      { label: "Pureté O₂", value: "93-96 %" },
       { label: "Puissance", value: "480 W" },
     ],
     included: ["Tubulure", "Filtre", "Mode d'emploi"],
@@ -425,7 +425,7 @@ export const respiratoryProducts: Product[] = [
     image: "/products/manodetendeur-barboteur-ox2.webp",
     alt: "Manodétendeur barboteur d'oxygène OX2",
     specs: [
-      { label: "Débit", value: "1–15 L/min" },
+      { label: "Débit", value: "1-15 L/min" },
       { label: "Humidificateur", value: "200 ml" },
       { label: "Norme", value: "EN ISO 10079-3" },
     ],
@@ -496,7 +496,7 @@ export const respiratoryProducts: Product[] = [
   }),
   respiratoryProduct({
     slug: "rossmax-nebuliseur-na100",
-    name: "Rossmax NA100 — nébuliseur à piston",
+    name: "Rossmax NA100 - nébuliseur à piston",
     shortName: "Rossmax NA100",
     tagline: "Nébuliseur à compresseur pour inhalothérapie efficace.",
     description:
@@ -508,7 +508,7 @@ export const respiratoryProducts: Product[] = [
     specs: [
       { label: "MMAD", value: "~2,2 µm" },
       { label: "Débit nébulisation", value: "> 0,35 ml/min" },
-      { label: "FPD", value: "80–85 %" },
+      { label: "FPD", value: "80-85 %" },
     ],
     included: ["Masque adulte", "Masque enfant", "Embout buccal", "Tubulure"],
     useCases: [
@@ -517,7 +517,7 @@ export const respiratoryProducts: Product[] = [
       { icon: "home", title: "Domicile", description: "Séances rapides et sécurisées." },
     ],
     related: [],
-    seoTitle: "Achat nébuliseur Rossmax NA100 | SOS Santé",
+    seoTitle: "Achat Rossmax NA100 - nébuliseur à piston | SOS Santé",
     seoDescription:
       "Achetez un nébuliseur Rossmax NA100 au Maroc. Livraison SOS Santé.",
   }),

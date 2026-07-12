@@ -124,12 +124,12 @@ export default function CityCatalogPickerDialog({
                 </span>
                 <span className="block text-xs text-on-surface-variant">
                   {isProductPicker
-                    ? `Voir le produit — ${city.name}`
+                    ? `Voir le produit - ${city.name}`
                     : isServicePicker
-                      ? `${serviceTitle ?? "Service"} — ${city.name}`
+                      ? `${serviceTitle ?? "Service"} - ${city.name}`
                       : isServicesHubPicker
-                        ? `Services à domicile — ${city.name}`
-                        : `Catalogue vente — ${city.name}`}
+                        ? `Services à domicile - ${city.name}`
+                        : `Catalogue vente - ${city.name}`}
                 </span>
               </span>
               <MaterialIcon
