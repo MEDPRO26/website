@@ -252,7 +252,7 @@ export default function ServicesPage() {
       <JsonLd data={servicesSchema} />
       <Navbar />
 
-      <main className="flex-1 pb-20 pt-16 md:pb-0 md:pt-20">
+      <main className="flex-1 pb-20 pt-[calc(var(--site-header-offset,4rem)+0.5rem)] md:pb-0">
         {/* Hero */}
         <section className="relative overflow-hidden px-4 py-14 sm:px-6 sm:py-20 lg:py-24">
           {/* Decorative blobs */}

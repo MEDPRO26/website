@@ -74,7 +74,7 @@ export default function AgadirHubPage() {
     <>
       <JsonLd data={hubSchema} />
       <Navbar />
-      <main className="flex-1 pb-20 pt-16 md:pb-0 md:pt-20">
+      <main className="flex-1 pb-20 pt-[calc(var(--site-header-offset,4rem)+0.5rem)] md:pb-0">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl">
             <Breadcrumb

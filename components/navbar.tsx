@@ -298,16 +298,13 @@ function isHomeHeroComplete() {
   return target.getBoundingClientRect().bottom <= headerOffset + 8;
 }
 
-function syncSiteHeaderVars(isHome: boolean, isCompact: boolean) {
-  const root = document.documentElement;
+function shouldNavBeCompact(isHome: boolean) {
+  if (isHome) return isHomeHeroComplete();
+  return window.scrollY > 80;
+}
 
-  if (!isHome) {
-    root.dataset.navMode = "static";
-    root.style.setProperty("--site-header-top", "0px");
-    root.style.setProperty("--site-header-height", "4rem");
-    root.style.setProperty("--site-header-offset", "4rem");
-    return;
-  }
+function syncSiteHeaderVars(isCompact: boolean) {
+  const root = document.documentElement;
 
   root.dataset.navMode = isCompact ? "compact" : "expanded";
 
@@ -377,16 +374,10 @@ export default function Navbar() {
     pathname === "/services" || pathname.startsWith("/services/");
 
   useEffect(() => {
-    if (!isHome) {
-      setIsCompact(false);
-      syncSiteHeaderVars(false, false);
-      return;
-    }
-
     const update = () => {
-      const compact = isHomeHeroComplete();
+      const compact = shouldNavBeCompact(isHome);
       setIsCompact(compact);
-      syncSiteHeaderVars(true, compact);
+      syncSiteHeaderVars(compact);
     };
 
     update();
@@ -396,35 +387,24 @@ export default function Navbar() {
     return () => {
       window.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
-      syncSiteHeaderVars(false, false);
     };
   }, [isHome]);
 
-  const logoSize = isHome && isCompact ? "sm" : "md";
+  const logoSize = isCompact ? "sm" : "md";
 
   return (
     <>
     <header
       aria-label="Navigation principale"
-      data-compact={isHome && isCompact ? "true" : undefined}
+      data-compact={isCompact ? "true" : undefined}
       className={classNames(
-        "fixed z-50 transition-[top,width,max-width,height,border-radius,background-color,box-shadow,transform] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
-        isHome
-          ? classNames(
-              "left-1/2 -translate-x-1/2",
-              isCompact
-                ? "top-3 md:top-4 h-14 md:h-16 w-[calc(100%-1.5rem)] max-w-5xl rounded-full border border-outline-variant/50 bg-background/95 shadow-md backdrop-blur-md"
-                : "top-3 md:top-5 h-16 md:h-[4.25rem] w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] max-w-7xl rounded-2xl md:rounded-[1.75rem] border border-white/60 bg-white/75 shadow-[0_8px_32px_rgba(15,23,42,0.12)] backdrop-blur-xl"
-            )
-          : "left-0 top-0 h-16 w-full border-b border-outline-variant/50 bg-background/95 shadow-sm backdrop-blur-md md:h-20"
+        "fixed left-1/2 z-50 -translate-x-1/2 transition-[top,width,max-width,height,border-radius,background-color,box-shadow,transform] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
+        isCompact
+          ? "top-3 md:top-4 h-14 md:h-16 w-[calc(100%-1.5rem)] max-w-5xl rounded-full border border-outline-variant/50 bg-background/95 shadow-md backdrop-blur-md"
+          : "top-3 md:top-5 h-16 md:h-[4.25rem] w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] max-w-7xl rounded-2xl md:rounded-[1.75rem] border border-white/60 bg-white/75 shadow-[0_8px_32px_rgba(15,23,42,0.12)] backdrop-blur-xl"
       )}
     >
-      <div
-        className={classNames(
-          "relative mx-auto grid h-full grid-cols-[1fr_auto] items-center px-4 sm:px-5 md:grid-cols-[1fr_auto_1fr] lg:px-6",
-          !isHome && "max-w-7xl px-4 sm:px-6 lg:px-8"
-        )}
-      >
+      <div className="relative mx-auto grid h-full grid-cols-[1fr_auto] items-center px-4 sm:px-5 md:grid-cols-[1fr_auto_1fr] lg:px-6">
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:hidden">
           <Logo priority size={logoSize} />
         </div>
@@ -446,7 +426,7 @@ export default function Navbar() {
                 aria-haspopup="true"
                 className={classNames(
                   "flex items-center gap-1 rounded-lg text-sm font-medium transition-colors",
-                  isHome && isCompact ? "px-3 py-1.5" : "px-4 py-2",
+                  isCompact ? "px-3 py-1.5" : "px-4 py-2",
                   isMaterialActive
                     ? "bg-primary/10 font-semibold text-primary"
                     : "text-on-surface-variant hover:bg-surface-container hover:text-primary"
@@ -487,7 +467,7 @@ export default function Navbar() {
                 aria-haspopup="true"
                 className={classNames(
                   "flex items-center gap-1 rounded-lg text-sm font-medium transition-colors",
-                  isHome && isCompact ? "px-3 py-1.5" : "px-4 py-2",
+                  isCompact ? "px-3 py-1.5" : "px-4 py-2",
                   isServicesActive
                     ? "bg-primary/10 font-semibold text-primary"
                     : "text-on-surface-variant hover:bg-surface-container hover:text-primary"
@@ -529,7 +509,7 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className={classNames(
                     "rounded-lg text-sm font-medium transition-colors",
-                    isHome && isCompact ? "px-3 py-1.5" : "px-4 py-2",
+                    isCompact ? "px-3 py-1.5" : "px-4 py-2",
                     active
                       ? "bg-primary/10 font-semibold text-primary"
                       : "text-on-surface-variant hover:bg-surface-container hover:text-primary"
@@ -547,7 +527,7 @@ export default function Navbar() {
                 onClick={(e) => handleHashLink(e, link.href, link.hash)}
                 className={classNames(
                   "rounded-lg text-sm font-medium text-on-surface-variant transition-colors hover:bg-surface-container hover:text-primary",
-                  isHome && isCompact ? "px-3 py-1.5" : "px-4 py-2"
+                  isCompact ? "px-3 py-1.5" : "px-4 py-2"
                 )}
               >
                 {link.label}
@@ -560,7 +540,7 @@ export default function Navbar() {
             href={whatsAppHref("Bonjour SOS Santé, je souhaite des informations.", "general")}
             className={classNames(
               "hidden items-center gap-2 rounded-full bg-status-success text-sm font-semibold text-white shadow-sm transition-all hover:brightness-110 sm:inline-flex",
-              isHome && isCompact ? "px-4 py-2" : "px-5 py-2.5"
+              isCompact ? "px-4 py-2" : "px-5 py-2.5"
             )}
           >
             <WhatsAppIcon className="h-5 w-5" />
@@ -590,9 +570,7 @@ export default function Navbar() {
       <div
         className={classNames(
           "absolute left-0 top-full z-40 w-full border-b border-outline-variant/50 bg-surface-container-low/95 shadow-xl backdrop-blur-md transition-all duration-300 md:hidden",
-          isHome
-            ? "max-h-[calc(100dvh-var(--site-header-offset,4rem)-4rem-env(safe-area-inset-bottom))]"
-            : "max-h-[calc(100dvh-4rem-4rem-env(safe-area-inset-bottom))]",
+          "max-h-[calc(100dvh-var(--site-header-offset,4rem)-4rem-env(safe-area-inset-bottom))]",
           "overflow-y-auto overscroll-contain",
           mobileMenuOpen
             ? "pointer-events-auto translate-y-0 opacity-100"

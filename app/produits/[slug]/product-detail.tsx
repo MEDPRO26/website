@@ -151,7 +151,7 @@ export default function ProductDetail({
 
       <main
         id="main-content"
-        className="flex-1 pb-20 pt-16 md:pb-16 md:pt-20"
+        className="flex-1 pb-20 pt-[calc(var(--site-header-offset,4rem)+0.5rem)] md:pb-16"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
