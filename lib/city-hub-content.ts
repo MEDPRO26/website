@@ -82,6 +82,18 @@ const cityCopy: Partial<
       "Pour l'aide à domicile, nous mettons en relation les patients et les familles avec des professionnels de santé qualifiés. Devis et orientation personnalisés par notre équipe locale.",
     ],
   },
+  casablanca: {
+    intro:
+      "SOS Santé Casablanca accompagne les familles à Casablanca et dans la métropole : vente et location de matériel médical à domicile, et mise en relation avec des professionnels de soins et d'aide à domicile.",
+    equipmentIntro:
+      "Achetez ou louez du matériel médical à Casablanca : mobilité, respiratoire, confort, diagnostic et instruments. Livraison à Bourgogne, Anfa, Maarif, Sidi Maarouf et environs.",
+    careIntro:
+      "Besoin de soins ou d'aide à domicile à Casablanca ? SOS Santé vous oriente vers des professionnels qualifiés : kinésithérapeute, infirmier, médecin, aide-soignant et transport médical.",
+    paragraphs: [
+      "Notre catalogue couvre le matériel de mobilité, respiratoire, confort, diagnostic et instruments médicaux. Livraison à Casablanca, Bourgogne, Anfa, Ain Diab, Maarif, Hay Hassani et environs.",
+      "Pour l'aide à domicile, nous mettons en relation les patients et les familles avec des professionnels de santé qualifiés. Devis et orientation personnalisés pour la métropole casablancaise.",
+    ],
+  },
 };
 
 export const homepageCareIntro =

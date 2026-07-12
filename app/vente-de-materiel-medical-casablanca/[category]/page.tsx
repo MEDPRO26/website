@@ -1,0 +1,40 @@
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import VenteCatalog from "@/components/vente-catalog";
+import VenteCatalogJsonLd from "@/components/vente-catalog-json-ld";
+import { catalogCategories } from "@/lib/catalog-categories";
+import {
+  buildVenteCityMetadata,
+  validateVenteCategory,
+} from "@/lib/vente-metadata";
+
+const citySlug = "casablanca" as const;
+
+type PageProps = {
+  params: Promise<{ category: string }>;
+};
+
+export function generateStaticParams() {
+  return catalogCategories
+    .filter((category) => category.param !== "all")
+    .map((category) => ({ category: category.param }));
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { category } = await params;
+  if (!validateVenteCategory(category)) return {};
+  return buildVenteCityMetadata(citySlug, category);
+}
+
+export default async function VenteCasablancaCategoryPage({ params }: PageProps) {
+  const { category } = await params;
+  if (!validateVenteCategory(category)) notFound();
+  return (
+    <>
+      <VenteCatalogJsonLd citySlug={citySlug} categorySlug={category} />
+      <VenteCatalog citySlug={citySlug} categorySlug={category} />
+    </>
+  );
+}

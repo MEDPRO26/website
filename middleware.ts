@@ -15,6 +15,7 @@ import {
   venteCityPath,
   venteProductPath,
 } from "@/lib/routes";
+import { isProductLandingSlug } from "@/lib/product-landing-pages";
 
 const legacyCategorySlugs = Object.keys(seoCategoryToCatalogParam);
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
@@ -56,6 +57,9 @@ function handleLegacyRedirects(request: NextRequest) {
   if (pathname.startsWith("/produits/")) {
     const slug = pathname.replace("/produits/", "").replace(/\/$/, "");
     if (slug) {
+      if (isProductLandingSlug(slug)) {
+        return redirect(request, `/${slug}`);
+      }
       return redirect(request, venteProductPath(slug, DEFAULT_CITY_SLUG));
     }
   }
@@ -78,8 +82,11 @@ function handleLegacyRedirects(request: NextRequest) {
     return redirect(request, "/location-vente-materiel-medical-rabat");
   }
 
+  if (pathname === "/location-materiel-medical-casablanca") {
+    return redirect(request, "/location-vente-materiel-medical-casablanca");
+  }
+
   if (
-    pathname === "/location-materiel-medical-casablanca" ||
     pathname === "/location-materiel-medical-marrakech" ||
     pathname === "/location-materiel-medical-tanger"
   ) {

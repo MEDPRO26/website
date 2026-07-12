@@ -3,10 +3,12 @@ import { activeCities } from "@/lib/cities";
 import { getAllCareServicePageParams } from "@/lib/care-services";
 import { blogPosts } from "@/lib/blog";
 import { legalPages } from "@/lib/legal-routes";
+import { getAllProductLandingSlugs } from "@/lib/product-landing-pages";
 import { getActiveVenteCitySlugs, getAllCityProductParams } from "@/lib/products";
 import { venteCategoryParams } from "@/lib/catalog-categories";
 import {
   hubCityPath,
+  nationalProductPath,
   venteCategoryPath,
   venteCityPath,
   venteProductPath,
@@ -48,6 +50,10 @@ function pagesEntries(): SitemapEntry[] {
     ...legalPages.map((page) => ({ path: page.href, priority: 0.3 })),
     ...activeCities.map((city) => ({
       path: hubCityPath(city.slug),
+      priority: 0.95,
+    })),
+    ...getAllProductLandingSlugs().map((slug) => ({
+      path: nationalProductPath(slug),
       priority: 0.95,
     })),
   ];

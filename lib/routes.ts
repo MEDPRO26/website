@@ -37,6 +37,11 @@ export function venteProductPath(
   return `${venteCityPath(citySlug)}/produits/${productSlug}`;
 }
 
+/** National product landing page (e.g. /inogen-rove-g6). */
+export function nationalProductPath(productSlug: string): string {
+  return `/${productSlug}`;
+}
+
 export function hubCityPath(citySlug: string): string {
   const city = getCityBySlug(citySlug);
   return city ? `/${city.slug}` : `/${DEFAULT_CITY_SLUG}`;

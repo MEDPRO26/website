@@ -19,6 +19,7 @@ import {
   venteCategoryPath,
   venteCityPath,
   venteProductPath,
+  nationalProductPath,
 } from "@/lib/routes";
 import {
   getCatalogProducts,
@@ -55,7 +56,7 @@ const heroGalleryImages = [
   {
     src: "/products/inogen-rove-g6-homme-masque-domicile.webp",
     alt: "Homme utilisant un concentrateur portable Inogen Rove G6 à domicile",
-    href: venteProductPath("inogen-rove-g6", DEFAULT_CITY_SLUG),
+    href: nationalProductPath("inogen-rove-g6"),
     objectPosition: "28% center",
   },
   {
