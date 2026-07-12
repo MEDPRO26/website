@@ -2,14 +2,13 @@ import type { City } from "@/lib/cities";
 import {
   activeCities,
   comingSoonCities,
+  getActiveCityContacts,
   getCityBySlug,
   type CitySlug,
 } from "@/lib/cities";
 import { hubCityPath, resolveCityFromPath } from "@/lib/routes";
 import {
   CONTACT_EMAIL,
-  PHONE_DISPLAY,
-  PHONE_NUMBER,
   whatsAppHref,
 } from "@/lib/products";
 import { cityWhatsAppHref } from "@/lib/whatsapp-lines";
@@ -22,6 +21,13 @@ import {
 
 export type FooterVariant = "national" | "city";
 
+export type FooterCityContact = {
+  name: string;
+  phoneDisplay: string;
+  phoneHref: string;
+  whatsappHref?: string;
+};
+
 export type FooterContext = {
   variant: FooterVariant;
   city?: City;
@@ -31,7 +37,9 @@ export type FooterContext = {
   phone?: string;
   phoneDisplay?: string;
   phoneHref?: string;
+  cityContacts?: FooterCityContact[];
   whatsappHref?: string;
+  whatsappContacts?: FooterCityContact[];
   email: string;
   websiteLabel: string;
   websiteHref: string;
@@ -49,13 +57,23 @@ export function getFooterContextFromPath(pathname: string): FooterContext {
 }
 
 export function buildNationalFooterContext(): FooterContext {
+  const cityContacts = getActiveCityContacts().map((city) => ({
+    name: city.name,
+    phoneDisplay: city.phoneDisplay,
+    phoneHref: `tel:${city.phone}`,
+    whatsappHref: cityWhatsAppHref(
+      { contactReady: true, whatsapp: city.whatsapp },
+      `Bonjour SOS Santé ${city.name}, je souhaite des informations.`,
+      "general"
+    ),
+  }));
+
   return {
     variant: "national",
     brandTitle: SITE_NATIONAL_NAME,
     description: SITE_NATIONAL_DESCRIPTION,
-    phone: PHONE_NUMBER,
-    phoneDisplay: PHONE_DISPLAY,
-    phoneHref: `tel:${PHONE_NUMBER}`,
+    cityContacts,
+    whatsappContacts: cityContacts,
     whatsappHref: whatsAppHref(undefined, "general"),
     email: CONTACT_EMAIL,
     websiteLabel: SITE_WEBSITE,

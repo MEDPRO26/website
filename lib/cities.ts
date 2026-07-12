@@ -179,6 +179,24 @@ export const activeCities = cities.filter((city) => city.available);
 
 export const comingSoonCities = cities.filter((city) => !city.available);
 
+export type CityContact = {
+  name: string;
+  phone: string;
+  phoneDisplay: string;
+  whatsapp: string;
+};
+
+export function getActiveCityContacts(): CityContact[] {
+  return activeCities
+    .filter((city) => city.contactReady && city.phone && city.phoneDisplay)
+    .map(({ name, phone, phoneDisplay, whatsapp }) => ({
+      name,
+      phone,
+      phoneDisplay,
+      whatsapp,
+    }));
+}
+
 export function getCityBySlug(slug: string): City | undefined {
   return cities.find((city) => city.slug === slug);
 }

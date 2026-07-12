@@ -1,9 +1,4 @@
-import {
-  CONTACT_EMAIL,
-  PHONE_DISPLAY,
-  PHONE_NUMBER,
-  whatsAppHref,
-} from "@/lib/products";
+import { CONTACT_EMAIL } from "@/lib/products";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import type { FooterContext } from "@/lib/footer-context";
 
@@ -32,8 +27,33 @@ export default function FooterContact({
   title = "Contact",
   showSocial = true,
 }: FooterContactProps) {
-  const showPhone = Boolean(context.phone && context.phoneDisplay && context.phoneHref);
-  const showWhatsapp = Boolean(context.whatsappHref);
+  const cityContacts =
+    context.cityContacts ??
+    (context.phone && context.phoneDisplay && context.phoneHref
+      ? [
+          {
+            name: context.city?.name ?? "Contact",
+            phoneDisplay: context.phoneDisplay,
+            phoneHref: context.phoneHref,
+            whatsappHref: context.whatsappHref,
+          },
+        ]
+      : []);
+
+  const showPhone = cityContacts.length > 0;
+  const whatsappContacts =
+    context.whatsappContacts ??
+    (context.whatsappHref
+      ? [
+          {
+            name: context.city?.name ?? "WhatsApp",
+            phoneDisplay: "",
+            phoneHref: "",
+            whatsappHref: context.whatsappHref,
+          },
+        ]
+      : []);
+  const showWhatsapp = whatsappContacts.some((contact) => contact.whatsappHref);
 
   return (
     <div>
@@ -62,24 +82,24 @@ export default function FooterContact({
       ) : null}
 
       {showPhone ? (
-        <a
-          href={context.phoneHref}
-          className="mb-1 block text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
-        >
-          {context.phoneDisplay}
-        </a>
+        <div className="mb-2 space-y-1">
+          {cityContacts.map((contact) => (
+            <a
+              key={contact.name}
+              href={contact.phoneHref}
+              className="block text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
+            >
+              <span className="font-medium text-on-surface">{contact.name}</span>
+              {" · "}
+              {contact.phoneDisplay}
+            </a>
+          ))}
+        </div>
       ) : context.variant === "city" ? (
         <p className="mb-1 text-sm text-on-surface-variant/80 sm:text-base">
           Téléphone local bientôt disponible
         </p>
-      ) : (
-        <a
-          href={`tel:${PHONE_NUMBER}`}
-          className="mb-1 block text-sm text-on-surface-variant transition-colors hover:text-primary sm:text-base"
-        >
-          {PHONE_DISPLAY}
-        </a>
-      )}
+      ) : null}
 
       <a
         href={`mailto:${context.email || CONTACT_EMAIL}`}
@@ -94,17 +114,24 @@ export default function FooterContact({
         {context.websiteLabel}
       </a>
 
-      {showSocial && (showWhatsapp || context.variant === "national") ? (
-        <div className="mt-4 flex gap-3">
-          {showWhatsapp ? (
-            <a
-              href={context.whatsappHref}
-              aria-label="Contacter sur WhatsApp"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary transition-transform hover:scale-110"
-            >
-              <WhatsAppIcon className="h-5 w-5" />
-            </a>
-          ) : null}
+      {showSocial && showWhatsapp ? (
+        <div className="mt-4 flex flex-wrap gap-3">
+          {whatsappContacts.map((contact) =>
+            contact.whatsappHref ? (
+              <a
+                key={contact.name}
+                href={contact.whatsappHref}
+                aria-label={`Contacter SOS Santé ${contact.name} sur WhatsApp`}
+                title={`WhatsApp ${contact.name}`}
+                className="inline-flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-full bg-primary px-3 text-on-primary transition-transform hover:scale-110"
+              >
+                <WhatsAppIcon className="h-5 w-5 shrink-0" />
+                {context.variant === "national" ? (
+                  <span className="text-xs font-semibold">{contact.name}</span>
+                ) : null}
+              </a>
+            ) : null
+          )}
           <a
             href={`mailto:${context.email || CONTACT_EMAIL}`}
             aria-label="Envoyer un email"
