@@ -8,7 +8,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -35,7 +34,7 @@ export function PeakHoursChart({ enabled }: { enabled: boolean }) {
   );
 
   const chartData = useMemo(() => data?.buckets ?? [], [data]);
-  const hasData = chartData.some((row) => row.visitors > 0 || row.claims > 0);
+  const hasData = chartData.some((row) => row.visitors > 0);
 
   const applyPreset = (days: number) => {
     setStartDate(format(subDays(new Date(), days - 1), "yyyy-MM-dd"));
@@ -51,18 +50,12 @@ export function PeakHoursChart({ enabled }: { enabled: boolean }) {
             Heures de pointe
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Visiteurs et réclamations par créneau horaire (heure Maroc).
+            Visiteurs par créneau horaire (heure Maroc).
             {data?.peakVisitors ? (
               <>
                 {" "}
-                · Visiteurs : {data.peakVisitors.label} (
+                · Pic : {data.peakVisitors.label} (
                 {data.peakVisitors.visitors})
-              </>
-            ) : null}
-            {data?.peakClaims ? (
-              <>
-                {" "}
-                · Réclamations : {data.peakClaims.label} ({data.peakClaims.claims})
               </>
             ) : null}
           </p>
@@ -121,21 +114,14 @@ export function PeakHoursChart({ enabled }: { enabled: boolean }) {
               />
               <Tooltip
                 contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }}
+                formatter={(value) => [value, "Visiteurs"]}
               />
-              <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
               <Bar
                 dataKey="visitors"
                 name="Visiteurs"
                 fill="var(--brand)"
                 radius={[4, 4, 0, 0]}
-                maxBarSize={20}
-              />
-              <Bar
-                dataKey="claims"
-                name="Réclamations"
-                fill="#10b981"
-                radius={[4, 4, 0, 0]}
-                maxBarSize={20}
+                maxBarSize={28}
               />
             </BarChart>
           </ResponsiveContainer>

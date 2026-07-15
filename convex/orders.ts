@@ -9,7 +9,6 @@ import { appendOrderEvent } from "./lib/orderEvents";
 import { formatStatusChange } from "./lib/orderStatus";
 import { parseRentalDurationMs } from "./lib/rentalDates";
 import { upsertSupplierQuote } from "./lib/submitSupplierQuote";
-import { pushNotification } from "./lib/notifications";
 import { notifySupplierOfAssignment } from "./lib/supplierOrderNotifications";
 import { logAudit } from "./lib/auditLog";
 import {
@@ -160,13 +159,6 @@ export const createManual = mutation({
           }
         }
 
-        await pushNotification(ctx, {
-          type: "supplier",
-          title: `Commande envoyée à ${supplier?.name ?? "fournisseur"}`,
-          description: result.ref,
-          link: `/admin/orders/${result.orderId}`,
-          entityId: result.orderId,
-        });
       }
     }
 
@@ -667,16 +659,6 @@ export const assignSupplier = mutation({
       });
     }
 
-    if (args.supplierId && supplierName) {
-      await pushNotification(ctx, {
-        type: "supplier",
-        title: `Commande envoyée à ${supplierName}`,
-        description: order.ref,
-        link: `/admin/orders/${args.orderId}`,
-        entityId: args.orderId,
-      });
-    }
-
     await logAudit(ctx, {
       actorStaffId: actor._id,
       actorName: actor.name,
@@ -914,10 +896,10 @@ export const migrateClientNames = mutation({
       const notification = notifications.find(
         (row) =>
           row.entityId === order._id &&
-          row.title.startsWith("Nouvelle demande — ")
+          /^Nouvelle demande [-—] /.test(row.title)
       );
       const fromNotification = notification
-        ? notification.title.replace(/^Nouvelle demande — /, "").trim()
+        ? notification.title.replace(/^Nouvelle demande [-—] /, "").trim()
         : "";
 
       const customer = await ctx.db.get(order.customerId);

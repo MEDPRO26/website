@@ -8,7 +8,7 @@ import { formatStatusChange, supplierCanSeeClientContact } from "./lib/orderStat
 import { resolveOrderClientName } from "./lib/orderClient";
 import { getQuotePricing } from "./lib/quotePricing";
 import { upsertSupplierQuote } from "./lib/submitSupplierQuote";
-import { notifyStaff, pushNotification } from "./lib/notifications";
+import { notifyStaff } from "./lib/notifications";
 import { logAudit } from "./lib/auditLog";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
@@ -53,7 +53,7 @@ async function markOrderDeliveredBySupplier(
   await appendOrderEvent(ctx, {
     orderId: args.orderId,
     type: "status_change",
-    label: `${args.supplier.name} — commande livrée`,
+    label: `${args.supplier.name} - commande livrée`,
     fromStatus,
     toStatus: "terminee",
     actorStaffId: args.staff._id,
@@ -61,7 +61,7 @@ async function markOrderDeliveredBySupplier(
 
   await notifyStaff(ctx, "order_delivered", {
     type: "order",
-    title: `${args.supplier.name} — commande livrée`,
+    title: `${args.supplier.name} - commande livrée`,
     description: `${args.order.ref} · livraison confirmée au client`,
     link: `/admin/orders/${args.orderId}`,
     entityId: args.orderId,
@@ -919,17 +919,6 @@ export const markCommissionSettled = mutation({
       commissionPaymentMethod: args.paymentMethod,
       commissionReceiptStorageId: requiresReceipt ? args.receiptStorageId : undefined,
       updatedAt: now,
-    });
-
-    const pricing = getQuotePricing(quote);
-    const paymentLabel = commissionPaymentLabel(args.paymentMethod);
-
-    await pushNotification(ctx, {
-      type: "commission",
-      title: `${supplier.name} — commission réglée`,
-      description: `${order.ref} · ${pricing.commissionAmount.toLocaleString("fr-FR")} MAD · ${paymentLabel}`,
-      link: `/admin/commissions`,
-      entityId: args.quoteId,
     });
 
     await logAudit(ctx, {

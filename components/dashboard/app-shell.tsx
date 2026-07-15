@@ -8,6 +8,7 @@ import { useConvexAuth } from "convex/react";
 import { useEffect } from "react";
 import { useAdminSession } from "@/hooks/use-admin-session";
 import { usePermissions } from "@/hooks/use-permissions";
+import { ADMIN_LOGIN_PATH } from "@/lib/auth-routes";
 import { isAdminStaffRole } from "@/lib/crm/staff-roles";
 import type { Permission, Role } from "@/lib/permissions";
 import {
@@ -272,15 +273,15 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.replace("/admin/login");
+      router.replace(ADMIN_LOGIN_PATH);
       return;
     }
     if (!authLoading && isAuthenticated && staff === null) {
-      router.replace("/admin/login");
+      router.replace(ADMIN_LOGIN_PATH);
       return;
     }
     if (staff && !isAdminStaffRole(staff.role)) {
-      router.replace(staff.role === "supplier" ? "/supplier" : "/admin/login");
+      router.replace(staff.role === "supplier" ? "/supplier" : ADMIN_LOGIN_PATH);
     }
   }, [authLoading, isAuthenticated, staff, router]);
 
@@ -312,7 +313,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   const handleSignOut = async () => {
     await signOut();
-    router.push("/admin/login");
+    router.push(ADMIN_LOGIN_PATH);
   };
 
   return (

@@ -542,7 +542,6 @@ function buildHourlyBuckets() {
     hour,
     label: `${String(hour).padStart(2, "0")}h`,
     visitors: 0,
-    claims: 0,
   }));
 }
 
@@ -785,31 +784,10 @@ export const peakHours = query({
       for (const row of visitorRows) {
         buckets[hourInSiteTimezone(row.firstSeenAt)].visitors += 1;
       }
-
-      const orderEvents = await ctx.db.query("orderEvents").collect();
-      for (const event of orderEvents) {
-        if (
-          event.toStatus !== "vue_fournisseur" ||
-          event.fromStatus !== "envoyee_fournisseur" ||
-          !event.actorStaffId
-        ) {
-          continue;
-        }
-
-        const eventDate = dateKeyInSiteTimezone(event.createdAt);
-        if (eventDate < startDate || eventDate > endDate) {
-          continue;
-        }
-
-        buckets[hourInSiteTimezone(event.createdAt)].claims += 1;
-      }
     }
 
     const peakVisitors = buckets.reduce((best, row) =>
       row.visitors > best.visitors ? row : best
-    );
-    const peakClaims = buckets.reduce((best, row) =>
-      row.claims > best.claims ? row : best
     );
 
     return {
@@ -817,7 +795,6 @@ export const peakHours = query({
       endDate,
       buckets,
       peakVisitors: peakVisitors.visitors > 0 ? peakVisitors : null,
-      peakClaims: peakClaims.claims > 0 ? peakClaims : null,
     };
   },
 });

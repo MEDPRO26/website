@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useConvexAuth } from "convex/react";
 import { useEffect, useState, type ComponentType, type FormEvent, type ReactNode } from "react";
+import { SUPPLIER_LOGIN_PATH } from "@/lib/auth-routes";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -252,7 +253,7 @@ export function SupplierShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.replace("/admin/login");
+      router.replace(SUPPLIER_LOGIN_PATH);
     }
   }, [authLoading, isAuthenticated, router]);
 
@@ -297,7 +298,7 @@ export function SupplierShell({ children }: { children: ReactNode }) {
 
   const handleSignOut = async () => {
     await signOut();
-    router.push("/admin/login");
+    router.push(SUPPLIER_LOGIN_PATH);
   };
 
   return (

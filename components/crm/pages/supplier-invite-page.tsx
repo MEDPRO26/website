@@ -195,7 +195,7 @@ export function SupplierInvitePage({ token }: SupplierInvitePageProps) {
           <h1 className="text-xl font-bold text-foreground">Invitation fournisseur</h1>
           <p className="mt-3 text-sm text-muted-foreground">{message}</p>
           <Button asChild className="mt-6">
-            <Link href="/admin/login">Aller à la connexion</Link>
+            <Link href="/fournisseurs">Aller à la connexion</Link>
           </Button>
         </div>
       </div>

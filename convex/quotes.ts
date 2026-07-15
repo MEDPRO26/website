@@ -5,7 +5,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { requireAdminPermission, requireAdminStaff } from "./lib/authz";
 import { appendOrderEvent } from "./lib/orderEvents";
 import { formatStatusChange } from "./lib/orderStatus";
-import { pushNotification, notifyStaff } from "./lib/notifications";
+import { notifyStaff } from "./lib/notifications";
 import { logAudit } from "./lib/auditLog";
 import { buildDefaultOfferMessage } from "./lib/pricing";
 import { getQuotePricing } from "./lib/quotePricing";
@@ -148,14 +148,6 @@ async function recordSendClientOffer(
     type: "offer",
     label: `Offre client envoyée · ${offer.finalPrice.toLocaleString("fr-FR")} MAD`,
     actorStaffId: staff._id,
-  });
-
-  await pushNotification(ctx, {
-    type: "commission",
-    title: "Offre client envoyée",
-    description: `${order.ref} · ${offer.finalPrice.toLocaleString("fr-FR")} MAD`,
-    link: `/admin/orders/${args.orderId}`,
-    entityId: args.orderId,
   });
 
   await logAudit(ctx, {

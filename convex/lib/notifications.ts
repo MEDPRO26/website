@@ -17,6 +17,19 @@ export type StaffNotificationEvent =
   | "complaint_opened"
   | "rental_ending";
 
+/** In-app inbox: only new orders and supplier-confirmed delivery. */
+const IN_APP_EVENTS = new Set<StaffNotificationEvent>([
+  "new_order",
+  "order_delivered",
+]);
+
+export function isInAppNotificationTitle(title: string) {
+  const text = title.trim();
+  return (
+    text.startsWith("Nouvelle demande") || text.includes("commande livrée")
+  );
+}
+
 async function getPlatformSettings(ctx: MutationCtx) {
   return await ctx.db
     .query("platformSettings")
@@ -68,7 +81,9 @@ export async function notifyStaff(
   event: StaffNotificationEvent,
   input: NotificationInput
 ) {
-  await pushNotification(ctx, input);
+  if (IN_APP_EVENTS.has(event)) {
+    await pushNotification(ctx, input);
+  }
 
   const settings = await getPlatformSettings(ctx);
   if (!shouldEmailSuperAdmin(settings, event)) {

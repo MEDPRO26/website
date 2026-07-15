@@ -101,7 +101,7 @@ export async function createOrderRecord(ctx: MutationCtx, input: CreateOrderInpu
 
   await notifyStaff(ctx, "new_order", {
     type: "order",
-    title: `Nouvelle demande — ${name}`,
+    title: `Nouvelle demande - ${name}`,
     description: `${input.type.trim()} · ${city}`,
     link: `/admin/orders/${orderId}`,
     entityId: orderId,

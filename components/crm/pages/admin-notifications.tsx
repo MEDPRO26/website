@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card } from "@/components/ui/card";
@@ -13,10 +13,6 @@ import { Bell } from "lucide-react";
 const FILTERS = [
   { key: "all", label: "Toutes" },
   { key: "unread", label: "Non lues" },
-  { key: "order", label: "Commandes" },
-  { key: "supplier", label: "Fournisseurs" },
-  { key: "complaint", label: "Réclamations" },
-  { key: "commission", label: "Commissions" },
 ] as const;
 
 export function AdminNotificationsPage() {
@@ -24,19 +20,20 @@ export function AdminNotificationsPage() {
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["key"]>("all");
   const markRead = useMutation(api.notifications.markRead);
   const markAllRead = useMutation(api.notifications.markAllRead);
+  const purgeIrrelevant = useMutation(api.notifications.purgeIrrelevant);
+  const purgedRef = useRef(false);
+
+  useEffect(() => {
+    if (!canQueryAdmin || purgedRef.current) return;
+    purgedRef.current = true;
+    void purgeIrrelevant({});
+  }, [canQueryAdmin, purgeIrrelevant]);
 
   const notifications = useQuery(
     api.notifications.list,
     canQueryAdmin
       ? {
           unreadOnly: filter === "unread" ? true : undefined,
-          type:
-            filter === "order" ||
-            filter === "supplier" ||
-            filter === "complaint" ||
-            filter === "commission"
-              ? filter
-              : undefined,
         }
       : "skip"
   );
@@ -45,7 +42,7 @@ export function AdminNotificationsPage() {
     <div>
       <PageHeader
         title="Notifications"
-        description="Centre des alertes plateforme"
+        description="Nouvelles commandes et livraisons confirmées par le fournisseur"
         actions={
           <Button variant="outline" onClick={() => void markAllRead()}>
             Tout marquer comme lu
@@ -71,8 +68,8 @@ export function AdminNotificationsPage() {
           <p className="p-8 text-center text-sm text-muted-foreground">Chargement…</p>
         ) : notifications.length === 0 ? (
           <p className="p-8 text-center text-sm text-muted-foreground">
-            Aucune notification pour l&apos;instant. Elles apparaîtront lors des
-            nouvelles commandes, prix fournisseur et offres.
+            Aucune notification pour l&apos;instant. Elles apparaissent pour les
+            nouvelles commandes et quand un fournisseur confirme la livraison.
           </p>
         ) : (
           notifications.map((n) => (

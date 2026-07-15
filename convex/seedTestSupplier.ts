@@ -106,7 +106,7 @@ async function ensureTestSupplierAccount(
     email: seed.email,
     password: seed.password,
     supplierId: prep.supplierId,
-    loginUrl: "/admin/login",
+    loginUrl: "/fournisseurs",
     portalUrl: "/supplier",
   };
 }

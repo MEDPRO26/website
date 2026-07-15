@@ -42,4 +42,11 @@ export function getPrivateRobotsMetadata(): Metadata["robots"] {
 }
 
 /** Paths blocked in robots.txt even when the public site is indexed. */
-export const PRIVATE_CRM_PATHS = ["/admin", "/supplier"] as const;
+export const PRIVATE_CRM_PATHS = [
+  "/admin",
+  "/admin-me",
+  "/supplier",
+  "/fournisseurs",
+  "/__crm-hidden",
+] as const;
+
