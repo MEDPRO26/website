@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { StaffLoginPage } from "@/components/crm/staff-login-page";
 import { getPrivateRobotsMetadata } from "@/lib/indexing";
@@ -9,5 +10,15 @@ export const metadata: Metadata = {
 };
 
 export default function FournisseursLoginPage() {
-  return <StaffLoginPage audience="supplier" />;
+  return (
+    <Suspense
+      fallback={
+        <div className="crm-app flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+          Chargement…
+        </div>
+      }
+    >
+      <StaffLoginPage audience="supplier" />
+    </Suspense>
+  );
 }

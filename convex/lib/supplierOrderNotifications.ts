@@ -1,3 +1,4 @@
+import { supplierOrderLoginUrl } from "../../lib/auth-routes";
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
@@ -12,7 +13,8 @@ export async function notifySupplierOfAssignment(
   }
 ) {
   const siteUrl = process.env.SITE_URL ?? "http://localhost:3000";
-  const orderUrl = `${siteUrl}/supplier/orders/${args.orderId}`;
+  // Login first so guests don't hit the hidden /supplier 404.
+  const orderUrl = supplierOrderLoginUrl(args.orderId, siteUrl);
   const email = args.supplier.email?.trim();
   const customer = await ctx.db.get(args.order.customerId);
   const clientName = customer ? resolveOrderClientName(args.order, customer) : "Client";
@@ -40,7 +42,7 @@ export async function notifySupplierOfAssignment(
       "Consultez les détails et répondez avec votre offre :",
       orderUrl,
       "",
-      "— Centre SOS Santé",
+      "- Centre SOS Santé",
     ].join("\n");
 
     await ctx.scheduler.runAfter(0, internal.whatsappMessenger.sendDirectMessage, {

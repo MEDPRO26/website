@@ -7,6 +7,7 @@ function buildInviteEmailHtml(args: {
   supplierName: string;
   inviteUrl: string;
 }) {
+  const loginUrl = `${(process.env.SITE_URL ?? "https://www.sossante.ma").replace(/\/$/, "")}/fournisseurs`;
   return `
 <!DOCTYPE html>
 <html lang="fr">
@@ -32,6 +33,9 @@ function buildInviteEmailHtml(args: {
     </p>
     <p style="font-size: 13px; color: #747782;">
       Lien direct : <a href="${args.inviteUrl}">${args.inviteUrl}</a>
+    </p>
+    <p style="font-size: 13px; color: #747782;">
+      Pour vos prochaines connexions : <a href="${loginUrl}">${loginUrl}</a>
     </p>
   </body>
 </html>`;
@@ -61,7 +65,7 @@ function buildSupplierOrderAssignmentHtml(args: {
     </p>
     ${clientBlock}
     <p>
-      Connectez-vous à votre espace fournisseur pour consulter les détails
+      Connectez-vous via votre espace fournisseurs pour consulter les détails
       et envoyer votre offre de prix.
     </p>
     <p style="margin: 32px 0;">
@@ -140,6 +144,7 @@ function buildAssistantInviteEmailHtml(args: {
   role: string;
 }) {
   const roleLabel = args.role === "admin" ? "administrateur" : "assistant";
+  const loginUrl = `${(process.env.SITE_URL ?? "https://www.sossante.ma").replace(/\/$/, "")}/admin-me`;
   return `
 <!DOCTYPE html>
 <html lang="fr">
@@ -165,6 +170,9 @@ function buildAssistantInviteEmailHtml(args: {
     </p>
     <p style="font-size: 13px; color: #747782;">
       Lien direct : <a href="${args.inviteUrl}">${args.inviteUrl}</a>
+    </p>
+    <p style="font-size: 13px; color: #747782;">
+      Pour vos prochaines connexions : <a href="${loginUrl}">${loginUrl}</a>
     </p>
   </body>
 </html>`;

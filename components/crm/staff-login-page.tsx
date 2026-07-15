@@ -2,15 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { useEffect, useState } from "react";
 import { api } from "@/convex/_generated/api";
 import { LOGO } from "@/lib/brand";
-import {
-  homePathForRole,
-} from "@/lib/auth-routes";
+import { homePathForRole, safePostLoginPath } from "@/lib/auth-routes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -74,11 +72,13 @@ const COPY: Record<
 
 export function StaffLoginPage({ audience }: { audience: StaffLoginAudience }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated, isLoading } = useConvexAuth();
   const { signIn, signOut } = useAuthActions();
   const ensureProfile = useMutation(api.staff.ensureProfile);
   const staff = useQuery(api.staff.current, isAuthenticated ? {} : "skip");
   const copy = COPY[audience];
+  const nextPath = safePostLoginPath(searchParams.get("next"), audience);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -114,12 +114,13 @@ export function StaffLoginPage({ audience }: { audience: StaffLoginAudience }) {
     }
 
     setRedirecting(true);
-    router.replace(homePathForRole(staff.role));
+    router.replace(nextPath ?? homePathForRole(staff.role));
   }, [
     audience,
     copy.wrongRole,
     isAuthenticated,
     isLoading,
+    nextPath,
     redirecting,
     router,
     signOut,

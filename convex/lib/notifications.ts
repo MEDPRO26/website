@@ -1,3 +1,4 @@
+import { portalLoginUrl } from "../../lib/auth-routes";
 import { internal } from "../_generated/api";
 import type { MutationCtx } from "../_generated/server";
 
@@ -96,7 +97,10 @@ export async function notifyStaff(
   }
 
   const siteUrl = process.env.SITE_URL ?? "http://localhost:3000";
-  const link = input.link ? `${siteUrl}${input.link}` : siteUrl;
+  // Login first so guests don't hit the hidden /admin 404.
+  const link = input.link
+    ? portalLoginUrl("admin", input.link, siteUrl)
+    : portalLoginUrl("admin", null, siteUrl);
 
   await ctx.scheduler.runAfter(0, internal.email.sendStaffNotification, {
     to: recipients,
