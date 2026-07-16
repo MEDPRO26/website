@@ -15,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tag } from "@/components/dashboard/status-badge";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -24,6 +23,13 @@ type OrderAssignSupplierProps = {
   orderId: Id<"orders">;
   supplierId?: Id<"suppliers">;
   supplierName?: string | null;
+};
+
+type SupplierOption = {
+  _id: Id<"suppliers">;
+  name: string;
+  city: string;
+  photoUrl?: string | null;
 };
 
 function supplierInitials(name: string) {
@@ -38,29 +44,66 @@ function supplierInitials(name: string) {
   );
 }
 
-function SupplierOptionAvatar({
+/** Plain logo (no Radix Avatar) so it stays visible inside Select. */
+function SupplierLogo({
   name,
   photoUrl,
-  className,
-  fallbackClassName,
+  size = "sm",
 }: {
   name: string;
   photoUrl?: string | null;
-  className?: string;
-  fallbackClassName?: string;
+  size?: "sm" | "md" | "lg";
+}) {
+  const sizeClass =
+    size === "lg" ? "size-11 text-sm" : size === "md" ? "size-8 text-xs" : "size-7 text-[10px]";
+
+  if (photoUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={photoUrl}
+        alt=""
+        className={cn(
+          sizeClass,
+          "shrink-0 rounded-full object-cover object-center ring-2 ring-slate-200"
+        )}
+      />
+    );
+  }
+
+  return (
+    <span
+      className={cn(
+        sizeClass,
+        // Solid colors + ! so Select highlight styles cannot wash out the logo
+        "inline-flex shrink-0 items-center justify-center rounded-full !bg-[#32a0f3] font-bold leading-none !text-white shadow-sm ring-2 ring-[#32a0f3]/35"
+      )}
+      aria-hidden
+    >
+      {supplierInitials(name)}
+    </span>
+  );
+}
+
+function SupplierSelectLabel({
+  name,
+  photoUrl,
+  detail,
+}: {
+  name: string;
+  photoUrl?: string | null;
+  detail?: string;
 }) {
   return (
-    <Avatar className={cn("size-6 shrink-0", className)}>
-      {photoUrl ? <AvatarImage src={photoUrl} alt="" /> : null}
-      <AvatarFallback
-        className={cn(
-          "bg-brand text-[10px] font-bold text-white",
-          fallbackClassName
-        )}
-      >
-        {supplierInitials(name)}
-      </AvatarFallback>
-    </Avatar>
+    <span className="flex min-w-0 items-center gap-2.5">
+      <SupplierLogo name={name} photoUrl={photoUrl} size="md" />
+      <span className="truncate text-left">
+        {name}
+        {detail ? (
+          <span className="text-muted-foreground"> · {detail}</span>
+        ) : null}
+      </span>
+    </span>
   );
 }
 
@@ -73,7 +116,7 @@ export function OrderAssignSupplier({
   const suppliers = useQuery(
     api.suppliers.list,
     canQueryAdmin ? { status: "actif" } : "skip"
-  );
+  ) as SupplierOption[] | undefined;
   const assignSupplier = useMutation(api.orders.assignSupplier);
   const [submitting, setSubmitting] = useState(false);
 
@@ -107,11 +150,10 @@ export function OrderAssignSupplier({
       <div className="rounded-xl border border-success/20 bg-success-soft/20 p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <SupplierOptionAvatar
+            <SupplierLogo
               name={selectedName || supplierName}
               photoUrl={selectedPhotoUrl}
-              className="size-11 shadow-sm"
-              fallbackClassName="text-sm"
+              size="lg"
             />
             <div>
               <Link
@@ -137,20 +179,25 @@ export function OrderAssignSupplier({
             disabled={submitting || suppliers === undefined}
             onValueChange={(value) => void handleAssign(value)}
           >
-            <SelectTrigger id="change-supplier" className="h-11">
-              <SelectValue />
+            <SelectTrigger id="change-supplier" className="h-12 [&>span]:line-clamp-none">
+              <SupplierSelectLabel
+                name={selectedName || supplierName}
+                photoUrl={selectedPhotoUrl}
+              />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">Retirer le fournisseur</SelectItem>
               {(suppliers ?? []).map((supplier) => (
-                <SelectItem key={supplier._id} value={supplier._id} className="py-2">
-                  <span className="flex items-center gap-2">
-                    <SupplierOptionAvatar
-                      name={supplier.name}
-                      photoUrl={supplier.photoUrl}
-                    />
-                    <span>{supplier.name}</span>
-                  </span>
+                <SelectItem
+                  key={supplier._id}
+                  value={supplier._id}
+                  className="py-2.5 pl-2"
+                  textValue={supplier.name}
+                >
+                  <SupplierSelectLabel
+                    name={supplier.name}
+                    photoUrl={supplier.photoUrl}
+                  />
                 </SelectItem>
               ))}
             </SelectContent>
@@ -169,21 +216,22 @@ export function OrderAssignSupplier({
           disabled={submitting || suppliers === undefined}
           onValueChange={(value) => void handleAssign(value)}
         >
-          <SelectTrigger id="assign-supplier" className="h-11">
+          <SelectTrigger id="assign-supplier" className="h-12 [&>span]:line-clamp-none">
             <SelectValue placeholder="Choisir un fournisseur actif" />
           </SelectTrigger>
           <SelectContent>
             {(suppliers ?? []).map((supplier) => (
-              <SelectItem key={supplier._id} value={supplier._id} className="py-2">
-                <span className="flex items-center gap-2">
-                  <SupplierOptionAvatar
-                    name={supplier.name}
-                    photoUrl={supplier.photoUrl}
-                  />
-                  <span>
-                    {supplier.name} · {supplier.city}
-                  </span>
-                </span>
+              <SelectItem
+                key={supplier._id}
+                value={supplier._id}
+                className="py-2.5 pl-2"
+                textValue={`${supplier.name} ${supplier.city}`}
+              >
+                <SupplierSelectLabel
+                  name={supplier.name}
+                  photoUrl={supplier.photoUrl}
+                  detail={supplier.city}
+                />
               </SelectItem>
             ))}
           </SelectContent>
