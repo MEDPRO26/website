@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation } from "convex/react";
 import { Camera, ImagePlus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -29,7 +29,7 @@ import {
 } from "@/lib/crm/commission-payment";
 import { formatMad } from "@/lib/crm/pricing";
 
-type SettleTarget = {
+export type SettleTargetItem = {
   quoteId: Id<"orderSupplierQuotes">;
   orderRef: string;
   commissionAmount: number;
@@ -38,12 +38,12 @@ type SettleTarget = {
 export function SupplierCommissionSettleDialog({
   open,
   onOpenChange,
-  target,
+  targets,
   onSettled,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  target: SettleTarget | null;
+  targets: SettleTargetItem[];
   onSettled: () => void;
 }) {
   const [paymentMethod, setPaymentMethod] = useState<CommissionPaymentMethod | "">("");
@@ -61,6 +61,12 @@ export function SupplierCommissionSettleDialog({
     api.supplierPortal.generateCommissionReceiptUploadUrl
   );
   const markSettled = useMutation(api.supplierPortal.markCommissionSettled);
+
+  const totalAmount = useMemo(
+    () => targets.reduce((sum, item) => sum + item.commissionAmount, 0),
+    [targets]
+  );
+  const isBulk = targets.length > 1;
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -173,7 +179,7 @@ export function SupplierCommissionSettleDialog({
   };
 
   const handleSubmit = async () => {
-    if (!target) return;
+    if (targets.length === 0) return;
     if (!paymentMethod) {
       toast.error("Choisissez un mode de règlement.");
       return;
@@ -202,12 +208,16 @@ export function SupplierCommissionSettleDialog({
       }
 
       await markSettled({
-        quoteId: target.quoteId,
+        quoteIds: targets.map((item) => item.quoteId),
         paymentMethod,
         receiptStorageId,
       });
 
-      toast.success("Commission marquée comme réglée.");
+      toast.success(
+        isBulk
+          ? `${targets.length} commissions marquées comme réglées.`
+          : "Commission marquée comme réglée."
+      );
       onSettled();
       onOpenChange(false);
     } catch (err) {
@@ -223,15 +233,47 @@ export function SupplierCommissionSettleDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Confirmer le règlement</DialogTitle>
+          <DialogTitle>
+            {isBulk ? "Régler plusieurs commissions" : "Confirmer le règlement"}
+          </DialogTitle>
           <DialogDescription>
-            {target
-              ? `Commande ${target.orderRef} · commission ${formatMad(target.commissionAmount)}`
-              : "Indiquez comment vous avez réglé la commission SOS Santé."}
+            {targets.length === 0
+              ? "Indiquez comment vous avez réglé la commission SOS Santé."
+              : isBulk
+                ? `${targets.length} commandes · total ${formatMad(totalAmount)}`
+                : `Commande ${targets[0]!.orderRef} · commission ${formatMad(targets[0]!.commissionAmount)}`}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
+          {isBulk ? (
+            <div className="rounded-xl border border-border/70 bg-muted/20 p-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Commandes regroupées
+              </p>
+              <ul className="space-y-1.5 text-sm">
+                {targets.map((item) => (
+                  <li
+                    key={item.quoteId}
+                    className="flex items-center justify-between gap-3"
+                  >
+                    <span className="font-mono text-xs font-semibold text-brand">
+                      {item.orderRef}
+                    </span>
+                    <span className="font-medium">{formatMad(item.commissionAmount)}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-2 text-sm font-bold">
+                <span>Total à régler</span>
+                <span className="text-brand-deep">{formatMad(totalAmount)}</span>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Un seul reçu pour le montant total suffit.
+              </p>
+            </div>
+          ) : null}
+
           <div className="space-y-2">
             <label className="text-sm font-medium">
               Mode de règlement <span className="text-[var(--danger)]">*</span>
@@ -265,8 +307,9 @@ export function SupplierCommissionSettleDialog({
                 Reçu bancaire <span className="text-[var(--danger)]">*</span>
               </p>
               <p className="text-xs text-muted-foreground">
-                Prenez une photo du reçu avec la caméra ou importez une image depuis votre
-                galerie.
+                {isBulk
+                  ? `Photo du reçu de ${formatMad(totalAmount)} (paiement groupé).`
+                  : "Prenez une photo du reçu avec la caméra ou importez une image depuis votre galerie."}
               </p>
 
               {cameraOpen ? (
@@ -373,6 +416,8 @@ export function SupplierCommissionSettleDialog({
                 <Loader2 className="mr-2 size-4 animate-spin" />
                 Envoi…
               </>
+            ) : isBulk ? (
+              `Confirmer ${formatMad(totalAmount)}`
             ) : (
               "Confirmer le règlement"
             )}

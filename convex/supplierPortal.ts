@@ -994,28 +994,18 @@ export const getCommissionReceiptUrl = query({
 
 export const markCommissionSettled = mutation({
   args: {
-    quoteId: v.id("orderSupplierQuotes"),
+    quoteIds: v.array(v.id("orderSupplierQuotes")),
     paymentMethod: commissionPaymentMethodValidator,
     receiptStorageId: v.optional(v.id("_storage")),
   },
   handler: async (ctx, args) => {
     const { staff, supplier } = await requireSupplierStaff(ctx);
-    const quote = await ctx.db.get(args.quoteId);
-    if (!quote || quote.supplierId !== supplier._id) {
-      throw new Error("Commission introuvable.");
-    }
-    if (quote.status !== "submitted") {
-      throw new Error("Cette commission n'est pas confirmée.");
-    }
-    if (quote.commissionPaidAt) {
-      return { alreadySettled: true as const };
+
+    if (args.quoteIds.length === 0) {
+      throw new Error("Sélectionnez au moins une commission.");
     }
 
-    const order = await ctx.db.get(quote.orderId);
-    if (!order || order.status !== "terminee") {
-      throw new Error("La commande doit être livrée avant de régler la commission.");
-    }
-
+    const uniqueIds = [...new Set(args.quoteIds)];
     const requiresReceipt =
       args.paymentMethod === "versement_bancaire" ||
       args.paymentMethod === "virement_bancaire";
@@ -1025,23 +1015,58 @@ export const markCommissionSettled = mutation({
     }
 
     const now = Date.now();
-    await ctx.db.patch(args.quoteId, {
-      commissionPaidAt: now,
-      commissionPaymentMethod: args.paymentMethod,
-      commissionReceiptStorageId: requiresReceipt ? args.receiptStorageId : undefined,
-      updatedAt: now,
-    });
+    let settled = 0;
+    let alreadySettled = 0;
+    const refs: string[] = [];
 
-    await logAudit(ctx, {
-      actorStaffId: staff._id,
-      actorName: staff.name,
-      action: "update",
-      entityType: "commission",
-      entityId: args.quoteId,
-      entityLabel: order.ref,
-      toValue: `paid:${args.paymentMethod}`,
-    });
+    for (const quoteId of uniqueIds) {
+      const quote = await ctx.db.get(quoteId);
+      if (!quote || quote.supplierId !== supplier._id) {
+        throw new Error("Commission introuvable.");
+      }
+      if (quote.status !== "submitted") {
+        throw new Error("Cette commission n'est pas confirmée.");
+      }
 
-    return { alreadySettled: false as const };
+      const order = await ctx.db.get(quote.orderId);
+      if (!order || order.status !== "terminee") {
+        throw new Error("La commande doit être livrée avant de régler la commission.");
+      }
+
+      refs.push(order.ref);
+
+      if (quote.commissionPaidAt) {
+        alreadySettled += 1;
+        continue;
+      }
+
+      await ctx.db.patch(quoteId, {
+        commissionPaidAt: now,
+        commissionPaymentMethod: args.paymentMethod,
+        commissionReceiptStorageId: requiresReceipt
+          ? args.receiptStorageId
+          : undefined,
+        updatedAt: now,
+      });
+
+      settled += 1;
+    }
+
+    if (settled > 0) {
+      await logAudit(ctx, {
+        actorStaffId: staff._id,
+        actorName: staff.name,
+        action: "update",
+        entityType: "commission",
+        entityId: uniqueIds[0]!,
+        entityLabel:
+          uniqueIds.length === 1
+            ? refs[0]!
+            : `${uniqueIds.length} commandes (${refs.join(", ")})`,
+        toValue: `paid:${args.paymentMethod}${uniqueIds.length > 1 ? ":bulk" : ""}`,
+      });
+    }
+
+    return { settled, alreadySettled };
   },
 });
