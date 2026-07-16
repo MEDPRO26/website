@@ -1,13 +1,15 @@
 import type { MetadataRoute } from "next";
 import { SITE_DISPLAY_NAME } from "@/lib/brand";
+import { SUPPLIER_LOGIN_PATH } from "@/lib/auth-routes";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: `${SITE_DISPLAY_NAME} — Espace fournisseur`,
+    name: `${SITE_DISPLAY_NAME} - Espace fournisseur`,
     short_name: "SOS Fournisseur",
     description:
       "Accédez à vos commandes et à votre tableau de bord fournisseur SOS Santé.",
-    start_url: "/supplier",
+    // Open login first; already-logged-in suppliers are redirected to /supplier.
+    start_url: SUPPLIER_LOGIN_PATH,
     scope: "/",
     display: "standalone",
     background_color: "#e8ecf2",

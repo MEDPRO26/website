@@ -29,10 +29,14 @@ const ADMIN_BOTTOM_NAV: {
 
 export function AdminBottomNav() {
   const pathname = usePathname();
-  const { can } = useAdminSession();
+  const { can, canQueryAdmin } = useAdminSession();
   const visibleItems = ADMIN_BOTTOM_NAV.filter(
     (item) => !item.permission || can(item.permission)
   );
+
+  if (!canQueryAdmin) {
+    return null;
+  }
 
   return (
     <nav
