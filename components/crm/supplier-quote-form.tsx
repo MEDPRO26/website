@@ -82,7 +82,8 @@ export function SupplierQuoteForm({
       otherFee: Number(otherFee) || 0,
     });
     const commission = Number(commissionAmount) || 0;
-    return { total, commission, clientPrice: total };
+    const supplierKeep = Math.max(0, total - commission);
+    return { total, commission, clientPrice: total, supplierKeep };
   }, [basePrice, deliveryFee, installFee, otherFee, commissionAmount]);
 
   const basePriceLabel = useMemo(() => {
@@ -311,19 +312,29 @@ export function SupplierQuoteForm({
           label="Commission SOS Santé"
           value={formatMad(preview.commission)}
         />
+        <Row
+          label="Votre part"
+          value={formatMad(preview.supplierKeep)}
+          bold
+        />
         <div className="border-t border-border/60 pt-2">
           <Row
-            label="Total TTC"
+            label="Total TTC (client)"
             value={formatMad(preview.clientPrice)}
             highlight
           />
         </div>
         {!isSidebar ? (
           <p className="pt-1 text-xs text-muted-foreground">
-            Le client paie {formatMad(preview.clientPrice)}. La commission SOS
-            Santé ({formatMad(preview.commission)}) vous sera réglée séparément.
+            Le client paie {formatMad(preview.clientPrice)}. Après la commission
+            SOS Santé ({formatMad(preview.commission)}), vous conservez{" "}
+            {formatMad(preview.supplierKeep)}.
           </p>
-        ) : null}
+        ) : (
+          <p className="pt-1 text-xs text-muted-foreground">
+            Vous conservez {formatMad(preview.supplierKeep)} après commission.
+          </p>
+        )}
       </div>
 
       {isSubmitted ? (

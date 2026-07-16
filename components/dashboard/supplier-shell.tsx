@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthActions } from "@convex-dev/auth/react";
-import { useConvexAuth } from "convex/react";
+import { useConvexAuth, useQuery } from "convex/react";
 import { useEffect, useState, type ComponentType, type FormEvent, type ReactNode } from "react";
 import { SUPPLIER_LOGIN_PATH } from "@/lib/auth-routes";
 import {
@@ -18,6 +18,7 @@ import {
   Search,
   Download,
 } from "lucide-react";
+import { api } from "@/convex/_generated/api";
 import { useSupplierSession } from "@/hooks/use-supplier-session";
 import { useSupplierPwaInstall } from "@/hooks/use-supplier-pwa-install";
 import { Button } from "@/components/ui/button";
@@ -44,17 +45,50 @@ const SUPPLIER_NAV: {
   label: string;
   icon: ComponentType<{ className?: string }>;
   exact?: boolean;
+  badgeKey?: "unpaidCommissions";
 }[] = [
   { href: "/supplier", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/supplier/orders", label: "Mes commandes", icon: ClipboardList },
-  { href: "/supplier/commissions", label: "SOS commission", icon: Wallet },
+  {
+    href: "/supplier/commissions",
+    label: "SOS commission",
+    icon: Wallet,
+    badgeKey: "unpaidCommissions",
+  },
   { href: "/supplier/profile", label: "Profil", icon: UserCog },
 ];
 
+function NavCountBadge({
+  count,
+  active,
+  className,
+}: {
+  count: number;
+  active?: boolean;
+  className?: string;
+}) {
+  if (count <= 0) return null;
+  return (
+    <span
+      className={cn(
+        "inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold leading-none tabular-nums",
+        active
+          ? "bg-white text-[#32a0f3]"
+          : "bg-[var(--danger)] text-white",
+        className
+      )}
+    >
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
+
 function SupplierNavList({
   onNavigate,
+  unpaidCommissionCount = 0,
 }: {
   onNavigate?: () => void;
+  unpaidCommissionCount?: number;
 }) {
   const pathname = usePathname();
 
@@ -65,6 +99,8 @@ function SupplierNavList({
           ? pathname === item.href
           : pathname === item.href || pathname.startsWith(`${item.href}/`);
         const Icon = item.icon;
+        const badge =
+          item.badgeKey === "unpaidCommissions" ? unpaidCommissionCount : 0;
         return (
           <li key={item.href}>
             <Link
@@ -78,7 +114,8 @@ function SupplierNavList({
               )}
             >
               <Icon className="size-[18px] shrink-0" />
-              <span className="truncate">{item.label}</span>
+              <span className="min-w-0 flex-1 truncate">{item.label}</span>
+              <NavCountBadge count={badge} active={active} />
             </Link>
           </li>
         );
@@ -90,11 +127,13 @@ function SupplierNavList({
 function SupplierSidebar({
   supplierName,
   photoUrl,
+  unpaidCommissionCount,
   onNavigate,
   onSignOut,
 }: {
   supplierName: string;
   photoUrl?: string | null;
+  unpaidCommissionCount?: number;
   onNavigate?: () => void;
   onSignOut: () => void;
 }) {
@@ -132,7 +171,10 @@ function SupplierSidebar({
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-5">
-        <SupplierNavList onNavigate={onNavigate} />
+        <SupplierNavList
+          onNavigate={onNavigate}
+          unpaidCommissionCount={unpaidCommissionCount}
+        />
       </nav>
 
       <div className="border-t border-white/10 p-4">
@@ -252,8 +294,14 @@ export function SupplierShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { signOut } = useAuthActions();
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
-  const { staff, supplier, photoUrl, profileComplete, sessionLoading } = useSupplierSession();
+  const { staff, supplier, photoUrl, profileComplete, sessionLoading, canQuerySupplier } =
+    useSupplierSession();
   const pwaInstall = useSupplierPwaInstall(supplier);
+  const unpaidCommissionCount = useQuery(
+    api.supplierPortal.unpaidCommissionCount,
+    canQuerySupplier && profileComplete ? {} : "skip"
+  );
+  const unpaidCount = unpaidCommissionCount ?? 0;
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -312,6 +360,7 @@ export function SupplierShell({ children }: { children: ReactNode }) {
           <SupplierSidebar
             supplierName={userName}
             photoUrl={photoUrl}
+            unpaidCommissionCount={unpaidCount}
             onSignOut={handleSignOut}
           />
         </aside>
@@ -324,6 +373,7 @@ export function SupplierShell({ children }: { children: ReactNode }) {
             <SupplierSidebar
               supplierName={userName}
               photoUrl={photoUrl}
+              unpaidCommissionCount={unpaidCount}
               onNavigate={() => setMobileOpen(false)}
               onSignOut={handleSignOut}
             />
@@ -358,16 +408,25 @@ export function SupplierShell({ children }: { children: ReactNode }) {
           const active = item.exact
             ? pathname === item.href
             : pathname.startsWith(item.href);
+          const badge =
+            item.badgeKey === "unpaidCommissions" ? unpaidCount : 0;
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center gap-0.5 py-2.5 text-[10px] font-medium",
+                "relative flex flex-col items-center justify-center gap-0.5 py-2.5 text-[10px] font-medium",
                 active ? "text-brand" : "text-muted-foreground"
               )}
             >
-              <Icon className="size-5" />
+              <span className="relative">
+                <Icon className="size-5" />
+                {badge > 0 ? (
+                  <span className="absolute -right-3 -top-1.5 flex size-[18px] items-center justify-center rounded-full bg-[var(--danger)] text-[10px] font-bold leading-none text-white">
+                    {badge > 99 ? "99+" : badge}
+                  </span>
+                ) : null}
+              </span>
               {item.label === "Mes commandes"
                 ? "Commandes"
                 : item.label === "SOS commission"

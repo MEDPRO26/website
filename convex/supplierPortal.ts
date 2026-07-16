@@ -868,6 +868,34 @@ export const listCommissions = query({
   },
 });
 
+/** Count of delivered commissions not yet marked as settled by the supplier. */
+export const unpaidCommissionCount = query({
+  args: {},
+  handler: async (ctx) => {
+    const { staff, supplier } = await requireSupplierStaff(ctx);
+    if (!isSupplierProfileComplete(supplier)) {
+      return 0;
+    }
+
+    const quotes = await ctx.db
+      .query("orderSupplierQuotes")
+      .withIndex("by_supplierId", (q) => q.eq("supplierId", staff.supplierId!))
+      .collect();
+
+    let count = 0;
+    for (const quote of quotes) {
+      if (quote.status !== "submitted" || quote.commissionPaidAt) {
+        continue;
+      }
+      const order = await ctx.db.get(quote.orderId);
+      if (order?.status === "terminee") {
+        count += 1;
+      }
+    }
+    return count;
+  },
+});
+
 export const generateProfilePhotoUploadUrl = mutation({
   args: {},
   handler: async (ctx) => {
