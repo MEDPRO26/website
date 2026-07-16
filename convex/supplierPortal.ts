@@ -595,9 +595,11 @@ export const dashboardStats = query({
         newRequests: 0,
         pendingResponse: 0,
         pendingOffers: 0,
+        awaitingDelivery: 0,
         activeOrders: 0,
         confirmed: 0,
         completed: 0,
+        delivered: 0,
         missedOrders: 0,
         monthlyRevenue: 0,
       };
@@ -657,6 +659,10 @@ export const dashboardStats = query({
       pendingOffers: orders.filter((o) =>
         ["prix_recu", "offre_envoyee"].includes(o.status)
       ).length,
+      /** Accepted / in progress — waiting for supplier delivery. */
+      awaitingDelivery: orders.filter((o) =>
+        ["acceptee", "planifiee", "en_cours", "location_active"].includes(o.status)
+      ).length,
       activeOrders: orders.filter((o) =>
         ["acceptee", "planifiee", "en_cours", "location_active"].includes(o.status)
       ).length,
@@ -664,6 +670,12 @@ export const dashboardStats = query({
         ["acceptee", "planifiee", "location_active"].includes(o.status)
       ).length,
       completed: orders.filter((o) => o.status === "terminee").length,
+      /** Delivered in the selected period. */
+      delivered: orders.filter((o) => {
+        if (o.status !== "terminee") return false;
+        if (since === null) return true;
+        return o.updatedAt >= since;
+      }).length,
       missedOrders: missedInRange,
       monthlyRevenue,
     };

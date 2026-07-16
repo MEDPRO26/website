@@ -101,7 +101,7 @@ export function SupplierWebappInstallDialog({
         <DialogFooter className="gap-2 sm:flex-col">
           {deferredPrompt || isIos ? (
             <Button
-              className="w-full rounded-xl"
+              className="w-full rounded-xl bg-primary text-white hover:bg-primary/90 hover:text-white"
               onClick={() => void (deferredPrompt ? onInstall() : undefined)}
               disabled={installing || dismissing}
             >

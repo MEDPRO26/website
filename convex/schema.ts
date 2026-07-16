@@ -252,6 +252,19 @@ export default defineSchema({
     .index("by_read", ["read"])
     .index("by_createdAt", ["createdAt"]),
 
+  /** Per-supplier in-app inbox (new assigned orders, etc.). */
+  supplierNotifications: defineTable({
+    supplierId: v.id("suppliers"),
+    title: v.string(),
+    description: v.string(),
+    read: v.boolean(),
+    link: v.optional(v.string()),
+    orderId: v.optional(v.id("orders")),
+    createdAt: v.number(),
+  })
+    .index("by_supplierId_createdAt", ["supplierId", "createdAt"])
+    .index("by_supplierId_read", ["supplierId", "read"]),
+
   whatsappChannels: defineTable({
     slug: v.string(),
     label: v.string(),

@@ -20,9 +20,9 @@ function contactMessage(clientName?: string, item?: string, orderStatus?: string
   const who = clientName?.trim() ? clientName.trim() : "le client";
   const what = item?.trim() ? ` « ${item.trim()} »` : "";
   if (orderStatus && supplierIsEarlyClientContactPhase(orderStatus)) {
-    return `Contactez ${who} pour confirmer le prix${what}, puis confirmez la livraison dans le formulaire.`;
+    return `Contactez ${who} pour organiser la livraison${what}, puis confirmez-la dans le formulaire.`;
   }
-  return `Le prix a été accepté. Contactez ${who} pour organiser la livraison${what}.`;
+  return `Contactez ${who} pour organiser la livraison${what}.`;
 }
 
 function contactTitle(orderStatus?: string) {
@@ -85,21 +85,21 @@ export function SupplierDeliveryPrompt({
     return (
       <div
         className={cn(
-          "flex flex-col gap-3 rounded-2xl border border-success/25 bg-gradient-to-r from-success-soft/80 to-white p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5",
+          "flex flex-col gap-2.5 rounded-2xl border border-success/25 bg-gradient-to-r from-success-soft/80 to-white p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4",
           className
         )}
       >
-        <div className="flex min-w-0 items-start gap-3">
-          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-success/15 text-success">
-            <Truck className="size-5" />
+        <div className="flex min-w-0 items-start gap-2.5">
+          <div className="grid size-8 shrink-0 place-items-center rounded-lg bg-success/15 text-success">
+            <Truck className="size-4" />
           </div>
           <div className="min-w-0">
-            <p className="font-semibold text-foreground">{title}</p>
-            <p className="mt-0.5 text-sm text-muted-foreground">{message}</p>
+            <p className="text-sm font-semibold text-foreground">{title}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2 sm:text-sm">{message}</p>
           </div>
         </div>
         {orderId ? (
-          <Button asChild size="sm" className="shrink-0 rounded-xl">
+          <Button asChild size="sm" className="h-9 shrink-0 rounded-xl">
             <Link href={`/supplier/orders/${orderId}`}>
               Voir la commande{orderRef ? ` · ${orderRef}` : ""}
             </Link>

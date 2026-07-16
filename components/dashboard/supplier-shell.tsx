@@ -15,7 +15,6 @@ import {
   Menu,
   LogOut,
   HelpCircle,
-  Bell,
   Search,
   Download,
 } from "lucide-react";
@@ -27,6 +26,7 @@ import { cn } from "@/lib/utils";
 import {
   SupplierWebappInstallPrompt,
 } from "@/components/crm/supplier-webapp-install-prompt";
+import { SupplierNotificationBell } from "@/components/dashboard/supplier-notification-bell";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -197,9 +197,7 @@ function SupplierTopbar({
       </form>
 
       <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-        <Button size="icon" variant="ghost" className="text-muted-foreground">
-          <Bell className="size-5" />
-        </Button>
+        <SupplierNotificationBell />
         <Button size="icon" variant="ghost" className="text-muted-foreground">
           <HelpCircle className="size-5" />
         </Button>

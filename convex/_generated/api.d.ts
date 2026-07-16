@@ -56,6 +56,7 @@ import type * as staff from "../staff.js";
 import type * as staffInvitations from "../staffInvitations.js";
 import type * as statistics from "../statistics.js";
 import type * as supplierInvitations from "../supplierInvitations.js";
+import type * as supplierNotifications from "../supplierNotifications.js";
 import type * as supplierPortal from "../supplierPortal.js";
 import type * as supplierTimeouts from "../supplierTimeouts.js";
 import type * as suppliers from "../suppliers.js";
@@ -118,6 +119,7 @@ declare const fullApi: ApiFromModules<{
   staffInvitations: typeof staffInvitations;
   statistics: typeof statistics;
   supplierInvitations: typeof supplierInvitations;
+  supplierNotifications: typeof supplierNotifications;
   supplierPortal: typeof supplierPortal;
   supplierTimeouts: typeof supplierTimeouts;
   suppliers: typeof suppliers;

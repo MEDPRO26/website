@@ -7,7 +7,7 @@ import { useMutation, useQuery } from "convex/react";
 import { toast } from "sonner";
 import {
   ArrowUpRight,
-  Clock3,
+  CheckCircle2,
   Inbox,
   MapPin,
   Package,
@@ -135,42 +135,40 @@ function DashboardStatCard({
   return (
     <Card
       className={cn(
-        "p-4 border-0 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)]",
+        "p-3 border-0 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)]",
         isDark ? "bg-[#111827] text-white" : "bg-white"
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p
-            className={cn(
-              "text-xs truncate",
-              isDark ? "text-slate-300" : "text-muted-foreground"
-            )}
-          >
-            {label}
-          </p>
-          <p className="mt-1 text-xl font-bold tracking-tight">{value}</p>
-          {hint ? (
-            <p
-              className={cn(
-                "mt-1 text-[11px] leading-snug",
-                isDark ? "text-slate-400" : "text-muted-foreground"
-              )}
-            >
-              {hint}
-            </p>
-          ) : null}
-        </div>
+      <div className="flex flex-col items-center text-center">
+        <p
+          className={cn(
+            "w-full text-[11px] font-medium leading-snug",
+            isDark ? "text-slate-300" : "text-muted-foreground"
+          )}
+        >
+          {label}
+        </p>
         <div
           className={cn(
-            "grid size-10 shrink-0 place-items-center rounded-2xl",
+            "mt-1.5 grid size-8 place-items-center rounded-xl",
             isDark
               ? "bg-white/10 text-white"
               : "bg-brand-soft text-brand-deep"
           )}
         >
-          <Icon className="size-[18px]" />
+          <Icon className="size-4" />
         </div>
+        <p className="mt-1.5 text-lg font-bold tracking-tight leading-none">{value}</p>
+        {hint ? (
+          <p
+            className={cn(
+              "mt-1 text-[10px] leading-snug line-clamp-1",
+              isDark ? "text-slate-400" : "text-muted-foreground"
+            )}
+          >
+            {hint}
+          </p>
+        ) : null}
       </div>
     </Card>
   );
@@ -413,19 +411,24 @@ export function SupplierDashboardPage() {
       ? "Commandes terminées (total)"
       : `Commandes terminées (${range.replace("d", " j")})`;
 
+  const deliveredHint =
+    range === "all"
+      ? "Toutes les commandes livrées"
+      : `Livrées sur ${range.replace("d", " j")}`;
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-3xl">
             Bonjour, {supplier?.name ?? "Fournisseur"}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Voici l&apos;état de votre activité pour aujourd&apos;hui.
           </p>
         </div>
         <Select value={range} onValueChange={(v) => setRange(v as typeof range)}>
-          <SelectTrigger className="w-[220px] rounded-xl border-border/60 bg-white px-4 py-2.5 text-sm font-medium text-foreground shadow-sm">
+          <SelectTrigger className="w-[220px] rounded-xl border-border/60 bg-white px-4 py-2 text-sm font-medium text-foreground shadow-sm">
             <SelectValue>{rangeLabel}</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -437,7 +440,7 @@ export function SupplierDashboardPage() {
         </Select>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         <DashboardStatCard
           label="Nouvelles demandes"
           value={String(stats.newRequests).padStart(2, "0")}
@@ -449,16 +452,24 @@ export function SupplierDashboardPage() {
           icon={Inbox}
         />
         <DashboardStatCard
-          label="Offres en attente"
-          value={String(stats.pendingOffers).padStart(2, "0")}
-          hint="En attente de validation"
-          icon={Clock3}
+          label="En attente de livraison"
+          value={String(stats.awaitingDelivery).padStart(2, "0")}
+          hint={
+            stats.awaitingDelivery > 0
+              ? `${stats.awaitingDelivery} à livrer`
+              : "Aucune livraison en attente"
+          }
+          icon={Truck}
         />
         <DashboardStatCard
-          label="Commandes actives"
-          value={String(stats.activeOrders).padStart(2, "0")}
-          hint="En cours de livraison"
-          icon={Truck}
+          label="Commandes livrées"
+          value={String(stats.delivered).padStart(2, "0")}
+          hint={
+            stats.delivered > 0
+              ? deliveredHint
+              : "Aucune commande livrée"
+          }
+          icon={CheckCircle2}
         />
         <DashboardStatCard
           label="CA mensuel"
@@ -494,18 +505,18 @@ export function SupplierDashboardPage() {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <Card className="border-0 bg-white p-0 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)] xl:col-span-2">
-          <div className="relative border-b border-border/60 px-5 py-8 text-center">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <div className="relative border-b border-border/60 px-4 py-4 text-center sm:px-5 sm:py-5">
+            <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
               Demandes prioritaires
             </h2>
-            <p className="mx-auto mt-2 max-w-md text-base font-medium text-muted-foreground sm:text-lg">
+            <p className="mx-auto mt-1 max-w-md text-sm font-medium text-muted-foreground sm:text-base">
               Répondez rapidement pour gagner la commande
             </p>
             <Link
               href="/supplier/orders"
-              className="absolute right-5 top-5 inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline"
+              className="absolute right-4 top-4 inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline sm:right-5 sm:top-5"
             >
               Voir tout
               <ArrowUpRight className="size-3.5" />
