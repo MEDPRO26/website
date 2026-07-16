@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMutation } from "convex/react";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import { useSupplierSession } from "@/hooks/use-supplier-session";
@@ -46,6 +46,34 @@ export function SupplierOnboardingPage() {
   const [phone, setPhone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [prefilled, setPrefilled] = useState(false);
+
+  useEffect(() => {
+    if (!sessionLoading && profileComplete) {
+      router.replace("/supplier");
+    }
+  }, [sessionLoading, profileComplete, router]);
+
+  useEffect(() => {
+    if (!supplier || prefilled) return;
+    const placeholder = !supplier.name || supplier.name === "—" || supplier.name.includes("@");
+    if (!placeholder) {
+      setName(supplier.name);
+    }
+    if (supplier.city && supplier.city !== "—") {
+      setCity(CITIES.includes(supplier.city) ? supplier.city : "Autre");
+    }
+    if (supplier.zones?.length) {
+      setZonesText(supplier.zones.join(", "));
+    }
+    if (supplier.phone && supplier.phone !== "—") {
+      setPhone(supplier.phone);
+    }
+    if (supplier.whatsapp) {
+      setWhatsapp(supplier.whatsapp);
+    }
+    setPrefilled(true);
+  }, [supplier, prefilled]);
 
   const toggleType = (value: string, checked: boolean) => {
     setTypes((current) => {
@@ -59,17 +87,25 @@ export function SupplierOnboardingPage() {
     });
   };
 
-  if (sessionLoading) {
+  if (sessionLoading || profileComplete) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-muted-foreground">Chargement…</p>
+        <p className="text-sm text-muted-foreground">
+          {profileComplete ? "Ouverture de votre espace…" : "Chargement…"}
+        </p>
       </div>
     );
   }
 
-  if (profileComplete) {
-    router.replace("/supplier");
-    return null;
+  if (!supplier) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <p className="text-center text-sm text-muted-foreground">
+          Accès fournisseur indisponible. Reconnectez-vous via le lien
+          d&apos;invitation ou la page fournisseurs.
+        </p>
+      </div>
+    );
   }
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -103,12 +139,12 @@ export function SupplierOnboardingPage() {
         services: [],
       });
       toast.success("Profil enregistré. Bienvenue !");
-      router.replace("/supplier");
+      // Full navigation avoids soft-nav redirect races after invite/onboarding.
+      window.location.assign("/supplier");
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Impossible d'enregistrer le profil."
       );
-    } finally {
       setSubmitting(false);
     }
   };
@@ -121,7 +157,7 @@ export function SupplierOnboardingPage() {
           Ces informations seront visibles par l&apos;équipe SOS Santé avant d&apos;accéder
           à vos commandes.
         </p>
-        {supplier?.email ? (
+        {supplier.email ? (
           <p className="mt-1 text-xs text-muted-foreground">Compte : {supplier.email}</p>
         ) : null}
 

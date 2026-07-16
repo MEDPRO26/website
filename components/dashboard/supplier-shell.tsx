@@ -339,6 +339,16 @@ export function SupplierShell({ children }: { children: ReactNode }) {
     );
   }
 
+  // Avoid mounting the dashboard while redirecting incomplete profiles
+  // (prevents /supplier ↔ /onboarding redirect loops).
+  if (!profileComplete) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-sm text-muted-foreground">Redirection vers le profil…</p>
+      </div>
+    );
+  }
+
   const userName = supplier.name;
   const userInitials = userName
     .split(" ")
