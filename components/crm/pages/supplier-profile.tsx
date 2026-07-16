@@ -1,21 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useMutation } from "convex/react";
-import { Loader2, Pencil } from "lucide-react";
-import { toast } from "sonner";
+import { useEffect, useRef, useState } from "react";
+import { useMutation, useQuery } from "convex/react";
 import {
   BadgeCheck,
+  Camera,
   Clock,
+  Loader2,
   Mail,
   MapPin,
   Package,
+  Pencil,
   Phone,
+  Trash2,
   Truck,
   User,
   Wrench,
 } from "lucide-react";
+import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Tag } from "@/components/dashboard/status-badge";
 import { Card } from "@/components/ui/card";
@@ -30,10 +34,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSupplierSession } from "@/hooks/use-supplier-session";
-import { useQuery } from "convex/react";
-
+import { centerCropImageToSquare } from "@/lib/crm/center-crop-image";
 import {
   buildSupplierTypes,
   splitSupplierTypes,
@@ -51,12 +54,18 @@ function parseLines(value: string) {
 }
 
 export function SupplierProfilePage() {
-  const { supplier, staff, canQuerySupplier } = useSupplierSession();
+  const { supplier, staff, photoUrl, canQuerySupplier } = useSupplierSession();
   const stats = useQuery(
     api.supplierPortal.dashboardStats,
     canQuerySupplier ? {} : "skip"
   );
   const updateProfile = useMutation(api.supplierPortal.updateProfile);
+  const generatePhotoUploadUrl = useMutation(
+    api.supplierPortal.generateProfilePhotoUploadUrl
+  );
+  const updateProfilePhoto = useMutation(api.supplierPortal.updateProfilePhoto);
+  const removeProfilePhoto = useMutation(api.supplierPortal.removeProfilePhoto);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
@@ -67,6 +76,7 @@ export function SupplierProfilePage() {
   const [phone, setPhone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
 
   useEffect(() => {
     if (!supplier) return;
@@ -110,6 +120,49 @@ export function SupplierProfilePage() {
     .map((w) => w[0])
     .join("")
     .toUpperCase();
+
+  const handlePhotoChange = async (file: File | null) => {
+    if (!file) return;
+    setPhotoUploading(true);
+    try {
+      const cropped = await centerCropImageToSquare(file, 512);
+      const uploadUrl = await generatePhotoUploadUrl({});
+      const uploadResult = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": "image/jpeg" },
+        body: cropped,
+      });
+      if (!uploadResult.ok) {
+        throw new Error("Impossible d'envoyer la photo.");
+      }
+      const payload = (await uploadResult.json()) as {
+        storageId: Id<"_storage">;
+      };
+      await updateProfilePhoto({ storageId: payload.storageId });
+      toast.success("Photo de profil mise à jour.");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Impossible d'ajouter la photo."
+      );
+    } finally {
+      setPhotoUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    setPhotoUploading(true);
+    try {
+      await removeProfilePhoto({});
+      toast.success("Photo de profil supprimée.");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Impossible de supprimer la photo."
+      );
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
 
   const handleSave = async () => {
     const resolvedTypes = buildSupplierTypes(types, otherTypeText);
@@ -170,11 +223,38 @@ export function SupplierProfilePage() {
       <Card className="overflow-hidden p-0">
         <div className="bg-gradient-to-br from-brand/10 via-brand-soft/40 to-transparent px-5 py-6">
           <div className="flex items-start gap-4">
-            <Avatar className="size-16 border-2 border-white shadow-md">
-              <AvatarFallback className="bg-brand text-lg font-bold text-white">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative shrink-0">
+              <Avatar className="size-16 border-2 border-white shadow-md">
+                {photoUrl ? (
+                  <AvatarImage src={photoUrl} alt={supplier.name} />
+                ) : null}
+                <AvatarFallback className="bg-brand text-lg font-bold text-white">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                className="sr-only"
+                onChange={(e) =>
+                  void handlePhotoChange(e.target.files?.[0] ?? null)
+                }
+              />
+              <button
+                type="button"
+                disabled={photoUploading}
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute -bottom-1 -right-1 grid size-8 place-items-center rounded-full border-2 border-white bg-brand text-white shadow-md transition-colors hover:bg-brand/90 disabled:opacity-60"
+                aria-label="Ajouter ou changer la photo de profil"
+              >
+                {photoUploading ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Camera className="size-3.5" />
+                )}
+              </button>
+            </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-lg font-bold text-foreground">{supplier.name}</h2>
@@ -191,6 +271,32 @@ export function SupplierProfilePage() {
                 <MapPin className="size-3.5 text-brand" />
                 {supplier.city} · {supplier.zones.join(", ")}
               </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-8 rounded-lg text-xs"
+                  disabled={photoUploading}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Camera className="size-3.5" />
+                  {photoUrl ? "Changer la photo" : "Ajouter une photo"}
+                </Button>
+                {photoUrl ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 rounded-lg text-xs text-muted-foreground"
+                    disabled={photoUploading}
+                    onClick={() => void handleRemovePhoto()}
+                  >
+                    <Trash2 className="size-3.5" />
+                    Supprimer
+                  </Button>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>

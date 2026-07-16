@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useAdminSession } from "@/hooks/use-admin-session";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -16,8 +15,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tag } from "@/components/dashboard/status-badge";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 type OrderAssignSupplierProps = {
   orderId: Id<"orders">;
@@ -25,15 +26,60 @@ type OrderAssignSupplierProps = {
   supplierName?: string | null;
 };
 
+function supplierInitials(name: string) {
+  return (
+    name
+      .split(" ")
+      .filter(Boolean)
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "?"
+  );
+}
+
+function SupplierOptionAvatar({
+  name,
+  photoUrl,
+  className,
+  fallbackClassName,
+}: {
+  name: string;
+  photoUrl?: string | null;
+  className?: string;
+  fallbackClassName?: string;
+}) {
+  return (
+    <Avatar className={cn("size-6 shrink-0", className)}>
+      {photoUrl ? <AvatarImage src={photoUrl} alt="" /> : null}
+      <AvatarFallback
+        className={cn(
+          "bg-brand text-[10px] font-bold text-white",
+          fallbackClassName
+        )}
+      >
+        {supplierInitials(name)}
+      </AvatarFallback>
+    </Avatar>
+  );
+}
+
 export function OrderAssignSupplier({
   orderId,
   supplierId,
   supplierName,
 }: OrderAssignSupplierProps) {
   const { canQueryAdmin } = useAdminSession();
-  const suppliers = useQuery(api.suppliers.list, canQueryAdmin ? { status: "actif" } : "skip");
+  const suppliers = useQuery(
+    api.suppliers.list,
+    canQueryAdmin ? { status: "actif" } : "skip"
+  );
   const assignSupplier = useMutation(api.orders.assignSupplier);
   const [submitting, setSubmitting] = useState(false);
+
+  const selected = (suppliers ?? []).find((s) => s._id === supplierId);
+  const selectedPhotoUrl = selected?.photoUrl ?? null;
+  const selectedName = selected?.name ?? supplierName ?? "";
 
   const handleAssign = async (value: string) => {
     setSubmitting(true);
@@ -57,14 +103,16 @@ export function OrderAssignSupplier({
   };
 
   if (supplierId && supplierName) {
-    const initial = supplierName.trim().charAt(0).toUpperCase();
     return (
       <div className="rounded-xl border border-success/20 bg-success-soft/20 p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-bold text-white shadow-sm">
-              {initial}
-            </span>
+            <SupplierOptionAvatar
+              name={selectedName || supplierName}
+              photoUrl={selectedPhotoUrl}
+              className="size-11 shadow-sm"
+              fallbackClassName="text-sm"
+            />
             <div>
               <Link
                 href={`/admin/suppliers/${supplierId}`}
@@ -89,14 +137,20 @@ export function OrderAssignSupplier({
             disabled={submitting || suppliers === undefined}
             onValueChange={(value) => void handleAssign(value)}
           >
-            <SelectTrigger id="change-supplier">
+            <SelectTrigger id="change-supplier" className="h-11">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">Retirer le fournisseur</SelectItem>
               {(suppliers ?? []).map((supplier) => (
-                <SelectItem key={supplier._id} value={supplier._id}>
-                  {supplier.name}
+                <SelectItem key={supplier._id} value={supplier._id} className="py-2">
+                  <span className="flex items-center gap-2">
+                    <SupplierOptionAvatar
+                      name={supplier.name}
+                      photoUrl={supplier.photoUrl}
+                    />
+                    <span>{supplier.name}</span>
+                  </span>
                 </SelectItem>
               ))}
             </SelectContent>
@@ -115,13 +169,21 @@ export function OrderAssignSupplier({
           disabled={submitting || suppliers === undefined}
           onValueChange={(value) => void handleAssign(value)}
         >
-          <SelectTrigger id="assign-supplier">
+          <SelectTrigger id="assign-supplier" className="h-11">
             <SelectValue placeholder="Choisir un fournisseur actif" />
           </SelectTrigger>
           <SelectContent>
             {(suppliers ?? []).map((supplier) => (
-              <SelectItem key={supplier._id} value={supplier._id}>
-                {supplier.name} · {supplier.city}
+              <SelectItem key={supplier._id} value={supplier._id} className="py-2">
+                <span className="flex items-center gap-2">
+                  <SupplierOptionAvatar
+                    name={supplier.name}
+                    photoUrl={supplier.photoUrl}
+                  />
+                  <span>
+                    {supplier.name} · {supplier.city}
+                  </span>
+                </span>
               </SelectItem>
             ))}
           </SelectContent>

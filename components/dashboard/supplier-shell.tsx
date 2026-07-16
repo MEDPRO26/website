@@ -35,7 +35,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { LOGO } from "@/lib/brand";
 
@@ -89,10 +89,12 @@ function SupplierNavList({
 
 function SupplierSidebar({
   supplierName,
+  photoUrl,
   onNavigate,
   onSignOut,
 }: {
   supplierName: string;
+  photoUrl?: string | null;
   onNavigate?: () => void;
   onSignOut: () => void;
 }) {
@@ -136,6 +138,7 @@ function SupplierSidebar({
       <div className="border-t border-white/10 p-4">
         <div className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2.5">
           <Avatar className="size-9 shrink-0">
+            {photoUrl ? <AvatarImage src={photoUrl} alt={supplierName} /> : null}
             <AvatarFallback className="bg-[#32a0f3] text-xs font-semibold text-white">
               {initials}
             </AvatarFallback>
@@ -161,11 +164,13 @@ function SupplierSidebar({
 function SupplierTopbar({
   userName,
   userInitials,
+  photoUrl,
   onMenu,
   onSignOut,
 }: {
   userName: string;
   userInitials: string;
+  photoUrl?: string | null;
   onMenu?: () => void;
   onSignOut: () => void;
 }) {
@@ -211,6 +216,7 @@ function SupplierTopbar({
               className="rounded-full ring-2 ring-border hover:ring-brand/30 transition-all"
             >
               <Avatar className="size-9">
+                {photoUrl ? <AvatarImage src={photoUrl} alt={userName} /> : null}
                 <AvatarFallback className="bg-brand text-primary-foreground text-xs font-semibold">
                   {userInitials}
                 </AvatarFallback>
@@ -246,7 +252,7 @@ export function SupplierShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { signOut } = useAuthActions();
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
-  const { staff, supplier, profileComplete, sessionLoading } = useSupplierSession();
+  const { staff, supplier, photoUrl, profileComplete, sessionLoading } = useSupplierSession();
   const pwaInstall = useSupplierPwaInstall(supplier);
 
   useEffect(() => {
@@ -303,7 +309,11 @@ export function SupplierShell({ children }: { children: ReactNode }) {
     <div className="supplier-portal h-[100dvh] overflow-hidden bg-[#e8ecf2]">
       <div className="flex h-full w-full">
         <aside className="hidden md:flex w-[260px] shrink-0 flex-col bg-[#111827]">
-          <SupplierSidebar supplierName={userName} onSignOut={handleSignOut} />
+          <SupplierSidebar
+            supplierName={userName}
+            photoUrl={photoUrl}
+            onSignOut={handleSignOut}
+          />
         </aside>
 
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -313,6 +323,7 @@ export function SupplierShell({ children }: { children: ReactNode }) {
           >
             <SupplierSidebar
               supplierName={userName}
+              photoUrl={photoUrl}
               onNavigate={() => setMobileOpen(false)}
               onSignOut={handleSignOut}
             />
@@ -323,6 +334,7 @@ export function SupplierShell({ children }: { children: ReactNode }) {
           <SupplierTopbar
             userName={userName}
             userInitials={userInitials}
+            photoUrl={photoUrl}
             onMenu={() => setMobileOpen(true)}
             onSignOut={handleSignOut}
           />

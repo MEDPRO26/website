@@ -24,6 +24,7 @@ export function useSupplierSession() {
     profile,
     staff: profile?.staff ?? null,
     supplier: profile?.supplier ?? null,
+    photoUrl: profile?.photoUrl ?? null,
     profileComplete: profile?.profileComplete ?? false,
     sessionLoading,
     canQuerySupplier,

@@ -68,8 +68,13 @@ export const list = query({
           .withIndex("by_supplierId", (q) => q.eq("supplierId", supplier._id))
           .collect();
 
+        const photoUrl = supplier.photoStorageId
+          ? await ctx.storage.getUrl(supplier.photoStorageId)
+          : null;
+
         return {
           ...supplier,
+          photoUrl,
           ordersCount: orders.length,
         };
       })

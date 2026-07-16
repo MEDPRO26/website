@@ -115,6 +115,8 @@ export default defineSchema({
     notes: v.optional(v.string()),
     responseAvg: v.optional(v.string()),
     profileComplete: v.optional(v.boolean()),
+    /** Profile photo in Convex file storage (square-cropped on upload). */
+    photoStorageId: v.optional(v.id("_storage")),
     /**
      * When false/undefined, we show a one-time popup to invite suppliers
      * to install the web app icon on their phone.

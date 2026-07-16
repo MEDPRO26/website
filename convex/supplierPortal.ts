@@ -94,7 +94,16 @@ export const current = query({
       return null;
     }
 
-    return { staff, supplier, profileComplete: isSupplierProfileComplete(supplier) };
+    const photoUrl = supplier.photoStorageId
+      ? await ctx.storage.getUrl(supplier.photoStorageId)
+      : null;
+
+    return {
+      staff,
+      supplier,
+      photoUrl,
+      profileComplete: isSupplierProfileComplete(supplier),
+    };
   },
 });
 
@@ -856,6 +865,68 @@ export const listCommissions = query({
     return rows
       .filter((row) => row !== null)
       .sort((a, b) => b.deliveredAt - a.deliveredAt);
+  },
+});
+
+export const generateProfilePhotoUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    await requireSupplierStaff(ctx);
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+export const updateProfilePhoto = mutation({
+  args: {
+    storageId: v.id("_storage"),
+  },
+  handler: async (ctx, args) => {
+    const { supplier } = await requireSupplierStaff(ctx);
+    const meta = await ctx.storage.getMetadata(args.storageId);
+    if (!meta) {
+      throw new Error("Fichier introuvable.");
+    }
+    if (!meta.contentType?.startsWith("image/")) {
+      throw new Error("Le fichier doit être une image.");
+    }
+    if (meta.size > 5 * 1024 * 1024) {
+      throw new Error("L'image ne doit pas dépasser 5 Mo.");
+    }
+
+    const previous = supplier.photoStorageId;
+    await ctx.db.patch(supplier._id, {
+      photoStorageId: args.storageId,
+      updatedAt: Date.now(),
+    });
+
+    if (previous && previous !== args.storageId) {
+      try {
+        await ctx.storage.delete(previous);
+      } catch {
+        // Ignore cleanup failures for replaced photos.
+      }
+    }
+
+    return await ctx.storage.getUrl(args.storageId);
+  },
+});
+
+export const removeProfilePhoto = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const { supplier } = await requireSupplierStaff(ctx);
+    const previous = supplier.photoStorageId;
+    await ctx.db.patch(supplier._id, {
+      photoStorageId: undefined,
+      updatedAt: Date.now(),
+    });
+    if (previous) {
+      try {
+        await ctx.storage.delete(previous);
+      } catch {
+        // Ignore cleanup failures.
+      }
+    }
   },
 });
 
