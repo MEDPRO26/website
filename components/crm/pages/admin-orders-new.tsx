@@ -30,8 +30,6 @@ import {
   ORDER_REQUEST_KIND_OPTIONS,
   orderRequestItemChoices,
   orderRequestItemLabel,
-  orderRequestItemPlaceholder,
-  orderRequestOtherItemLabel,
   orderShowsSchedulingForKind,
   type OrderRequestKind,
 } from "@/lib/order-request-kinds";
@@ -43,6 +41,7 @@ import {
   validateTimeSlots,
 } from "@/lib/crm/order-scheduling";
 import { FrenchTimePicker } from "@/components/ui/french-time-picker";
+import { SuggestableItemField } from "@/components/suggestable-item-field";
 import { cn } from "@/lib/utils";
 
 const SOURCES = [
@@ -78,7 +77,6 @@ type FormState = {
   address: string;
   requestKind: OrderRequestKind;
   item: string;
-  customItem: string;
   desiredDateFrom: string;
   desiredDateTo: string;
   timeSlots: TimeSlotInput[];
@@ -101,7 +99,6 @@ const INITIAL_FORM: FormState = {
   address: "",
   requestKind: "vente",
   item: "",
-  customItem: "",
   desiredDateFrom: "",
   desiredDateTo: "",
   timeSlots: [{ ...EMPTY_TIME_SLOT }],
@@ -153,7 +150,6 @@ export function AdminOrdersNewPage() {
         ? {
             requestKind: CHANNEL_ORDER_KIND[channelPurpose],
             item: "",
-            customItem: "",
           }
         : {}),
     }));
@@ -206,15 +202,12 @@ export function AdminOrdersNewPage() {
     [form.requestKind]
   );
 
-  const otherItemLabel = orderRequestOtherItemLabel(form.requestKind);
   const showItemField = !isOrderRequestKindDisabled(
     form.requestKind,
     ADMIN_REQUEST_OPTIONS
   );
   const showScheduling = orderShowsSchedulingForKind(form.requestKind);
-  const isOtherItemSelected = form.item === otherItemLabel;
-  const resolvedItem =
-    isOtherItemSelected ? form.customItem.trim() : form.item.trim();
+  const resolvedItem = form.item.trim();
 
   const handleRequestKindChange = (kind: OrderRequestKind) => {
     if (isOrderRequestKindDisabled(kind, ADMIN_REQUEST_OPTIONS)) {
@@ -223,7 +216,6 @@ export function AdminOrdersNewPage() {
     patch({
       requestKind: kind,
       item: "",
-      customItem: "",
       ...(orderShowsSchedulingForKind(kind)
         ? {}
         : {
@@ -242,11 +234,8 @@ export function AdminOrdersNewPage() {
     if (isOrderRequestKindDisabled(form.requestKind, ADMIN_REQUEST_OPTIONS)) {
       return "Ce type de demande n'est pas encore disponible.";
     }
-    if (showItemField && !form.item.trim()) {
-      return `Choisissez un ${form.requestKind === "service" ? "service" : "matériel"}.`;
-    }
-    if (showItemField && form.item === otherItemLabel && !form.customItem.trim()) {
-      return `Précisez le ${form.requestKind === "service" ? "service" : "matériel"}.`;
+    if (showItemField && !resolvedItem) {
+      return `Indiquez un ${form.requestKind === "service" ? "service" : "matériel"}.`;
     }
     if (form.assignmentMode === "assign_staff" && !form.assignedStaffId) {
       return "Choisissez un assistant.";
@@ -464,51 +453,22 @@ export function AdminOrdersNewPage() {
                 {ORDER_REQUEST_KIND_LABEL[form.requestKind]} — bientôt disponible.
               </div>
             ) : showItemField ? (
-              <>
+              <div className="sm:col-span-2">
                 <Field label={`${orderRequestItemLabel(form.requestKind)} *`}>
-                  <Select
-                    value={form.item || undefined}
-                    onValueChange={(value) =>
-                      patch({ item: value, customItem: "" })
+                  <SuggestableItemField
+                    value={form.item}
+                    onChange={(item) => patch({ item })}
+                    options={itemChoices}
+                    placeholder={
+                      form.requestKind === "service"
+                        ? "Rechercher ou saisir un service"
+                        : "Rechercher ou saisir un matériel"
                     }
-                  >
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={orderRequestItemPlaceholder(form.requestKind)}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {itemChoices.map((choice) => (
-                        <SelectItem key={choice} value={choice}>
-                          {choice}
-                        </SelectItem>
-                      ))}
-                      <SelectItem value={otherItemLabel}>{otherItemLabel}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    tone="light"
+                    inputClassName="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  />
                 </Field>
-                {isOtherItemSelected ? (
-                  <div className="sm:col-span-2">
-                    <Field
-                      label={
-                        form.requestKind === "service"
-                          ? "Nom du service *"
-                          : "Nom du matériel *"
-                      }
-                    >
-                      <Input
-                        value={form.customItem}
-                        onChange={(e) => patch({ customItem: e.target.value })}
-                        placeholder={
-                          form.requestKind === "service"
-                            ? "Ex. Garde de nuit"
-                            : "Ex. Matelas anti-escarres"
-                        }
-                      />
-                    </Field>
-                  </div>
-                ) : null}
-              </>
+              </div>
             ) : null}
 
             {showScheduling ? (

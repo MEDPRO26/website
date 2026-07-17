@@ -9,6 +9,7 @@ import {
 } from "@/lib/products";
 import { careServiceFormOptions } from "@/lib/care-services";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { SuggestableItemField } from "@/components/suggestable-item-field";
 
 function MaterialIcon({
   name,
@@ -190,20 +191,16 @@ export function CareServiceRequestForm({
                 >
                   Type de soin
                 </label>
-                <select
+                <SuggestableItemField
                   id={`${id}-care-type`}
+                  required
                   value={formData.careType}
-                  onChange={(e) =>
-                    setFormData({ ...formData, careType: e.target.value })
-                  }
-                  className="h-[52px] rounded-xl border border-outline-variant bg-surface-bright px-4 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 sm:text-base"
-                >
-                  {careServiceFormOptions.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(careType) => setFormData({ ...formData, careType })}
+                  options={careServiceFormOptions}
+                  placeholder="Rechercher ou saisir un soin"
+                  tone="light"
+                  inputClassName="h-[52px] w-full rounded-xl border border-outline-variant bg-surface-bright px-4 text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 sm:text-base"
+                />
               </div>
               <div className="flex flex-col gap-2">
                 <label

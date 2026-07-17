@@ -2,14 +2,18 @@
 
 import { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
+import { SuggestableItemField } from "@/components/suggestable-item-field";
 import { useSubmitLead } from "@/hooks/use-submit-lead";
-import { catalogProducts } from "@/lib/catalog-products";
 import { careServiceFormOptions } from "@/lib/care-services";
 import { activeCities, DEFAULT_DELIVERY_CITY } from "@/lib/delivery-cities";
 import {
   getLeadRequestKindOptionLabel,
   isLeadRequestKindDisabled,
 } from "@/lib/lead-form-request-kinds";
+import {
+  RENTAL_MATERIAL_OPTIONS,
+  SALE_PRODUCT_OPTIONS,
+} from "@/lib/order-request-kinds";
 
 type ContactRequestKind = "general" | "location" | "vente" | "service";
 
@@ -25,19 +29,6 @@ const REQUEST_TYPE_LABEL: Record<Exclude<ContactRequestKind, "general">, string>
   vente: "Vente matériel médical",
   service: "Service à domicile",
 };
-
-const rentalMaterialOptions = [
-  "Lit médicalisé électrique",
-  "Lit médicalisé + matelas anti-escarres",
-  "Fauteuil roulant",
-  "Concentrateur d'oxygène 5L",
-  "Concentrateur d'oxygène 10L",
-  "Nébuliseur",
-  "Déambulateur",
-  "Béquilles",
-  "Soulève-malade",
-  "Aspirateur chirurgical",
-];
 
 const initialFormData = {
   name: "",
@@ -73,13 +64,13 @@ export default function ContactForm() {
 
   const requestChoices = useMemo(() => {
     if (formData.demandeType === "vente") {
-      return catalogProducts.map((product) => product.name);
+      return SALE_PRODUCT_OPTIONS;
     }
     if (formData.demandeType === "service") {
       return careServiceFormOptions;
     }
     if (formData.demandeType === "location") {
-      return rentalMaterialOptions;
+      return RENTAL_MATERIAL_OPTIONS;
     }
     return [];
   }, [formData.demandeType]);
@@ -88,9 +79,9 @@ export default function ContactForm() {
   const itemLabel =
     formData.demandeType === "service" ? "Service souhaité" : "Matériel souhaité";
   const itemPlaceholder =
-    formData.demandeType === "service" ? "Choisir un service" : "Choisir un matériel";
-  const otherItemLabel =
-    formData.demandeType === "service" ? "Autre service" : "Autre matériel";
+    formData.demandeType === "service"
+      ? "Rechercher ou saisir un service"
+      : "Rechercher ou saisir un matériel";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -280,24 +271,17 @@ export default function ContactForm() {
           >
             {itemLabel} <span className="text-status-error">*</span>
           </label>
-          <select
+          <SuggestableItemField
             id="item"
             name="item"
             required
             value={formData.item}
-            onChange={(e) => setFormData({ ...formData, item: e.target.value })}
-            className="w-full rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-          >
-            <option value="" disabled>
-              {itemPlaceholder}
-            </option>
-            {requestChoices.map((choice) => (
-              <option key={choice} value={choice}>
-                {choice}
-              </option>
-            ))}
-            <option value={otherItemLabel}>{otherItemLabel}</option>
-          </select>
+            onChange={(item) => setFormData({ ...formData, item })}
+            options={requestChoices}
+            placeholder={itemPlaceholder}
+            tone="light"
+            inputClassName="w-full rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          />
         </div>
       ) : null}
       <div>

@@ -15,6 +15,7 @@ import {
   whatsAppHref,
 } from "@/lib/products";
 import { activeCities } from "@/lib/cities";
+import { SuggestableItemField } from "@/components/suggestable-item-field";
 import { careServiceCityPath, careServiceFormOptions, careServices } from "@/lib/care-services";
 import {
   breadcrumbSchema,
@@ -575,20 +576,18 @@ export default function ServicesPage() {
                   >
                     Type de soin
                   </label>
-                  <select
+                  <SuggestableItemField
                     id="care-type"
+                    required
                     value={formData.careType}
-                    onChange={(e) =>
-                      setFormData({ ...formData, careType: e.target.value })
+                    onChange={(careType) =>
+                      setFormData({ ...formData, careType })
                     }
-                    className="h-[52px] rounded-xl border border-outline-variant bg-surface-bright px-4 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 sm:text-base"
-                  >
-                    {careTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
+                    options={careTypes}
+                    placeholder="Rechercher ou saisir un soin"
+                    tone="light"
+                    inputClassName="h-[52px] w-full rounded-xl border border-outline-variant bg-surface-bright px-4 text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 sm:text-base"
+                  />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label

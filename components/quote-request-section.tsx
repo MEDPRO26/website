@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { SuggestableItemField } from "@/components/suggestable-item-field";
 import { useSubmitLead } from "@/hooks/use-submit-lead";
 import { activeCities } from "@/lib/cities";
 import { careServiceFormOptions } from "@/lib/care-services";
@@ -10,6 +11,7 @@ import {
   getLeadRequestKindOptionLabel,
   isLeadRequestKindDisabled,
 } from "@/lib/lead-form-request-kinds";
+import { RENTAL_MATERIAL_OPTIONS } from "@/lib/order-request-kinds";
 
 type RequestKind = "general" | "location" | "vente" | "service";
 
@@ -26,19 +28,6 @@ const REQUEST_KIND_LABEL: Record<RequestKind, string> = {
   vente: "Vente matériel médical",
   service: "Service à domicile",
 };
-
-const rentalMaterialOptions = [
-  "Lit médicalisé électrique",
-  "Lit médicalisé + matelas anti-escarres",
-  "Fauteuil roulant",
-  "Concentrateur d'oxygène 5L",
-  "Concentrateur d'oxygène 10L",
-  "Nébuliseur",
-  "Déambulateur",
-  "Béquilles",
-  "Soulève-malade",
-  "Aspirateur chirurgical",
-];
 
 function MaterialIcon({
   name,
@@ -100,15 +89,15 @@ export default function QuoteRequestSection({
     if (formData.demandeType === "service") {
       return careServiceFormOptions;
     }
-    return rentalMaterialOptions;
+    return RENTAL_MATERIAL_OPTIONS;
   }, [formData.demandeType, productNames, showItemField]);
 
   const requestChoiceLabel =
     formData.demandeType === "service" ? "Service souhaité" : "Matériel souhaité";
   const requestChoicePlaceholder =
-    formData.demandeType === "service" ? "Choisir un service" : "Choisir un matériel";
-  const otherChoiceLabel =
-    formData.demandeType === "service" ? "Autre service" : "Autre matériel";
+    formData.demandeType === "service"
+      ? "Rechercher ou saisir un service"
+      : "Rechercher ou saisir un matériel";
 
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -312,26 +301,17 @@ export default function QuoteRequestSection({
                   >
                     {requestChoiceLabel}
                   </label>
-                  <select
+                  <SuggestableItemField
                     id={`${id}-materiel`}
                     name="materiel"
                     required
                     value={formData.materiel}
-                    onChange={(e) =>
-                      setFormData({ ...formData, materiel: e.target.value })
-                    }
-                    className="w-full rounded-xl border-0 bg-white/90 px-4 py-3 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary-fixed"
-                  >
-                    <option value="" disabled>
-                      {requestChoicePlaceholder}
-                    </option>
-                    {requestChoices.map((choice) => (
-                      <option key={choice} value={choice}>
-                        {choice}
-                      </option>
-                    ))}
-                    <option value={otherChoiceLabel}>{otherChoiceLabel}</option>
-                  </select>
+                    onChange={(materiel) => setFormData({ ...formData, materiel })}
+                    options={requestChoices}
+                    placeholder={requestChoicePlaceholder}
+                    tone="dark"
+                    inputClassName="w-full rounded-xl border-0 bg-white/90 px-4 py-3 text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:ring-2 focus:ring-primary-fixed"
+                  />
                 </div>
               ) : null}
               <div>
