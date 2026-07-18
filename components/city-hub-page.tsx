@@ -521,6 +521,39 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
             </>
           }
         />
+
+        {city.mapsEmbedSrc ? (
+          <section
+            className="px-4 pb-14 sm:px-6 sm:pb-20"
+            aria-labelledby={`map-${city.slug}-heading`}
+          >
+            <div className="mx-auto max-w-7xl">
+              <div className="mb-6 text-center sm:mb-8">
+                <h2
+                  id={`map-${city.slug}-heading`}
+                  className="font-heading text-2xl font-semibold text-secondary sm:text-3xl"
+                >
+                  Notre adresse à {city.name}
+                </h2>
+                {city.address ? (
+                  <p className="font-body mt-2 text-sm text-on-surface-variant sm:text-base">
+                    {city.address}
+                  </p>
+                ) : null}
+              </div>
+              <div className="overflow-hidden rounded-[32px] shadow-xl shadow-primary/5">
+                <iframe
+                  title={`Carte SOS Santé ${city.name}`}
+                  src={city.mapsEmbedSrc}
+                  className="h-[320px] w-full border-0 sm:h-[420px] md:h-[450px]"
+                  loading="lazy"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          </section>
+        ) : null}
       </main>
       <SiteFooter />
     </>
