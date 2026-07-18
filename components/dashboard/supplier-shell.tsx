@@ -17,6 +17,7 @@ import {
   HelpCircle,
   Search,
   Download,
+  Video,
 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { useSupplierSession } from "@/hooks/use-supplier-session";
@@ -55,6 +56,7 @@ const SUPPLIER_NAV: {
     icon: Wallet,
     badgeKey: "unpaidCommissions",
   },
+  { href: "/supplier/video", label: "Vidéo explicatif", icon: Video },
   { href: "/supplier/profile", label: "Profil", icon: UserCog },
 ];
 
