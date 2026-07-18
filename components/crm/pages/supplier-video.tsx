@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Play } from "lucide-react";
+import { Monitor, Play, Smartphone } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { HERO_IMAGE, LOGO, LOGO_ALT, SITE_WEBSITE } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 const SUPPLIER_VIDEOS = [
@@ -87,6 +89,71 @@ function loadYouTubeApi() {
   });
 }
 
+function BrandCover({
+  title,
+  orientation,
+  onPlay,
+}: {
+  title: string;
+  orientation: "landscape" | "portrait";
+  onPlay: () => void;
+}) {
+  const isPortrait = orientation === "portrait";
+  const Icon = isPortrait ? Smartphone : Monitor;
+
+  return (
+    <button
+      type="button"
+      onClick={onPlay}
+      className="group absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 overflow-hidden bg-[#0b1f33] px-6 text-center"
+      aria-label={`Lire — ${title}`}
+    >
+      <Image
+        src={HERO_IMAGE}
+        alt=""
+        fill
+        className="object-cover opacity-35 transition-transform duration-500 group-hover:scale-105"
+        sizes={isPortrait ? "384px" : "768px"}
+        priority={false}
+      />
+      <span className="absolute inset-0 bg-gradient-to-b from-[#0b1f33]/70 via-[#0b1f33]/55 to-[#0b1f33]/85" />
+
+      <div className="relative z-10 flex max-w-[85%] flex-col items-center gap-3">
+        <Image
+          src={LOGO.white}
+          alt={LOGO_ALT}
+          width={isPortrait ? 180 : 240}
+          height={isPortrait ? 51 : 68}
+          className="h-auto w-auto max-w-full object-contain drop-shadow"
+        />
+        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/70">
+          {SITE_WEBSITE}
+        </p>
+        <div className="mt-1 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+          <Icon className="size-3.5" aria-hidden />
+          {title}
+        </div>
+      </div>
+
+      <span
+        className={cn(
+          "relative z-10 mt-2 grid place-items-center rounded-full bg-[#32a0f3] text-white shadow-lg shadow-black/30",
+          "transition-transform group-hover:scale-105",
+          isPortrait ? "size-14" : "size-16"
+        )}
+      >
+        <Play
+          className={cn(
+            "fill-current pl-0.5",
+            isPortrait ? "size-6" : "size-7"
+          )}
+          aria-hidden
+        />
+      </span>
+    </button>
+  );
+}
+
 function SupplierExplainerPlayer({
   videoId,
   title,
@@ -99,6 +166,7 @@ function SupplierExplainerPlayer({
   const hostRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YtPlayer | null>(null);
   const draggingRef = useRef(false);
+  const [started, setStarted] = useState(false);
   const [ready, setReady] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
@@ -106,6 +174,8 @@ function SupplierExplainerPlayer({
   const isPortrait = orientation === "portrait";
 
   useEffect(() => {
+    if (!started) return;
+
     let cancelled = false;
     let raf = 0;
 
@@ -136,6 +206,7 @@ function SupplierExplainerPlayer({
           fs: 0,
           disablekb: 1,
           enablejsapi: 1,
+          autoplay: 1,
           origin: window.location.origin,
         },
         events: {
@@ -143,6 +214,7 @@ function SupplierExplainerPlayer({
             if (cancelled) return;
             setReady(true);
             setDuration(event.target.getDuration() || 0);
+            event.target.playVideo();
             raf = window.requestAnimationFrame(tick);
           },
           onStateChange: (event) => {
@@ -163,9 +235,13 @@ function SupplierExplainerPlayer({
       playerRef.current?.destroy();
       playerRef.current = null;
     };
-  }, [videoId]);
+  }, [started, videoId]);
 
   const togglePlay = useCallback(() => {
+    if (!started) {
+      setStarted(true);
+      return;
+    }
     const player = playerRef.current;
     if (!player || !ready) return;
     if (playing) {
@@ -173,7 +249,7 @@ function SupplierExplainerPlayer({
     } else {
       player.playVideo();
     }
-  }, [playing, ready]);
+  }, [playing, ready, started]);
 
   const seekFromClientX = useCallback(
     (clientX: number, track: HTMLElement) => {
@@ -203,41 +279,46 @@ function SupplierExplainerPlayer({
           isPortrait ? "aspect-[9/16] max-h-[70vh]" : "aspect-video"
         )}
       >
-        {/*
-          Landscape: slight vertical crop hides YouTube chrome.
-          Portrait: no top/bottom crop — scale 16:9 YouTube frame to fill 9:16
-          so the phone screen is fully visible (side bars cropped instead).
-        */}
-        {isPortrait ? (
-          <div className="absolute left-1/2 top-0 h-full w-[177.78%] -translate-x-1/2">
-            <div ref={hostRef} className="h-full w-full" />
-          </div>
+        {started ? (
+          <>
+            {isPortrait ? (
+              <div className="absolute left-1/2 top-0 h-full w-[177.78%] -translate-x-1/2">
+                <div ref={hostRef} className="h-full w-full" />
+              </div>
+            ) : (
+              <div
+                className="absolute left-0 w-full"
+                style={{ top: "-12%", height: "124%" }}
+              >
+                <div ref={hostRef} className="h-full w-full" />
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={togglePlay}
+              disabled={!ready}
+              className="absolute inset-0 z-10"
+              aria-label={
+                playing ? `Mettre en pause — ${title}` : `Lire — ${title}`
+              }
+            />
+
+            {!playing && ready ? (
+              <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-black/25">
+                <span className="grid size-14 place-items-center rounded-full bg-[#32a0f3] text-white shadow-lg">
+                  <Play className="size-6 fill-current pl-0.5" aria-hidden />
+                </span>
+              </div>
+            ) : null}
+          </>
         ) : (
-          <div
-            className="absolute left-0 w-full"
-            style={{ top: "-12%", height: "124%" }}
-          >
-            <div ref={hostRef} className="h-full w-full" />
-          </div>
+          <BrandCover
+            title={title}
+            orientation={orientation}
+            onPlay={() => setStarted(true)}
+          />
         )}
-
-        <button
-          type="button"
-          onClick={togglePlay}
-          disabled={!ready}
-          className="absolute inset-0 z-10"
-          aria-label={
-            playing ? `Mettre en pause — ${title}` : `Lire — ${title}`
-          }
-        />
-
-        {!playing && ready ? (
-          <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
-            <span className="grid size-14 place-items-center rounded-full bg-white/95 text-[#32a0f3] shadow-lg">
-              <Play className="size-6 fill-current pl-0.5" aria-hidden />
-            </span>
-          </div>
-        ) : null}
       </div>
 
       <div className="flex items-center gap-3 border-t border-border/60 bg-card px-3 py-2.5 sm:px-4">
@@ -251,9 +332,13 @@ function SupplierExplainerPlayer({
           aria-valuemin={0}
           aria-valuemax={Math.floor(duration)}
           aria-valuenow={Math.floor(current)}
-          tabIndex={0}
-          className="relative h-8 flex-1 cursor-pointer touch-none"
+          tabIndex={started ? 0 : -1}
+          className={cn(
+            "relative h-8 flex-1 touch-none",
+            started ? "cursor-pointer" : "cursor-not-allowed opacity-50"
+          )}
           onPointerDown={(event) => {
+            if (!started) return;
             draggingRef.current = true;
             event.currentTarget.setPointerCapture(event.pointerId);
             seekFromClientX(event.clientX, event.currentTarget);
