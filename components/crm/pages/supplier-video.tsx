@@ -34,7 +34,19 @@ type YtPlayer = {
   getDuration: () => number;
   getPlayerState: () => number;
   destroy: () => void;
+  unloadModule?: (module: string) => void;
+  setOption?: (module: string, option: string, value: unknown) => void;
 };
+
+function disableCaptions(player: YtPlayer) {
+  try {
+    player.unloadModule?.("captions");
+    player.unloadModule?.("cc");
+    player.setOption?.("captions", "track", {});
+  } catch {
+    /* YouTube may not expose caption modules on every build */
+  }
+}
 
 declare global {
   interface Window {
@@ -202,6 +214,7 @@ function SupplierExplainerPlayer({
           rel: 0,
           iv_load_policy: 3,
           cc_load_policy: 0,
+          hl: "fr",
           playsinline: 1,
           fs: 0,
           disablekb: 1,
@@ -212,13 +225,18 @@ function SupplierExplainerPlayer({
         events: {
           onReady: (event) => {
             if (cancelled) return;
+            disableCaptions(event.target);
             setReady(true);
             setDuration(event.target.getDuration() || 0);
             event.target.playVideo();
+            // Captions often re-enable after autoplay — clear again shortly after.
+            window.setTimeout(() => disableCaptions(event.target), 400);
+            window.setTimeout(() => disableCaptions(event.target), 1200);
             raf = window.requestAnimationFrame(tick);
           },
           onStateChange: (event) => {
             if (!window.YT) return;
+            disableCaptions(event.target);
             setPlaying(event.data === window.YT.PlayerState.PLAYING);
             if (event.data === window.YT.PlayerState.ENDED) {
               setPlaying(false);
