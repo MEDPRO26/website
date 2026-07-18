@@ -415,7 +415,8 @@ export function SupplierShell({ children }: { children: ReactNode }) {
           pwaInstall.showNavInstall ? "grid-cols-5" : "grid-cols-4"
         )}
       >
-        {SUPPLIER_NAV.map((item) => {
+        {SUPPLIER_NAV.filter((item) => item.href !== "/supplier/video").map(
+          (item) => {
           const Icon = item.icon;
           const active = item.exact
             ? pathname === item.href
@@ -446,7 +447,8 @@ export function SupplierShell({ children }: { children: ReactNode }) {
                   : item.label}
             </Link>
           );
-        })}
+        }
+        )}
         {pwaInstall.showNavInstall ? (
           <button
             type="button"
