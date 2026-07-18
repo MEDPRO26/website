@@ -31,6 +31,8 @@ type CareServiceRequestFormProps = {
   id?: string;
   defaultCareType?: string;
   defaultCity?: string;
+  phoneDisplay?: string;
+  whatsappHref?: string;
   showComingSoon?: boolean;
   heading?: string;
   subheading?: string;
@@ -40,6 +42,8 @@ export function CareServiceRequestForm({
   id = "request-form",
   defaultCareType = "Kinésithérapeute",
   defaultCity = "",
+  phoneDisplay = PHONE_DISPLAY,
+  whatsappHref: whatsappHrefProp,
   showComingSoon = false,
   heading = "Demande de service rapide",
   subheading = "Remplissez ce formulaire et notre équipe de coordination vous rappellera dans les 15 minutes pour confirmer les détails de l'intervention.",
@@ -127,7 +131,7 @@ export function CareServiceRequestForm({
                   Ligne d&apos;urgence
                 </p>
                 <p className="font-heading text-lg font-semibold text-on-surface sm:text-xl">
-                  {PHONE_DISPLAY}
+                  {phoneDisplay}
                 </p>
               </div>
             </div>
@@ -137,10 +141,13 @@ export function CareServiceRequestForm({
                 Vous préférez WhatsApp ?
               </p>
               <a
-                href={whatsAppHref(
-                  `Bonjour SOS Santé, je souhaite ${defaultCareType.toLowerCase()}${defaultCity ? ` à ${defaultCity}` : ""}.`,
-                  "garde_soins"
-                )}
+                href={
+                  whatsappHrefProp ??
+                  whatsAppHref(
+                    `Bonjour SOS Santé, je souhaite ${defaultCareType.toLowerCase()}${defaultCity ? ` à ${defaultCity}` : ""}.`,
+                    "garde_soins"
+                  )
+                }
                 className="inline-flex items-center gap-2 rounded-xl border-2 border-status-success px-5 py-3 text-sm font-semibold text-status-success transition-all hover:bg-status-success hover:text-white"
               >
                 <WhatsAppIcon className="h-5 w-5" />

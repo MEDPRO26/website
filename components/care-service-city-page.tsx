@@ -13,8 +13,9 @@ import {
   getValuePropAccentClass,
 } from "@/lib/care-service-seo";
 import type { CareServicePageContent } from "@/lib/care-services";
+import { getCityBySlug } from "@/lib/cities";
 import { hubCityPath } from "@/lib/routes";
-import { PHONE_DISPLAY, whatsAppHref } from "@/lib/products";
+import { cityWhatsAppHref } from "@/lib/whatsapp-lines";
 import {
   breadcrumbSchema,
   buildGraph,
@@ -127,6 +128,14 @@ export function CareServiceCityPage({
   const { expertise, trust, community } = seo;
   const { images } = content;
 
+  const city = getCityBySlug(content.citySlug)!;
+  const phoneDisplay =
+    city.contactReady && city.phoneDisplay
+      ? city.phoneDisplay
+      : "07 00 97 58 88";
+  const whatsappText = `Bonjour SOS Santé, je souhaite ${content.formLabel.toLowerCase()} à ${content.cityName}.`;
+  const whatsappHref = cityWhatsAppHref(city, whatsappText, "garde_soins");
+
   const schema = buildGraph(
     webPageSchema(content.path, content.metaTitle, content.metaDescription),
     breadcrumbSchema([
@@ -140,12 +149,18 @@ export function CareServiceCityPage({
       path: content.path,
       name: content.brandName,
       description: content.metaDescription,
+      telephone: city.contactReady ? city.phone : undefined,
+      streetAddress: city.streetAddress,
+      postalCode: city.postalCode,
+      addressRegion: city.addressRegion,
       addressLocality: content.cityName,
+      latitude: city.geo?.latitude,
+      longitude: city.geo?.longitude,
+      openingHours: city.openingHours,
+      areaServed: city.zones.map((zone) => ({ "@type": "City", name: zone })),
     }),
     serviceSchema(content.h1, content.description, content.path)
   );
-
-  const whatsappText = `Bonjour SOS Santé, je souhaite ${content.formLabel.toLowerCase()} à ${content.cityName}.`;
 
   const whyCardThemes = [
     "bg-secondary text-on-secondary",
@@ -197,11 +212,11 @@ export function CareServiceCityPage({
             </p>
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
               <a
-                href={whatsAppHref(whatsappText, "garde_soins")}
+                href={whatsappHref}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-on-primary shadow-lg shadow-primary/30 transition-all hover:-translate-y-0.5 hover:bg-primary-container"
               >
                 <WhatsAppIcon className="h-5 w-5" />
-                WhatsApp · {PHONE_DISPLAY}
+                WhatsApp · {phoneDisplay}
               </a>
               <a
                 href="#request-form"
@@ -335,6 +350,8 @@ export function CareServiceCityPage({
         <CareServiceRequestForm
           defaultCareType={content.formLabel}
           defaultCity={content.cityName}
+          phoneDisplay={phoneDisplay}
+          whatsappHref={whatsappHref}
           showComingSoon
           heading={`Réserver votre rendez-vous à ${content.cityName}`}
           subheading={`Remplissez ce formulaire pour ${content.formLabel.toLowerCase()} à domicile à ${content.cityName}. Notre équipe vous rappelle rapidement pour confirmer la mise en relation avec un professionnel partenaire.`}
