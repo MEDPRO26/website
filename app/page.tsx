@@ -36,7 +36,6 @@ import {
   breadcrumbSchema,
   faqSchema,
   itemListSchema,
-  localBusinessSchema,
   webPageSchema,
 } from "@/lib/schema";
 
@@ -173,7 +172,6 @@ function MaterialIcon({
 }
 
 const homeSchema = buildGraph(
-  localBusinessSchema({ citySlug: "agadir", path: "/" }),
   webPageSchema(
     "/",
     "Vente, location de matériel médical et soins à domicile",

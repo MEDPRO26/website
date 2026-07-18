@@ -60,14 +60,24 @@ export function localBusinessSchema(
     description?: string;
     telephone?: string;
     email?: string;
+    streetAddress?: string;
+    postalCode?: string;
+    addressRegion?: string;
     addressLocality?: string;
+    latitude?: number;
+    longitude?: number;
     areaServed?: Array<{ "@type": string; name: string }>;
     priceRange?: string;
     openingHours?: string;
+    image?: string;
   } = {}
 ) {
   const businessId = overrides.businessId ?? overrides.citySlug ?? "agadir";
   const pagePath = overrides.path ?? "/";
+  const openingHours = overrides.openingHours ?? "Mo-Su 00:00-23:59";
+  const hasGeo =
+    typeof overrides.latitude === "number" &&
+    typeof overrides.longitude === "number";
 
   return {
     "@type": "LocalBusiness",
@@ -77,28 +87,59 @@ export function localBusinessSchema(
       overrides.description ??
       "Location et vente de matériel médical à Agadir et livraison au Maroc. Lits médicalisés, fauteuils roulants, concentrateurs d'oxygène.",
     url: `${siteUrl}${pagePath}`,
+    image: overrides.image ?? `${siteUrl}${LOGO.default}`,
     parentOrganization: { "@id": `${siteUrl}/#organization` },
     telephone: overrides.telephone ?? contactPhone,
     email: overrides.email ?? CONTACT_EMAIL,
     address: {
       "@type": "PostalAddress",
+      ...(overrides.streetAddress
+        ? { streetAddress: overrides.streetAddress }
+        : {}),
+      ...(overrides.postalCode ? { postalCode: overrides.postalCode } : {}),
+      ...(overrides.addressRegion
+        ? { addressRegion: overrides.addressRegion }
+        : {}),
       addressLocality: overrides.addressLocality ?? "Agadir",
       addressCountry: "MA",
     },
+    ...(hasGeo
+      ? {
+          geo: {
+            "@type": "GeoCoordinates",
+            latitude: overrides.latitude,
+            longitude: overrides.longitude,
+          },
+        }
+      : {}),
     areaServed:
       overrides.areaServed ?? [
         { "@type": "City", name: "Agadir" },
         { "@type": "Country", name: "Maroc" },
       ],
     priceRange: overrides.priceRange ?? "$$",
-    openingHours: overrides.openingHours ?? "Mo-Su 00:00-23:59",
+    openingHours,
+    openingHoursSpecification: {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+      ],
+      opens: "00:00",
+      closes: "23:59",
+    },
     contactPoint: {
       "@type": "ContactPoint",
       telephone: overrides.telephone ?? contactPhone,
       contactType: "Service client",
       availableLanguage: ["French", "Arabic"],
       areaServed: "MA",
-      hoursAvailable: "Mo-Su 00:00-23:59",
+      hoursAvailable: openingHours,
     },
   };
 }

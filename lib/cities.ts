@@ -15,10 +15,19 @@ export type City = {
   email: string;
   /** When true, footer and contact blocks show local phone / address. */
   contactReady: boolean;
+  /** Full display address (footer / map section). */
   address?: string;
+  streetAddress?: string;
+  postalCode?: string;
+  /** Region / prefecture when useful for schema (e.g. Souss-Massa). */
+  addressRegion?: string;
+  /** WGS84 coordinates for LocalBusiness geo schema. */
+  geo?: { latitude: number; longitude: number };
   showAddress?: boolean;
   /** Google Maps embed URL shown on the city hub page. */
   mapsEmbedSrc?: string;
+  /** Schema.org openingHours, e.g. Mo-Su 00:00-23:59 */
+  openingHours?: string;
   available: boolean;
   zones: string[];
   deliveryText: string;
@@ -77,7 +86,12 @@ export const cities: City[] = [
     email: CONTACT_EMAIL,
     contactReady: true,
     address: "Lerac, Avenue Abderrahim Bouabid, 8000, Agadir 80000",
+    streetAddress: "Lerac, Avenue Abderrahim Bouabid",
+    postalCode: "80000",
+    addressRegion: "Souss-Massa",
+    geo: { latitude: 30.4202078, longitude: -9.5600878 },
     showAddress: true,
+    openingHours: "Mo-Su 00:00-23:59",
     mapsEmbedSrc:
       "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d220553.1206055184!2d-9.635340723193156!3d30.261520499588634!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xdb3b703d6cc5793%3A0xb175e7204470420a!2sSOS%20Sant%C3%A9%20Agadir%20-%20Mat%C3%A9riel%20M%C3%A9dical%20%26%20Aide%20%C3%A0%20Domicile!5e0!3m2!1sen!2sma!4v1784373345505!5m2!1sen!2sma",
     available: true,
@@ -126,7 +140,12 @@ export const cities: City[] = [
     email: CONTACT_EMAIL,
     contactReady: true,
     address: "Bd Anoual, Casablanca 20102",
+    streetAddress: "Boulevard Anoual",
+    postalCode: "20102",
+    addressRegion: "Casablanca-Settat",
+    geo: { latitude: 33.5696459, longitude: -7.6235469 },
     showAddress: true,
+    openingHours: "Mo-Su 00:00-23:59",
     mapsEmbedSrc:
       "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3529804.4800314493!2d-12.11025012025258!3d30.23494657929752!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x25e53d47b5f49bd9%3A0xf4c050234874339b!2sSOS%20Sant%C3%A9%20Casablanca%20-%20Mat%C3%A9riel%20M%C3%A9dical%20%26%20Aide%20%C3%A0%20Domicile!5e0!3m2!1sen!2sma!4v1784373574838!5m2!1sen!2sma",
     available: true,
