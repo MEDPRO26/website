@@ -397,6 +397,7 @@ Que vous soyez en post-opératoire, en convalescence ou en situation de dépenda
     "Secteur Touristique",
     "Anza",
     "Aït Melloul",
+    "Et autres environs…",
   ],
   faqs: [
     {

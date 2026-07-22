@@ -53,7 +53,7 @@ const trustBadges = [
 
 const heroGalleryImages = [
   {
-    src: "/products/inogen-rove-g6-homme-masque-domicile.webp",
+    src: "/products/inogen-rove-g6-homme-domicile-v2.webp",
     alt: "Homme utilisant un concentrateur portable Inogen Rove G6 à domicile",
     href: nationalProductPath("inogen-rove-g6"),
     objectPosition: "28% center",

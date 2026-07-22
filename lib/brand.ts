@@ -1,6 +1,6 @@
 export const SITE_NAME = "SOS Santé";
 export const SITE_DISPLAY_NAME = "SOS Santé";
-export const HOMEPAGE_OG_IMAGE = "/products/inogen-rove-g6-homme-masque-domicile.webp";
+export const HOMEPAGE_OG_IMAGE = "/products/inogen-rove-g6-homme-domicile-v2.webp";
 export const HOMEPAGE_OG_ALT =
   "Homme utilisant un concentrateur portable Inogen Rove G6 à domicile à Agadir";
 export const SITE_FULL_NAME =
@@ -13,7 +13,7 @@ export const SITE_URL_DEFAULT = "https://www.sossante.ma";
 export const SITE_WEBSITE = "www.sossante.ma";
 export const SITE_ADDRESS =
   "Lerac, Avenue Abderrahim Bouabid, 8000, Agadir 80000";
-export const HERO_IMAGE = "/sos-sante-hero.jpg";
+export const HERO_IMAGE = "/sos-sante-hero.webp";
 
 /** Logo brand colors */
 export const BRAND_BLUE = "#32A0F3";
@@ -22,7 +22,7 @@ export const BRAND_GRAY = "#747782";
 export const LOGO = {
   default: "/sos sante bg trans.webp",
   white: "/sos sante bg white.webp",
-  crm: "/sossante-crm-logo.png",
+  crm: "/sossante-crm-logo.webp",
   favicon: "/favicon-32x32.png",
   apple: "/apple-touch-icon.png",
 } as const;

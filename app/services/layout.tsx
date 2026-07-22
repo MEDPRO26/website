@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     description,
     images: [
       {
-        url: "/services/soins-domicile.jpg",
+        url: "/services/soins-domicile.webp",
         width: 1200,
         height: 630,
         alt: "Professionnel de santé accompagnant une personne âgée à domicile",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title,
     description,
-    images: ["/services/soins-domicile.jpg"],
+    images: ["/services/soins-domicile.webp"],
   },
 };
 

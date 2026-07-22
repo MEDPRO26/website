@@ -37,3 +37,12 @@ export function formatProductAchatHeading(
     `Achat ${frenchDe(normalizePublicDash(productName))} - ${city}`
   );
 }
+
+export function formatProductLocationHeading(
+  productName: string,
+  city: string
+): string {
+  return normalizePublicDash(
+    `Location ${frenchDe(normalizePublicDash(productName))} - ${city}`
+  );
+}

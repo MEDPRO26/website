@@ -31,6 +31,11 @@ const nextConfig: NextConfig = {
         destination: "/tanger",
         permanent: true,
       },
+      {
+        source: "/louer/:slug",
+        destination: "/location-materiel-medical-agadir/produits/:slug",
+        permanent: true,
+      },
     ];
   },
   async headers() {

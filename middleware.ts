@@ -90,25 +90,6 @@ function handleLegacyRedirects(request: NextRequest) {
     }
   }
 
-  if (pathname === "/location-materiel-medical-agadir") {
-    return redirect(request, "/location-vente-materiel-medical-agadir");
-  }
-
-  if (pathname === "/location-materiel-medical-rabat") {
-    return redirect(request, "/location-vente-materiel-medical-rabat");
-  }
-
-  if (pathname === "/location-materiel-medical-casablanca") {
-    return redirect(request, "/location-vente-materiel-medical-casablanca");
-  }
-
-  if (
-    pathname === "/location-materiel-medical-marrakech" ||
-    pathname === "/location-materiel-medical-tanger"
-  ) {
-    return redirect(request, "/");
-  }
-
   const cat = request.nextUrl.searchParams.get("cat");
   if (cat && pathname === LEGACY_VENTE_PAGE_PATH) {
     if (cat !== "all" && categoryParamToValue[cat]) {

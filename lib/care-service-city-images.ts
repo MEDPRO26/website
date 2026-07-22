@@ -11,16 +11,16 @@ export type CareServiceCityImages = {
 };
 
 const img = {
-  kineHero: "/services/kinesitherapie-a-domicile-hero.jpg",
-  kineSection: "/services/kinesitherapie-a-domicile-section.jpg",
-  infirmierHero: "/services/soins-infirmiers-a-domicile-hero.jpg",
-  infirmierSection: "/services/soins-infirmiers-a-domicile-section.jpg",
-  medecinHero: "/services/medecin-a-domicile-hero.jpg",
-  medecinSection: "/services/medecin-a-domicile-section.jpg",
-  aideHero: "/services/aide-soignant-a-domicile-hero.jpg",
-  aideSection: "/services/aide-soignant-a-domicile-section.jpg",
-  ambulanceHero: "/services/ambulance-maroc-hero.jpg",
-  ambulanceSection: "/services/ambulance-maroc-section.jpg",
+  kineHero: "/services/kinesitherapie-a-domicile-hero.webp",
+  kineSection: "/services/kinesitherapie-a-domicile-section.webp",
+  infirmierHero: "/services/soins-infirmiers-a-domicile-hero.webp",
+  infirmierSection: "/services/soins-infirmiers-a-domicile-section.webp",
+  medecinHero: "/services/medecin-a-domicile-hero.webp",
+  medecinSection: "/services/medecin-a-domicile-section.webp",
+  aideHero: "/services/aide-soignant-a-domicile-hero.webp",
+  aideSection: "/services/aide-soignant-a-domicile-section.webp",
+  ambulanceHero: "/services/ambulance-maroc-hero.webp",
+  ambulanceSection: "/services/ambulance-maroc-section.webp",
   brancard: "/products/brancard-pliable-portable.webp",
   fauteuil: "/products/fauteuil-roulant-pliable-classique.webp",
   fauteuilElectrique: "/products/fauteuil-roulant-electrique-classique.webp",
@@ -45,8 +45,8 @@ const img = {
   spirometre: "/products/spirometre-peak-flow.webp",
   chariot: "/products/chariot-pansement-inox-2-plateaux.webp",
   bequilles: "/products/bequille-s-m-l.webp",
-  siteHero: "/sos-sante-hero.jpg",
-  soinsDomicile: "/services/soins-domicile.jpg",
+  siteHero: "/sos-sante-hero.webp",
+  soinsDomicile: "/services/soins-domicile.webp",
 } as const;
 
 /**
@@ -171,8 +171,8 @@ export function getCareServiceCityImages(
   if (configured) return configured;
 
   return {
-    hero: `/services/${serviceSlug}-hero.jpg`,
-    bentoMain: `/services/${serviceSlug}-section.jpg`,
+    hero: `/services/${serviceSlug}-hero.webp`,
+    bentoMain: `/services/${serviceSlug}-section.webp`,
     bentoSecondary: img.stethoscope,
     expertise: img.siteHero,
     specialties: [img.oxymetre, img.thermometre],

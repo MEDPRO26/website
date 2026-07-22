@@ -136,13 +136,13 @@ export const respiratoryProducts: Product[] = [
       "Concentrateur d'oxygène portable Inogen Rove G6, ultra-léger (2,6 kg avec batterie double) pour l'oxygénothérapie en débit pulsé de 1 à 6.",
     extendedDescription:
       "Technologie Intelligent Delivery : l'oxygène est délivré à chaque inspiration pour une autonomie optimale. Jusqu'à 13 heures avec batterie 16 cellules. Idéal pour les déplacements et le maintien de l'indépendance.",
-    image: "/products/inogen-rove-g6-homme-masque-domicile.webp",
+    image: "/products/inogen-rove-g6-homme-domicile-v2.webp",
     gallery: [
-      "/products/inogen-rove-g6-homme-masque-domicile.webp",
+      "/products/inogen-rove-g6-homme-domicile-v2.webp",
       "/products/inogen-rove-g6.webp",
-      "/products/inogen-rove-g6-femme-domicile.webp",
+      "/products/inogen-rove-g6-femme-domicile-v2.webp",
     ],
-    alt: "Homme utilisant un concentrateur d'oxygène Inogen Rove G6 avec masque à domicile",
+    alt: "Homme utilisant un concentrateur d'oxygène Inogen Rove G6 à domicile",
     specs: [
       { label: "Poids", value: "2,6 kg (batterie double)" },
       { label: "Débit pulsé", value: "1 à 6" },

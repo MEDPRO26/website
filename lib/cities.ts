@@ -31,6 +31,8 @@ export type City = {
   available: boolean;
   zones: string[];
   deliveryText: string;
+  /** Hero image on location city pages (`/location-materiel-medical-*`). */
+  locationHeroImage: string;
   locationSlug: string;
   venteSlug: string;
   hubSlug: string;
@@ -109,6 +111,7 @@ export const cities: City[] = [
     ],
     deliveryText:
       "Livraison et installation incluses à Agadir et environs. Délai sous 24h.",
+    locationHeroImage: "/sos-sante-hero.webp",
     locationSlug: "location-materiel-medical-agadir",
     venteSlug: "vente-de-materiel-medical-agadir",
     hubSlug: "location-vente-materiel-medical-agadir",
@@ -123,9 +126,18 @@ export const cities: City[] = [
     email: CONTACT_EMAIL,
     contactReady: false,
     available: true,
-    zones: ["Rabat", "Salé", "Témara", "Hay Riad", "Agdal", "Souissi"],
+    zones: [
+      "Hay Riad",
+      "Agdal",
+      "Souissi",
+      "Hassan",
+      "Salé",
+      "Témara",
+      "Et autres environs…",
+    ],
     deliveryText:
       "Livraison à Rabat, Salé, Temara et environs. Délai sous 24h.",
+    locationHeroImage: "/products/lit-electrique-3-positions.webp",
     locationSlug: "location-materiel-medical-rabat",
     venteSlug: "vente-de-materiel-medical-rabat",
     hubSlug: "location-vente-materiel-medical-rabat",
@@ -150,7 +162,6 @@ export const cities: City[] = [
       "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3529804.4800314493!2d-12.11025012025258!3d30.23494657929752!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x25e53d47b5f49bd9%3A0xf4c050234874339b!2sSOS%20Sant%C3%A9%20Casablanca%20-%20Mat%C3%A9riel%20M%C3%A9dical%20%26%20Aide%20%C3%A0%20Domicile!5e0!3m2!1sen!2sma!4v1784373574838!5m2!1sen!2sma",
     available: true,
     zones: [
-      "Casablanca",
       "Bourgogne",
       "Anfa",
       "Ain Diab",
@@ -158,9 +169,12 @@ export const cities: City[] = [
       "Maarif",
       "Hay Hassani",
       "Ain Sebaâ",
+      "Californie",
+      "Et autres environs…",
     ],
     deliveryText:
       "Livraison 24-48h à Casablanca et sa métropole. Frais selon distance.",
+    locationHeroImage: "/cities/casablanca-fauteuil-roulant.webp",
     locationSlug: "location-materiel-medical-casablanca",
     venteSlug: "vente-de-materiel-medical-casablanca",
     hubSlug: "location-vente-materiel-medical-casablanca",
@@ -175,9 +189,17 @@ export const cities: City[] = [
     email: CONTACT_EMAIL,
     contactReady: false,
     available: false,
-    zones: ["Marrakech", "Guéliz", "Hivernage"],
+    zones: [
+      "Guéliz",
+      "Hivernage",
+      "Médina",
+      "Sidi Ghanem",
+      "Daoudiate",
+      "Massira",
+    ],
     deliveryText:
       "Livraison rapide à Marrakech centre, Guéliz, Hivernage et environs.",
+    locationHeroImage: "/products/fauteuil-roulant-pliable-classique.webp",
     locationSlug: "location-materiel-medical-marrakech",
     venteSlug: "vente-de-materiel-medical-marrakech",
     hubSlug: "location-vente-materiel-medical-marrakech",
@@ -192,8 +214,16 @@ export const cities: City[] = [
     email: CONTACT_EMAIL,
     contactReady: false,
     available: false,
-    zones: ["Tanger"],
+    zones: [
+      "Centre-ville",
+      "Malabata",
+      "Boukhalef",
+      "Iberia",
+      "California",
+      "Moussadak",
+    ],
     deliveryText: "Livraison à Tanger et sa région sous 48-72h.",
+    locationHeroImage: "/products/concentrateur-oxygene-5l.webp",
     locationSlug: "location-materiel-medical-tanger",
     venteSlug: "vente-de-materiel-medical-tanger",
     hubSlug: "location-vente-materiel-medical-tanger",

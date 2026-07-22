@@ -1,5 +1,5 @@
 /** Request kinds temporarily unavailable on public lead forms. */
-export const DISABLED_LEAD_REQUEST_KINDS = new Set(["location", "service"]);
+export const DISABLED_LEAD_REQUEST_KINDS = new Set<string>([]);
 
 export function isLeadRequestKindDisabled(value: string) {
   return DISABLED_LEAD_REQUEST_KINDS.has(value);

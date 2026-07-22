@@ -6,13 +6,16 @@ import { useState } from "react";
 import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
 import CityLinks from "@/components/city-links";
+import LocationCatalogGrid from "@/components/location-catalog-grid";
 import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
-import { DEFAULT_CITY_SLUG } from "@/lib/cities";
+import { DEFAULT_CITY_SLUG, cities } from "@/lib/cities";
+import { HERO_IMAGE } from "@/lib/brand";
 import { CONTACT_EMAIL, whatsAppHref, type Product } from "@/lib/products";
-import { hubCityPath, venteProductPath } from "@/lib/routes";
-import { seoCategories, seoCities, type SeoCategory, type SeoCity } from "@/lib/seo-data";
+import { hubCityPath, locationRentalProductPath, venteProductPath } from "@/lib/routes";
+import { seoCategories, type SeoCategory, type SeoCity } from "@/lib/seo-data";
+import { cityWhatsAppHref } from "@/lib/whatsapp-lines";
 import {
   breadcrumbSchema,
   buildGraph,
@@ -143,7 +146,25 @@ function ProductCard({
   );
 }
 
-function CtaSection({ title }: { title: string }) {
+function CtaSection({
+  title,
+  whatsappHref,
+  emailSubject,
+}: {
+  title: string;
+  whatsappHref?: string;
+  emailSubject?: string;
+}) {
+  const wa =
+    whatsappHref ??
+    whatsAppHref(
+      "Bonjour SOS Santé, je souhaite louer du matériel médical.",
+      "materiel"
+    );
+  const mailHref = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
+    emailSubject ?? "Demande de devis matériel médical"
+  )}`;
+
   return (
     <section className="px-4 pb-14 sm:px-6 sm:pb-20">
       <div className="mx-auto max-w-5xl rounded-[32px] bg-primary px-6 py-12 text-center text-on-primary shadow-2xl shadow-primary/25 sm:px-10 sm:py-16">
@@ -156,14 +177,14 @@ function CtaSection({ title }: { title: string }) {
         </p>
         <div className="flex flex-col justify-center gap-3 sm:flex-row">
           <a
-            href={whatsAppHref("Bonjour SOS Santé, je souhaite louer du matériel médical.", "materiel")}
+            href={wa}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-primary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
           >
             <WhatsAppIcon className="h-5 w-5" />
             WhatsApp
           </a>
           <a
-            href={`mailto:${CONTACT_EMAIL}?subject=Demande%20de%20devis%20matériel%20médical`}
+            href={mailHref}
             className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white px-8 py-4 text-base font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-white/10"
           >
             <MaterialIcon name="mail" />
@@ -313,6 +334,19 @@ export function SeoCityPage({
   products: Product[];
 }) {
   const path = `/${city.slug}`;
+  const hubCity = cities.find((c) => c.locationSlug === city.slug);
+  const neighborhoods = hubCity?.zones ?? [];
+  const waHref = hubCity
+    ? cityWhatsAppHref(
+        hubCity,
+        `Bonjour SOS Santé, je souhaite louer du matériel médical à ${city.name}.`,
+        "materiel"
+      )
+    : whatsAppHref(
+        `Bonjour SOS Santé, je souhaite louer du matériel médical à ${city.name}.`,
+        "materiel"
+      );
+
   const citySchema = buildGraph(
     webPageSchema(path, city.metaTitle, city.metaDescription),
     breadcrumbSchema([
@@ -321,6 +355,7 @@ export function SeoCityPage({
     ]),
     localBusinessSchema({
       businessId: city.slug,
+      citySlug: hubCity?.slug,
       path,
       description: city.description,
       addressLocality: city.name,
@@ -332,9 +367,9 @@ export function SeoCityPage({
     itemListSchema(
       `Matériel médical en location à ${city.name}`,
       path,
-      products.slice(0, 6).map((product) => ({
+      products.map((product) => ({
         name: product.name,
-        url: venteProductPath(product.slug, DEFAULT_CITY_SLUG),
+        url: locationRentalProductPath(product.slug, hubCity?.slug ?? DEFAULT_CITY_SLUG),
       }))
     ),
     faqSchema(city.faqs, path)
@@ -347,126 +382,165 @@ export function SeoCityPage({
       <main className="flex-1 pb-20 pt-[calc(var(--site-header-offset,4rem)+0.5rem)] md:pb-0">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl">
-                  <Breadcrumb
+            <Breadcrumb
               items={[
                 { label: "Accueil", href: "/" },
-                { label: city.name },
+                { label: `Location matériel médical ${city.name}` },
               ]}
             />
           </div>
         </div>
 
         {/* Hero */}
-      <section className="relative overflow-hidden px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute -left-[10%] -top-[10%] h-[50%] w-[50%] rounded-full bg-primary/5 blur-[100px]" />
-          <div className="absolute -bottom-[10%] -right-[10%] h-[50%] w-[50%] rounded-full bg-secondary/5 blur-[100px]" />
-        </div>
-        <div className="mx-auto max-w-4xl text-center">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary">
-            <MaterialIcon name="location_on" className="text-base" />
-            Livraison à domicile
+        <section className="relative overflow-hidden px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
+          <div className="absolute inset-0 -z-10">
+            <div className="absolute -left-[10%] -top-[10%] h-[50%] w-[50%] rounded-full bg-primary/5 blur-[100px]" />
+            <div className="absolute -bottom-[10%] -right-[10%] h-[50%] w-[50%] rounded-full bg-secondary/5 blur-[100px]" />
           </div>
-          <h1 className="font-heading mb-5 text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl md:text-5xl lg:text-6xl">
-            {city.title}
-          </h1>
-          <p className="font-body mx-auto max-w-2xl text-base leading-relaxed text-on-surface-variant sm:text-lg md:text-xl">
-            {city.description}
-          </p>
-        </div>
-      </section>
+          <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-14">
+            <div>
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary">
+                <MaterialIcon name="location_on" className="text-base" />
+                Livraison incluse
+              </div>
+              <h1 className="font-heading mb-5 text-3xl font-bold leading-tight tracking-tight text-secondary sm:text-4xl md:text-5xl lg:text-6xl">
+                Location de{" "}
+                <span className="text-primary">matériel médical</span> à{" "}
+                {city.name}
+              </h1>
+              <p className="font-body mb-8 text-base leading-relaxed text-on-surface-variant sm:text-lg md:text-xl">
+                {city.description}
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <a
+                  href="#produits"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-base font-semibold text-on-primary shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary-container"
+                >
+                  Voir les produits
+                  <MaterialIcon name="arrow_forward" className="text-lg" />
+                </a>
+                <a
+                  href={waHref}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-secondary bg-white/60 px-6 py-3.5 text-base font-semibold text-secondary backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-secondary/10"
+                >
+                  <WhatsAppIcon className="h-5 w-5" />
+                  WhatsApp
+                </a>
+              </div>
+              <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-on-surface-variant sm:mt-8">
+                <span className="inline-flex items-center gap-1.5">
+                  <MaterialIcon
+                    name="check_circle"
+                    className="text-status-success"
+                  />
+                  Disponible 24h/7j
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <MaterialIcon
+                    name="check_circle"
+                    className="text-status-success"
+                  />
+                  Devis gratuit
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <MaterialIcon
+                    name="check_circle"
+                    className="text-status-success"
+                  />
+                  Sans engagement
+                </span>
+              </div>
+            </div>
+            <div className="relative aspect-[4/3] overflow-hidden rounded-3xl shadow-2xl lg:aspect-square">
+              <Image
+                src={hubCity?.locationHeroImage ?? HERO_IMAGE}
+                alt={`Location de matériel médical à ${city.name} avec livraison à domicile`}
+                fill
+                priority
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+              <div className="absolute bottom-4 left-4 rounded-2xl bg-white/95 p-4 shadow-lg backdrop-blur-md">
+                <p className="font-heading text-lg font-bold text-primary">+1000</p>
+                <p className="text-sm text-on-surface-variant">
+                  familles accompagnées
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      {/* Products */}
-      <section className="px-4 py-10 sm:px-6 sm:py-14">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-8">
-            <span className="mb-2 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
-              Disponible à {city.name}
-            </span>
-            <h2 className="font-heading text-xl font-semibold text-primary sm:text-2xl md:text-3xl">
-              Matériel médical en location à {city.name}
+        {/* Neighborhoods */}
+        {neighborhoods.length > 0 && (
+          <section className="border-y border-outline-variant/40 bg-surface-container-low/60 px-4 py-10 backdrop-blur-sm sm:px-6">
+            <div className="mx-auto max-w-7xl">
+              <h2 className="font-heading mb-5 text-xl font-semibold text-primary sm:text-2xl">
+                Livraison dans tous les quartiers de {city.name}
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {neighborhoods.map((neighborhood) => (
+                  <span
+                    key={neighborhood}
+                    className="rounded-full bg-white px-4 py-2 text-sm font-medium text-on-surface shadow-sm"
+                  >
+                    {neighborhood}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* All products */}
+        <section
+          id="produits"
+          className="bg-surface-container-low px-4 py-14 sm:px-6 sm:py-20"
+        >
+          <div className="mx-auto max-w-7xl">
+            <LocationCatalogGrid
+              products={products}
+              cityName={city.name}
+              citySlug={hubCity?.slug ?? DEFAULT_CITY_SLUG}
+              linkMode="location"
+            />
+          </div>
+        </section>
+
+        {/* Description */}
+        <section className="px-4 py-14 sm:px-6 sm:py-20">
+          <div className="mx-auto max-w-3xl">
+            <h2 className="font-heading mb-6 text-2xl font-semibold text-primary sm:text-3xl">
+              Pourquoi louer du matériel médical à {city.name} avec SOS Santé ?
             </h2>
+            <div className="font-body space-y-4 text-base leading-relaxed text-on-surface-variant sm:text-lg">
+              {city.longDescription.split("\n\n").map((paragraph, index) => (
+                <p key={index}>{paragraph}</p>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {products.slice(0, 6).map((product) => (
-              <ProductCard key={product.slug} product={product} />
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Description */}
-      <section className="bg-surface-container-low px-4 py-14 sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-3xl">
-          <h2 className="font-heading mb-6 text-2xl font-semibold text-primary sm:text-3xl">
-            Location de matériel médical à {city.name}
-          </h2>
-          <div className="font-body space-y-4 text-base leading-relaxed text-on-surface-variant sm:text-lg">
-            {city.longDescription.split("\n\n").map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
-            ))}
+        {/* FAQ */}
+        <section className="bg-surface-container-low px-4 py-14 sm:px-6 sm:py-20">
+          <div className="mx-auto max-w-3xl">
+            <div className="mb-8 text-center">
+              <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
+                FAQ
+              </span>
+              <h2 className="font-heading text-2xl font-semibold text-secondary sm:text-3xl md:text-4xl">
+                Questions fréquentes à {city.name}
+              </h2>
+            </div>
+            <FaqAccordion faqs={city.faqs} />
           </div>
-          <div className="mt-8 rounded-2xl border border-primary/10 bg-white p-6">
-            <h3 className="font-heading mb-2 text-lg font-semibold text-primary">
-              Livraison
-            </h3>
-            <p className="font-body text-on-surface-variant">
-              {city.deliveryText}
-            </p>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* FAQ */}
-      <section className="px-4 py-14 sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-3xl">
-          <div className="mb-8 text-center">
-            <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
-              FAQ
-            </span>
-            <h2 className="font-heading text-2xl font-semibold text-secondary sm:text-3xl md:text-4xl">
-              Questions fréquentes à {city.name}
-            </h2>
-          </div>
-          <FaqAccordion faqs={city.faqs} />
-        </div>
-      </section>
-
-      {/* Category links */}
-      <section className="border-t border-outline-variant/30 bg-surface-container-low px-4 py-14 sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-7xl">
-          <h2 className="font-heading mb-6 text-xl font-semibold text-primary sm:text-2xl md:text-3xl">
-            Catégories de matériel médical à {city.name}
-          </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {seoCategories.map((category) => (
-              <Link
-                key={category.slug}
-                href={`/${category.slug}`}
-                className="group flex items-center gap-4 rounded-2xl border border-outline-variant/30 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-primary/20 hover:shadow-md"
-              >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <MaterialIcon name={category.icon} className="text-2xl" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-heading text-lg font-semibold text-primary">
-                    {category.label}
-                  </h3>
-                  <p className="text-sm text-on-surface-variant">
-                    Voir les produits
-                  </p>
-                </div>
-                <MaterialIcon
-                  name="arrow_forward"
-                  className="text-primary transition-transform group-hover:translate-x-1"
-                />
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <CtaSection title={`Louer du matériel médical à ${city.name}`} />
+        <CtaSection
+          title={`Besoin de matériel médical à ${city.name} ?`}
+          whatsappHref={waHref}
+          emailSubject={`Demande de devis matériel médical ${city.name}`}
+        />
       </main>
       <SiteFooter />
     </>

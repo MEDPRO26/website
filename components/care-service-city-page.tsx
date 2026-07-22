@@ -352,7 +352,7 @@ export function CareServiceCityPage({
           defaultCity={content.cityName}
           phoneDisplay={phoneDisplay}
           whatsappHref={whatsappHref}
-          showComingSoon
+          showComingSoon={false}
           heading={`Réserver votre rendez-vous à ${content.cityName}`}
           subheading={`Remplissez ce formulaire pour ${content.formLabel.toLowerCase()} à domicile à ${content.cityName}. Notre équipe vous rappelle rapidement pour confirmer la mise en relation avec un professionnel partenaire.`}
         />

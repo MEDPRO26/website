@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Logo from "@/components/logo";
 import CityCatalogPickerDialog from "@/components/city-catalog-picker-dialog";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { activeCities } from "@/lib/cities";
 import { careServiceCityPath, careServices } from "@/lib/care-services";
 import { whatsAppHref } from "@/lib/products";
-import { isVenteCatalogPath, venteCityPath } from "@/lib/routes";
+import { isVenteCatalogPath, locationCityPath, venteCityPath } from "@/lib/routes";
 
 function MaterialIcon({
   name,
@@ -58,13 +58,42 @@ function MaterialDropdownLinks({
           <p className="mb-1 px-0.5 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">
             Location
           </p>
-          <div className="flex items-center gap-2 rounded-lg border border-dashed border-outline-variant/60 bg-surface-container-low/80 px-3 py-2">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-on-surface-variant/10 text-on-surface-variant">
-              <MaterialIcon name="schedule" className="text-base" />
-            </span>
-            <span className="text-xs font-medium text-on-surface-variant">
-              Bientôt disponible
-            </span>
+          <div className="space-y-1.5">
+            {activeCities.map((city) => {
+              const href = locationCityPath(city.slug);
+              const active =
+                pathname === href || pathname.startsWith(`${href}/`);
+
+              return (
+                <Link
+                  key={city.slug}
+                  href={href}
+                  onClick={onNavigate}
+                  className={classNames(
+                    "flex items-center gap-2.5 rounded-lg border px-3 py-2 text-sm font-semibold transition-all",
+                    active
+                      ? "border-primary/30 bg-primary/10 text-primary"
+                      : "border-outline-variant/50 bg-white text-on-surface hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+                  )}
+                >
+                  <span
+                    className={classNames(
+                      "flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
+                      active
+                        ? "bg-primary/15 text-primary"
+                        : "bg-primary/10 text-primary"
+                    )}
+                  >
+                    <MaterialIcon name="location_on" className="text-base" />
+                  </span>
+                  {city.name}
+                  <MaterialIcon
+                    name="chevron_right"
+                    className="ml-auto text-base text-on-surface-variant/60"
+                  />
+                </Link>
+              );
+            })}
           </div>
         </div>
 
@@ -119,13 +148,28 @@ function MaterialDropdownLinks({
       <p className="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-on-surface-variant">
         Location
       </p>
-      <span
-        className="flex cursor-default items-center gap-3 px-4 py-2.5 text-sm font-medium text-on-surface-variant"
-        aria-disabled="true"
-      >
-        <MaterialIcon name="schedule" />
-        Bientôt disponible
-      </span>
+      {activeCities.map((city) => {
+        const href = locationCityPath(city.slug);
+        const active =
+          pathname === href || pathname.startsWith(`${href}/`);
+
+        return (
+          <Link
+            key={`location-${city.slug}`}
+            href={href}
+            onClick={onNavigate}
+            className={classNames(
+              "flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors",
+              active
+                ? "bg-primary/10 text-primary"
+                : "text-on-surface hover:bg-surface-container-low hover:text-primary"
+            )}
+          >
+            <MaterialIcon name="location_on" />
+            {city.name}
+          </Link>
+        );
+      })}
 
       <p className="mt-2 border-t border-outline-variant/30 px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-on-surface-variant">
         Vente
@@ -333,11 +377,80 @@ export default function Navbar() {
   const [pickerServiceSlug, setPickerServiceSlug] = useState<string | null>(
     null
   );
+  const materialCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const servicesCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearMaterialCloseTimer = () => {
+    if (materialCloseTimer.current) {
+      clearTimeout(materialCloseTimer.current);
+      materialCloseTimer.current = null;
+    }
+  };
+
+  const clearServicesCloseTimer = () => {
+    if (servicesCloseTimer.current) {
+      clearTimeout(servicesCloseTimer.current);
+      servicesCloseTimer.current = null;
+    }
+  };
+
+  const openMaterialDropdown = () => {
+    clearMaterialCloseTimer();
+    clearServicesCloseTimer();
+    setServicesDropdownOpen(false);
+    setMaterialDropdownOpen(true);
+  };
+
+  const scheduleCloseMaterialDropdown = () => {
+    clearMaterialCloseTimer();
+    materialCloseTimer.current = setTimeout(() => {
+      setMaterialDropdownOpen(false);
+      materialCloseTimer.current = null;
+    }, 180);
+  };
+
+  const closeMaterialDropdown = () => {
+    clearMaterialCloseTimer();
+    setMaterialDropdownOpen(false);
+  };
+
+  const openServicesDropdown = () => {
+    clearServicesCloseTimer();
+    clearMaterialCloseTimer();
+    setMaterialDropdownOpen(false);
+    setServicesDropdownOpen(true);
+  };
+
+  const scheduleCloseServicesDropdown = () => {
+    clearServicesCloseTimer();
+    servicesCloseTimer.current = setTimeout(() => {
+      setServicesDropdownOpen(false);
+      servicesCloseTimer.current = null;
+    }, 180);
+  };
+
+  const closeServicesDropdown = () => {
+    clearServicesCloseTimer();
+    setServicesDropdownOpen(false);
+  };
+
+  useEffect(() => {
+    return () => {
+      clearMaterialCloseTimer();
+      clearServicesCloseTimer();
+    };
+  }, []);
+
+  useEffect(() => {
+    closeMaterialDropdown();
+    closeServicesDropdown();
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   const openServicePicker = (serviceSlug: string) => {
     setPickerServiceSlug(serviceSlug);
     setServicePickerOpen(true);
-    setServicesDropdownOpen(false);
+    closeServicesDropdown();
     setMobileMenuOpen(false);
   };
 
@@ -417,13 +530,18 @@ export default function Navbar() {
             {/* Matériel dropdown */}
             <div
               className="relative"
-              onMouseEnter={() => setMaterialDropdownOpen(true)}
-              onMouseLeave={() => setMaterialDropdownOpen(false)}
+              onMouseEnter={openMaterialDropdown}
+              onMouseLeave={scheduleCloseMaterialDropdown}
             >
               <button
                 type="button"
                 aria-expanded={materialDropdownOpen}
                 aria-haspopup="true"
+                onClick={() =>
+                  materialDropdownOpen
+                    ? closeMaterialDropdown()
+                    : openMaterialDropdown()
+                }
                 className={classNames(
                   "flex items-center gap-1 rounded-lg text-sm font-medium transition-colors",
                   isCompact ? "px-3 py-1.5" : "px-4 py-2",
@@ -450,7 +568,10 @@ export default function Navbar() {
                 )}
               >
                 <div className="overflow-hidden rounded-2xl border border-outline-variant/50 bg-white shadow-xl">
-                  <MaterialDropdownLinks pathname={pathname} />
+                  <MaterialDropdownLinks
+                    pathname={pathname}
+                    onNavigate={closeMaterialDropdown}
+                  />
                 </div>
               </div>
             </div>
@@ -458,13 +579,18 @@ export default function Navbar() {
             {/* Services dropdown */}
             <div
               className="relative"
-              onMouseEnter={() => setServicesDropdownOpen(true)}
-              onMouseLeave={() => setServicesDropdownOpen(false)}
+              onMouseEnter={openServicesDropdown}
+              onMouseLeave={scheduleCloseServicesDropdown}
             >
               <button
                 type="button"
                 aria-expanded={servicesDropdownOpen}
                 aria-haspopup="true"
+                onClick={() =>
+                  servicesDropdownOpen
+                    ? closeServicesDropdown()
+                    : openServicesDropdown()
+                }
                 className={classNames(
                   "flex items-center gap-1 rounded-lg text-sm font-medium transition-colors",
                   isCompact ? "px-3 py-1.5" : "px-4 py-2",
@@ -494,7 +620,7 @@ export default function Navbar() {
                   <ServicesDropdownLinks
                     pathname={pathname}
                     onServiceSelect={openServicePicker}
-                    onNavigate={() => setServicesDropdownOpen(false)}
+                    onNavigate={closeServicesDropdown}
                   />
                 </div>
               </div>

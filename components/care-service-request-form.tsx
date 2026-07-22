@@ -25,7 +25,7 @@ function MaterialIcon({
   );
 }
 
-const serviceCities = ["Agadir", "Rabat"];
+const serviceCities = ["Agadir", "Casablanca", "Rabat"];
 
 type CareServiceRequestFormProps = {
   id?: string;

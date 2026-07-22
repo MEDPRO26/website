@@ -1,6 +1,6 @@
 import { getCareServicesForCity } from "@/lib/care-services";
 import { getCityBySlug, type CitySlug } from "@/lib/cities";
-import { venteCityPath } from "@/lib/routes";
+import { locationCityPath, venteCityPath } from "@/lib/routes";
 
 export type CityHubService = {
   icon: string;
@@ -133,7 +133,7 @@ export function getCityHubContent(citySlug: CitySlug): CityHubContent {
         icon: "calendar_month",
         title: "Location de matériel médical",
         description: `Louez un lit médicalisé, un fauteuil roulant, un concentrateur d'oxygène ou un matelas anti-escarres à ${cityLabel}.`,
-        badge: "Bientôt disponible",
+        href: locationCityPath(citySlug),
       },
     ],
     careServices: getCareServicesForCity(citySlug),
@@ -174,11 +174,11 @@ export function getCityHubContent(citySlug: CitySlug): CityHubContent {
       },
       {
         question: `Proposez-vous la location de matériel médical à ${cityLabel} ?`,
-        answer: `La location de matériel médical à ${cityLabel} (lit médicalisé, fauteuil roulant, oxygène, matelas anti-escarres) sera prochainement disponible. Contactez-nous pour être informé de l'ouverture du service.`,
+        answer: `Oui, vous pouvez louer du matériel médical à ${cityLabel} (lit médicalisé, fauteuil roulant, oxygène, matelas anti-escarres). Contactez-nous par WhatsApp ou formulaire pour un devis rapide.`,
       },
       {
         question: `Proposez-vous de la kinésithérapie à domicile à ${cityLabel} ?`,
-        answer: `SOS Santé oriente les familles vers des kinésithérapeutes à domicile à ${cityLabel}. Ce service sera prochainement disponible via notre plateforme de mise en relation.`,
+        answer: `Oui, SOS Santé oriente les familles vers des kinésithérapeutes à domicile à ${cityLabel} via notre plateforme de mise en relation. Contactez-nous pour exprimer votre besoin.`,
       },
       {
         question: `Peut-on trouver un infirmier ou un aide-soignant à domicile à ${cityLabel} ?`,

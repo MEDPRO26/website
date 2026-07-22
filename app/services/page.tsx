@@ -151,7 +151,7 @@ const faqs = [
 
 const careTypes = careServiceFormOptions;
 
-const serviceCities = ["Agadir", "Rabat"];
+const serviceCities = ["Agadir", "Casablanca", "Rabat"];
 
 const servicesSchema = buildGraph(
   webPageSchema(
@@ -261,7 +261,7 @@ export default function ServicesPage() {
           <div className="absolute -right-20 bottom-10 h-80 w-80 rounded-full bg-secondary/5 blur-3xl" />
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10">
             <Image
-              src="/services/hero-bg.jpg"
+              src="/services/hero-bg.webp"
               alt=""
               width={1200}
               height={800}
@@ -420,7 +420,7 @@ export default function ServicesPage() {
             <div className="relative order-2 lg:order-1">
               <div className="relative z-10 overflow-hidden rounded-[32px] shadow-2xl shadow-primary/10 sm:rounded-[40px]">
                 <Image
-                  src="/services/soins-domicile.jpg"
+                  src="/services/soins-domicile.webp"
                   alt="Professionnel de santé tenant la main d'une personne âgée à domicile"
                   width={800}
                   height={1000}
@@ -478,22 +478,7 @@ export default function ServicesPage() {
           className="mx-auto max-w-7xl px-4 py-14 sm:px-6 md:py-20"
         >
           <div className="relative">
-            <div
-              className="absolute inset-0 z-10 flex items-center justify-center rounded-[32px] bg-white/20 backdrop-blur-[1px]"
-              role="status"
-              aria-label="Service bientôt disponible"
-            >
-              <div className="mx-4 rounded-2xl border border-outline-variant/40 bg-white/95 px-8 py-5 text-center shadow-lg">
-                <span className="mb-2 inline-flex items-center justify-center rounded-full bg-primary/10 p-2 text-primary">
-                  <MaterialIcon name="schedule" className="text-2xl" />
-                </span>
-                <p className="font-heading text-xl font-semibold text-secondary sm:text-2xl">
-                  Service bientôt disponible
-                </p>
-              </div>
-            </div>
-
-            <div className="pointer-events-none grid grid-cols-1 gap-8 overflow-hidden rounded-[32px] bg-surface-base p-6 opacity-45 shadow-xl shadow-primary/5 select-none sm:p-10 lg:grid-cols-12 lg:gap-10 lg:p-16">
+            <div className="grid grid-cols-1 gap-8 overflow-hidden rounded-[32px] bg-surface-base p-6 shadow-xl shadow-primary/5 sm:p-10 lg:grid-cols-12 lg:gap-10 lg:p-16">
             <div className="lg:col-span-5">
               <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
                 Prendre contact

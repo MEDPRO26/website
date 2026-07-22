@@ -18,18 +18,12 @@ export const ORDER_REQUEST_KIND_LABEL: Record<OrderRequestKind, string> = {
   service: "Service à domicile",
 };
 
-/** Location is not open yet; service can be enabled in CRM manual orders. */
+/** Location and service are open on public forms and CRM orders. */
 export function isOrderRequestKindDisabled(
   kind: OrderRequestKind,
-  options?: { allowService?: boolean }
+  _options?: { allowService?: boolean }
 ) {
-  if (kind === "vente") {
-    return false;
-  }
-  if (kind === "service") {
-    return !options?.allowService;
-  }
-  return true;
+  return false;
 }
 
 export function getOrderRequestKindOptionLabel(

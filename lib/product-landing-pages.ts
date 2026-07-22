@@ -138,7 +138,7 @@ function buildInogenLanding(): ProductLandingContent {
           "Tamis moléculaires remplaçables par l'utilisateur",
           "Durée de vie attendue jusqu'à 8 ans",
         ],
-        image: "/products/inogen-rove-g6-femme-domicile.webp",
+        image: "/products/inogen-rove-g6-femme-domicile-v2.webp",
         imageAlt:
           "Femme utilisant un concentrateur d'oxygène portable Inogen Rove G6 à domicile",
         imagePosition: "right",

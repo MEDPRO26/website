@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
+import LocationCatalogGrid from "@/components/location-catalog-grid";
 import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
 import { HERO_IMAGE, SITE_URL_DEFAULT } from "@/lib/brand";
-import { products, whatsAppHref } from "@/lib/products";
-import { agadirHub, seoCategories } from "@/lib/seo-data";
+import { whatsAppHref } from "@/lib/products";
+import { getLocationRentalProducts } from "@/lib/location-rental-products";
+import { agadirHub } from "@/lib/seo-data";
+import { locationRentalProductPath } from "@/lib/routes";
 import {
   breadcrumbSchema,
   buildGraph,
@@ -18,6 +20,7 @@ import {
   webPageSchema,
 } from "@/lib/schema";
 
+const locationProducts = getLocationRentalProducts();
 const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL_DEFAULT
 ).replace(/\/$/, "");
@@ -61,9 +64,9 @@ const hubSchema = buildGraph(
   itemListSchema(
     "Matériel médical disponible à Agadir",
     "/location-materiel-medical-agadir",
-    products.map((product) => ({
+    locationProducts.map((product) => ({
       name: product.name,
-      url: `/produits/${product.slug}`,
+      url: locationRentalProductPath(product.slug, "agadir"),
     }))
   ),
   faqSchema(agadirHub.faqs, "/location-materiel-medical-agadir")
@@ -98,8 +101,10 @@ export default function AgadirHubPage() {
               <span className="material-symbols-outlined text-base">location_on</span>
               Livraison incluse
             </div>
-            <h1 className="font-heading mb-5 text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl md:text-5xl lg:text-6xl">
-              {agadirHub.title}
+            <h1 className="font-heading mb-5 text-3xl font-bold leading-tight tracking-tight text-secondary sm:text-4xl md:text-5xl lg:text-6xl">
+              Location de{" "}
+              <span className="text-primary">matériel médical</span> à{" "}
+              {agadirHub.name}
             </h1>
             <p className="font-body mb-8 text-base leading-relaxed text-on-surface-variant sm:text-lg md:text-xl">
               {agadirHub.description}
@@ -114,11 +119,31 @@ export default function AgadirHubPage() {
               </a>
               <a
                 href={whatsAppHref("Bonjour SOS Santé, je souhaite louer du matériel médical à Agadir.", "materiel")}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-primary bg-white/60 px-6 py-3.5 text-base font-semibold text-primary backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-primary/5"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-secondary bg-white/60 px-6 py-3.5 text-base font-semibold text-secondary backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-secondary/10"
               >
                 <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp
               </a>
+            </div>
+            <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-on-surface-variant sm:mt-8">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-status-success">
+                  check_circle
+                </span>
+                Disponible 24h/7j
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-status-success">
+                  check_circle
+                </span>
+                Devis gratuit
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-status-success">
+                  check_circle
+                </span>
+                Sans engagement
+              </span>
             </div>
           </div>
           <div className="relative aspect-[4/3] overflow-hidden rounded-3xl shadow-2xl lg:aspect-square">
@@ -158,104 +183,15 @@ export default function AgadirHubPage() {
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="px-4 py-14 sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-8 text-center">
-            <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
-              Catégories
-            </span>
-            <h2 className="font-heading text-2xl font-semibold text-primary sm:text-3xl md:text-4xl">
-              Matériel médical par catégorie
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {seoCategories.map((category) => (
-              <Link
-                key={category.slug}
-                href={`/${category.slug}`}
-                className="group flex flex-col rounded-3xl border border-outline-variant/30 bg-surface-base p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-primary/20 hover:shadow-lg"
-              >
-                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-all group-hover:bg-primary group-hover:text-on-primary">
-                  <span className="material-symbols-outlined text-[28px]">
-                    {category.icon}
-                  </span>
-                </div>
-                <h3 className="font-heading mb-2 text-xl font-semibold text-primary">
-                  {category.label}
-                </h3>
-                <p className="font-body mb-4 flex-1 text-sm leading-relaxed text-on-surface-variant sm:text-base">
-                  {category.description}
-                </p>
-                <span className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition-all group-hover:gap-2">
-                  Voir la catégorie
-                  <span className="material-symbols-outlined text-base">chevron_right</span>
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* All products */}
       <section id="produits" className="bg-surface-container-low px-4 py-14 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-8">
-            <span className="mb-2 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
-              Catalogue
-            </span>
-            <h2 className="font-heading text-2xl font-semibold text-primary sm:text-3xl md:text-4xl">
-              Tous nos matériels médicaux à louer à Agadir
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => (
-              <article
-                key={product.slug}
-                className="group flex flex-col overflow-hidden rounded-2xl border border-surface-container-high bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
-              >
-                <Link
-                  href={`/produits/${product.slug}`}
-                  className="relative aspect-[4/3] overflow-hidden"
-                >
-                  <Image
-                    src={product.image}
-                    alt={product.alt}
-                    fill
-                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <span
-                    className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-xs font-semibold ${product.categoryStyle}`}
-                  >
-                    {product.category}
-                  </span>
-                </Link>
-                <div className="flex flex-1 flex-col p-4 sm:p-5">
-                  <Link href={`/produits/${product.slug}`}>
-                    <h3 className="font-heading mb-2 text-lg font-semibold text-primary transition-colors hover:text-primary-container sm:text-xl">
-                      {product.name}
-                    </h3>
-                  </Link>
-                  <p className="font-body mb-5 flex-1 text-sm leading-relaxed text-on-surface-variant sm:text-base">
-                    {product.description}
-                  </p>
-                  <div className="flex items-center justify-between border-t border-surface-container pt-4">
-                    <span className="font-heading text-sm font-bold text-secondary sm:text-base">
-                      Tarif sur demande
-                    </span>
-                    <Link
-                      href={`/produits/${product.slug}`}
-                      aria-label={`Voir ${product.name}`}
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary transition-all hover:scale-110 hover:bg-primary-container"
-                    >
-                      <span className="material-symbols-outlined">arrow_forward</span>
-                    </Link>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+          <LocationCatalogGrid
+            products={locationProducts}
+            cityName={agadirHub.name}
+            citySlug="agadir"
+            linkMode="location"
+          />
         </div>
       </section>
 

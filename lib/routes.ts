@@ -42,6 +42,14 @@ export function nationalProductPath(productSlug: string): string {
   return `/${productSlug}`;
 }
 
+/** Rental product detail: `/location-materiel-medical-{city}/produits/{slug}` */
+export function locationRentalProductPath(
+  productSlug: string,
+  citySlug: string = DEFAULT_CITY_SLUG
+): string {
+  return `${locationCityPath(citySlug)}/produits/${productSlug}`;
+}
+
 export function hubCityPath(citySlug: string): string {
   const city = getCityBySlug(citySlug);
   return city ? `/${city.slug}` : `/${DEFAULT_CITY_SLUG}`;

@@ -16,8 +16,8 @@ export type CareServiceImages = {
 
 function serviceImages(slug: string, alt: string): CareServiceImages {
   return {
-    hero: `/services/${slug}-hero.jpg`,
-    section: `/services/${slug}-section.jpg`,
+    hero: `/services/${slug}-hero.webp`,
+    section: `/services/${slug}-section.webp`,
     alt,
   };
 }
@@ -70,7 +70,7 @@ export const careServices: CareService[] = [
       `kiné à domicile ${city}`,
       `rééducation à domicile ${city}`,
     ],
-    badge: "Bientôt disponible",
+    badge: "Disponible",
   },
   {
     slug: "soins-infirmiers-a-domicile",
@@ -105,7 +105,7 @@ export const careServices: CareService[] = [
       `soins infirmiers à domicile ${city}`,
       `infirmière à domicile ${city}`,
     ],
-    badge: "Bientôt disponible",
+    badge: "Disponible",
   },
   {
     slug: "medecin-a-domicile",
@@ -139,7 +139,7 @@ export const careServices: CareService[] = [
       `médecin à domicile ${city}`,
       `consultation médicale à domicile ${city}`,
     ],
-    badge: "Bientôt disponible",
+    badge: "Disponible",
   },
   {
     slug: "aide-soignant-a-domicile",
@@ -174,7 +174,7 @@ export const careServices: CareService[] = [
       `aide à domicile ${city}`,
       `garde-malade ${city}`,
     ],
-    badge: "Bientôt disponible",
+    badge: "Disponible",
   },
   {
     slug: "ambulance-maroc",
@@ -209,7 +209,7 @@ export const careServices: CareService[] = [
       `transport médical ${city}`,
       `ambulance Maroc ${city}`,
     ],
-    badge: "Bientôt disponible",
+    badge: "Disponible",
   },
 ];
 

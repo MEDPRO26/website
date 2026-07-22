@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SeoCityPage } from "@/components/seo-page-template";
-import { products } from "@/lib/products";
+import { getLocationRentalProducts } from "@/lib/location-rental-products";
 import { getCityBySlug } from "@/lib/seo-data";
 
 const citySlug = "location-materiel-medical-marrakech";
@@ -33,5 +33,5 @@ export default function CityPage() {
   const city = getCityBySlug(citySlug);
   if (!city) notFound();
 
-  return <SeoCityPage city={city} products={products} />;
+  return <SeoCityPage city={city} products={getLocationRentalProducts()} />;
 }
