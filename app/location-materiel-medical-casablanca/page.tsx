@@ -14,7 +14,6 @@ export async function generateMetadata(): Promise<Metadata> {
     title: city.metaTitle,
     description: city.metaDescription,
     keywords: city.keywords,
-    robots: { index: false, follow: true },
     alternates: {
       canonical: `/${citySlug}`,
     },
