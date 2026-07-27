@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useQuery } from "convex/react";
-import { CheckCircle2, Loader2, Merge, Wallet } from "lucide-react";
+import { CheckCircle2, Copy, Loader2, Merge, Wallet } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Tag } from "@/components/dashboard/status-badge";
 import { Card } from "@/components/ui/card";
@@ -17,6 +19,9 @@ import {
 } from "@/components/crm/supplier-commission-settle-dialog";
 import { formatMad } from "@/lib/crm/pricing";
 import { cn } from "@/lib/utils";
+
+const SOS_COMMISSION_RIB = "230 010 5253573211017900 35";
+const SOS_COMMISSION_RIB_COMPACT = "230010525357321101790035";
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString("fr-FR", {
@@ -75,6 +80,15 @@ export function SupplierCommissionsPage() {
     setSettleTargets(items);
   };
 
+  const copyRib = async () => {
+    try {
+      await navigator.clipboard.writeText(SOS_COMMISSION_RIB_COMPACT);
+      toast.success("RIB copié.");
+    } catch {
+      toast.error("Impossible de copier le RIB.");
+    }
+  };
+
   if (rows === undefined) {
     return (
       <p className="text-sm text-muted-foreground">Chargement des commissions…</p>
@@ -118,6 +132,42 @@ export function SupplierCommissionsPage() {
         </Card>
       </div>
 
+      <Card className="mb-4 border-primary/15 bg-primary/[0.03] p-4 sm:p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-stretch gap-3 sm:gap-4">
+            <div className="flex w-28 shrink-0 items-center justify-center self-stretch overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-border/60 sm:w-36">
+              <Image
+                src="/cih-bank-logo.png"
+                alt="CIH Bank"
+                width={180}
+                height={100}
+                className="h-full min-h-[4.5rem] w-full object-cover object-center"
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground">
+                Virement bancaire — commission SOS Santé
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                Merci d&apos;effectuer le virement de la commission sur le compte
+                CIH Bank ci-dessous, puis de téléverser le reçu lors du règlement.
+              </p>
+              <p className="mt-2 font-mono text-sm font-semibold tracking-wide text-foreground sm:text-base">
+                RIB CIH : {SOS_COMMISSION_RIB}
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="shrink-0 rounded-xl"
+            onClick={() => void copyRib()}
+          >
+            <Copy className="size-4" />
+            Copier le RIB
+          </Button>
+        </div>
+      </Card>
       {unpaidRows.length > 1 ? (
         <Card
           className={cn(
