@@ -3,6 +3,8 @@ import { v } from "convex/values";
 import type { MutationCtx } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import { requireSupplierStaff } from "./lib/authz";
+import { homePathForPartnerKind } from "../lib/auth-routes";
+import { resolveSupplierPartnerKind } from "../lib/supplier-activity-types";
 
 function formatRelative(ts: number) {
   const diff = Date.now() - ts;
@@ -48,7 +50,7 @@ export async function notifySupplierNewOrderInApp(
     supplierId: args.supplier._id,
     title: "Nouvelle commande",
     description: `${args.order.ref} - ${args.order.item}. Ouvrez la commande pour contacter le client.`,
-    link: `/supplier/orders/${args.orderId}`,
+    link: `${homePathForPartnerKind(resolveSupplierPartnerKind(args.supplier) ?? "materiel")}/orders/${args.orderId}`,
     orderId: args.orderId,
   });
 }

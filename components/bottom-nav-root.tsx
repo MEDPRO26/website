@@ -1,6 +1,6 @@
 "use client";
 
-import { ADMIN_LOGIN_PATH, SUPPLIER_LOGIN_PATH } from "@/lib/auth-routes";
+import { ADMIN_LOGIN_PATH, PRESTATAIRE_LOGIN_PATH, SUPPLIER_LOGIN_PATH } from "@/lib/auth-routes";
 import { usePathname } from "next/navigation";
 import { useConvexAuth, useQuery } from "convex/react";
 import MobileBottomNav from "@/components/mobile-bottom-nav";
@@ -28,13 +28,17 @@ export function BottomNavRoot() {
   const isAdminStaff = isAdminStaffRole(staff?.role);
 
   const isAdminInvite = pathname.startsWith("/admin/invite");
-  const isSupplierInvite = pathname.startsWith("/supplier/invite");
+  const isSupplierInvite =
+    pathname.startsWith("/supplier/invite") ||
+    pathname.startsWith("/prestataire/invite");
   const isObscureLogin =
     pathname.startsWith(ADMIN_LOGIN_PATH) ||
     pathname.startsWith(SUPPLIER_LOGIN_PATH) ||
+    pathname.startsWith(PRESTATAIRE_LOGIN_PATH) ||
     pathname.startsWith("/admin/login");
   const isAdminPath = pathname.startsWith("/admin");
-  const isSupplierPath = pathname.startsWith("/supplier");
+  const isSupplierPath =
+    pathname.startsWith("/supplier") || pathname.startsWith("/prestataire");
 
   // Invite flows stay clean (no public chrome).
   if (isAdminInvite || isSupplierInvite) {

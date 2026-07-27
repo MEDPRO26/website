@@ -6,7 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useConvexAuth, useQuery } from "convex/react";
 import { useEffect, useState, type ComponentType, type FormEvent, type ReactNode } from "react";
-import { SUPPLIER_LOGIN_PATH } from "@/lib/auth-routes";
+import { SUPPLIER_LOGIN_PATH, partnerPortalBaseFromPath, loginPathForPartnerKind, homePathForPartnerKind } from "@/lib/auth-routes";
+import { resolveSupplierPartnerKind } from "@/lib/supplier-activity-types";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -41,24 +42,31 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { LOGO } from "@/lib/brand";
 
-const SUPPLIER_NAV: {
-  href: string;
+const SUPPLIER_NAV_ITEMS: {
+  path: string;
   label: string;
   icon: ComponentType<{ className?: string }>;
   exact?: boolean;
   badgeKey?: "unpaidCommissions";
 }[] = [
-  { href: "/supplier", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/supplier/orders", label: "Mes commandes", icon: ClipboardList },
+  { path: "", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { path: "/orders", label: "Mes commandes", icon: ClipboardList },
   {
-    href: "/supplier/commissions",
+    path: "/commissions",
     label: "SOS commission",
     icon: Wallet,
     badgeKey: "unpaidCommissions",
   },
-  { href: "/supplier/video", label: "Vidéo explicatif", icon: Video },
-  { href: "/supplier/profile", label: "Profil", icon: UserCog },
+  { path: "/video", label: "Vidéo explicatif", icon: Video },
+  { path: "/profile", label: "Profil", icon: UserCog },
 ];
+
+function buildPartnerNav(basePath: string) {
+  return SUPPLIER_NAV_ITEMS.map((item) => ({
+    ...item,
+    href: item.path ? `${basePath}${item.path}` : basePath,
+  }));
+}
 
 function NavCountBadge({
   count,
@@ -86,17 +94,20 @@ function NavCountBadge({
 }
 
 function SupplierNavList({
+  basePath,
   onNavigate,
   unpaidCommissionCount = 0,
 }: {
+  basePath: string;
   onNavigate?: () => void;
   unpaidCommissionCount?: number;
 }) {
   const pathname = usePathname();
+  const nav = buildPartnerNav(basePath);
 
   return (
     <ul className="space-y-1.5">
-      {SUPPLIER_NAV.map((item) => {
+      {nav.map((item) => {
         const active = item.exact
           ? pathname === item.href
           : pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -127,12 +138,16 @@ function SupplierNavList({
 }
 
 function SupplierSidebar({
+  basePath,
+  roleLabel,
   supplierName,
   photoUrl,
   unpaidCommissionCount,
   onNavigate,
   onSignOut,
 }: {
+  basePath: string;
+  roleLabel: string;
   supplierName: string;
   photoUrl?: string | null;
   unpaidCommissionCount?: number;
@@ -150,7 +165,7 @@ function SupplierSidebar({
   return (
     <>
       <div className="border-b border-white/10 px-5 py-5">
-        <Link href="/supplier" onClick={onNavigate} className="flex items-center gap-3">
+        <Link href={basePath} onClick={onNavigate} className="flex items-center gap-3">
           <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm">
             <Image
               src={LOGO.crm}
@@ -166,7 +181,7 @@ function SupplierSidebar({
               SOS Santé
             </p>
             <p className="truncate text-[11px] text-slate-400 leading-tight">
-              Espace fournisseur
+              Espace {roleLabel.toLowerCase()}
             </p>
           </div>
         </Link>
@@ -174,6 +189,7 @@ function SupplierSidebar({
 
       <nav className="flex-1 overflow-y-auto px-3 py-5">
         <SupplierNavList
+          basePath={basePath}
           onNavigate={onNavigate}
           unpaidCommissionCount={unpaidCommissionCount}
         />
@@ -189,7 +205,9 @@ function SupplierSidebar({
           </Avatar>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-white">{supplierName}</p>
-            <p className="truncate text-[11px] text-slate-400">Fournisseur partenaire</p>
+            <p className="truncate text-[11px] text-slate-400">
+              {roleLabel} partenaire
+            </p>
           </div>
           <button
             type="button"
@@ -206,12 +224,16 @@ function SupplierSidebar({
 }
 
 function SupplierTopbar({
+  basePath,
+  roleLabel,
   userName,
   userInitials,
   photoUrl,
   onMenu,
   onSignOut,
 }: {
+  basePath: string;
+  roleLabel: string;
   userName: string;
   userInitials: string;
   photoUrl?: string | null;
@@ -224,7 +246,11 @@ function SupplierTopbar({
   const handleSearch = (event: FormEvent) => {
     event.preventDefault();
     const q = search.trim();
-    router.push(q ? `/supplier/orders?q=${encodeURIComponent(q)}` : "/supplier/orders");
+    router.push(
+      q
+        ? `${basePath}/orders?q=${encodeURIComponent(q)}`
+        : `${basePath}/orders`
+    );
   };
 
   return (
@@ -251,7 +277,7 @@ function SupplierTopbar({
           <HelpCircle className="size-5" />
         </Button>
         <span className="hidden sm:inline-flex items-center rounded-full bg-[#1e293b] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
-          Fournisseur
+          {roleLabel}
         </span>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -270,11 +296,11 @@ function SupplierTopbar({
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
               <div className="text-sm font-medium">{userName}</div>
-              <div className="text-xs text-muted-foreground">Fournisseur</div>
+              <div className="text-xs text-muted-foreground">{roleLabel}</div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/supplier/profile">Mon profil</Link>
+              <Link href={`${basePath}/profile`}>Mon profil</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -294,6 +320,9 @@ export function SupplierShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const basePath = partnerPortalBaseFromPath(pathname);
+  const isSoinsPortal = basePath === "/prestataire";
+  const roleLabel = isSoinsPortal ? "Prestataire" : "Fournisseur";
   const { signOut } = useAuthActions();
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const { staff, supplier, photoUrl, profileComplete, sessionLoading, canQuerySupplier } =
@@ -304,23 +333,47 @@ export function SupplierShell({ children }: { children: ReactNode }) {
     canQuerySupplier && profileComplete ? {} : "skip"
   );
   const unpaidCount = unpaidCommissionCount ?? 0;
+  const partnerNav = buildPartnerNav(basePath);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.replace(SUPPLIER_LOGIN_PATH);
+      router.replace(
+        isSoinsPortal ? loginPathForPartnerKind("soins") : SUPPLIER_LOGIN_PATH
+      );
     }
-  }, [authLoading, isAuthenticated, router]);
+  }, [authLoading, isAuthenticated, isSoinsPortal, router]);
+
+  useEffect(() => {
+    if (sessionLoading || !supplier) return;
+    const partnerKind = resolveSupplierPartnerKind(supplier) ?? "materiel";
+    const expectedHome = homePathForPartnerKind(partnerKind);
+    if (
+      partnerKind === "soins" &&
+      pathname.startsWith("/supplier") &&
+      !pathname.startsWith("/supplier/invite")
+    ) {
+      router.replace(pathname.replace(/^\/supplier/, expectedHome));
+      return;
+    }
+    if (
+      partnerKind !== "soins" &&
+      pathname.startsWith("/prestataire") &&
+      !pathname.startsWith("/prestataire/invite")
+    ) {
+      router.replace(pathname.replace(/^\/prestataire/, expectedHome));
+    }
+  }, [sessionLoading, supplier, pathname, router]);
 
   useEffect(() => {
     if (
       !sessionLoading &&
       supplier &&
       !profileComplete &&
-      !pathname.startsWith("/supplier/onboarding")
+      !pathname.startsWith(`${basePath}/onboarding`)
     ) {
-      router.replace("/supplier/onboarding");
+      router.replace(`${basePath}/onboarding`);
     }
-  }, [sessionLoading, supplier, profileComplete, pathname, router]);
+  }, [sessionLoading, supplier, profileComplete, pathname, router, basePath]);
 
   if (sessionLoading) {
     return (
@@ -334,15 +387,13 @@ export function SupplierShell({ children }: { children: ReactNode }) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <p className="text-center text-sm text-muted-foreground">
-          Accès fournisseur indisponible pour ce compte. Contactez SOS Santé pour
-          activer votre espace.
+          Accès {roleLabel.toLowerCase()} indisponible pour ce compte. Contactez
+          SOS Santé pour activer votre espace.
         </p>
       </div>
     );
   }
 
-  // Avoid mounting the dashboard while redirecting incomplete profiles
-  // (prevents /supplier ↔ /onboarding redirect loops).
   if (!profileComplete) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -362,7 +413,7 @@ export function SupplierShell({ children }: { children: ReactNode }) {
 
   const handleSignOut = async () => {
     await signOut();
-    router.push(SUPPLIER_LOGIN_PATH);
+    router.push(loginPathForPartnerKind(isSoinsPortal ? "soins" : "materiel"));
   };
 
   return (
@@ -370,6 +421,8 @@ export function SupplierShell({ children }: { children: ReactNode }) {
       <div className="flex h-full w-full">
         <aside className="hidden md:flex w-[260px] shrink-0 flex-col bg-[#111827]">
           <SupplierSidebar
+            basePath={basePath}
+            roleLabel={roleLabel}
             supplierName={userName}
             photoUrl={photoUrl}
             unpaidCommissionCount={unpaidCount}
@@ -383,6 +436,8 @@ export function SupplierShell({ children }: { children: ReactNode }) {
             className="w-[280px] border-0 p-0 flex flex-col bg-[#111827] text-white"
           >
             <SupplierSidebar
+              basePath={basePath}
+              roleLabel={roleLabel}
               supplierName={userName}
               photoUrl={photoUrl}
               unpaidCommissionCount={unpaidCount}
@@ -394,6 +449,8 @@ export function SupplierShell({ children }: { children: ReactNode }) {
 
         <div className="flex min-w-0 min-h-0 flex-1 flex-col supplier-main-bg">
           <SupplierTopbar
+            basePath={basePath}
+            roleLabel={roleLabel}
             userName={userName}
             userInitials={userInitials}
             photoUrl={photoUrl}
@@ -415,40 +472,40 @@ export function SupplierShell({ children }: { children: ReactNode }) {
           pwaInstall.showNavInstall ? "grid-cols-5" : "grid-cols-4"
         )}
       >
-        {SUPPLIER_NAV.filter((item) => item.href !== "/supplier/video").map(
-          (item) => {
-          const Icon = item.icon;
-          const active = item.exact
-            ? pathname === item.href
-            : pathname.startsWith(item.href);
-          const badge =
-            item.badgeKey === "unpaidCommissions" ? unpaidCount : 0;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "relative flex flex-col items-center justify-center gap-0.5 py-2.5 text-[10px] font-medium",
-                active ? "text-brand" : "text-muted-foreground"
-              )}
-            >
-              <span className="relative">
-                <Icon className="size-5" />
-                {badge > 0 ? (
-                  <span className="absolute -right-3 -top-1.5 flex size-[18px] items-center justify-center rounded-full bg-[var(--danger)] text-[10px] font-bold leading-none text-white">
-                    {badge > 99 ? "99+" : badge}
-                  </span>
-                ) : null}
-              </span>
-              {item.label === "Mes commandes"
-                ? "Commandes"
-                : item.label === "SOS commission"
-                  ? "Commission"
-                  : item.label}
-            </Link>
-          );
-        }
-        )}
+        {partnerNav
+          .filter((item) => item.href !== `${basePath}/video`)
+          .map((item) => {
+            const Icon = item.icon;
+            const active = item.exact
+              ? pathname === item.href
+              : pathname.startsWith(item.href);
+            const badge =
+              item.badgeKey === "unpaidCommissions" ? unpaidCount : 0;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "relative flex flex-col items-center justify-center gap-0.5 py-2.5 text-[10px] font-medium",
+                  active ? "text-brand" : "text-muted-foreground"
+                )}
+              >
+                <span className="relative">
+                  <Icon className="size-5" />
+                  {badge > 0 ? (
+                    <span className="absolute -right-3 -top-1.5 flex size-[18px] items-center justify-center rounded-full bg-[var(--danger)] text-[10px] font-bold leading-none text-white">
+                      {badge > 99 ? "99+" : badge}
+                    </span>
+                  ) : null}
+                </span>
+                {item.label === "Mes commandes"
+                  ? "Commandes"
+                  : item.label === "SOS commission"
+                    ? "Commission"
+                    : item.label}
+              </Link>
+            );
+          })}
         {pwaInstall.showNavInstall ? (
           <button
             type="button"
@@ -463,3 +520,4 @@ export function SupplierShell({ children }: { children: ReactNode }) {
     </div>
   );
 }
+

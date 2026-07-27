@@ -61,7 +61,11 @@ export async function createSupplierInvite(
     createdAt: now,
   });
 
-  const inviteUrl = `${siteUrl()}/supplier/invite/${token}`;
+  const invitePath =
+    supplier.partnerKind === "soins"
+      ? `/prestataire/invite/${token}`
+      : `/supplier/invite/${token}`;
+  const inviteUrl = `${siteUrl()}${invitePath}`;
 
   if (!args.skipEmail) {
     await ctx.scheduler.runAfter(0, internal.email.sendSupplierInvitation, {

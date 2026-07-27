@@ -2,18 +2,20 @@
 
 import { usePathname } from "next/navigation";
 import { SupplierShell } from "@/components/dashboard/supplier-shell";
+import { partnerPortalBaseFromPath } from "@/lib/auth-routes";
 
-function isPublicSupplierRoute(pathname: string) {
+function isPublicPartnerRoute(pathname: string) {
+  const base = partnerPortalBaseFromPath(pathname);
   return (
-    pathname.startsWith("/supplier/invite") ||
-    pathname.startsWith("/supplier/onboarding")
+    pathname.startsWith(`${base}/invite`) ||
+    pathname.startsWith(`${base}/onboarding`)
   );
 }
 
 export function SupplierLayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  if (isPublicSupplierRoute(pathname)) {
+  if (isPublicPartnerRoute(pathname)) {
     return <div className="crm-app min-h-screen">{children}</div>;
   }
 

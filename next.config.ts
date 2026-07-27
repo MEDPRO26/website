@@ -38,6 +38,18 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: "/prestataire",
+        destination: "/supplier",
+      },
+      {
+        source: "/prestataire/:path*",
+        destination: "/supplier/:path*",
+      },
+    ];
+  },
   async headers() {
     if (allowIndexing) {
       return [];

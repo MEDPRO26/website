@@ -31,6 +31,10 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { useAdminSession } from "@/hooks/use-admin-session";
 import { Search, ShieldCheck, Plus, Trash2, Phone, Mail, MapPin } from "lucide-react";
 import { toast } from "sonner";
+import {
+  partnerKindTypeOptions,
+  type SupplierPartnerKind,
+} from "@/lib/supplier-activity-types";
 
 const ALL = "all";
 
@@ -40,7 +44,21 @@ type DeleteTarget = {
   ordersCount: number;
 };
 
-export function AdminSuppliersPage() {
+type AdminSuppliersPageProps = {
+  partnerKind?: SupplierPartnerKind;
+};
+
+export function AdminSuppliersPage({
+  partnerKind = "materiel",
+}: AdminSuppliersPageProps) {
+  const isSoins = partnerKind === "soins";
+  const listBasePath = isSoins ? "/admin/prestataires" : "/admin/suppliers";
+  const entityLabel = isSoins ? "prestataire" : "fournisseur";
+  const entityLabelPlural = isSoins ? "prestataires" : "fournisseurs";
+  const typeFilterOptions = partnerKindTypeOptions(partnerKind).filter(
+    (type) => type !== "Autre"
+  );
+
   const { canQueryAdmin, staff } = useAdminSession();
   const canDeleteSupplier = staff?.role === "super_admin";
   const removeSupplier = useMutation(api.suppliers.remove);
@@ -59,6 +77,7 @@ export function AdminSuppliersPage() {
           search: search.trim() || undefined,
           city: city === ALL ? undefined : city,
           type: type === ALL ? undefined : type,
+          partnerKind,
           status:
             status === ALL
               ? undefined
@@ -89,7 +108,7 @@ export function AdminSuppliersPage() {
       toast.error(
         err instanceof Error
           ? err.message
-          : "Impossible de supprimer ce fournisseur."
+          : `Impossible de supprimer ce ${entityLabel}.`
       );
     } finally {
       setDeleting(false);
@@ -99,15 +118,18 @@ export function AdminSuppliersPage() {
   return (
     <div className="space-y-5 pb-8">
       <PageHeader
-        title="Fournisseurs"
+        title={isSoins ? "Prestataires soins" : "Fournisseurs"}
         description={
           isLoading
             ? "Chargement…"
-            : `${stats.total} fournisseurs partenaires · ${stats.verified} vérifiés`
+            : isSoins
+              ? `${stats.total} prestataires soins à domicile · ${stats.verified} vérifiés`
+              : `${stats.total} fournisseurs partenaires · ${stats.verified} vérifiés`
         }
         actions={
           <Button onClick={() => setDialogOpen(true)} className="rounded-xl">
-            <Plus className="size-4" /> Inviter un fournisseur
+            <Plus className="size-4" />{" "}
+            {isSoins ? "Inviter un prestataire" : "Inviter un fournisseur"}
           </Button>
         }
       />
@@ -121,7 +143,11 @@ export function AdminSuppliersPage() {
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Rechercher un fournisseur…"
+                placeholder={
+                  isSoins
+                    ? "Rechercher un prestataire…"
+                    : "Rechercher un fournisseur…"
+                }
                 className="h-10 bg-white pl-9"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -144,14 +170,16 @@ export function AdminSuppliersPage() {
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">Type</label>
             <Select value={type} onValueChange={setType}>
-              <SelectTrigger className="h-10 w-full lg:w-[180px]">
+              <SelectTrigger className="h-10 w-full lg:w-[220px]">
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>Tous types</SelectItem>
-                <SelectItem value="Matériel médical">Matériel médical</SelectItem>
-                <SelectItem value="Aide à domicile">Aide à domicile</SelectItem>
-                <SelectItem value="Soins à domicile">Soins à domicile</SelectItem>
+                {typeFilterOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -174,7 +202,9 @@ export function AdminSuppliersPage() {
 
       <Card className="overflow-hidden border-0 bg-white p-0 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)]">
         <div className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
-          <h2 className="text-base font-semibold">Liste des fournisseurs</h2>
+          <h2 className="text-base font-semibold">
+            Liste des {entityLabelPlural}
+          </h2>
           <p className="text-xs text-muted-foreground">
             {isLoading
               ? "Chargement…"
@@ -185,7 +215,9 @@ export function AdminSuppliersPage() {
           <table className="w-full min-w-[980px] text-sm">
             <thead className="bg-muted/30">
               <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                <th className="px-5 py-3">Fournisseur</th>
+                <th className="px-5 py-3">
+                  {isSoins ? "Prestataire" : "Fournisseur"}
+                </th>
                 <th className="px-3 py-3">Type</th>
                 <th className="px-3 py-3">Ville / Zones</th>
                 <th className="px-3 py-3">Contact</th>
@@ -199,13 +231,13 @@ export function AdminSuppliersPage() {
               {isLoading ? (
                 <tr>
                   <td colSpan={8} className="px-5 py-12 text-center text-muted-foreground">
-                    Chargement des fournisseurs…
+                    Chargement des {entityLabelPlural}…
                   </td>
                 </tr>
               ) : suppliers.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-5 py-12 text-center text-muted-foreground">
-                    Aucun fournisseur trouvé.
+                    Aucun {entityLabel} trouvé.
                   </td>
                 </tr>
               ) : (
@@ -224,7 +256,7 @@ export function AdminSuppliersPage() {
                           </div>
                           <div className="min-w-0">
                             <Link
-                              href={`/admin/suppliers/${s._id}`}
+                              href={`${listBasePath}/${s._id}`}
                               className="font-semibold text-foreground transition-colors hover:text-brand"
                             >
                               {s.name}
@@ -284,7 +316,7 @@ export function AdminSuppliersPage() {
                       <td className="px-5 py-4">
                         <div className="flex items-center justify-end gap-2">
                           <Button asChild size="sm" variant="outline" className="h-8 rounded-lg px-3">
-                            <Link href={`/admin/suppliers/${s._id}`}>Voir</Link>
+                            <Link href={`${listBasePath}/${s._id}`}>Voir</Link>
                           </Button>
                           {canDeleteSupplier ? (
                             <Button
@@ -315,7 +347,11 @@ export function AdminSuppliersPage() {
         </div>
       </Card>
 
-      <SupplierFormDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <SupplierFormDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        partnerKind={partnerKind}
+      />
 
       <AlertDialog
         open={deleteTarget !== null}
@@ -325,7 +361,9 @@ export function AdminSuppliersPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer ce fournisseur ?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Supprimer ce {entityLabel} ?
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {deleteTarget ? (
                 <>
@@ -337,7 +375,7 @@ export function AdminSuppliersPage() {
                       {deleteTarget.ordersCount} commande
                       {deleteTarget.ordersCount > 1 ? "s" : ""} liée
                       {deleteTarget.ordersCount > 1 ? "s" : ""} resteront sans
-                      fournisseur assigné.
+                      {isSoins ? " prestataire" : " fournisseur"} assigné.
                     </>
                   ) : null}
                 </>

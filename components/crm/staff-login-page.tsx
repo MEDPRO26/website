@@ -8,12 +8,19 @@ import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { useEffect, useState } from "react";
 import { api } from "@/convex/_generated/api";
 import { LOGO } from "@/lib/brand";
-import { homePathForRole, safePostLoginPath } from "@/lib/auth-routes";
+import {
+  homePathForPartnerKind,
+  homePathForRole,
+  PRESTATAIRE_LOGIN_PATH,
+  safePostLoginPath,
+  SUPPLIER_LOGIN_PATH,
+} from "@/lib/auth-routes";
+import { resolveSupplierPartnerKind } from "@/lib/supplier-activity-types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export type StaffLoginAudience = "admin" | "supplier";
+export type StaffLoginAudience = "admin" | "supplier" | "prestataire";
 
 function loginErrorMessage(err: unknown): string {
   const raw =
@@ -60,13 +67,20 @@ const COPY: Record<
     title: "Espace équipe SOS Santé",
     subtitle: "Connexion réservée à l'équipe interne.",
     wrongRole:
-      "Ce portail est réservé à l'équipe SOS Santé. Utilisez l'espace fournisseurs.",
+      "Ce portail est réservé à l'équipe SOS Santé. Utilisez l'espace partenaires.",
   },
   supplier: {
     title: "Espace fournisseurs",
-    subtitle: "Connexion réservée aux fournisseurs partenaires.",
+    subtitle: "Connexion réservée aux fournisseurs de matériel médical.",
     wrongRole:
-      "Ce portail est réservé aux fournisseurs. Utilisez l'espace équipe.",
+      "Ce portail est réservé aux fournisseurs matériel. Les prestataires soins utilisent /prestataires.",
+  },
+  prestataire: {
+    title: "Espace prestataires",
+    subtitle:
+      "Connexion réservée aux prestataires de soins à domicile (infirmier, kiné, aide…).",
+    wrongRole:
+      "Ce portail est réservé aux prestataires soins. Les fournisseurs matériel utilisent /fournisseurs.",
   },
 };
 
@@ -77,6 +91,10 @@ export function StaffLoginPage({ audience }: { audience: StaffLoginAudience }) {
   const { signIn, signOut } = useAuthActions();
   const ensureProfile = useMutation(api.staff.ensureProfile);
   const staff = useQuery(api.staff.current, isAuthenticated ? {} : "skip");
+  const partnerProfile = useQuery(
+    api.supplierPortal.current,
+    isAuthenticated && staff?.role === "supplier" ? {} : "skip"
+  );
   const copy = COPY[audience];
   const nextPath = safePostLoginPath(searchParams.get("next"), audience);
 
@@ -101,26 +119,67 @@ export function StaffLoginPage({ audience }: { audience: StaffLoginAudience }) {
     }
 
     const isSupplier = staff.role === "supplier";
-    const audienceMismatch =
-      (audience === "admin" && isSupplier) ||
-      (audience === "supplier" && !isSupplier);
 
-    if (audienceMismatch) {
+    if (audience === "admin") {
+      if (isSupplier) {
+        setError(copy.wrongRole);
+        void signOut().then(() => setRedirecting(false));
+        return;
+      }
+      setRedirecting(true);
+      router.replace(nextPath ?? homePathForRole(staff.role));
+      return;
+    }
+
+    if (!isSupplier) {
+      setError(copy.wrongRole);
+      void signOut().then(() => setRedirecting(false));
+      return;
+    }
+
+    if (partnerProfile === undefined) {
+      return;
+    }
+
+    if (partnerProfile === null) {
+      setError(
+        "Compte partenaire incomplet. Contactez un administrateur SOS Santé."
+      );
+      void signOut().then(() => setRedirecting(false));
+      return;
+    }
+
+    const partnerKind =
+      resolveSupplierPartnerKind(partnerProfile.supplier) ?? "materiel";
+    const isSoins = partnerKind === "soins";
+
+    if (audience === "supplier" && isSoins) {
       setError(copy.wrongRole);
       void signOut().then(() => {
         setRedirecting(false);
+        router.replace(PRESTATAIRE_LOGIN_PATH);
+      });
+      return;
+    }
+
+    if (audience === "prestataire" && !isSoins) {
+      setError(copy.wrongRole);
+      void signOut().then(() => {
+        setRedirecting(false);
+        router.replace(SUPPLIER_LOGIN_PATH);
       });
       return;
     }
 
     setRedirecting(true);
-    router.replace(nextPath ?? homePathForRole(staff.role));
+    router.replace(nextPath ?? homePathForPartnerKind(partnerKind));
   }, [
     audience,
     copy.wrongRole,
     isAuthenticated,
     isLoading,
     nextPath,
+    partnerProfile,
     redirecting,
     router,
     signOut,
@@ -178,11 +237,13 @@ export function StaffLoginPage({ audience }: { audience: StaffLoginAudience }) {
                 placeholder={
                   audience === "admin"
                     ? "vous@sossante.ma"
-                    : "contact@votre-entreprise.ma"
+                    : audience === "prestataire"
+                      ? "contact@prestataire.ma"
+                      : "contact@fournisseur.ma"
                 }
+                autoComplete="email"
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="password">Mot de passe</Label>
               <Input
@@ -191,39 +252,36 @@ export function StaffLoginPage({ audience }: { audience: StaffLoginAudience }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={8}
-                placeholder="8 caractères minimum"
+                autoComplete="current-password"
               />
             </div>
 
             {error ? (
               <p className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {error}
+                {error}{" "}
+                {audience === "supplier" ? (
+                  <Link
+                    href={PRESTATAIRE_LOGIN_PATH}
+                    className="font-medium underline"
+                  >
+                    Espace prestataires
+                  </Link>
+                ) : null}
+                {audience === "prestataire" ? (
+                  <Link
+                    href={SUPPLIER_LOGIN_PATH}
+                    className="font-medium underline"
+                  >
+                    Espace fournisseurs
+                  </Link>
+                ) : null}
               </p>
             ) : null}
 
-            <Button
-              type="submit"
-              className="h-11 w-full rounded-xl"
-              disabled={submitting}
-            >
+            <Button type="submit" className="w-full" disabled={submitting}>
               {submitting ? "Connexion…" : "Se connecter"}
             </Button>
           </form>
-
-          <p className="mt-6 text-center text-xs text-muted-foreground">
-            L&apos;accès est réservé aux comptes invités par l&apos;équipe SOS
-            Santé.
-          </p>
-
-          <p className="mt-4 text-center">
-            <Link
-              href="/"
-              className="text-sm text-muted-foreground hover:text-primary"
-            >
-              ← Retour au site
-            </Link>
-          </p>
         </div>
       )}
     </div>

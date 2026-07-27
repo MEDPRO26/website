@@ -7,6 +7,13 @@ import { logAudit } from "./lib/auditLog";
 import { normalizePhone } from "./lib/refs";
 import { createSupplierInvite } from "./supplierInvitations";
 import { supplierStatusValidator } from "./validators";
+import {
+  resolveSupplierPartnerKind,
+  supplierMatchesPartnerKind,
+  type SupplierPartnerKind,
+} from "../lib/supplier-activity-types";
+
+const partnerKindValidator = v.union(v.literal("materiel"), v.literal("soins"));
 
 const supplierInput = {
   name: v.string(),
@@ -21,6 +28,7 @@ const supplierInput = {
   services: v.optional(v.array(v.string())),
   notes: v.optional(v.string()),
   verified: v.optional(v.boolean()),
+  partnerKind: v.optional(partnerKindValidator),
 };
 
 export const list = query({
@@ -29,6 +37,7 @@ export const list = query({
     type: v.optional(v.string()),
     status: v.optional(supplierStatusValidator),
     search: v.optional(v.string()),
+    partnerKind: v.optional(partnerKindValidator),
   },
   handler: async (ctx, args) => {
     await requireAdminPermission(ctx, "suppliers.view");
@@ -50,6 +59,11 @@ export const list = query({
           (supplier.type && supplier.type !== "—" ? [supplier.type] : []);
         return types.includes(args.type!) || supplier.type === args.type;
       });
+    }
+    if (args.partnerKind) {
+      suppliers = suppliers.filter((supplier) =>
+        supplierMatchesPartnerKind(supplier, args.partnerKind!)
+      );
     }
     if (args.search?.trim()) {
       const q = args.search.trim().toLowerCase();
@@ -130,9 +144,16 @@ export const create = mutation({
     }
 
     const now = Date.now();
+    const type = args.type.trim();
+    const partnerKind =
+      args.partnerKind ??
+      resolveSupplierPartnerKind({ type, partnerKind: args.partnerKind }) ??
+      "materiel";
+
     const supplierId = await ctx.db.insert("suppliers", {
       name,
-      type: args.type.trim(),
+      type,
+      partnerKind,
       city: args.city.trim(),
       zones: args.zones.filter(Boolean),
       phone,
@@ -177,6 +198,7 @@ export const inviteByEmail = mutation({
   args: {
     email: v.string(),
     commissionPct: v.optional(v.number()),
+    partnerKind: v.optional(partnerKindValidator),
   },
   handler: async (ctx, args) => {
     const staff = await requireAdminPermission(ctx, "suppliers.create");
@@ -199,11 +221,13 @@ export const inviteByEmail = mutation({
     }
 
     const now = Date.now();
+    const partnerKind: SupplierPartnerKind = args.partnerKind ?? "materiel";
     const placeholderName = email.split("@")[0] ?? "Fournisseur";
 
     const supplierId = await ctx.db.insert("suppliers", {
       name: placeholderName,
       type: "—",
+      partnerKind,
       city: "—",
       zones: [],
       phone: "—",
@@ -260,9 +284,21 @@ export const update = mutation({
       throw new Error("Nom, type, ville et téléphone sont obligatoires.");
     }
 
+    const type = args.type.trim();
+    const partnerKind =
+      args.partnerKind ??
+      resolveSupplierPartnerKind({
+        type,
+        types: supplier.types,
+        partnerKind: args.partnerKind ?? supplier.partnerKind,
+      }) ??
+      supplier.partnerKind ??
+      "materiel";
+
     await ctx.db.patch(args.id, {
       name,
-      type: args.type.trim(),
+      type,
+      partnerKind,
       city: args.city.trim(),
       zones: args.zones.filter(Boolean),
       phone,
@@ -436,6 +472,7 @@ async function seedDemoSuppliersImpl(ctx: MutationCtx) {
     {
       name: "Fournisseur Démo Agadir",
       type: "Matériel médical",
+      partnerKind: "materiel" as const,
       city: "Agadir",
       zones: ["Agadir", "Inezgane", "Dcheira"],
       phone: "+212528221100",
@@ -451,6 +488,7 @@ async function seedDemoSuppliersImpl(ctx: MutationCtx) {
     {
       name: "MedAgadir Pro",
       type: "Matériel médical",
+      partnerKind: "materiel" as const,
       city: "Agadir",
       zones: ["Agadir", "Aourir", "Taghazout"],
       phone: "+212528332211",
@@ -466,6 +504,7 @@ async function seedDemoSuppliersImpl(ctx: MutationCtx) {
     {
       name: "InfiSoins Agadir",
       type: "Soins à domicile",
+      partnerKind: "soins" as const,
       city: "Agadir",
       zones: ["Agadir", "Inezgane"],
       phone: "+212528110099",
@@ -481,6 +520,7 @@ async function seedDemoSuppliersImpl(ctx: MutationCtx) {
     {
       name: "AideFamille Sud",
       type: "Aide à domicile",
+      partnerKind: "soins" as const,
       city: "Inezgane",
       zones: ["Inezgane", "Dcheira", "Agadir"],
       phone: "+212528445566",

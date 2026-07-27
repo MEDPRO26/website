@@ -102,6 +102,13 @@ export default defineSchema({
     name: v.string(),
     type: v.string(),
     types: v.optional(v.array(v.string())),
+    /**
+     * Admin CRM segment: matériel partners vs soins à domicile prestataires.
+     * Optional for legacy rows — inferred from type/types when missing.
+     */
+    partnerKind: v.optional(
+      v.union(v.literal("materiel"), v.literal("soins"))
+    ),
     city: v.string(),
     zones: v.array(v.string()),
     phone: v.string(),
@@ -128,7 +135,8 @@ export default defineSchema({
   })
     .index("by_status", ["status"])
     .index("by_city", ["city"])
-    .index("by_name", ["name"]),
+    .index("by_name", ["name"])
+    .index("by_partnerKind", ["partnerKind"]),
 
   supplierInvitations: defineTable({
     token: v.string(),

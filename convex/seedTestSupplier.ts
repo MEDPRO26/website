@@ -14,6 +14,10 @@ export const TEST_SUPPLIER_2_EMAIL = "fournisseur.test2@sossante.ma";
 export const TEST_SUPPLIER_2_PASSWORD = "SosTest2026!";
 const TEST_SUPPLIER_2_NAME = "Fournisseur Test 2";
 
+export const TEST_PRESTATAIRE_EMAIL = "prestataire.test@sossante.ma";
+export const TEST_PRESTATAIRE_PASSWORD = "SosTest2026!";
+const TEST_PRESTATAIRE_NAME = "Prestataire Test Soins";
+
 type EnsureTestSupplierResult = {
   email: string;
   password: string;
@@ -28,8 +32,12 @@ type TestSupplierSeed = {
   name: string;
   phone: string;
   type: string;
+  types?: string[];
+  partnerKind: "materiel" | "soins";
   city: string;
   zones: string[];
+  items?: string[];
+  services?: string[];
   notes: string;
 };
 
@@ -38,9 +46,13 @@ const PRIMARY_TEST_SUPPLIER: TestSupplierSeed = {
   password: TEST_SUPPLIER_PASSWORD,
   name: TEST_SUPPLIER_NAME,
   phone: "+212600000001",
-  type: "Location",
+  type: "Location matériel médical",
+  types: ["Location matériel médical"],
+  partnerKind: "materiel",
   city: "Agadir",
   zones: ["Agadir"],
+  items: ["Lit médicalisé électrique", "Fauteuil roulant"],
+  services: [],
   notes: "Compte de test pour le portail fournisseur.",
 };
 
@@ -50,9 +62,37 @@ const SECOND_TEST_SUPPLIER: TestSupplierSeed = {
   name: TEST_SUPPLIER_2_NAME,
   phone: "+212600000002",
   type: "Vente matériel médical",
+  types: ["Vente matériel médical"],
+  partnerKind: "materiel",
   city: "Casablanca",
   zones: ["Casablanca", "Mohammedia"],
+  items: ["Concentrateur d'oxygène", "Lit médicalisé"],
+  services: [],
   notes: "Second compte de test pour le portail fournisseur.",
+};
+
+const TEST_PRESTATAIRE: TestSupplierSeed = {
+  email: TEST_PRESTATAIRE_EMAIL,
+  password: TEST_PRESTATAIRE_PASSWORD,
+  name: TEST_PRESTATAIRE_NAME,
+  phone: "+212600000010",
+  type: "Soins infirmiers à domicile",
+  types: [
+    "Soins infirmiers à domicile",
+    "Kinésithérapie à domicile",
+    "Aide-soignant à domicile",
+  ],
+  partnerKind: "soins",
+  city: "Agadir",
+  zones: ["Agadir", "Inezgane", "Dcheira"],
+  items: [],
+  services: [
+    "Pansements",
+    "Injections",
+    "Kinésithérapie",
+    "Aide à domicile",
+  ],
+  notes: "Compte de test pour le portail prestataire soins à domicile.",
 };
 
 async function ensureTestSupplierAccount(
@@ -65,8 +105,12 @@ async function ensureTestSupplierAccount(
       name: seed.name,
       phone: seed.phone,
       type: seed.type,
+      types: seed.types,
+      partnerKind: seed.partnerKind,
       city: seed.city,
       zones: seed.zones,
+      items: seed.items,
+      services: seed.services,
       notes: seed.notes,
     });
 
@@ -106,14 +150,15 @@ async function ensureTestSupplierAccount(
     email: seed.email,
     password: seed.password,
     supplierId: prep.supplierId,
-    loginUrl: "/fournisseurs",
-    portalUrl: "/supplier",
+    loginUrl:
+      seed.partnerKind === "soins" ? "/prestataires" : "/fournisseurs",
+    portalUrl: seed.partnerKind === "soins" ? "/prestataire" : "/supplier",
   };
 }
 
 /**
  * Creates or refreshes the default test supplier portal account.
- * Run: npx convex run seedTestSupplier:ensureTestSupplier --prod
+ * Run: npx convex run seedTestSupplier:ensureTestSupplier
  */
 export const ensureTestSupplier = internalAction({
   args: {},
@@ -129,19 +174,41 @@ export const ensureTestSupplier2 = internalAction({
   handler: async (ctx) => ensureTestSupplierAccount(ctx, SECOND_TEST_SUPPLIER),
 });
 
+/**
+ * Creates or refreshes the test soins / prestataire portal account.
+ * Run: npx convex run seedTestSupplier:ensureTestPrestataire
+ */
+export const ensureTestPrestataire = internalAction({
+  args: {},
+  handler: async (ctx) => ensureTestSupplierAccount(ctx, TEST_PRESTATAIRE),
+});
+
 export const prepare = internalMutation({
   args: {
     email: v.string(),
     name: v.string(),
     phone: v.string(),
     type: v.string(),
+    types: v.optional(v.array(v.string())),
+    partnerKind: v.optional(v.union(v.literal("materiel"), v.literal("soins"))),
     city: v.string(),
     zones: v.array(v.string()),
+    items: v.optional(v.array(v.string())),
+    services: v.optional(v.array(v.string())),
     notes: v.string(),
   },
   handler: async (ctx, args) => {
     const email = args.email.trim().toLowerCase();
     const now = Date.now();
+    const partnerKind = args.partnerKind ?? "materiel";
+    const types =
+      args.types && args.types.length > 0 ? args.types : [args.type];
+    const items =
+      args.items ??
+      (partnerKind === "materiel"
+        ? ["Lit médicalisé électrique", "Fauteuil roulant"]
+        : []);
+    const services = args.services ?? [];
 
     let supplier = (await ctx.db.query("suppliers").collect()).find(
       (row) => row.email?.trim().toLowerCase() === email
@@ -153,6 +220,8 @@ export const prepare = internalMutation({
       const supplierId = await ctx.db.insert("suppliers", {
         name: args.name,
         type: args.type,
+        types,
+        partnerKind,
         city: args.city,
         zones: args.zones,
         phone,
@@ -161,8 +230,8 @@ export const prepare = internalMutation({
         status: "actif",
         verified: true,
         commissionPct: 10,
-        items: ["Lit médicalisé électrique", "Fauteuil roulant"],
-        services: [],
+        items,
+        services,
         notes: args.notes,
         profileComplete: true,
         createdAt: now,
@@ -173,6 +242,8 @@ export const prepare = internalMutation({
       await ctx.db.patch(supplier._id, {
         name: args.name,
         type: args.type,
+        types,
+        partnerKind,
         city: args.city,
         zones: args.zones,
         phone,
@@ -180,6 +251,9 @@ export const prepare = internalMutation({
         email,
         status: "actif",
         verified: true,
+        items,
+        services,
+        notes: args.notes,
         profileComplete: true,
         updatedAt: now,
       });

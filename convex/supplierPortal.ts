@@ -14,6 +14,10 @@ import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { commissionPaymentMethodValidator } from "./validators";
 import { commissionPaymentLabel } from "../lib/crm/commission-payment";
+import {
+  resolveSupplierPartnerKind,
+  type SupplierPartnerKind,
+} from "../lib/supplier-activity-types";
 
 const DELIVERABLE_STATUSES = new Set([
   "envoyee_fournisseur",
@@ -725,10 +729,20 @@ export const completeProfile = mutation({
     }
 
     const now = Date.now();
+    const partnerKind: SupplierPartnerKind =
+      resolveSupplierPartnerKind({
+        type: types.join(", "),
+        types,
+        partnerKind: supplier.partnerKind,
+      }) ??
+      supplier.partnerKind ??
+      "materiel";
+
     await ctx.db.patch(supplier._id, {
       name,
       type: types.join(", "),
       types,
+      partnerKind,
       city,
       zones,
       phone,
@@ -780,10 +794,20 @@ export const updateProfile = mutation({
     }
 
     const now = Date.now();
+    const partnerKind: SupplierPartnerKind =
+      resolveSupplierPartnerKind({
+        type: types.join(", "),
+        types,
+        partnerKind: supplier.partnerKind,
+      }) ??
+      supplier.partnerKind ??
+      "materiel";
+
     await ctx.db.patch(supplier._id, {
       name,
       type: types.join(", "),
       types,
+      partnerKind,
       city,
       zones,
       phone,

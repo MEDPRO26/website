@@ -30,9 +30,15 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useAdminSession } from "@/hooks/use-admin-session";
 
-type AdminSupplierDetailPageProps = { supplierId: string };
+type AdminSupplierDetailPageProps = {
+  supplierId: string;
+  partnerKind?: "materiel" | "soins";
+};
 
-export function AdminSupplierDetailPage({ supplierId }: AdminSupplierDetailPageProps) {
+export function AdminSupplierDetailPage({
+  supplierId,
+  partnerKind: partnerKindProp,
+}: AdminSupplierDetailPageProps) {
   const { canQueryAdmin } = useAdminSession();
   const updateStatus = useMutation(api.suppliers.updateStatus);
   const resendInvite = useMutation(api.supplierInvitations.resendForSupplier);
@@ -52,7 +58,7 @@ export function AdminSupplierDetailPage({ supplierId }: AdminSupplierDetailPageP
   if (data === undefined) {
     return (
       <div className="p-8 text-center text-muted-foreground">
-        Chargement du fournisseur…
+        Chargement…
       </div>
     );
   }
@@ -60,12 +66,20 @@ export function AdminSupplierDetailPage({ supplierId }: AdminSupplierDetailPageP
   if (data === null) {
     return (
       <div className="p-8 text-center text-muted-foreground">
-        Fournisseur introuvable.
+        Fiche introuvable.
       </div>
     );
   }
 
   const s = data.supplier;
+  const isSoins =
+    partnerKindProp === "soins" ||
+    s.partnerKind === "soins" ||
+    (!s.partnerKind &&
+      /soins|aide|garde|kiné|infirm|médecin|medecin|ambulance/i.test(s.type));
+  const listHref = isSoins ? "/admin/prestataires" : "/admin/suppliers";
+  const partnerKind = isSoins ? "soins" : "materiel";
+  const entityLabel = isSoins ? "prestataire" : "fournisseur";
 
   const handleStatusChange = async (status: "actif" | "suspendu" | "en_attente") => {
     try {
@@ -119,7 +133,7 @@ export function AdminSupplierDetailPage({ supplierId }: AdminSupplierDetailPageP
   return (
     <div>
       <Button variant="ghost" size="sm" asChild className="-ml-2 mb-2">
-        <Link href="/admin/suppliers">
+        <Link href={listHref}>
           <ArrowLeft className="size-4" /> Retour
         </Link>
       </Button>
@@ -207,7 +221,9 @@ export function AdminSupplierDetailPage({ supplierId }: AdminSupplierDetailPageP
           </Card>
 
           <Card className="p-5">
-            <h3 className="mb-3 text-sm font-semibold">Accès fournisseur</h3>
+            <h3 className="mb-3 text-sm font-semibold">
+              Accès {entityLabel}
+            </h3>
             <div className="space-y-3 text-sm">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-muted-foreground">Profil complété</span>
@@ -258,7 +274,7 @@ export function AdminSupplierDetailPage({ supplierId }: AdminSupplierDetailPageP
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground">
-                  Ajoutez un email pour inviter le fournisseur.
+                  Ajoutez un email pour inviter le {entityLabel}.
                 </p>
               )}
             </div>
@@ -313,7 +329,7 @@ export function AdminSupplierDetailPage({ supplierId }: AdminSupplierDetailPageP
             </div>
             {data.orders.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                Aucune commande affectée à ce fournisseur pour le moment.
+                Aucune commande affectée à ce {entityLabel} pour le moment.
               </p>
             ) : (
               <div className="overflow-x-auto">
@@ -358,6 +374,7 @@ export function AdminSupplierDetailPage({ supplierId }: AdminSupplierDetailPageP
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         supplier={s}
+        partnerKind={partnerKind}
       />
     </div>
   );

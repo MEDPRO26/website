@@ -24,14 +24,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const SUPPLIER_TYPES = [
-  "Matériel médical",
-  "Aide à domicile",
-  "Soins à domicile",
-  "Garde-malade",
-  "Autre",
-];
+import {
+  partnerKindTypeOptions,
+  type SupplierPartnerKind,
+} from "@/lib/supplier-activity-types";
 
 const CITIES = ["Agadir", "Inezgane", "Dcheira", "Aourir", "Biougra", "Autre"];
 
@@ -53,19 +49,22 @@ const EMPTY_INVITE = {
   email: "",
 };
 
-const EMPTY_EDIT: SupplierFormValues = {
-  name: "",
-  type: "Matériel médical",
-  city: "Agadir",
-  zonesText: "Agadir",
-  phone: "",
-  whatsapp: "",
-  email: "",
-  itemsText: "",
-  servicesText: "",
-  notes: "",
-  verified: false,
-};
+function emptyEdit(partnerKind: SupplierPartnerKind): SupplierFormValues {
+  const types = partnerKindTypeOptions(partnerKind);
+  return {
+    name: "",
+    type: types[0] ?? "Vente matériel médical",
+    city: "Agadir",
+    zonesText: "Agadir",
+    phone: "",
+    whatsapp: "",
+    email: "",
+    itemsText: "",
+    servicesText: "",
+    notes: "",
+    verified: false,
+  };
+}
 
 function parseLines(value: string) {
   return value
@@ -95,6 +94,7 @@ type SupplierFormDialogProps = {
   onOpenChange: (open: boolean) => void;
   supplier?: Doc<"suppliers"> | null;
   onSuccess?: () => void;
+  partnerKind?: SupplierPartnerKind;
 };
 
 export function SupplierFormDialog({
@@ -102,11 +102,22 @@ export function SupplierFormDialog({
   onOpenChange,
   supplier,
   onSuccess,
+  partnerKind = "materiel",
 }: SupplierFormDialogProps) {
+  const isSoins = partnerKind === "soins";
+  const typeOptions = (() => {
+    const base = partnerKindTypeOptions(partnerKind);
+    if (supplier?.type && !base.includes(supplier.type) && supplier.type !== "—") {
+      return [supplier.type, ...base];
+    }
+    return base;
+  })();
   const inviteByEmail = useMutation(api.suppliers.inviteByEmail);
   const updateSupplier = useMutation(api.suppliers.update);
   const [inviteForm, setInviteForm] = useState(EMPTY_INVITE);
-  const [editForm, setEditForm] = useState<SupplierFormValues>(EMPTY_EDIT);
+  const [editForm, setEditForm] = useState<SupplierFormValues>(() =>
+    emptyEdit(partnerKind)
+  );
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -115,9 +126,10 @@ export function SupplierFormDialog({
         setEditForm(supplierToForm(supplier));
       } else {
         setInviteForm(EMPTY_INVITE);
+        setEditForm(emptyEdit(partnerKind));
       }
     }
-  }, [open, supplier]);
+  }, [open, supplier, partnerKind]);
 
   const handleInvite = async () => {
     const email = inviteForm.email.trim();
@@ -128,8 +140,12 @@ export function SupplierFormDialog({
 
     setSubmitting(true);
     try {
-      await inviteByEmail({ email });
-      toast.success("Invitation envoyée. Le fournisseur complétera son profil.");
+      await inviteByEmail({ email, partnerKind });
+      toast.success(
+        isSoins
+          ? "Invitation envoyée. Le prestataire complétera son profil."
+          : "Invitation envoyée. Le fournisseur complétera son profil."
+      );
       onOpenChange(false);
       onSuccess?.();
     } catch (err) {
@@ -168,19 +184,33 @@ export function SupplierFormDialog({
 
     setSubmitting(true);
     try {
-      await updateSupplier({ id: supplier._id, ...payload });
+      await updateSupplier({
+        id: supplier._id,
+        ...payload,
+        partnerKind:
+          supplier.partnerKind ??
+          partnerKind,
+      });
       toast.success(
         editForm.email.trim() &&
           editForm.email.trim().toLowerCase() !==
             (supplier.email?.toLowerCase() ?? "")
-          ? "Fournisseur mis à jour. Nouvelle invitation envoyée."
-          : "Fournisseur mis à jour."
+          ? isSoins
+            ? "Prestataire mis à jour. Nouvelle invitation envoyée."
+            : "Fournisseur mis à jour. Nouvelle invitation envoyée."
+          : isSoins
+            ? "Prestataire mis à jour."
+            : "Fournisseur mis à jour."
       );
       onOpenChange(false);
       onSuccess?.();
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Impossible d'enregistrer le fournisseur."
+        err instanceof Error
+          ? err.message
+          : isSoins
+            ? "Impossible d'enregistrer le prestataire."
+            : "Impossible d'enregistrer le fournisseur."
       );
     } finally {
       setSubmitting(false);
@@ -192,16 +222,22 @@ export function SupplierFormDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {supplier ? "Modifier le fournisseur" : "Inviter un fournisseur"}
+            {supplier
+              ? isSoins
+                ? "Modifier le prestataire"
+                : "Modifier le fournisseur"
+              : isSoins
+                ? "Inviter un prestataire"
+                : "Inviter un fournisseur"}
           </DialogTitle>
         </DialogHeader>
 
         {!supplier ? (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Saisissez l&apos;email du partenaire. Il recevra un lien pour créer
-              son mot de passe et compléter sa fiche (nom, téléphone, matériels…).
-              La commission sera déclarée par le fournisseur à chaque devis.
+              {isSoins
+                ? "Saisissez l'email du prestataire (infirmier, kiné, aide à domicile…). Il recevra un lien pour créer son mot de passe et compléter sa fiche."
+                : "Saisissez l'email du partenaire. Il recevra un lien pour créer son mot de passe et compléter sa fiche (nom, téléphone, matériels…). La commission sera déclarée par le fournisseur à chaque devis."}
             </p>
             <div>
               <Label>Email *</Label>
@@ -212,7 +248,9 @@ export function SupplierFormDialog({
                 onChange={(e) =>
                   setInviteForm((current) => ({ ...current, email: e.target.value }))
                 }
-                placeholder="contact@fournisseur.ma"
+                placeholder={
+                  isSoins ? "contact@prestataire.ma" : "contact@fournisseur.ma"
+                }
                 required
               />
             </div>
@@ -241,7 +279,7 @@ export function SupplierFormDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {SUPPLIER_TYPES.map((type) => (
+                  {typeOptions.map((type) => (
                     <SelectItem key={type} value={type}>
                       {type}
                     </SelectItem>

@@ -42,6 +42,7 @@ import {
 } from "@/lib/crm/order-scheduling";
 import { FrenchTimePicker } from "@/components/ui/french-time-picker";
 import { SuggestableItemField } from "@/components/suggestable-item-field";
+import { MOROCCO_CITY_OPTIONS } from "@/lib/morocco-cities";
 import { cn } from "@/lib/utils";
 
 const SOURCES = [
@@ -53,14 +54,7 @@ const SOURCES = [
   "Autre",
 ];
 
-const CITIES = [
-  { value: "Agadir", label: "Agadir" },
-  { value: "Inezgane", label: "Inezgane" },
-  { value: "Dcheira", label: "Dcheira" },
-  { value: "Aourir", label: "Aourir" },
-  { value: "Biougra", label: "Biougra" },
-  { value: "Autre", label: "Autre" },
-];
+const CITIES = MOROCCO_CITY_OPTIONS;
 
 type AssignmentMode = "create_only" | "assign_self" | "assign_staff";
 

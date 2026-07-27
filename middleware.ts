@@ -5,7 +5,11 @@ import {
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { X_ROBOTS_NOINDEX } from "@/lib/indexing";
-import { ADMIN_LOGIN_PATH, SUPPLIER_LOGIN_PATH } from "@/lib/auth-routes";
+import {
+  ADMIN_LOGIN_PATH,
+  PRESTATAIRE_LOGIN_PATH,
+  SUPPLIER_LOGIN_PATH,
+} from "@/lib/auth-routes";
 import { categoryParamToValue } from "@/lib/catalog-categories";
 import { DEFAULT_CITY_SLUG } from "@/lib/cities";
 import {
@@ -20,17 +24,26 @@ import { isProductLandingSlug } from "@/lib/product-landing-pages";
 const legacyCategorySlugs = Object.keys(seoCategoryToCatalogParam);
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
 const isAdminInvite = createRouteMatcher(["/admin/invite(.*)"]);
-const isSupplierRoute = createRouteMatcher(["/supplier(.*)"]);
-const isSupplierInvite = createRouteMatcher(["/supplier/invite(.*)"]);
+const isSupplierRoute = createRouteMatcher([
+  "/supplier(.*)",
+  "/prestataire(.*)",
+]);
+const isSupplierInvite = createRouteMatcher([
+  "/supplier/invite(.*)",
+  "/prestataire/invite(.*)",
+]);
 const isObscureLogin = createRouteMatcher([
   ADMIN_LOGIN_PATH,
   SUPPLIER_LOGIN_PATH,
+  PRESTATAIRE_LOGIN_PATH,
 ]);
 const isPrivateCrmRoute = createRouteMatcher([
   "/admin(.*)",
   "/supplier(.*)",
+  "/prestataire(.*)",
   ADMIN_LOGIN_PATH,
   SUPPLIER_LOGIN_PATH,
+  PRESTATAIRE_LOGIN_PATH,
 ]);
 
 function withNoIndex(response: NextResponse) {

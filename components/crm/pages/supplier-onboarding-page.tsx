@@ -1,12 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useMutation } from "convex/react";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import { useSupplierSession } from "@/hooks/use-supplier-session";
+import { partnerPortalBaseFromPath } from "@/lib/auth-routes";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -35,6 +36,8 @@ function parseLines(value: string) {
 
 export function SupplierOnboardingPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const basePath = partnerPortalBaseFromPath(pathname);
   const { supplier, profileComplete, sessionLoading } = useSupplierSession();
   const completeProfile = useMutation(api.supplierPortal.completeProfile);
 
@@ -50,9 +53,9 @@ export function SupplierOnboardingPage() {
 
   useEffect(() => {
     if (!sessionLoading && profileComplete) {
-      router.replace("/supplier");
+      router.replace(basePath);
     }
-  }, [sessionLoading, profileComplete, router]);
+  }, [sessionLoading, profileComplete, router, basePath]);
 
   useEffect(() => {
     if (!supplier || prefilled) return;
@@ -140,7 +143,7 @@ export function SupplierOnboardingPage() {
       });
       toast.success("Profil enregistré. Bienvenue !");
       // Full navigation avoids soft-nav redirect races after invite/onboarding.
-      window.location.assign("/supplier");
+      window.location.assign(basePath);
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Impossible d'enregistrer le profil."

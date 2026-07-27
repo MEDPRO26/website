@@ -47,6 +47,8 @@ export const PRIVATE_CRM_PATHS = [
   "/admin-me",
   "/supplier",
   "/fournisseurs",
+  "/prestataire",
+  "/prestataires",
   "/__crm-hidden",
 ] as const;
 

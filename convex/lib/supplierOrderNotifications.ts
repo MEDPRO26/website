@@ -17,7 +17,11 @@ export async function notifySupplierOfAssignment(
 
   const siteUrl = process.env.SITE_URL ?? "http://localhost:3000";
   // Login first so guests don't hit the hidden /supplier 404.
-  const orderUrl = supplierOrderLoginUrl(args.orderId, siteUrl);
+  const orderUrl = supplierOrderLoginUrl(
+    args.orderId,
+    siteUrl,
+    args.supplier.partnerKind
+  );
   const email = args.supplier.email?.trim();
   const customer = await ctx.db.get(args.order.customerId);
   const clientName = customer ? resolveOrderClientName(args.order, customer) : "Client";

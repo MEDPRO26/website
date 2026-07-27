@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuthActions } from "@convex-dev/auth/react";
 import {
   useConvex,
@@ -15,6 +15,11 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import { LOGO } from "@/lib/brand";
+import {
+  loginPathForPartnerKind,
+  partnerKindFromPortalPath,
+  partnerPortalBaseFromPath,
+} from "@/lib/auth-routes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,6 +53,9 @@ async function waitForServerAuth(
 
 export function SupplierInvitePage({ token }: SupplierInvitePageProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const basePath = partnerPortalBaseFromPath(pathname);
+  const loginPath = loginPathForPartnerKind(partnerKindFromPortalPath(pathname));
   const convex = useConvex();
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const { signIn, signOut } = useAuthActions();
@@ -95,16 +103,16 @@ export function SupplierInvitePage({ token }: SupplierInvitePageProps) {
     }
     if (profile?.staff?.role === "supplier") {
       router.replace(
-        profile.profileComplete ? "/supplier" : "/supplier/onboarding"
+        profile.profileComplete ? basePath : `${basePath}/onboarding`
       );
     }
-  }, [authLoading, emailMatches, profile, router]);
+  }, [authLoading, basePath, emailMatches, profile, router]);
 
   const finishAcceptance = async () => {
     await waitForServerAuth(convex, inviteEmail);
     await acceptInvite({ token });
-    toast.success("Compte activé. Complétez votre profil fournisseur.");
-    router.replace("/supplier/onboarding");
+    toast.success("Compte activé. Complétez votre profil.");
+    router.replace(`${basePath}/onboarding`);
   };
 
   const handleAuthenticatedAccept = async () => {
@@ -195,7 +203,7 @@ export function SupplierInvitePage({ token }: SupplierInvitePageProps) {
           <h1 className="text-xl font-bold text-foreground">Invitation fournisseur</h1>
           <p className="mt-3 text-sm text-muted-foreground">{message}</p>
           <Button asChild className="mt-6">
-            <Link href="/fournisseurs">Aller à la connexion</Link>
+            <Link href={loginPath}>Aller à la connexion</Link>
           </Button>
         </div>
       </div>
