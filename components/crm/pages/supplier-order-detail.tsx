@@ -36,6 +36,7 @@ import {
   Phone,
   Calendar,
   Clock,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -301,6 +302,29 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
               </div>
             )}
           </Card>
+
+          {canSubmitPrice ? (
+            <div
+              role="alert"
+              className="flex items-start gap-4 rounded-xl border-2 border-amber-400 bg-amber-50 px-5 py-5 sm:px-6 sm:py-6 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(245,158,11,0.12)]"
+            >
+              <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-amber-400/25 text-amber-800">
+                <AlertTriangle className="size-6" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-base font-bold leading-snug text-amber-950 sm:text-lg">
+                  Ne confirmez la livraison qu&apos;après paiement
+                </p>
+                <p className="mt-2 text-base leading-relaxed text-amber-900/90 sm:text-[17px]">
+                  Ne remplissez pas « Votre offre » et ne cliquez pas sur{" "}
+                  <span className="font-semibold">Confirmer la livraison</span>{" "}
+                  tant que vous n&apos;avez pas livré le matériel, terminé le
+                  service et reçu le paiement du client. Le client peut encore
+                  annuler la commande en cours de route.
+                </p>
+              </div>
+            </div>
+          ) : null}
 
           {order.message ? (
             <Card
