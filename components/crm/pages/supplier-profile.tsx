@@ -461,7 +461,7 @@ export function SupplierProfilePage() {
             </div>
             <p className="flex items-center gap-2 text-xs text-muted-foreground">
               <Clock className="size-3.5" />
-              Commission SOS Santé déclarée à chaque devis (MAD)
+              Honoraire de SOS Santé déclaré à chaque devis (MAD)
             </p>
           </Card>
         </>

@@ -215,7 +215,7 @@ export function SupplierCommissionSettleDialog({
 
       toast.success(
         isBulk
-          ? `${targets.length} commissions marquées comme réglées.`
+          ? `${targets.length} honoraires marqués comme réglés.`
           : "Commission marquée comme réglée."
       );
       onSettled();
@@ -234,14 +234,14 @@ export function SupplierCommissionSettleDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {isBulk ? "Régler plusieurs commissions" : "Confirmer le règlement"}
+            {isBulk ? "Régler plusieurs honoraires" : "Confirmer le règlement"}
           </DialogTitle>
           <DialogDescription>
             {targets.length === 0
-              ? "Indiquez comment vous avez réglé la commission SOS Santé."
+              ? "Indiquez comment vous avez réglé l'honoraire de SOS Santé."
               : isBulk
                 ? `${targets.length} commandes · total ${formatMad(totalAmount)}`
-                : `Commande ${targets[0]!.orderRef} · commission ${formatMad(targets[0]!.commissionAmount)}`}
+                : `Commande ${targets[0]!.orderRef} · honoraire ${formatMad(targets[0]!.commissionAmount)}`}
           </DialogDescription>
         </DialogHeader>
 

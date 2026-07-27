@@ -63,7 +63,7 @@ export const SUGGESTED_NEXT_STATUSES: Record<OrderStatus, OrderStatus[]> = {
   planifiee: ["en_cours", "acceptee", "annulee"],
   en_cours: ["location_active", "terminee", "reclamation", "annulee"],
   location_active: ["terminee", "reclamation", "annulee"],
-  terminee: ["reclamation"],
+  terminee: ["reclamation", "annulee"],
   annulee: ["nouvelle"],
   reclamation: ["en_cours", "location_active", "terminee", "annulee"],
 };

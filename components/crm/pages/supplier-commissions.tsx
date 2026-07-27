@@ -91,7 +91,7 @@ export function SupplierCommissionsPage() {
 
   if (rows === undefined) {
     return (
-      <p className="text-sm text-muted-foreground">Chargement des commissions…</p>
+      <p className="text-sm text-muted-foreground">Chargement des honoraires…</p>
     );
   }
 
@@ -103,8 +103,8 @@ export function SupplierCommissionsPage() {
   return (
     <div>
       <PageHeader
-        title="SOS commission"
-        description="Commandes livrées — réglez la commission SOS Santé après paiement au client."
+        title="Honoraire de SOS"
+        description="Commandes livrées — réglez l'honoraire de SOS Santé après paiement au client."
       />
 
       <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -146,11 +146,12 @@ export function SupplierCommissionsPage() {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground">
-                Virement bancaire — commission SOS Santé
+                Virement bancaire — honoraire de SOS Santé
               </p>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                Merci d&apos;effectuer le virement de la commission sur le compte
-                CIH Bank ci-dessous, puis de téléverser le reçu lors du règlement.
+                Merci d&apos;effectuer le virement de l&apos;honoraire de SOS sur le
+                compte CIH Bank ci-dessous, puis de téléverser le reçu lors du
+                règlement.
               </p>
               <p className="mt-2 font-mono text-sm font-semibold tracking-wide text-foreground sm:text-base">
                 RIB CIH : {SOS_COMMISSION_RIB}
@@ -218,8 +219,8 @@ export function SupplierCommissionsPage() {
 
       {rows.length === 0 ? (
         <Card className="p-8 text-center text-sm text-muted-foreground">
-          Aucune commission pour le moment. Les commissions apparaissent ici une fois la
-          livraison confirmée.
+          Aucun honoraire pour le moment. Les honoraires de SOS apparaissent ici une
+          fois la livraison confirmée.
         </Card>
       ) : (
         <Card className="overflow-hidden p-0">
@@ -234,7 +235,7 @@ export function SupplierCommissionsPage() {
                         onCheckedChange={(checked) =>
                           toggleSelectAllUnpaid(checked === true)
                         }
-                        aria-label="Sélectionner toutes les commissions non réglées"
+                        aria-label="Sélectionner tous les honoraires non réglés"
                       />
                     </th>
                   ) : null}
@@ -243,7 +244,7 @@ export function SupplierCommissionsPage() {
                     Prix client
                   </th>
                   <th className="px-4 py-2.5 font-medium text-right whitespace-nowrap">
-                    Commission SOS
+                    Honoraire de SOS
                   </th>
                   <th className="px-4 py-2.5 font-medium whitespace-nowrap">Statut</th>
                   <th className="px-4 py-2.5 font-medium whitespace-nowrap">Mode</th>

@@ -2,12 +2,23 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
+import { toast } from "sonner";
 import { StatusBadge, Tag } from "@/components/dashboard/status-badge";
 import { SupplierQuoteForm } from "@/components/crm/supplier-quote-form";
 import { OrderClientRemarks } from "@/components/crm/order-client-remarks";
 import { Card } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useSupplierSession } from "@/hooks/use-supplier-session";
@@ -56,6 +67,9 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
   const router = useRouter();
   const { canQuerySupplier, supplier, staff } = useSupplierSession();
   const markViewed = useMutation(api.supplierPortal.markViewed);
+  const cancelByClient = useMutation(api.supplierPortal.cancelByClient);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const data = useQuery(
     api.supplierPortal.getOrder,
     canQuerySupplier ? { orderId: orderId as Id<"orders"> } : "skip"
@@ -101,6 +115,26 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
   const isDelivered = order.status === "terminee";
   const isCancelled = order.status === "annulee";
 
+  const handleCancelByClient = async () => {
+    setCancelling(true);
+    try {
+      await cancelByClient({ orderId: order._id });
+      toast.success(
+        "Commande annulée par le client — retirée des honoraires SOS."
+      );
+      setCancelOpen(false);
+      router.push("/supplier/orders");
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Impossible de marquer la commande comme annulée."
+      );
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   return (
     <div className="space-y-5 pb-10">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -141,7 +175,10 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
       </div>
 
       {isDelivered ? (
-        <SupplierDeliveredBanner />
+        <SupplierDeliveredBanner
+          cancelling={cancelling}
+          onCancelByClient={() => setCancelOpen(true)}
+        />
       ) : needsDelivery && !isCancelled ? (
         <SupplierDeliveryPrompt
           clientName={customer?.name}
@@ -342,6 +379,33 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
           </div>
         </div>
       </div>
+
+      <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Marquer comme annulée par le client ?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              La commande {order.ref} passera en « Commande annulée par le
+              client » et sera retirée de l&apos;onglet Honoraire de SOS.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={cancelling}>Retour</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={cancelling}
+              className="bg-status-error text-white hover:bg-status-error/90"
+              onClick={(event) => {
+                event.preventDefault();
+                void handleCancelByClient();
+              }}
+            >
+              {cancelling ? "…" : "Confirmer l'annulation"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

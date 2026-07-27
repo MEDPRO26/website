@@ -30,6 +30,16 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -568,7 +578,10 @@ function OrderItemThumbnail({
 function SupplierOrderRow({ order }: { order: SupplierOrder }) {
   const router = useRouter();
   const claimOrder = useMutation(api.supplierPortal.claimOrder);
+  const cancelByClient = useMutation(api.supplierPortal.cancelByClient);
   const [claiming, setClaiming] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   const location = order.district
     ? `${order.city} (${order.district})`
@@ -590,6 +603,8 @@ function SupplierOrderRow({ order }: { order: SupplierOrder }) {
     PENDING_STATUSES.includes(order.status as OrderStatus) &&
     !order.hasQuote &&
     !expired;
+  const canMarkCancelledByClient =
+    !order.isMissed && order.status === "terminee";
   const showScheduling = orderShowsSchedulingFields(order.type);
   const displayDate = order.isMissed
     ? order.missedAt ?? order.createdAt
@@ -607,6 +622,25 @@ function SupplierOrderRow({ order }: { order: SupplierOrder }) {
       );
     } finally {
       setClaiming(false);
+    }
+  };
+
+  const handleCancelByClient = async () => {
+    setCancelling(true);
+    try {
+      await cancelByClient({ orderId: order._id as Id<"orders"> });
+      toast.success(
+        "Commande annulée par le client — retirée des honoraires SOS."
+      );
+      setCancelOpen(false);
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Impossible de marquer la commande comme annulée."
+      );
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -711,6 +745,17 @@ function SupplierOrderRow({ order }: { order: SupplierOrder }) {
                   <Link href={`/supplier/orders/${order._id}`}>Répondre</Link>
                 </Button>
               ) : null}
+              {canMarkCancelledByClient ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-8 rounded-lg border-status-error/30 px-3 text-xs font-semibold text-status-error hover:bg-status-error/10 hover:text-status-error"
+                  onClick={() => setCancelOpen(true)}
+                >
+                  Annulée par client
+                </Button>
+              ) : null}
               <Button
                 asChild
                 size="icon"
@@ -724,6 +769,33 @@ function SupplierOrderRow({ order }: { order: SupplierOrder }) {
             </>
           )}
         </div>
+
+        <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                Marquer comme annulée par le client ?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                La commande {order.ref} passera en « Commande annulée par le
+                client » et sera retirée de l&apos;onglet Honoraire de SOS.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={cancelling}>Retour</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={cancelling}
+                className="bg-status-error text-white hover:bg-status-error/90"
+                onClick={(event) => {
+                  event.preventDefault();
+                  void handleCancelByClient();
+                }}
+              >
+                {cancelling ? "…" : "Confirmer l'annulation"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </td>
     </tr>
   );

@@ -53,7 +53,7 @@ const SUPPLIER_NAV_ITEMS: {
   { path: "/orders", label: "Mes commandes", icon: ClipboardList },
   {
     path: "/commissions",
-    label: "SOS commission",
+    label: "Honoraire de SOS",
     icon: Wallet,
     badgeKey: "unpaidCommissions",
   },
@@ -500,8 +500,8 @@ export function SupplierShell({ children }: { children: ReactNode }) {
                 </span>
                 {item.label === "Mes commandes"
                   ? "Commandes"
-                  : item.label === "SOS commission"
-                    ? "Commission"
+                  : item.label === "Honoraire de SOS"
+                    ? "Honoraire"
                     : item.label}
               </Link>
             );

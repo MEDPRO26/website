@@ -150,24 +150,46 @@ export function SupplierDeliveryPrompt({
   );
 }
 
-export function SupplierDeliveredBanner({ className }: { className?: string }) {
+export function SupplierDeliveredBanner({
+  className,
+  onCancelByClient,
+  cancelling = false,
+}: {
+  className?: string;
+  onCancelByClient?: () => void;
+  cancelling?: boolean;
+}) {
   return (
     <div
       className={cn(
-        "flex items-start gap-3 rounded-xl border border-success/25 bg-success-soft/50 p-4",
+        "flex flex-col gap-4 rounded-xl border border-success/25 bg-success-soft/50 p-4 sm:flex-row sm:items-start sm:justify-between",
         className
       )}
     >
-      <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-success/15 text-success">
-        <PackageCheck className="size-4" />
+      <div className="flex items-start gap-3">
+        <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-success/15 text-success">
+          <PackageCheck className="size-4" />
+        </div>
+        <div>
+          <p className="font-semibold text-foreground">Commande livrée</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Vous avez confirmé la livraison au client. L&apos;équipe SOS Santé est
+            informée.
+          </p>
+        </div>
       </div>
-      <div>
-        <p className="font-semibold text-foreground">Commande livrée</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Vous avez confirmé la livraison au client. L&apos;équipe SOS Santé est
-          informée.
-        </p>
-      </div>
+      {onCancelByClient ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="shrink-0 border-status-error/30 font-semibold text-status-error hover:bg-status-error/10 hover:text-status-error"
+          disabled={cancelling}
+          onClick={onCancelByClient}
+        >
+          {cancelling ? "…" : "Annulée par client"}
+        </Button>
+      ) : null}
     </div>
   );
 }

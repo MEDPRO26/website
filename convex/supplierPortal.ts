@@ -551,9 +551,6 @@ export const cancelByClient = mutation({
     if (order.status === "annulee") {
       return { alreadyCancelled: true as const };
     }
-    if (order.status === "terminee") {
-      throw new Error("Cette commande est déjà livrée.");
-    }
 
     const now = Date.now();
     const fromStatus = order.status;
@@ -565,7 +562,10 @@ export const cancelByClient = mutation({
     await appendOrderEvent(ctx, {
       orderId: args.orderId,
       type: "status_change",
-      label: `${supplier.name} — commande annulée par le client`,
+      label:
+        fromStatus === "terminee"
+          ? `${supplier.name} — livraison annulée par le client (après livraison)`
+          : `${supplier.name} — commande annulée par le client`,
       fromStatus,
       toStatus: "annulee",
       actorStaffId: staff._id,
@@ -574,7 +574,10 @@ export const cancelByClient = mutation({
     await notifyStaff(ctx, "supplier_response", {
       type: "order",
       title: `${supplier.name} — commande annulée par le client`,
-      description: `${order.ref} · annulation signalée par le fournisseur`,
+      description:
+        fromStatus === "terminee"
+          ? `${order.ref} · annulée après livraison (retirée des honoraires)`
+          : `${order.ref} · annulation signalée par le fournisseur`,
       link: `/admin/orders/${args.orderId}`,
       entityId: args.orderId,
     });

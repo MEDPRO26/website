@@ -138,7 +138,7 @@ export function SupplierQuoteForm({
     }
     if (!commissionAmount.trim() || Number.isNaN(commission) || commission <= 0) {
       toast.error(
-        "La commission SOS Santé est obligatoire. Indiquez le montant en MAD avant de confirmer la livraison."
+        "L'honoraire de SOS Santé est obligatoire. Indiquez le montant en MAD avant de confirmer la livraison."
       );
       return;
     }
@@ -252,7 +252,7 @@ export function SupplierQuoteForm({
         ) : null}
 
         <div className={isSidebar ? "" : "col-span-2"}>
-          <Label className={fieldLabelClass}>Commission SOS Santé *</Label>
+          <Label className={fieldLabelClass}>Honoraire de SOS Santé *</Label>
           <div className="relative">
             <Input
               type="number"
@@ -309,7 +309,7 @@ export function SupplierQuoteForm({
       >
         <Row label="Sous-total" value={formatMad(preview.total)} />
         <Row
-          label="Commission SOS Santé"
+          label="Honoraire de SOS Santé"
           value={formatMad(preview.commission)}
         />
         <Row
@@ -326,13 +326,13 @@ export function SupplierQuoteForm({
         </div>
         {!isSidebar ? (
           <p className="pt-1 text-xs text-muted-foreground">
-            Le client paie {formatMad(preview.clientPrice)}. Après la commission
-            SOS Santé ({formatMad(preview.commission)}), vous conservez{" "}
+            Le client paie {formatMad(preview.clientPrice)}. Après l&apos;honoraire
+            de SOS Santé ({formatMad(preview.commission)}), vous conservez{" "}
             {formatMad(preview.supplierKeep)}.
           </p>
         ) : (
           <p className="pt-1 text-xs text-muted-foreground">
-            Vous conservez {formatMad(preview.supplierKeep)} après commission.
+            Vous conservez {formatMad(preview.supplierKeep)} après honoraire.
           </p>
         )}
       </div>
