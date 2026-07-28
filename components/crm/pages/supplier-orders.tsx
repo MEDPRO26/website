@@ -62,6 +62,7 @@ const PENDING_STATUSES: OrderStatus[] = [
 ];
 
 const AWAITING_DELIVERY_STATUSES: OrderStatus[] = [
+  "en_contact_client",
   "acceptee",
   "planifiee",
   "en_cours",
@@ -69,6 +70,7 @@ const AWAITING_DELIVERY_STATUSES: OrderStatus[] = [
 ];
 
 const ACTIVE_STATUSES: OrderStatus[] = [
+  "en_contact_client",
   "offre_envoyee",
   "acceptee",
   "planifiee",
@@ -87,6 +89,7 @@ const SUPPLIER_STATUS_FILTERS: { value: string; label: string }[] = [
   ...[
     "envoyee_fournisseur",
     "vue_fournisseur",
+    "en_contact_client",
     "prix_recu",
     "offre_envoyee",
     "acceptee",

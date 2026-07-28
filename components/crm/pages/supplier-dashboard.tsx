@@ -46,6 +46,7 @@ const PENDING_STATUSES: OrderStatus[] = [
 const AWAITING_CLIENT_STATUSES: OrderStatus[] = ["offre_envoyee"];
 
 const INTERVENTION_STATUSES: OrderStatus[] = [
+  "en_contact_client",
   "acceptee",
   "planifiee",
   "en_cours",

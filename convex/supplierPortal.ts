@@ -22,6 +22,7 @@ import {
 const DELIVERABLE_STATUSES = new Set([
   "envoyee_fournisseur",
   "vue_fournisseur",
+  "en_contact_client",
   "prix_recu",
   "offre_envoyee",
   "acceptee",
@@ -327,6 +328,137 @@ export const claimOrder = mutation({
   },
 });
 
+export const markInContactWithClient = mutation({
+  args: { orderId: v.id("orders") },
+  handler: async (ctx, args) => {
+    const { staff, supplier } = await requireSupplierStaff(ctx);
+    const order = await ctx.db.get(args.orderId);
+    if (!order || order.supplierId !== supplier._id) {
+      throw new Error("Commande introuvable.");
+    }
+
+    if (order.status === "en_contact_client") {
+      return { alreadyInContact: true as const };
+    }
+
+    const allowed = new Set([
+      "envoyee_fournisseur",
+      "vue_fournisseur",
+      "prix_recu",
+      "offre_envoyee",
+    ]);
+    if (!allowed.has(order.status)) {
+      throw new Error(
+        "Cette commande ne peut plus passer en contact avec le client."
+      );
+    }
+
+    const now = Date.now();
+    const fromStatus = order.status;
+    await ctx.db.patch(args.orderId, {
+      status: "en_contact_client",
+      updatedAt: now,
+    });
+
+    await appendOrderEvent(ctx, {
+      orderId: args.orderId,
+      type: "status_change",
+      label: `${supplier.name} — en contact avec le client`,
+      fromStatus,
+      toStatus: "en_contact_client",
+      actorStaffId: staff._id,
+    });
+
+    await notifyStaff(ctx, "supplier_response", {
+      type: "order",
+      title: `${supplier.name} — en contact avec le client`,
+      description: `${order.ref} · le fournisseur a contacté le client`,
+      link: `/admin/orders/${args.orderId}`,
+      entityId: args.orderId,
+    });
+
+    await logAudit(ctx, {
+      actorStaffId: staff._id,
+      actorName: staff.name,
+      action: "status_change",
+      entityType: "order",
+      entityId: args.orderId,
+      entityLabel: order.ref,
+      fromValue: fromStatus,
+      toValue: "en_contact_client",
+    });
+
+    return { alreadyInContact: false as const };
+  },
+});
+
+export const markInDelivery = mutation({
+  args: { orderId: v.id("orders") },
+  handler: async (ctx, args) => {
+    const { staff, supplier } = await requireSupplierStaff(ctx);
+    const order = await ctx.db.get(args.orderId);
+    if (!order || order.supplierId !== supplier._id) {
+      throw new Error("Commande introuvable.");
+    }
+
+    if (order.status === "en_cours") {
+      return { alreadyInDelivery: true as const };
+    }
+
+    const allowed = new Set([
+      "envoyee_fournisseur",
+      "vue_fournisseur",
+      "en_contact_client",
+      "prix_recu",
+      "offre_envoyee",
+      "acceptee",
+      "planifiee",
+    ]);
+    if (!allowed.has(order.status)) {
+      throw new Error(
+        "Cette commande ne peut plus passer en cours de livraison."
+      );
+    }
+
+    const now = Date.now();
+    const fromStatus = order.status;
+    await ctx.db.patch(args.orderId, {
+      status: "en_cours",
+      updatedAt: now,
+    });
+
+    await appendOrderEvent(ctx, {
+      orderId: args.orderId,
+      type: "status_change",
+      label: `${supplier.name} — en cours de livraison`,
+      fromStatus,
+      toStatus: "en_cours",
+      actorStaffId: staff._id,
+    });
+
+    await notifyStaff(ctx, "supplier_response", {
+      type: "order",
+      title: `${supplier.name} — en cours de livraison`,
+      description: `${order.ref} · livraison en cours`,
+      link: `/admin/orders/${args.orderId}`,
+      entityId: args.orderId,
+    });
+
+    await logAudit(ctx, {
+      actorStaffId: staff._id,
+      actorName: staff.name,
+      action: "status_change",
+      entityType: "order",
+      entityId: args.orderId,
+      entityLabel: order.ref,
+      fromValue: fromStatus,
+      toValue: "en_cours",
+    });
+
+    return { alreadyInDelivery: false as const };
+  },
+});
+
 export const submitQuote = mutation({
   args: {
     orderId: v.id("orders"),
@@ -446,9 +578,12 @@ export const markUnavailable = mutation({
     }
 
     if (
-      !["envoyee_fournisseur", "vue_fournisseur", "prix_recu"].includes(
-        order.status
-      )
+      ![
+        "envoyee_fournisseur",
+        "vue_fournisseur",
+        "en_contact_client",
+        "prix_recu",
+      ].includes(order.status)
     ) {
       throw new Error("Cette commande ne peut plus être déclinée.");
     }

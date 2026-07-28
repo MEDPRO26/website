@@ -24,7 +24,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { useSupplierSession } from "@/hooks/use-supplier-session";
 import { resolveOrderItemPreview } from "@/lib/crm/resolve-order-item-link";
 import { orderShowsSchedulingFields, supplierShouldDeliverOrder } from "@/lib/crm/order-scheduling";
-import { SupplierDeliveryPrompt, SupplierDeliveredBanner } from "@/components/crm/supplier-delivery-prompt";
+import { SupplierDeliveryPrompt, SupplierDeliveredBanner, SupplierOrderStatusBox } from "@/components/crm/supplier-delivery-prompt";
 import { SUPPLIER_STATUS_LABELS } from "@/lib/crm/order-status";
 import type { OrderStatus } from "@/lib/mock-data";
 import {
@@ -105,9 +105,13 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
   }
 
   const { order, customer, quote, clientContactVisible } = data;
-  const canSubmitPrice = ["envoyee_fournisseur", "vue_fournisseur", "prix_recu"].includes(
-    order.status
-  );
+  const canSubmitPrice = [
+    "envoyee_fournisseur",
+    "vue_fournisseur",
+    "en_contact_client",
+    "en_cours",
+    "prix_recu",
+  ].includes(order.status);
   const supplierName = supplier?.name ?? staff?.name ?? "Fournisseur";
   const preview = resolveOrderItemPreview(order.type, order.item, customer?.city);
   const showScheduling = orderShowsSchedulingFields(order.type);
@@ -186,6 +190,7 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
           clientPhone={customer?.phone}
           orderRef={order.ref}
           item={order.item}
+          orderId={order._id}
           orderStatus={order.status}
         />
       ) : null}
@@ -302,6 +307,13 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
               </div>
             )}
           </Card>
+
+          {!isDelivered && !isCancelled ? (
+            <SupplierOrderStatusBox
+              orderId={order._id}
+              orderStatus={order.status}
+            />
+          ) : null}
 
           {canSubmitPrice ? (
             <div

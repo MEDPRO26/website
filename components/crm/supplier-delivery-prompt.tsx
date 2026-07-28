@@ -1,6 +1,14 @@
+"use client";
+
 import Link from "next/link";
-import { PackageCheck, Phone, Truck } from "lucide-react";
+import { useState } from "react";
+import { useMutation } from "convex/react";
+import { toast } from "sonner";
+import { Check, MessageCircle, PackageCheck, Phone, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { telUrl, whatsAppUrl } from "@/lib/crm/phone-links";
 import { supplierIsEarlyClientContactPhase } from "@/lib/crm/order-scheduling";
 import { cn } from "@/lib/utils";
@@ -26,6 +34,12 @@ function contactMessage(clientName?: string, item?: string, orderStatus?: string
 }
 
 function contactTitle(orderStatus?: string) {
+  if (orderStatus === "en_cours") {
+    return "En cours de livraison";
+  }
+  if (orderStatus === "en_contact_client") {
+    return "En contact avec le client";
+  }
   if (orderStatus && supplierIsEarlyClientContactPhase(orderStatus)) {
     return "Contactez le client";
   }
@@ -45,9 +59,10 @@ export function SupplierDeliveryPrompt({
   const phone = clientPhone?.trim();
   const message = contactMessage(clientName, item, orderStatus);
   const title = contactTitle(orderStatus);
-  const whatsappIntro = orderStatus && supplierIsEarlyClientContactPhase(orderStatus)
-    ? `Bonjour ${clientName?.split(" ")[0] ?? ""}, je vous contacte au sujet de votre demande${orderRef ? ` ${orderRef}` : ""}${item ? ` (${item})` : ""}.`
-    : `Bonjour ${clientName?.split(" ")[0] ?? ""}, nous organisons la livraison de votre commande${orderRef ? ` ${orderRef}` : ""}.`;
+  const whatsappIntro =
+    orderStatus && supplierIsEarlyClientContactPhase(orderStatus)
+      ? `Bonjour ${clientName?.split(" ")[0] ?? ""}, je vous contacte au sujet de votre demande${orderRef ? ` ${orderRef}` : ""}${item ? ` (${item})` : ""}.`
+      : `Bonjour ${clientName?.split(" ")[0] ?? ""}, nous organisons la livraison de votre commande${orderRef ? ` ${orderRef}` : ""}.`;
 
   if (variant === "compact") {
     return (
@@ -95,7 +110,9 @@ export function SupplierDeliveryPrompt({
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-foreground">{title}</p>
-            <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2 sm:text-sm">{message}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2 sm:text-sm">
+              {message}
+            </p>
           </div>
         </div>
         {orderId ? (
@@ -147,6 +164,143 @@ export function SupplierDeliveryPrompt({
         </div>
       </div>
     </div>
+  );
+}
+
+export function SupplierOrderStatusBox({
+  orderId,
+  orderStatus,
+  className,
+}: {
+  orderId: Id<"orders">;
+  orderStatus: string;
+  className?: string;
+}) {
+  const markInContact = useMutation(api.supplierPortal.markInContactWithClient);
+  const markInDelivery = useMutation(api.supplierPortal.markInDelivery);
+  const [markingContact, setMarkingContact] = useState(false);
+  const [markingDelivery, setMarkingDelivery] = useState(false);
+
+  const canMarkInContact =
+    ![
+      "en_contact_client",
+      "en_cours",
+      "location_active",
+      "terminee",
+      "annulee",
+    ].includes(orderStatus) &&
+    [
+      "envoyee_fournisseur",
+      "vue_fournisseur",
+      "prix_recu",
+      "offre_envoyee",
+    ].includes(orderStatus);
+  const alreadyInContact =
+    orderStatus === "en_contact_client" || orderStatus === "en_cours";
+
+  const canMarkInDelivery =
+    orderStatus !== "en_cours" &&
+    [
+      "envoyee_fournisseur",
+      "vue_fournisseur",
+      "en_contact_client",
+      "prix_recu",
+      "offre_envoyee",
+      "acceptee",
+      "planifiee",
+    ].includes(orderStatus);
+  const alreadyInDelivery = orderStatus === "en_cours";
+
+  if (!canMarkInContact && !alreadyInContact && !canMarkInDelivery && !alreadyInDelivery) {
+    return null;
+  }
+
+  const handleMarkInContact = async () => {
+    setMarkingContact(true);
+    try {
+      await markInContact({ orderId });
+      toast.success("Statut mis à jour : en contact avec le client.");
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Impossible de mettre à jour le statut."
+      );
+    } finally {
+      setMarkingContact(false);
+    }
+  };
+
+  const handleMarkInDelivery = async () => {
+    setMarkingDelivery(true);
+    try {
+      await markInDelivery({ orderId });
+      toast.success("Statut mis à jour : en cours de livraison.");
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Impossible de mettre à jour le statut."
+      );
+    } finally {
+      setMarkingDelivery(false);
+    }
+  };
+
+  return (
+    <Card
+      className={cn(
+        "overflow-hidden border-0 bg-white p-0 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)]",
+        className
+      )}
+    >
+      <div className="flex items-center gap-2 border-b border-border/60 px-5 py-4">
+        <div className="grid size-8 place-items-center rounded-lg bg-brand/10 text-brand">
+          <MessageCircle className="size-4" />
+        </div>
+        <h2 className="text-base font-semibold">Statut de la commande</h2>
+      </div>
+      <div className="flex flex-wrap gap-2 p-5">
+        {canMarkInContact ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="rounded-lg border-brand/30 bg-white text-brand hover:bg-brand/5"
+            disabled={markingContact}
+            onClick={() => void handleMarkInContact()}
+          >
+            <MessageCircle className="size-3.5" />
+            {markingContact ? "…" : "En contact avec le client"}
+          </Button>
+        ) : alreadyInContact ? (
+          <span className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-brand/30 bg-white px-3 text-xs font-semibold text-brand shadow-sm">
+            <MessageCircle className="size-3.5" />
+            En contact avec le client
+            <Check className="size-4 text-success" strokeWidth={2.5} />
+          </span>
+        ) : null}
+        {canMarkInDelivery ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="rounded-lg border-success/30 bg-white text-success hover:bg-success/10"
+            disabled={markingDelivery}
+            onClick={() => void handleMarkInDelivery()}
+          >
+            <Truck className="size-3.5" />
+            {markingDelivery ? "…" : "En cours de livraison"}
+          </Button>
+        ) : alreadyInDelivery ? (
+          <span className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-success/30 bg-white px-3 text-xs font-semibold text-success shadow-sm">
+            <Truck className="size-3.5" />
+            En cours de livraison
+            <Check className="size-4 text-success" strokeWidth={2.5} />
+          </span>
+        ) : null}
+      </div>
+    </Card>
   );
 }
 

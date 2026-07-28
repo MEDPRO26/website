@@ -34,10 +34,7 @@ import { cn } from "@/lib/utils";
 
 const SUGGESTED_BUTTON_TONE: Partial<Record<OrderStatus, string>> = {
   envoyee_fournisseur: "border-warning/30 bg-warning-soft/50 hover:bg-warning-soft",
-  prix_recu: "border-success/30 bg-success-soft/40 text-success hover:bg-success-soft",
-  offre_envoyee: "border-brand/30 bg-brand-soft/40 text-brand-deep hover:bg-brand-soft",
-  acceptee: "border-success/30 bg-success-soft/50 text-success hover:bg-success-soft",
-  planifiee: "border-info/30 bg-info-soft/40 text-info hover:bg-info-soft",
+  en_contact_client: "border-info/30 bg-info-soft/40 text-info hover:bg-info-soft",
   en_cours: "border-brand/30 bg-brand-soft/40 text-brand-deep hover:bg-brand-soft",
   annulee: "border-danger/30 bg-danger-soft/40 text-danger hover:bg-danger-soft",
 };

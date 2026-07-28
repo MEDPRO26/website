@@ -621,7 +621,7 @@ export const assignSupplier = mutation({
       Boolean(args.supplierId) &&
       (["nouvelle", "a_qualifier", "a_affecter"].includes(order.status) ||
         (args.supplierId !== order.supplierId &&
-          ["envoyee_fournisseur", "vue_fournisseur", "prix_recu"].includes(
+          ["envoyee_fournisseur", "vue_fournisseur", "en_contact_client", "prix_recu"].includes(
             order.status
           )));
 

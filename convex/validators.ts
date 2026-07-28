@@ -6,6 +6,7 @@ export const orderStatusValidator = v.union(
   v.literal("a_affecter"),
   v.literal("envoyee_fournisseur"),
   v.literal("vue_fournisseur"),
+  v.literal("en_contact_client"),
   v.literal("prix_recu"),
   v.literal("offre_envoyee"),
   v.literal("acceptee"),

@@ -134,6 +134,7 @@ export function validateTimeSlots(slots: TimeSlotInput[]): string | null {
 const SUPPLIER_CLIENT_ACTION_STATUSES = new Set([
   "envoyee_fournisseur",
   "vue_fournisseur",
+  "en_contact_client",
   "prix_recu",
   "offre_envoyee",
   "acceptee",
@@ -151,6 +152,7 @@ export function supplierIsEarlyClientContactPhase(status: string) {
   return (
     status === "envoyee_fournisseur" ||
     status === "vue_fournisseur" ||
+    status === "en_contact_client" ||
     status === "prix_recu" ||
     status === "offre_envoyee"
   );

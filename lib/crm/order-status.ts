@@ -9,9 +9,7 @@ export const ALL_ORDER_STATUSES = Object.keys(STATUS_LABEL) as OrderStatus[];
 export const WORKFLOW_STATUSES: OrderStatus[] = [
   "nouvelle",
   "envoyee_fournisseur",
-  "prix_recu",
-  "offre_envoyee",
-  "acceptee",
+  "en_contact_client",
   "en_cours",
   "terminee",
   "annulee",
@@ -27,8 +25,11 @@ export function kanbanColumnForStatus(status: OrderStatus): OrderStatus {
       return "nouvelle";
     case "vue_fournisseur":
       return "envoyee_fournisseur";
+    case "prix_recu":
+    case "offre_envoyee":
+      return "en_contact_client";
+    case "acceptee":
     case "planifiee":
-      return "acceptee";
     case "location_active":
     case "reclamation":
       return "en_cours";
@@ -40,6 +41,8 @@ export function kanbanColumnForStatus(status: OrderStatus): OrderStatus {
 const SUPPLIER_STATUS_LABEL_OVERRIDES: Partial<Record<OrderStatus, string>> = {
   envoyee_fournisseur: "Prix non envoyé",
   vue_fournisseur: "Commande réclamée",
+  en_contact_client: "En contact avec le client",
+  en_cours: "En cours de livraison",
   prix_recu: "Prix envoyé à SOS Santé",
   terminee: "Commande livrée",
   annulee: "Commande annulée par le client",
@@ -55,12 +58,18 @@ export const SUGGESTED_NEXT_STATUSES: Record<OrderStatus, OrderStatus[]> = {
   nouvelle: ["annulee"],
   a_qualifier: ["nouvelle", "annulee"],
   a_affecter: ["nouvelle", "envoyee_fournisseur", "annulee"],
-  envoyee_fournisseur: ["vue_fournisseur", "prix_recu", "nouvelle", "annulee"],
-  vue_fournisseur: ["prix_recu", "envoyee_fournisseur", "annulee"],
-  prix_recu: ["offre_envoyee", "envoyee_fournisseur", "annulee"],
-  offre_envoyee: ["acceptee", "prix_recu", "annulee"],
-  acceptee: ["planifiee", "en_cours", "annulee"],
-  planifiee: ["en_cours", "acceptee", "annulee"],
+  envoyee_fournisseur: [
+    "vue_fournisseur",
+    "en_contact_client",
+    "nouvelle",
+    "annulee",
+  ],
+  vue_fournisseur: ["en_contact_client", "envoyee_fournisseur", "annulee"],
+  en_contact_client: ["en_cours", "terminee", "annulee"],
+  prix_recu: ["en_contact_client", "en_cours", "annulee"],
+  offre_envoyee: ["en_contact_client", "en_cours", "annulee"],
+  acceptee: ["en_cours", "annulee"],
+  planifiee: ["en_cours", "annulee"],
   en_cours: ["location_active", "terminee", "reclamation", "annulee"],
   location_active: ["terminee", "reclamation", "annulee"],
   terminee: ["reclamation", "annulee"],

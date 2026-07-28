@@ -4,6 +4,7 @@ export type OrderStatus =
   | "a_affecter"
   | "envoyee_fournisseur"
   | "vue_fournisseur"
+  | "en_contact_client"
   | "prix_recu"
   | "offre_envoyee"
   | "acceptee"
@@ -20,6 +21,7 @@ export const STATUS_LABEL: Record<OrderStatus, string> = {
   a_affecter: "Nouvelle demande",
   envoyee_fournisseur: "Envoyée fournisseur",
   vue_fournisseur: "Vue fournisseur",
+  en_contact_client: "En contact avec le client",
   prix_recu: "Prix reçu",
   offre_envoyee: "Offre envoyée",
   acceptee: "Prix accepté",
@@ -37,6 +39,7 @@ export const STATUS_TONE: Record<OrderStatus, "info" | "warning" | "success" | "
   a_affecter: "warning",
   envoyee_fournisseur: "brand",
   vue_fournisseur: "brand",
+  en_contact_client: "info",
   prix_recu: "info",
   offre_envoyee: "info",
   acceptee: "success",
