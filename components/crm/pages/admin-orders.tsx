@@ -414,8 +414,8 @@ function OrdersKanban({
   onDelete: (order: Pick<Order, "id" | "ref" | "client">) => void;
 }) {
   return (
-    <div className="overflow-x-auto pb-4">
-      <div className="flex min-w-max gap-4">
+    <div className="w-full pb-4">
+      <div className="grid grid-cols-6 gap-2 xl:gap-2.5">
         {KANBAN_COLUMNS.map((status) => {
           const items = orders.filter(
             (order) => kanbanColumnForStatus(order.status) === status
@@ -484,6 +484,13 @@ function priorityBarClass(status: OrderStatus, createdAtTs: number) {
   return "bg-brand";
 }
 
+const KANBAN_COLUMN_LABEL: Partial<Record<OrderStatus, string>> = {
+  en_contact_client: "En contact client",
+  en_cours: "En livraison",
+  terminee: "Livrée",
+  annulee: "Annulée",
+};
+
 function KanbanColumn({
   status,
   orders,
@@ -496,15 +503,17 @@ function KanbanColumn({
   onDelete: (order: Pick<Order, "id" | "ref" | "client">) => void;
 }) {
   return (
-    <div className="flex w-[300px] shrink-0 flex-col">
-      <div className="mb-3 flex items-center gap-2 px-0.5">
-        <h3 className="text-sm font-semibold text-foreground">{STATUS_LABEL[status]}</h3>
-        <span className="inline-flex size-6 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
+    <div className="flex min-w-0 flex-col">
+      <div className="mb-2 flex items-start gap-1.5 px-0.5">
+        <h3 className="min-w-0 flex-1 text-[11px] font-semibold leading-tight text-foreground xl:text-xs">
+          {KANBAN_COLUMN_LABEL[status] ?? STATUS_LABEL[status]}
+        </h3>
+        <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground">
           {orders.length}
         </span>
       </div>
 
-      <div className="flex flex-1 flex-col gap-2.5">
+      <div className="flex flex-1 flex-col gap-2">
         {orders.map((order) => (
           <KanbanCard
             key={order.id}
@@ -516,9 +525,9 @@ function KanbanColumn({
 
         <Link
           href="/admin/orders/new"
-          className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border/80 bg-card/50 py-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:border-brand/30 hover:bg-brand-soft/20 hover:text-brand-deep"
+          className="flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-border/80 bg-card/50 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:border-brand/30 hover:bg-brand-soft/20 hover:text-brand-deep"
         >
-          <Plus className="size-3.5" />
+          <Plus className="size-3" />
           Nouvelle fiche
         </Link>
       </div>
@@ -543,54 +552,54 @@ function KanbanCard({
     : order.city;
 
   return (
-    <div className="group flex overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md">
+    <div className="group flex overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-shadow hover:shadow-md">
       <div className={cn("w-1 shrink-0", priorityBarClass(order.status, order.createdAtTs))} />
       <div className="min-w-0 flex-1">
-        <Link href={`/admin/orders/${order.id}`} className="block p-3 pb-2.5">
-          <div className="flex items-start justify-between gap-2">
-            <span className="font-mono text-[11px] font-medium text-muted-foreground">
+        <Link href={`/admin/orders/${order.id}`} className="block p-2 pb-1.5">
+          <div className="flex items-start justify-between gap-1">
+            <span className="truncate font-mono text-[10px] font-medium text-muted-foreground">
               {order.ref}
             </span>
-            <span className="flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground">
-              <Clock className="size-3" />
+            <span className="flex shrink-0 items-center gap-0.5 text-[10px] text-muted-foreground">
+              <Clock className="size-2.5" />
               {formatTimeAgo(order.createdAtTs)}
             </span>
           </div>
 
-          <p className="mt-1.5 truncate text-sm font-semibold text-foreground">{order.client}</p>
+          <p className="mt-1 truncate text-xs font-semibold text-foreground">{order.client}</p>
 
-          <div className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
-            <BriefcaseMedical className="mt-0.5 size-3.5 shrink-0 text-muted-foreground/80" />
+          <div className="mt-1.5 flex items-start gap-1 text-[11px] text-muted-foreground">
+            <BriefcaseMedical className="mt-0.5 size-3 shrink-0 text-muted-foreground/80" />
             <div className="min-w-0 flex-1">
               <span className="block truncate">{order.item || order.type}</span>
               {order.pagePath ? (
-                <span className="mt-0.5 block truncate text-[11px] text-muted-foreground/70">
+                <span className="mt-0.5 block truncate text-[10px] text-muted-foreground/70">
                   {formatOrderPagePath(order.pagePath)}
                 </span>
               ) : null}
             </div>
           </div>
 
-          <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-            <MapPin className="size-3.5 shrink-0 text-muted-foreground/80" />
+          <div className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
+            <MapPin className="size-3 shrink-0 text-muted-foreground/80" />
             <span className="truncate">{location}</span>
           </div>
         </Link>
 
-        <div className="flex items-center justify-between border-t border-border/60 px-3 pb-3 pt-2.5">
-          <div className="flex -space-x-2">
+        <div className="flex items-center justify-between border-t border-border/60 px-2 pb-2 pt-1.5">
+          <div className="flex -space-x-1.5">
             {assignees.length > 0 ? (
               assignees.slice(0, 2).map((name) => (
-                <Avatar key={name} className="size-7 border-2 border-card">
+                <Avatar key={name} className="size-6 border-2 border-card">
                   <AvatarFallback
-                    className={cn("text-[10px] font-semibold", avatarColor(name))}
+                    className={cn("text-[9px] font-semibold", avatarColor(name))}
                   >
                     {initials(name)}
                   </AvatarFallback>
                 </Avatar>
               ))
             ) : (
-              <span className="text-[11px] text-muted-foreground/70">Non assigné</span>
+              <span className="text-[10px] text-muted-foreground/70">Non assigné</span>
             )}
           </div>
           {canDeleteOrder ? (
@@ -598,10 +607,10 @@ function KanbanCard({
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="rounded-md p-1 text-muted-foreground/60 transition-colors hover:bg-muted hover:text-muted-foreground"
+                  className="rounded-md p-0.5 text-muted-foreground/60 transition-colors hover:bg-muted hover:text-muted-foreground"
                   aria-label="Actions commande"
                 >
-                  <MoreHorizontal className="size-4" />
+                  <MoreHorizontal className="size-3.5" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-40">
@@ -620,10 +629,10 @@ function KanbanCard({
           ) : (
             <Link
               href={`/admin/orders/${order.id}`}
-              className="rounded-md p-1 text-muted-foreground/60 transition-colors hover:bg-muted hover:text-muted-foreground"
+              className="rounded-md p-0.5 text-muted-foreground/60 transition-colors hover:bg-muted hover:text-muted-foreground"
               aria-label="Voir la commande"
             >
-              <MoreHorizontal className="size-4" />
+              <MoreHorizontal className="size-3.5" />
             </Link>
           )}
         </div>

@@ -254,11 +254,19 @@ export function SupplierOrderStatusBox({
         className
       )}
     >
-      <div className="flex items-center gap-2 border-b border-border/60 px-5 py-4">
-        <div className="grid size-8 place-items-center rounded-lg bg-brand/10 text-brand">
-          <MessageCircle className="size-4" />
+      <div className="flex flex-col gap-1.5 border-b border-border/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="flex shrink-0 items-center gap-2">
+          <div className="grid size-8 place-items-center rounded-lg bg-brand/10 text-brand">
+            <MessageCircle className="size-4" />
+          </div>
+          <h2 className="text-base font-semibold text-brand">
+            Statut de la commande
+          </h2>
         </div>
-        <h2 className="text-base font-semibold">Statut de la commande</h2>
+        <p className="text-sm font-medium leading-snug text-success sm:text-right">
+          Merci de changer le statut pour nous tenir informés — en contact avec
+          le client ou en cours de livraison.
+        </p>
       </div>
       <div className="flex flex-wrap gap-2 p-5">
         {canMarkInContact ? (
