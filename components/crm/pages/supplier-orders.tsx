@@ -234,6 +234,7 @@ export function SupplierOrdersPage() {
       ...order,
       isMissed: false as boolean,
       missedAt: undefined as number | undefined,
+      reason: undefined as "timeout" | "unavailable" | undefined,
     }));
     const missed = (missedOrders ?? []).map((order) => ({
       ...order,
