@@ -38,7 +38,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { formatOrderPagePath } from "@/lib/crm/format-page-path";
 import {
-  Search, LayoutGrid, List, Filter, X, Clock, MapPin, BriefcaseMedical, MoreHorizontal, Plus, Trash2,
+  Search, LayoutGrid, List, Filter, X, Clock, MapPin, BriefcaseMedical, MoreHorizontal, Plus, Trash2, Star,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -484,6 +484,17 @@ function priorityBarClass(status: OrderStatus, createdAtTs: number) {
   return "bg-brand";
 }
 
+/** Supplier has clicked « Réclamer la commande » (or progressed past that step). */
+function supplierHasClaimedOrder(status: OrderStatus) {
+  return ![
+    "nouvelle",
+    "a_qualifier",
+    "a_affecter",
+    "envoyee_fournisseur",
+    "annulee",
+  ].includes(status);
+}
+
 const KANBAN_COLUMN_LABEL: Partial<Record<OrderStatus, string>> = {
   en_contact_client: "En contact client",
   en_cours: "En livraison",
@@ -560,10 +571,21 @@ function KanbanCard({
             <span className="truncate font-mono text-[10px] font-medium text-muted-foreground">
               {order.ref}
             </span>
-            <span className="flex shrink-0 items-center gap-0.5 text-[10px] text-muted-foreground">
-              <Clock className="size-2.5" />
-              {formatTimeAgo(order.createdAtTs)}
-            </span>
+            <div className="flex shrink-0 flex-col items-end gap-1">
+              <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                <Clock className="size-2.5" />
+                {formatTimeAgo(order.createdAtTs)}
+              </span>
+              {supplierHasClaimedOrder(order.status) ? (
+                <span
+                  title="Fournisseur a réclamé la commande"
+                  aria-label="Fournisseur a réclamé la commande"
+                  className="grid size-5 place-items-center rounded-full bg-amber-400 text-white shadow-sm"
+                >
+                  <Star className="size-3 fill-current" />
+                </span>
+              ) : null}
+            </div>
           </div>
 
           <p className="mt-1 truncate text-xs font-semibold text-foreground">{order.client}</p>
