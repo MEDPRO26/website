@@ -297,15 +297,19 @@ function MissedOrderItem({
     city: string;
     district?: string;
     missedAt: number;
+    reason?: "timeout" | "unavailable";
   };
 }) {
+  const unavailable = order.reason === "unavailable";
   return (
     <li className="px-5 py-4 opacity-80">
       <div className="flex items-start gap-3 sm:items-center sm:gap-4">
         <ProductThumbnail type={order.type} item={order.item} city={order.city} />
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-2">
-            <Tag tone="danger">MANQUÉE</Tag>
+            <Tag tone={unavailable ? "neutral" : "danger"}>
+              {unavailable ? "NON DISPONIBLE" : "MANQUÉE"}
+            </Tag>
             <span className="font-mono text-xs font-semibold text-muted-foreground">
               {order.ref}
             </span>
@@ -317,13 +321,27 @@ function MissedOrderItem({
             {order.district ? ` · ${order.city}` : ""}
           </p>
         </div>
-        <span className="hidden shrink-0 rounded-xl bg-status-error/10 px-4 py-2.5 text-sm font-semibold text-status-error sm:inline-flex">
-          Commande épuisée
+        <span
+          className={cn(
+            "hidden shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold sm:inline-flex",
+            unavailable
+              ? "bg-muted text-muted-foreground"
+              : "bg-status-error/10 text-status-error"
+          )}
+        >
+          {unavailable ? "Non disponible" : "Commande épuisée"}
         </span>
       </div>
       <div className="mt-3 sm:hidden">
-        <span className="inline-flex w-full items-center justify-center rounded-xl bg-status-error/10 px-4 py-2.5 text-sm font-semibold text-status-error">
-          Commande épuisée
+        <span
+          className={cn(
+            "inline-flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold",
+            unavailable
+              ? "bg-muted text-muted-foreground"
+              : "bg-status-error/10 text-status-error"
+          )}
+        >
+          {unavailable ? "Non disponible" : "Commande épuisée"}
         </span>
       </div>
     </li>

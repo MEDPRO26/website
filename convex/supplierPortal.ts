@@ -181,21 +181,25 @@ export const listMissedOrders = query({
 
     return rows
       .sort((a, b) => b.missedAt - a.missedAt)
-      .map((row) => ({
-        _id: row._id,
-        orderId: row.orderId,
-        ref: row.orderRef,
-        type: row.orderType,
-        item: row.orderItem,
-        city: row.city,
-        district: row.district ?? "",
-        assignedAt: row.assignedAt,
-        missedAt: row.missedAt,
-        status: "missed" as const,
-        isMissed: true as const,
-        hasQuote: false,
-        createdAt: row.missedAt,
-      }));
+      .map((row) => {
+        const reason = row.reason ?? "timeout";
+        return {
+          _id: row._id,
+          orderId: row.orderId,
+          ref: row.orderRef,
+          type: row.orderType,
+          item: row.orderItem,
+          city: row.city,
+          district: row.district ?? "",
+          assignedAt: row.assignedAt,
+          missedAt: row.missedAt,
+          reason,
+          status: reason === "unavailable" ? ("unavailable" as const) : ("missed" as const),
+          isMissed: true as const,
+          hasQuote: false,
+          createdAt: row.missedAt,
+        };
+      });
   },
 });
 
@@ -582,7 +586,11 @@ export const markUnavailable = mutation({
         "envoyee_fournisseur",
         "vue_fournisseur",
         "en_contact_client",
+        "en_cours",
         "prix_recu",
+        "offre_envoyee",
+        "acceptee",
+        "planifiee",
       ].includes(order.status)
     ) {
       throw new Error("Cette commande ne peut plus être déclinée.");
@@ -625,9 +633,48 @@ export const markUnavailable = mutation({
     }
 
     const previousStatus = order.status;
+    const customer = await ctx.db.get(order.customerId);
+    const events = await ctx.db
+      .query("orderEvents")
+      .withIndex("by_orderId", (q) => q.eq("orderId", args.orderId))
+      .collect();
+    const assignedAt =
+      events
+        .filter((event) => event.toStatus === "envoyee_fournisseur")
+        .sort((a, b) => b.createdAt - a.createdAt)[0]?.createdAt ??
+      order.updatedAt;
+
+    const existingHistory = await ctx.db
+      .query("supplierMissedOrders")
+      .withIndex("by_orderId_supplierId", (q) =>
+        q.eq("orderId", args.orderId).eq("supplierId", supplier._id)
+      )
+      .unique();
+
+    if (!existingHistory) {
+      await ctx.db.insert("supplierMissedOrders", {
+        supplierId: supplier._id,
+        orderId: args.orderId,
+        orderRef: order.ref,
+        orderType: order.type,
+        orderItem: order.item,
+        city: customer?.city ?? "—",
+        district: customer?.district,
+        assignedAt,
+        missedAt: now,
+        createdAt: now,
+        reason: "unavailable",
+      });
+    } else if (existingHistory.reason !== "unavailable") {
+      await ctx.db.patch(existingHistory._id, {
+        reason: "unavailable",
+        missedAt: now,
+      });
+    }
+
     await ctx.db.patch(args.orderId, {
       supplierId: undefined,
-      status: "a_qualifier",
+      status: "nouvelle",
       updatedAt: now,
     });
 
@@ -638,13 +685,13 @@ export const markUnavailable = mutation({
       actorStaffId: staff._id,
     });
 
-    if (previousStatus !== "a_qualifier") {
+    if (previousStatus !== "nouvelle") {
       await appendOrderEvent(ctx, {
         orderId: args.orderId,
         type: "status_change",
-        label: formatStatusChange(previousStatus, "a_qualifier"),
+        label: "Statut remis en nouvelle demande",
         fromStatus: previousStatus,
-        toStatus: "a_qualifier",
+        toStatus: "nouvelle",
         actorStaffId: staff._id,
       });
     }
@@ -652,7 +699,7 @@ export const markUnavailable = mutation({
     await notifyStaff(ctx, "supplier_response", {
       type: "supplier",
       title: `${supplier.name} — non disponible`,
-      description: `${order.ref} · choisir un autre fournisseur`,
+      description: `${order.ref} · commande remise en nouvelle demande`,
       link: `/admin/orders/${args.orderId}`,
       entityId: args.orderId,
     });

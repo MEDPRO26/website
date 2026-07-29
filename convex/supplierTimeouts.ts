@@ -78,6 +78,7 @@ export const expireStaleAssignments = internalMutation({
             assignedAt,
             missedAt: now,
             createdAt: now,
+            reason: "timeout",
           });
         }
 
@@ -196,6 +197,7 @@ export const backfillMissedOrdersFromHistory = internalMutation({
         assignedAt,
         missedAt: expiryEvent.createdAt,
         createdAt: now,
+        reason: "timeout",
       });
 
       created += 1;

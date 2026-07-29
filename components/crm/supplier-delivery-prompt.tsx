@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useMutation } from "convex/react";
 import { toast } from "sonner";
-import { Check, MessageCircle, PackageCheck, Phone, Truck } from "lucide-react";
+import { Ban, Check, MessageCircle, PackageCheck, Phone, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { api } from "@/convex/_generated/api";
@@ -180,8 +180,10 @@ export function SupplierOrderStatusActions({
 }) {
   const markInContact = useMutation(api.supplierPortal.markInContactWithClient);
   const markInDelivery = useMutation(api.supplierPortal.markInDelivery);
+  const markUnavailable = useMutation(api.supplierPortal.markUnavailable);
   const [markingContact, setMarkingContact] = useState(false);
   const [markingDelivery, setMarkingDelivery] = useState(false);
+  const [markingUnavailable, setMarkingUnavailable] = useState(false);
 
   // Closed orders: delivered or cancelled — no status choices.
   if (orderStatus === "terminee" || orderStatus === "annulee") {
@@ -217,7 +219,24 @@ export function SupplierOrderStatusActions({
     ].includes(orderStatus);
   const alreadyInDelivery = orderStatus === "en_cours";
 
-  if (!canMarkInContact && !alreadyInContact && !canMarkInDelivery && !alreadyInDelivery) {
+  const canMarkUnavailable = [
+    "envoyee_fournisseur",
+    "vue_fournisseur",
+    "en_contact_client",
+    "en_cours",
+    "prix_recu",
+    "offre_envoyee",
+    "acceptee",
+    "planifiee",
+  ].includes(orderStatus);
+
+  if (
+    !canMarkInContact &&
+    !alreadyInContact &&
+    !canMarkInDelivery &&
+    !alreadyInDelivery &&
+    !canMarkUnavailable
+  ) {
     return null;
   }
 
@@ -253,6 +272,22 @@ export function SupplierOrderStatusActions({
     }
   };
 
+  const handleMarkUnavailable = async () => {
+    setMarkingUnavailable(true);
+    try {
+      await markUnavailable({ orderId });
+      toast.success("Indisponibilité signalée — commande en historique.");
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Impossible de signaler l'indisponibilité."
+      );
+    } finally {
+      setMarkingUnavailable(false);
+    }
+  };
+
   const compact = size === "compact";
   const buttonClass = compact
     ? "h-8 rounded-lg px-2.5 text-[11px] font-semibold"
@@ -262,15 +297,31 @@ export function SupplierOrderStatusActions({
     : "inline-flex h-11 items-center gap-2 rounded-xl border bg-white px-4 text-sm font-semibold shadow-sm";
   const iconClass = compact ? "size-3.5" : "size-5";
   const checkClass = compact ? "size-3.5 text-success" : "size-5 text-success";
+  const busy = markingContact || markingDelivery || markingUnavailable;
 
   return (
     <div className={cn("flex flex-wrap gap-2", !compact && "gap-3", className)}>
+      {canMarkUnavailable ? (
+        <Button
+          type="button"
+          variant="outline"
+          className={cn(
+            buttonClass,
+            "border-status-error/30 bg-white text-status-error hover:bg-status-error/10 hover:text-status-error"
+          )}
+          disabled={busy}
+          onClick={() => void handleMarkUnavailable()}
+        >
+          <Ban className={iconClass} />
+          {markingUnavailable ? "…" : "Non disponible"}
+        </Button>
+      ) : null}
       {canMarkInContact ? (
         <Button
           type="button"
           variant="outline"
           className={cn(buttonClass, "border-brand/30 bg-white text-brand hover:bg-brand/5")}
-          disabled={markingContact}
+          disabled={busy}
           onClick={() => void handleMarkInContact()}
         >
           <MessageCircle className={iconClass} />
@@ -291,7 +342,7 @@ export function SupplierOrderStatusActions({
             buttonClass,
             "border-success/30 bg-white text-success hover:bg-success/10"
           )}
-          disabled={markingDelivery}
+          disabled={busy}
           onClick={() => void handleMarkInDelivery()}
         >
           <Truck className={iconClass} />

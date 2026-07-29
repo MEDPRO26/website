@@ -85,6 +85,8 @@ const SUPPLIER_STATUS_FILTERS: { value: string; label: string }[] = [
   { value: "en_cours", label: "En cours de livraison" },
   { value: "terminee", label: "Commande livrée" },
   { value: "annulee", label: "Commande annulée par le client" },
+  { value: "unavailable", label: "Non disponible" },
+  { value: "missed", label: "Commandes manquées" },
 ];
 
 type SupplierOrder = {
@@ -104,6 +106,7 @@ type SupplierOrder = {
   clientPhone?: string;
   isMissed?: boolean;
   missedAt?: number;
+  reason?: "timeout" | "unavailable";
   supplierAssignedAt?: number;
 };
 
@@ -141,9 +144,15 @@ function typeLabel(type: string) {
 function matchesStatusFilter(
   status: string,
   filter: string,
-  isMissed?: boolean
+  isMissed?: boolean,
+  reason?: string
 ) {
-  if (filter === "missed") return Boolean(isMissed);
+  if (filter === "missed") {
+    return Boolean(isMissed) && reason !== "unavailable";
+  }
+  if (filter === "unavailable") {
+    return Boolean(isMissed) && reason === "unavailable";
+  }
   if (isMissed) return filter === "all";
   if (filter === "all") return true;
   if (filter === "pending") return PENDING_STATUSES.includes(status as OrderStatus);
@@ -234,6 +243,7 @@ export function SupplierOrdersPage() {
       clientContactVisible: false,
       isMissed: true as boolean,
       missedAt: order.missedAt as number | undefined,
+      reason: (order.reason ?? "timeout") as "timeout" | "unavailable",
     }));
     return [...active, ...missed].sort((a, b) => b.createdAt - a.createdAt);
   }, [allOrders, missedOrders]);
@@ -304,7 +314,8 @@ export function SupplierOrdersPage() {
       const matchesStatus = matchesStatusFilter(
         order.status,
         statusFilter,
-        order.isMissed
+        order.isMissed,
+        order.reason
       );
 
       const dateTs = order.isMissed ? order.missedAt ?? order.createdAt : order.createdAt;
@@ -696,8 +707,17 @@ function SupplierOrderRow({ order }: { order: SupplierOrder }) {
       </td>
       <td className="px-3 py-4">
         {order.isMissed || (needsClaim && expired) ? (
-          <span className="inline-flex rounded-full bg-status-error/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-status-error">
-            Commande épuisée
+          <span
+            className={cn(
+              "inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+              order.reason === "unavailable"
+                ? "bg-muted text-muted-foreground"
+                : "bg-status-error/10 text-status-error"
+            )}
+          >
+            {order.reason === "unavailable"
+              ? "Non disponible"
+              : "Commande épuisée"}
           </span>
         ) : (
           <div className="space-y-2">

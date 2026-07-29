@@ -211,6 +211,10 @@ export default defineSchema({
     assignedAt: v.number(),
     missedAt: v.number(),
     createdAt: v.number(),
+    /** timeout = délai 30 min ; unavailable = fournisseur a cliqué Non disponible */
+    reason: v.optional(
+      v.union(v.literal("timeout"), v.literal("unavailable"))
+    ),
   })
     .index("by_supplierId", ["supplierId"])
     .index("by_orderId", ["orderId"])
