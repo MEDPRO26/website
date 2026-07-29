@@ -309,32 +309,46 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
           </Card>
 
           {!isDelivered && !isCancelled ? (
-            <SupplierOrderStatusBox
-              orderId={order._id}
-              orderStatus={order.status}
-            />
-          ) : null}
-
-          {canSubmitPrice ? (
             <div
-              role="alert"
-              className="flex items-start gap-4 rounded-xl border-2 border-amber-400 bg-amber-50 px-5 py-5 sm:px-6 sm:py-6 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(245,158,11,0.12)]"
+              className="space-y-4 rounded-2xl border-2 p-4 sm:p-5"
+              style={{ backgroundColor: "#E8F3FE", borderColor: "#0D1220" }}
             >
-              <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-amber-400/25 text-amber-800">
-                <AlertTriangle className="size-6" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-base font-bold leading-snug text-amber-950 sm:text-lg">
-                  Ne confirmez la livraison qu&apos;après paiement
-                </p>
-                <p className="mt-2 text-base leading-relaxed text-amber-900/90 sm:text-[17px]">
-                  Ne remplissez pas « Votre offre » et ne cliquez pas sur{" "}
-                  <span className="font-semibold">Confirmer la livraison</span>{" "}
-                  tant que vous n&apos;avez pas livré le matériel, terminé le
-                  service et reçu le paiement du client. Le client peut encore
-                  annuler la commande en cours de route.
+              <div className="flex items-center justify-center gap-2.5">
+                <div className="grid size-9 place-items-center rounded-lg bg-[#2A8CF0]/15 text-[#2A8CF0]">
+                  <AlertTriangle className="size-5" />
+                </div>
+                <p className="text-sm font-bold uppercase tracking-wider text-[#2A8CF0]">
+                  Important
                 </p>
               </div>
+
+              <SupplierOrderStatusBox
+                orderId={order._id}
+                orderStatus={order.status}
+              />
+
+              {canSubmitPrice ? (
+                <div
+                  role="alert"
+                  className="flex items-start gap-4 rounded-xl border-2 border-amber-400 bg-amber-50 px-5 py-5 sm:px-6 sm:py-6"
+                >
+                  <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-amber-400/25 text-amber-800">
+                    <AlertTriangle className="size-6" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-base font-bold leading-snug text-amber-950 sm:text-lg">
+                      Ne confirmez la livraison qu&apos;après paiement
+                    </p>
+                    <p className="mt-2 text-base leading-relaxed text-amber-900/90 sm:text-[17px]">
+                      Ne remplissez pas « Votre offre » et ne cliquez pas sur{" "}
+                      <span className="font-semibold">Confirmer la livraison</span>{" "}
+                      tant que vous n&apos;avez pas livré le matériel, terminé le
+                      service et reçu le paiement du client. Le client peut encore
+                      annuler la commande en cours de route.
+                    </p>
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : null}
 

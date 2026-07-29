@@ -24,7 +24,7 @@ import {
   SupplierResponseCountdown,
   isSupplierResponseExpired,
 } from "@/components/crm/supplier-response-countdown";
-import { StatusBadge, Tag } from "@/components/dashboard/status-badge";
+import { Tag } from "@/components/dashboard/status-badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,16 +41,6 @@ const PENDING_STATUSES: OrderStatus[] = [
   "envoyee_fournisseur",
   "vue_fournisseur",
   "prix_recu",
-];
-
-const AWAITING_CLIENT_STATUSES: OrderStatus[] = ["offre_envoyee"];
-
-const INTERVENTION_STATUSES: OrderStatus[] = [
-  "en_contact_client",
-  "acceptee",
-  "planifiee",
-  "en_cours",
-  "location_active",
 ];
 
 function formatMad(amount: number) {
@@ -369,19 +359,18 @@ export function SupplierDashboardPage() {
       .slice(0, 5);
   }, [allOrders]);
 
-  const awaitingClientOrders = useMemo(() => {
-    if (!allOrders) return [];
-    return allOrders
-      .filter((o) => AWAITING_CLIENT_STATUSES.includes(o.status as OrderStatus))
-      .sort((a, b) => b.createdAt - a.createdAt)
-      .slice(0, 4);
-  }, [allOrders]);
-
-  const interventions = useMemo(() => {
-    if (!allOrders) return [];
-    return allOrders
-      .filter((o) => INTERVENTION_STATUSES.includes(o.status as OrderStatus))
-      .slice(0, 4);
+  const orderStatusCounts = useMemo(() => {
+    const list = allOrders ?? [];
+    return {
+      nouvelle: list.filter((o) =>
+        ["envoyee_fournisseur", "vue_fournisseur", "prix_recu"].includes(o.status)
+      ).length,
+      enContact: list.filter((o) => o.status === "en_contact_client").length,
+      enLivraison: list.filter((o) =>
+        ["en_cours", "acceptee", "planifiee", "location_active"].includes(o.status)
+      ).length,
+      livree: list.filter((o) => o.status === "terminee").length,
+    };
   }, [allOrders]);
 
   const deliveryOrders = useMemo(() => {
@@ -559,94 +548,62 @@ export function SupplierDashboardPage() {
           <div className="border-b border-border/60 px-5 py-4">
             <h2 className="text-base font-semibold">Suivi commandes</h2>
             <p className="text-xs text-muted-foreground">
-              Offres envoyées et livraisons
+              Nombre de commandes par statut
             </p>
           </div>
 
-          <div className="space-y-4 px-5 py-4">
-            {awaitingClientOrders.length > 0 ? (
-              <div>
-                <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  En attente du client
-                </p>
-                <ul className="space-y-3">
-                  {awaitingClientOrders.map((order) => (
-                    <li key={order._id}>
-                      <Link
-                        href={`/supplier/orders/${order._id}`}
-                        className="block rounded-xl border border-border/50 bg-muted/30 p-3 transition-colors hover:bg-muted/60"
-                      >
-                        <div className="mb-1 flex flex-wrap items-center gap-2">
-                          <span className="font-mono text-[11px] font-semibold text-brand">
-                            {order.ref}
-                          </span>
-                          <StatusBadge
-                            status={order.status as OrderStatus}
-                            labels={{
-                              offre_envoyee: "Offre envoyée au client",
-                            }}
-                          />
-                        </div>
-                        <p className="text-sm font-medium leading-snug">
-                          {order.item}
-                        </p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          {order.city}
-                          {order.district ? ` · ${order.district}` : ""}
-                        </p>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-
-            {interventions.length > 0 ? (
-              <div>
-                <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  À livrer au client
-                </p>
-                <ul className="space-y-3">
-                  {interventions.map((order) => (
-                    <li key={order._id}>
-                      <Link
-                        href={`/supplier/orders/${order._id}`}
-                        className="block rounded-xl border border-success/20 bg-success-soft/30 p-3 transition-colors hover:bg-success-soft/50"
-                      >
-                        <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-success">
-                          <Truck className="size-3.5" />
-                          Livrer la commande au client
-                        </p>
-                        <p className="mt-1 font-mono text-[11px] font-semibold text-brand">
-                          {order.ref}
-                        </p>
-                        <p className="mt-1 text-sm font-medium leading-snug">
-                          {order.item}
-                        </p>
-                        {order.clientContactVisible && order.clientName ? (
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {order.clientName}
-                            {order.clientPhone ? ` · ${order.clientPhone}` : ""}
-                          </p>
-                        ) : (
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {order.city}
-                            {order.district ? ` · ${order.district}` : ""}
-                          </p>
-                        )}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-
-            {awaitingClientOrders.length === 0 && interventions.length === 0 ? (
-              <div className="py-4 text-center text-sm text-muted-foreground">
-                Aucun suivi en cours.
-              </div>
-            ) : null}
-          </div>
+          <ul className="divide-y divide-border/60 px-2 py-1">
+            {[
+              {
+                label: "Nouvelle commande",
+                count: orderStatusCounts.nouvelle,
+                href: "/supplier/orders?status=envoyee_fournisseur",
+                tone: "text-brand",
+                bg: "bg-brand/10",
+              },
+              {
+                label: "En contact avec le client",
+                count: orderStatusCounts.enContact,
+                href: "/supplier/orders?status=en_contact_client",
+                tone: "text-info",
+                bg: "bg-info-soft",
+              },
+              {
+                label: "En cours de livraison",
+                count: orderStatusCounts.enLivraison,
+                href: "/supplier/orders?status=en_cours",
+                tone: "text-success",
+                bg: "bg-success-soft",
+              },
+              {
+                label: "Commande livrée",
+                count: orderStatusCounts.livree,
+                href: "/supplier/orders?status=terminee",
+                tone: "text-muted-foreground",
+                bg: "bg-muted",
+              },
+            ].map((row) => (
+              <li key={row.label}>
+                <Link
+                  href={row.href}
+                  className="flex items-center justify-between gap-3 rounded-xl px-3 py-3.5 transition-colors hover:bg-muted/40"
+                >
+                  <span className="text-sm font-medium text-foreground">
+                    {row.label}
+                  </span>
+                  <span
+                    className={cn(
+                      "inline-flex min-w-8 items-center justify-center rounded-full px-2.5 py-1 text-sm font-bold tabular-nums",
+                      row.bg,
+                      row.tone
+                    )}
+                  >
+                    {String(row.count).padStart(2, "0")}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
 
           <div className="border-t border-dashed border-border/60 px-5 py-4">
             <Button

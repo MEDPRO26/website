@@ -167,13 +167,15 @@ export function SupplierDeliveryPrompt({
   );
 }
 
-export function SupplierOrderStatusBox({
+export function SupplierOrderStatusActions({
   orderId,
   orderStatus,
+  size = "default",
   className,
 }: {
   orderId: Id<"orders">;
   orderStatus: string;
+  size?: "default" | "compact";
   className?: string;
 }) {
   const markInContact = useMutation(api.supplierPortal.markInContactWithClient);
@@ -181,13 +183,16 @@ export function SupplierOrderStatusBox({
   const [markingContact, setMarkingContact] = useState(false);
   const [markingDelivery, setMarkingDelivery] = useState(false);
 
+  // Closed orders: delivered or cancelled — no status choices.
+  if (orderStatus === "terminee" || orderStatus === "annulee") {
+    return null;
+  }
+
   const canMarkInContact =
     ![
       "en_contact_client",
       "en_cours",
       "location_active",
-      "terminee",
-      "annulee",
     ].includes(orderStatus) &&
     [
       "envoyee_fournisseur",
@@ -200,6 +205,7 @@ export function SupplierOrderStatusBox({
 
   const canMarkInDelivery =
     orderStatus !== "en_cours" &&
+    orderStatus !== "location_active" &&
     [
       "envoyee_fournisseur",
       "vue_fournisseur",
@@ -247,6 +253,74 @@ export function SupplierOrderStatusBox({
     }
   };
 
+  const compact = size === "compact";
+  const buttonClass = compact
+    ? "h-8 rounded-lg px-2.5 text-[11px] font-semibold"
+    : "h-11 rounded-xl px-4 text-sm font-semibold";
+  const badgeClass = compact
+    ? "inline-flex h-8 items-center gap-1 rounded-lg border bg-white px-2.5 text-[11px] font-semibold shadow-sm"
+    : "inline-flex h-11 items-center gap-2 rounded-xl border bg-white px-4 text-sm font-semibold shadow-sm";
+  const iconClass = compact ? "size-3.5" : "size-5";
+  const checkClass = compact ? "size-3.5 text-success" : "size-5 text-success";
+
+  return (
+    <div className={cn("flex flex-wrap gap-2", !compact && "gap-3", className)}>
+      {canMarkInContact ? (
+        <Button
+          type="button"
+          variant="outline"
+          className={cn(buttonClass, "border-brand/30 bg-white text-brand hover:bg-brand/5")}
+          disabled={markingContact}
+          onClick={() => void handleMarkInContact()}
+        >
+          <MessageCircle className={iconClass} />
+          {markingContact ? "…" : "En contact avec le client"}
+        </Button>
+      ) : alreadyInContact ? (
+        <span className={cn(badgeClass, "border-brand/30 text-brand")}>
+          <MessageCircle className={iconClass} />
+          En contact avec le client
+          <Check className={checkClass} strokeWidth={2.5} />
+        </span>
+      ) : null}
+      {canMarkInDelivery ? (
+        <Button
+          type="button"
+          variant="outline"
+          className={cn(
+            buttonClass,
+            "border-success/30 bg-white text-success hover:bg-success/10"
+          )}
+          disabled={markingDelivery}
+          onClick={() => void handleMarkInDelivery()}
+        >
+          <Truck className={iconClass} />
+          {markingDelivery ? "…" : "En cours de livraison"}
+        </Button>
+      ) : alreadyInDelivery ? (
+        <span className={cn(badgeClass, "border-success/30 text-success")}>
+          <Truck className={iconClass} />
+          En cours de livraison
+          <Check className={checkClass} strokeWidth={2.5} />
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+export function SupplierOrderStatusBox({
+  orderId,
+  orderStatus,
+  className,
+}: {
+  orderId: Id<"orders">;
+  orderStatus: string;
+  className?: string;
+}) {
+  if (orderStatus === "terminee" || orderStatus === "annulee") {
+    return null;
+  }
+
   return (
     <Card
       className={cn(
@@ -268,45 +342,11 @@ export function SupplierOrderStatusBox({
           le client ou en cours de livraison.
         </p>
       </div>
-      <div className="flex flex-wrap gap-2 p-5">
-        {canMarkInContact ? (
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="rounded-lg border-brand/30 bg-white text-brand hover:bg-brand/5"
-            disabled={markingContact}
-            onClick={() => void handleMarkInContact()}
-          >
-            <MessageCircle className="size-3.5" />
-            {markingContact ? "…" : "En contact avec le client"}
-          </Button>
-        ) : alreadyInContact ? (
-          <span className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-brand/30 bg-white px-3 text-xs font-semibold text-brand shadow-sm">
-            <MessageCircle className="size-3.5" />
-            En contact avec le client
-            <Check className="size-4 text-success" strokeWidth={2.5} />
-          </span>
-        ) : null}
-        {canMarkInDelivery ? (
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="rounded-lg border-success/30 bg-white text-success hover:bg-success/10"
-            disabled={markingDelivery}
-            onClick={() => void handleMarkInDelivery()}
-          >
-            <Truck className="size-3.5" />
-            {markingDelivery ? "…" : "En cours de livraison"}
-          </Button>
-        ) : alreadyInDelivery ? (
-          <span className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-success/30 bg-white px-3 text-xs font-semibold text-success shadow-sm">
-            <Truck className="size-3.5" />
-            En cours de livraison
-            <Check className="size-4 text-success" strokeWidth={2.5} />
-          </span>
-        ) : null}
+      <div className="p-5">
+        <SupplierOrderStatusActions
+          orderId={orderId}
+          orderStatus={orderStatus}
+        />
       </div>
     </Card>
   );

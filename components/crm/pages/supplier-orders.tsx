@@ -48,8 +48,9 @@ import {
 } from "@/components/ui/select";
 import { useSupplierSession } from "@/hooks/use-supplier-session";
 import { resolveOrderItemPreview } from "@/lib/crm/resolve-order-item-link";
-import { getSupplierStatusLabel, SUPPLIER_STATUS_LABELS } from "@/lib/crm/order-status";
+import { SUPPLIER_STATUS_LABELS } from "@/lib/crm/order-status";
 import { orderShowsSchedulingFields } from "@/lib/crm/order-scheduling";
+import { SupplierOrderStatusActions } from "@/components/crm/supplier-delivery-prompt";
 import { type OrderStatus } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -58,23 +59,19 @@ const PAGE_SIZE = 8;
 const PENDING_STATUSES: OrderStatus[] = [
   "envoyee_fournisseur",
   "vue_fournisseur",
-  "prix_recu",
 ];
 
 const AWAITING_DELIVERY_STATUSES: OrderStatus[] = [
   "en_contact_client",
-  "acceptee",
-  "planifiee",
   "en_cours",
+  "planifiee",
   "location_active",
 ];
 
 const ACTIVE_STATUSES: OrderStatus[] = [
   "en_contact_client",
-  "offre_envoyee",
-  "acceptee",
-  "planifiee",
   "en_cours",
+  "planifiee",
   "location_active",
 ];
 
@@ -82,23 +79,12 @@ const DONE_STATUSES: OrderStatus[] = ["terminee", "annulee"];
 
 const SUPPLIER_STATUS_FILTERS: { value: string; label: string }[] = [
   { value: "all", label: "Tous les statuts" },
-  { value: "pending", label: "À répondre" },
-  { value: "active", label: "En cours de livraison" },
-  { value: "missed", label: "Commandes manquées" },
-  { value: "done", label: "Terminées" },
-  ...[
-    "envoyee_fournisseur",
-    "vue_fournisseur",
-    "en_contact_client",
-    "prix_recu",
-    "offre_envoyee",
-    "acceptee",
-    "en_cours",
-    "terminee",
-  ].map((status) => ({
-    value: status,
-    label: getSupplierStatusLabel(status as OrderStatus),
-  })),
+  { value: "envoyee_fournisseur", label: "Pas encore réclamée" },
+  { value: "vue_fournisseur", label: "Commande réclamée" },
+  { value: "en_contact_client", label: "En contact avec le client" },
+  { value: "en_cours", label: "En cours de livraison" },
+  { value: "terminee", label: "Commande livrée" },
+  { value: "annulee", label: "Commande annulée par le client" },
 ];
 
 type SupplierOrder = {
@@ -253,23 +239,31 @@ export function SupplierOrdersPage() {
   }, [allOrders, missedOrders]);
 
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
-  const [statusFilter, setStatusFilter] = useState(
-    searchParams.get("tab") === "active"
-      ? "active"
-      : searchParams.get("tab") === "pending"
-        ? "pending"
-        : searchParams.get("tab") === "done"
-          ? "done"
-          : "all"
-  );
+  const [statusFilter, setStatusFilter] = useState(() => {
+    const status = searchParams.get("status");
+    if (
+      status &&
+      SUPPLIER_STATUS_FILTERS.some((filter) => filter.value === status)
+    ) {
+      return status;
+    }
+    return "all";
+  });
   const [dateFilter, setDateFilter] = useState("");
   const [page, setPage] = useState(1);
 
   useEffect(() => {
     setQuery(searchParams.get("q") ?? "");
-    const tab = searchParams.get("tab");
-    if (tab === "active" || tab === "pending" || tab === "done" || tab === "missed") {
-      setStatusFilter(tab);
+    const status = searchParams.get("status");
+    if (
+      status &&
+      SUPPLIER_STATUS_FILTERS.some((filter) => filter.value === status)
+    ) {
+      setStatusFilter(status);
+      return;
+    }
+    if (!status) {
+      setStatusFilter("all");
     }
   }, [searchParams]);
 
@@ -706,10 +700,17 @@ function SupplierOrderRow({ order }: { order: SupplierOrder }) {
             Commande épuisée
           </span>
         ) : (
-          <StatusBadge
-            status={order.status as OrderStatus}
-            labels={SUPPLIER_STATUS_LABELS}
-          />
+          <div className="space-y-2">
+            <StatusBadge
+              status={order.status as OrderStatus}
+              labels={SUPPLIER_STATUS_LABELS}
+            />
+            <SupplierOrderStatusActions
+              orderId={order._id as Id<"orders">}
+              orderStatus={order.status}
+              size="compact"
+            />
+          </div>
         )}
       </td>
       <td className="px-5 py-4">
