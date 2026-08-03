@@ -4,7 +4,7 @@ type PageProps = {
   params: Promise<{ token: string }>;
 };
 
-export default async function SupplierInviteRoute({ params }: PageProps) {
+export default async function PrestataireInviteRoute({ params }: PageProps) {
   const { token } = await params;
   return <SupplierInvitePage token={token.trim()} />;
 }

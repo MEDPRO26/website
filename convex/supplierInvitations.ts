@@ -11,6 +11,8 @@ import {
 import { requireAdminStaff } from "./lib/authz";
 import { logAudit } from "./lib/auditLog";
 import { linkSupplierStaff } from "./lib/linkSupplierStaff";
+import { siteUrl } from "./lib/siteUrl";
+import { resolveSupplierPartnerKind } from "../lib/supplier-activity-types";
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -18,8 +20,26 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-function siteUrl() {
-  return process.env.SITE_URL ?? "http://localhost:3000";
+function invitePathForSupplier(supplier: {
+  partnerKind?: "materiel" | "soins";
+  type: string;
+  types?: string[];
+}, token: string) {
+  const kind = resolveSupplierPartnerKind(supplier) ?? "materiel";
+  return kind === "soins"
+    ? `/prestataire/invite/${token}`
+    : `/supplier/invite/${token}`;
+}
+
+function inviteUrlForSupplier(
+  supplier: {
+    partnerKind?: "materiel" | "soins";
+    type: string;
+    types?: string[];
+  },
+  token: string
+) {
+  return `${siteUrl()}${invitePathForSupplier(supplier, token)}`;
 }
 
 export async function createSupplierInvite(
@@ -61,11 +81,7 @@ export async function createSupplierInvite(
     createdAt: now,
   });
 
-  const invitePath =
-    supplier.partnerKind === "soins"
-      ? `/prestataire/invite/${token}`
-      : `/supplier/invite/${token}`;
-  const inviteUrl = `${siteUrl()}${invitePath}`;
+  const inviteUrl = inviteUrlForSupplier(supplier, token);
 
   if (!args.skipEmail) {
     await ctx.scheduler.runAfter(0, internal.email.sendSupplierInvitation, {
@@ -92,9 +108,14 @@ export const createAndSendInvite = internalMutation({
 export const getByToken = query({
   args: { token: v.string() },
   handler: async (ctx, args) => {
+    const token = args.token.trim();
+    if (!token) {
+      return { valid: false as const, reason: "not_found" as const };
+    }
+
     const invite = await ctx.db
       .query("supplierInvitations")
-      .withIndex("by_token", (q) => q.eq("token", args.token))
+      .withIndex("by_token", (q) => q.eq("token", token))
       .unique();
 
     if (!invite) {
@@ -103,6 +124,10 @@ export const getByToken = query({
 
     if (invite.status === "accepted") {
       return { valid: false as const, reason: "already_accepted" as const };
+    }
+
+    if (invite.status === "cancelled") {
+      return { valid: false as const, reason: "cancelled" as const };
     }
 
     if (invite.status !== "pending") {
@@ -150,9 +175,10 @@ export const accept = mutation({
       throw new Error("Connectez-vous pour accepter l'invitation.");
     }
 
+    const token = args.token.trim();
     const invite = await ctx.db
       .query("supplierInvitations")
-      .withIndex("by_token", (q) => q.eq("token", args.token))
+      .withIndex("by_token", (q) => q.eq("token", token))
       .unique();
 
     if (!invite || invite.status !== "pending") {
@@ -205,6 +231,28 @@ export const createInviteLink = mutation({
     }
     if (!supplier.email?.trim()) {
       throw new Error("Ajoutez un email sur la fiche fournisseur avant de générer un lien.");
+    }
+
+    const email = normalizeEmail(supplier.email);
+    const existing = await ctx.db
+      .query("supplierInvitations")
+      .withIndex("by_supplierId", (q) => q.eq("supplierId", args.supplierId))
+      .collect();
+    const pending = existing
+      .filter(
+        (invite) =>
+          invite.status === "pending" &&
+          invite.email === email &&
+          invite.expiresAt > Date.now()
+      )
+      .sort((a, b) => b.createdAt - a.createdAt)[0];
+
+    // Reuse the active invite so "Copier le lien" does not invalidate the email.
+    if (pending) {
+      return {
+        token: pending.token,
+        inviteUrl: inviteUrlForSupplier(supplier, pending.token),
+      };
     }
 
     const result = await createSupplierInvite(ctx, {

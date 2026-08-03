@@ -7,7 +7,9 @@ function buildInviteEmailHtml(args: {
   supplierName: string;
   inviteUrl: string;
 }) {
-  const loginUrl = `${(process.env.SITE_URL ?? "https://www.sossante.ma").replace(/\/$/, "")}/fournisseurs`;
+  const site = (process.env.SITE_URL ?? "https://sossante.ma").replace(/\/$/, "");
+  const isSoins = args.inviteUrl.includes("/prestataire/");
+  const loginUrl = `${site}${isSoins ? "/prestataires" : "/fournisseurs"}`;
   return `
 <!DOCTYPE html>
 <html lang="fr">
@@ -15,12 +17,12 @@ function buildInviteEmailHtml(args: {
     <h1 style="color: #2890e0; font-size: 22px;">Centre SOS Santé</h1>
     <p>Bonjour,</p>
     <p>
-      Vous êtes invité à rejoindre l'espace fournisseur partenaire SOS Santé pour
+      Vous êtes invité à rejoindre l'espace partenaire SOS Santé pour
       <strong>${args.supplierName}</strong>.
     </p>
     <p>
       Cliquez sur le bouton ci-dessous pour créer votre mot de passe et accéder
-      à votre tableau de bord fournisseur.
+      à votre tableau de bord.
     </p>
     <p style="margin: 32px 0;">
       <a href="${args.inviteUrl}"
@@ -204,7 +206,7 @@ export const sendSupplierInvitation = internalAction({
   handler: async (_ctx, args) => {
     return await sendResendEmail({
       to: args.to,
-      subject: `Invitation espace fournisseur — ${args.supplierName}`,
+      subject: `Invitation espace partenaire — ${args.supplierName}`,
       html: buildInviteEmailHtml(args),
       devLabel: "Supplier invitation email",
       devPayload: args,

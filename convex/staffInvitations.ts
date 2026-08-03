@@ -9,15 +9,12 @@ import {
 } from "./_generated/server";
 import { requireAdminPermission } from "./lib/authz";
 import { logAudit } from "./lib/auditLog";
+import { siteUrl } from "./lib/siteUrl";
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
-}
-
-function siteUrl() {
-  return process.env.SITE_URL ?? "http://localhost:3000";
 }
 
 export async function createStaffInvite(

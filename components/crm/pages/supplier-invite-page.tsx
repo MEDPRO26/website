@@ -59,7 +59,10 @@ export function SupplierInvitePage({ token }: SupplierInvitePageProps) {
   const convex = useConvex();
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const { signIn, signOut } = useAuthActions();
-  const invite = useQuery(api.supplierInvitations.getByToken, { token });
+  const inviteToken = token.trim();
+  const invite = useQuery(api.supplierInvitations.getByToken, {
+    token: inviteToken,
+  });
   const authViewer = useQuery(
     api.authSession.viewer,
     isAuthenticated ? {} : "skip"
@@ -110,7 +113,7 @@ export function SupplierInvitePage({ token }: SupplierInvitePageProps) {
 
   const finishAcceptance = async () => {
     await waitForServerAuth(convex, inviteEmail);
-    await acceptInvite({ token });
+    await acceptInvite({ token: inviteToken });
     toast.success("Compte activé. Complétez votre profil.");
     router.replace(`${basePath}/onboarding`);
   };
@@ -193,14 +196,16 @@ export function SupplierInvitePage({ token }: SupplierInvitePageProps) {
     const message =
       invite.reason === "already_accepted"
         ? "Cette invitation a déjà été acceptée."
-        : invite.reason === "expired"
-          ? "Cette invitation a expiré."
-          : "Invitation introuvable ou invalide.";
+        : invite.reason === "cancelled"
+          ? "Cette invitation a été remplacée. Demandez un nouveau lien à SOS Santé."
+          : invite.reason === "expired"
+            ? "Cette invitation a expiré. Demandez un nouvel envoi à SOS Santé."
+            : "Invitation introuvable ou invalide. Demandez un nouveau lien à SOS Santé.";
 
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 text-center shadow-xl">
-          <h1 className="text-xl font-bold text-foreground">Invitation fournisseur</h1>
+          <h1 className="text-xl font-bold text-foreground">Invitation partenaire</h1>
           <p className="mt-3 text-sm text-muted-foreground">{message}</p>
           <Button asChild className="mt-6">
             <Link href={loginPath}>Aller à la connexion</Link>
@@ -227,7 +232,7 @@ export function SupplierInvitePage({ token }: SupplierInvitePageProps) {
               className="size-14 object-contain"
             />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Invitation fournisseur</h1>
+          <h1 className="text-2xl font-bold text-foreground">Invitation partenaire</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Rejoignez l&apos;espace partenaire SOS Santé pour{" "}
             <strong>{invite.supplierName}</strong>
