@@ -102,11 +102,27 @@ export const current = query({
     const photoUrl = supplier.photoStorageId
       ? await ctx.storage.getUrl(supplier.photoStorageId)
       : null;
+    const cinMeta = supplier.cinStorageId
+      ? await ctx.storage.getMetadata(supplier.cinStorageId)
+      : null;
+    const diplomaMeta = supplier.diplomaStorageId
+      ? await ctx.storage.getMetadata(supplier.diplomaStorageId)
+      : null;
+    const cinUrl = supplier.cinStorageId
+      ? await ctx.storage.getUrl(supplier.cinStorageId)
+      : null;
+    const diplomaUrl = supplier.diplomaStorageId
+      ? await ctx.storage.getUrl(supplier.diplomaStorageId)
+      : null;
 
     return {
       staff,
       supplier,
       photoUrl,
+      cinUrl,
+      diplomaUrl,
+      cinContentType: cinMeta?.contentType ?? null,
+      diplomaContentType: diplomaMeta?.contentType ?? null,
       profileComplete: isSupplierProfileComplete(supplier),
     };
   },
@@ -471,6 +487,12 @@ export const submitQuote = mutation({
     installFee: v.optional(v.number()),
     otherFee: v.optional(v.number()),
     commissionAmount: v.number(),
+    pricingMode: v.optional(
+      v.union(v.literal("hour"), v.literal("day"), v.literal("flat"))
+    ),
+    unitPrice: v.optional(v.number()),
+    quantity: v.optional(v.number()),
+    serviceInclusions: v.optional(v.string()),
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -481,6 +503,10 @@ export const submitQuote = mutation({
       installFee: args.installFee,
       otherFee: args.otherFee,
       commissionAmount: args.commissionAmount,
+      pricingMode: args.pricingMode,
+      unitPrice: args.unitPrice,
+      quantity: args.quantity,
+      serviceInclusions: args.serviceInclusions,
       notes: args.notes,
     });
   },
@@ -495,6 +521,10 @@ async function confirmDeliveryHandler(
     installFee?: number;
     otherFee?: number;
     commissionAmount?: number;
+    pricingMode?: "hour" | "day" | "flat";
+    unitPrice?: number;
+    quantity?: number;
+    serviceInclusions?: string;
     notes?: string;
   }
 ) {
@@ -538,6 +568,10 @@ async function confirmDeliveryHandler(
       otherFee: args.otherFee ?? 0,
       commissionPct: 0,
       commissionAmount: args.commissionAmount,
+      pricingMode: args.pricingMode,
+      unitPrice: args.unitPrice,
+      quantity: args.quantity,
+      serviceInclusions: args.serviceInclusions?.trim() || undefined,
       notes: args.notes?.trim() || undefined,
       actorStaffId: staff._id,
       submittedBySupplier: true,
@@ -1155,6 +1189,100 @@ export const removeProfilePhoto = mutation({
     const previous = supplier.photoStorageId;
     await ctx.db.patch(supplier._id, {
       photoStorageId: undefined,
+      updatedAt: Date.now(),
+    });
+    if (previous) {
+      try {
+        await ctx.storage.delete(previous);
+      } catch {
+        // Ignore cleanup failures.
+      }
+    }
+  },
+});
+
+const PRESTATAIRE_DOC_MAX_BYTES = 8 * 1024 * 1024;
+
+function isAllowedPrestataireDocument(contentType: string | undefined) {
+  if (!contentType) return false;
+  return contentType.startsWith("image/") || contentType === "application/pdf";
+}
+
+async function assertPrestataireDocument(
+  ctx: MutationCtx,
+  storageId: Id<"_storage">
+) {
+  const meta = await ctx.storage.getMetadata(storageId);
+  if (!meta) {
+    throw new Error("Fichier introuvable.");
+  }
+  if (!isAllowedPrestataireDocument(meta.contentType)) {
+    throw new Error("Le fichier doit être une image (JPG, PNG, WebP) ou un PDF.");
+  }
+  if (meta.size > PRESTATAIRE_DOC_MAX_BYTES) {
+    throw new Error("Le fichier ne doit pas dépasser 8 Mo.");
+  }
+}
+
+function assertSoinsPrestataire(supplier: Doc<"suppliers">) {
+  const kind =
+    resolveSupplierPartnerKind(supplier) ?? supplier.partnerKind ?? null;
+  if (kind !== "soins") {
+    throw new Error(
+      "Les documents CIN et diplôme sont réservés aux prestataires de soins."
+    );
+  }
+}
+
+export const generatePrestataireDocumentUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const { supplier } = await requireSupplierOnboarding(ctx);
+    assertSoinsPrestataire(supplier);
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+export const updatePrestataireDocument = mutation({
+  args: {
+    kind: v.union(v.literal("cin"), v.literal("diploma")),
+    storageId: v.id("_storage"),
+  },
+  handler: async (ctx, args) => {
+    const { supplier } = await requireSupplierOnboarding(ctx);
+    assertSoinsPrestataire(supplier);
+    await assertPrestataireDocument(ctx, args.storageId);
+
+    const field = args.kind === "cin" ? "cinStorageId" : "diplomaStorageId";
+    const previous = supplier[field];
+    await ctx.db.patch(supplier._id, {
+      [field]: args.storageId,
+      updatedAt: Date.now(),
+    });
+
+    if (previous && previous !== args.storageId) {
+      try {
+        await ctx.storage.delete(previous);
+      } catch {
+        // Ignore cleanup failures.
+      }
+    }
+
+    return await ctx.storage.getUrl(args.storageId);
+  },
+});
+
+export const removePrestataireDocument = mutation({
+  args: {
+    kind: v.union(v.literal("cin"), v.literal("diploma")),
+  },
+  handler: async (ctx, args) => {
+    const { supplier } = await requireSupplierOnboarding(ctx);
+    assertSoinsPrestataire(supplier);
+    const field = args.kind === "cin" ? "cinStorageId" : "diplomaStorageId";
+    const previous = supplier[field];
+    await ctx.db.patch(supplier._id, {
+      [field]: undefined,
       updatedAt: Date.now(),
     });
     if (previous) {

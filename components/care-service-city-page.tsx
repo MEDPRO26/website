@@ -132,7 +132,7 @@ export function CareServiceCityPage({
   const phoneDisplay =
     city.contactReady && city.phoneDisplay
       ? city.phoneDisplay
-      : "07 00 97 58 88";
+      : "06 07 34 73 28";
   const whatsappText = `Bonjour SOS Santé, je souhaite ${content.formLabel.toLowerCase()} à ${content.cityName}.`;
   const whatsappHref = cityWhatsAppHref(city, whatsappText, "garde_soins");
 

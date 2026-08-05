@@ -416,7 +416,7 @@ export function AdminSettingsPage() {
                         <Label className="text-xs">Numéro (format 212…)</Label>
                         <Input
                           className="mt-1.5"
-                          placeholder="212700975888"
+                          placeholder="212607347328"
                           value={draft?.phone ?? ""}
                           onChange={(e) =>
                             setDrafts((current) => ({

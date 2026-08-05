@@ -23,9 +23,14 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useSupplierSession } from "@/hooks/use-supplier-session";
 import { resolveOrderItemPreview } from "@/lib/crm/resolve-order-item-link";
-import { orderShowsSchedulingFields, supplierShouldDeliverOrder } from "@/lib/crm/order-scheduling";
+import {
+  isServiceOrderType,
+  orderShowsSchedulingFields,
+  resolveOrderDuration,
+  supplierShouldDeliverOrder,
+} from "@/lib/crm/order-scheduling";
 import { SupplierDeliveryPrompt, SupplierDeliveredBanner, SupplierOrderStatusBox } from "@/components/crm/supplier-delivery-prompt";
-import { SUPPLIER_STATUS_LABELS } from "@/lib/crm/order-status";
+import { getSupplierStatusLabels } from "@/lib/crm/order-status";
 import type { OrderStatus } from "@/lib/mock-data";
 import {
   MapPin,
@@ -105,11 +110,13 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
   }
 
   const { order, customer, quote, clientContactVisible } = data;
+  const isService = isServiceOrderType(order.type);
+  const statusLabels = getSupplierStatusLabels(isService);
   const canSubmitPrice = [
     "envoyee_fournisseur",
     "vue_fournisseur",
     "en_contact_client",
-    "en_cours",
+    ...(isService ? [] : ["en_cours"]),
     "prix_recu",
   ].includes(order.status);
   const supplierName = supplier?.name ?? staff?.name ?? "Fournisseur";
@@ -181,6 +188,7 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
 
       {isDelivered ? (
         <SupplierDeliveredBanner
+          orderType={order.type}
           cancelling={cancelling}
           onCancelByClient={() => setCancelOpen(true)}
         />
@@ -190,6 +198,7 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
           clientPhone={customer?.phone}
           orderRef={order.ref}
           item={order.item}
+          orderType={order.type}
           orderId={order._id}
           orderStatus={order.status}
         />
@@ -237,7 +246,10 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
                   <>
                     <DetailField
                       label={durationLabel(order.type)}
-                      value={order.duration ?? "—"}
+                      value={
+                        resolveOrderDuration(order.duration, order.desiredDate) ??
+                        "—"
+                      }
                     />
                     <DetailField
                       label="Date souhaitée"
@@ -325,6 +337,7 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
               <SupplierOrderStatusBox
                 orderId={order._id}
                 orderStatus={order.status}
+                orderType={order.type}
               />
 
               {canSubmitPrice ? (
@@ -337,14 +350,32 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-base font-bold leading-snug text-amber-950 sm:text-lg">
-                      Ne confirmez la livraison qu&apos;après paiement
+                      {isService
+                        ? "Ne confirmez la prestation qu\u2019après paiement"
+                        : "Ne confirmez la livraison qu\u2019après paiement"}
                     </p>
                     <p className="mt-2 text-base leading-relaxed text-amber-900/90 sm:text-[17px]">
-                      Ne remplissez pas « Votre offre » et ne cliquez pas sur{" "}
-                      <span className="font-semibold">Confirmer la livraison</span>{" "}
-                      tant que vous n&apos;avez pas livré le matériel, terminé le
-                      service et reçu le paiement du client. Le client peut encore
-                      annuler la commande en cours de route.
+                      {isService ? (
+                        <>
+                          Ne remplissez pas « Votre offre » et ne cliquez pas sur{" "}
+                          <span className="font-semibold">
+                            Confirmer la prestation
+                          </span>{" "}
+                          tant que vous n&apos;avez pas terminé le service et reçu
+                          le paiement du client. Le client peut encore annuler la
+                          commande.
+                        </>
+                      ) : (
+                        <>
+                          Ne remplissez pas « Votre offre » et ne cliquez pas sur{" "}
+                          <span className="font-semibold">
+                            Confirmer la livraison
+                          </span>{" "}
+                          tant que vous n&apos;avez pas livré le matériel et reçu
+                          le paiement du client. Le client peut encore annuler la
+                          commande en cours de route.
+                        </>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -394,7 +425,11 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
                   <SupplierQuoteForm
                     orderId={order._id}
                     orderType={order.type}
-                    orderDuration={order.duration}
+                    orderDuration={resolveOrderDuration(
+                      order.duration,
+                      order.desiredDate
+                    )}
+                    orderSlot={order.slot}
                     variant="sidebar"
                     readOnly={!canSubmitPrice}
                     existingQuote={
@@ -405,6 +440,10 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
                             installFee: quote.installFee,
                             otherFee: quote.otherFee,
                             commissionAmount: quote.commissionAmount,
+                            pricingMode: quote.pricingMode,
+                            unitPrice: quote.unitPrice,
+                            quantity: quote.quantity,
+                            serviceInclusions: quote.serviceInclusions,
                             notes: quote.notes,
                             status: quote.status,
                           }
@@ -417,7 +456,7 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
                   <div className="space-y-4">
                     <StatusBadge
                       status={order.status as OrderStatus}
-                      labels={SUPPLIER_STATUS_LABELS}
+                      labels={statusLabels}
                     />
                     <p className="text-sm text-muted-foreground">
                       Cette commande n&apos;accepte plus de nouveau prix fournisseur.

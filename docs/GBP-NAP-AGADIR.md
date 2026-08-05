@@ -8,7 +8,7 @@ Utilisez **exactement** ces informations dans votre fiche Google Business Profil
 |-------|--------|
 | **Nom** | SOS Santé Agadir - Matériel Médical & Aide à Domicile |
 | **Site web** | https://www.sossante.ma/agadir |
-| **Téléphone** | +212 700 975 888 (affichage : 07 00 97 58 88) |
+| **Téléphone** | +212 607 347 328 (affichage : 06 07 34 73 28) |
 | **Adresse** | Lerac, Avenue Abderrahim Bouabid, 8000, Agadir 80000 |
 | **Pays** | Maroc |
 | **Catégorie principale** | Magasin de matériel médical / Medical equipment supplier |

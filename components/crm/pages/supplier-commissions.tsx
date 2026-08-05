@@ -18,6 +18,7 @@ import {
   type SettleTargetItem,
 } from "@/components/crm/supplier-commission-settle-dialog";
 import { formatMad } from "@/lib/crm/pricing";
+import { resolveSupplierPartnerKind } from "@/lib/supplier-activity-types";
 import { cn } from "@/lib/utils";
 
 const SOS_COMMISSION_RIB = "230 010 5253573211017900 35";
@@ -32,7 +33,9 @@ function formatDate(ts: number) {
 }
 
 export function SupplierCommissionsPage() {
-  const { canQuerySupplier } = useSupplierSession();
+  const { supplier, canQuerySupplier } = useSupplierSession();
+  const isSoinsPortal =
+    resolveSupplierPartnerKind(supplier ?? { type: "" }) === "soins";
   const rows = useQuery(
     api.supplierPortal.listCommissions,
     canQuerySupplier ? {} : "skip"
@@ -220,7 +223,7 @@ export function SupplierCommissionsPage() {
       {rows.length === 0 ? (
         <Card className="p-8 text-center text-sm text-muted-foreground">
           Aucun honoraire pour le moment. Les honoraires de SOS apparaissent ici une
-          fois la livraison confirmée.
+          fois la {isSoinsPortal ? "prestation" : "livraison"} confirmée.
         </Card>
       ) : (
         <Card className="overflow-hidden p-0">

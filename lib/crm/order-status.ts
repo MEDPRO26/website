@@ -48,10 +48,26 @@ const SUPPLIER_STATUS_LABEL_OVERRIDES: Partial<Record<OrderStatus, string>> = {
   annulee: "Commande annulée par le client",
 };
 
+const PRESTATION_STATUS_LABEL_OVERRIDES: Partial<Record<OrderStatus, string>> = {
+  ...SUPPLIER_STATUS_LABEL_OVERRIDES,
+  en_cours: "Prestation en cours",
+  terminee: "Prestation terminée",
+};
+
 export const SUPPLIER_STATUS_LABELS = SUPPLIER_STATUS_LABEL_OVERRIDES;
 
-export function getSupplierStatusLabel(status: OrderStatus): string {
-  return SUPPLIER_STATUS_LABEL_OVERRIDES[status] ?? STATUS_LABEL[status];
+export function getSupplierStatusLabels(isService = false) {
+  return isService
+    ? PRESTATION_STATUS_LABEL_OVERRIDES
+    : SUPPLIER_STATUS_LABEL_OVERRIDES;
+}
+
+export function getSupplierStatusLabel(
+  status: OrderStatus,
+  isService = false
+): string {
+  const map = getSupplierStatusLabels(isService);
+  return map[status] ?? STATUS_LABEL[status];
 }
 
 export const SUGGESTED_NEXT_STATUSES: Record<OrderStatus, OrderStatus[]> = {

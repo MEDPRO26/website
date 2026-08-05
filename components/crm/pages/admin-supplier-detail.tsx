@@ -24,6 +24,9 @@ import {
   Mail,
   MessageCircle,
   MapPin,
+  IdCard,
+  ExternalLink,
+  FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
@@ -279,6 +282,105 @@ export function AdminSupplierDetailPage({
               )}
             </div>
           </Card>
+
+          {isSoins ? (
+            <Card className="p-5">
+              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
+                <IdCard className="size-4 text-brand" />
+                Documents professionnels
+              </h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-muted-foreground">CIN</span>
+                  {data.cinUrl ? (
+                    <a
+                      href={data.cinUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 font-medium text-brand hover:underline"
+                    >
+                      Voir <ExternalLink className="size-3.5" />
+                    </a>
+                  ) : (
+                    <Tag tone="warning">Manquant</Tag>
+                  )}
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-muted-foreground">
+                    Diplôme / certificat
+                  </span>
+                  {data.diplomaUrl ? (
+                    <a
+                      href={data.diplomaUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 font-medium text-brand hover:underline"
+                    >
+                      Voir <ExternalLink className="size-3.5" />
+                    </a>
+                  ) : (
+                    <Tag tone="warning">Manquant</Tag>
+                  )}
+                </div>
+                {data.cinUrl || data.diplomaUrl ? (
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    {data.cinUrl ? (
+                      <a
+                        href={data.cinUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex h-24 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/20"
+                      >
+                        {data.cinContentType?.startsWith("image/") ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={data.cinUrl}
+                            alt="CIN"
+                            className="h-full w-full object-cover object-top"
+                          />
+                        ) : (
+                          <span className="flex flex-col items-center gap-1 text-brand">
+                            <FileText className="size-6" />
+                            <span className="text-[11px] font-semibold">
+                              {data.cinContentType === "application/pdf"
+                                ? "PDF"
+                                : "Document"}
+                            </span>
+                          </span>
+                        )}
+                      </a>
+                    ) : null}
+                    {data.diplomaUrl ? (
+                      <a
+                        href={data.diplomaUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex h-24 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/20"
+                      >
+                        {data.diplomaContentType?.startsWith("image/") ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={data.diplomaUrl}
+                            alt="Diplôme"
+                            className="h-full w-full object-cover object-top"
+                          />
+                        ) : (
+                          <span className="flex flex-col items-center gap-1 text-brand">
+                            <FileText className="size-6" />
+                            <span className="text-[11px] font-semibold">
+                              {data.diplomaContentType === "application/pdf"
+                                ? "PDF"
+                                : "Document"}
+                            </span>
+                          </span>
+                        )}
+                      </a>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            </Card>
+          ) : null}
 
           {s.notes ? (
             <Card className="p-5">

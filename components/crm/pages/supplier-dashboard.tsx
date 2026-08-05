@@ -19,6 +19,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { useSupplierSession } from "@/hooks/use-supplier-session";
 import { resolveOrderItemPreview } from "@/lib/crm/resolve-order-item-link";
 import { supplierShouldDeliverOrder } from "@/lib/crm/order-scheduling";
+import { resolveSupplierPartnerKind } from "@/lib/supplier-activity-types";
 import { SupplierDeliveryPrompt } from "@/components/crm/supplier-delivery-prompt";
 import {
   SupplierResponseCountdown,
@@ -350,6 +351,8 @@ function MissedOrderItem({
 
 export function SupplierDashboardPage() {
   const { supplier, canQuerySupplier } = useSupplierSession();
+  const isSoinsPortal =
+    resolveSupplierPartnerKind(supplier ?? { type: "" }) === "soins";
   const [range, setRange] = useState<"7d" | "30d" | "90d" | "all">("30d");
 
   const stats = useQuery(
@@ -460,22 +463,30 @@ export function SupplierDashboardPage() {
           icon={Inbox}
         />
         <DashboardStatCard
-          label="En attente de livraison"
+          label={
+            isSoinsPortal ? "En contact client" : "En attente de livraison"
+          }
           value={String(stats.awaitingDelivery).padStart(2, "0")}
           hint={
             stats.awaitingDelivery > 0
-              ? `${stats.awaitingDelivery} à livrer`
-              : "Aucune livraison en attente"
+              ? isSoinsPortal
+                ? `${stats.awaitingDelivery} en suivi`
+                : `${stats.awaitingDelivery} à livrer`
+              : isSoinsPortal
+                ? "Aucune prestation en suivi"
+                : "Aucune livraison en attente"
           }
           icon={Truck}
         />
         <DashboardStatCard
-          label="Commandes livrées"
+          label={isSoinsPortal ? "Prestations terminées" : "Commandes livrées"}
           value={String(stats.delivered).padStart(2, "0")}
           hint={
             stats.delivered > 0
               ? deliveredHint
-              : "Aucune commande livrée"
+              : isSoinsPortal
+                ? "Aucune prestation terminée"
+                : "Aucune commande livrée"
           }
           icon={CheckCircle2}
         />
@@ -500,11 +511,14 @@ export function SupplierDashboardPage() {
             orderId={deliveryOrders[0]._id}
             clientName={deliveryOrders[0].clientName}
             item={deliveryOrders[0].item}
+            orderType={deliveryOrders[0].type}
+            orderStatus={deliveryOrders[0].status}
           />
           {deliveryOrders.length > 1 ? (
             <p className="text-center text-xs text-muted-foreground">
-              {deliveryOrders.length} commande{deliveryOrders.length > 1 ? "s" : ""}{" "}
-              à livrer —{" "}
+              {deliveryOrders.length} commande
+              {deliveryOrders.length > 1 ? "s" : ""}{" "}
+              {isSoinsPortal ? "à réaliser" : "à livrer"} —{" "}
               <Link href="/supplier/orders" className="font-medium text-brand hover:underline">
                 voir toutes les commandes
               </Link>
@@ -571,36 +585,50 @@ export function SupplierDashboardPage() {
           </div>
 
           <ul className="divide-y divide-border/60 px-2 py-1">
-            {[
-              {
-                label: "Nouvelle commande",
-                count: orderStatusCounts.nouvelle,
-                href: "/supplier/orders?status=envoyee_fournisseur",
-                tone: "text-brand",
-                bg: "bg-brand/10",
-              },
-              {
-                label: "En contact avec le client",
-                count: orderStatusCounts.enContact,
-                href: "/supplier/orders?status=en_contact_client",
-                tone: "text-info",
-                bg: "bg-info-soft",
-              },
-              {
-                label: "En cours de livraison",
-                count: orderStatusCounts.enLivraison,
-                href: "/supplier/orders?status=en_cours",
-                tone: "text-success",
-                bg: "bg-success-soft",
-              },
-              {
-                label: "Commande livrée",
-                count: orderStatusCounts.livree,
-                href: "/supplier/orders?status=terminee",
-                tone: "text-muted-foreground",
-                bg: "bg-muted",
-              },
-            ].map((row) => (
+            {(
+              [
+                {
+                  label: "Nouvelle commande",
+                  count: orderStatusCounts.nouvelle,
+                  href: "/supplier/orders?status=envoyee_fournisseur",
+                  tone: "text-brand",
+                  bg: "bg-brand/10",
+                },
+                {
+                  label: "En contact avec le client",
+                  count: orderStatusCounts.enContact,
+                  href: "/supplier/orders?status=en_contact_client",
+                  tone: "text-info",
+                  bg: "bg-info-soft",
+                },
+                ...(!isSoinsPortal
+                  ? [
+                      {
+                        label: "En cours de livraison",
+                        count: orderStatusCounts.enLivraison,
+                        href: "/supplier/orders?status=en_cours",
+                        tone: "text-success",
+                        bg: "bg-success-soft",
+                      },
+                    ]
+                  : []),
+                {
+                  label: isSoinsPortal
+                    ? "Prestation terminée"
+                    : "Commande livrée",
+                  count: orderStatusCounts.livree,
+                  href: "/supplier/orders?status=terminee",
+                  tone: "text-muted-foreground",
+                  bg: "bg-muted",
+                },
+              ] as {
+                label: string;
+                count: number;
+                href: string;
+                tone: string;
+                bg: string;
+              }[]
+            ).map((row) => (
               <li key={row.label}>
                 <Link
                   href={row.href}

@@ -16,6 +16,10 @@ type SubmitQuoteInput = {
   otherFee: number;
   commissionPct: number;
   commissionAmount?: number;
+  pricingMode?: "hour" | "day" | "flat";
+  unitPrice?: number;
+  quantity?: number;
+  serviceInclusions?: string;
   notes?: string;
   actorStaffId?: Id<"staff">;
   submittedBySupplier?: boolean;
@@ -64,6 +68,10 @@ export async function upsertSupplierQuote(ctx: MutationCtx, args: SubmitQuoteInp
     otherFee: args.otherFee,
     commissionPct: args.commissionAmount !== undefined ? 0 : args.commissionPct,
     commissionAmount: args.commissionAmount,
+    pricingMode: args.pricingMode,
+    unitPrice: args.unitPrice,
+    quantity: args.quantity,
+    serviceInclusions: args.serviceInclusions,
     notes: args.notes,
     status: "submitted" as const,
     submittedAt: now,

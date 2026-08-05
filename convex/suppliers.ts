@@ -123,10 +123,27 @@ export const get = query({
       })
     );
 
+    const cinMeta = supplier.cinStorageId
+      ? await ctx.storage.getMetadata(supplier.cinStorageId)
+      : null;
+    const diplomaMeta = supplier.diplomaStorageId
+      ? await ctx.storage.getMetadata(supplier.diplomaStorageId)
+      : null;
+    const cinUrl = supplier.cinStorageId
+      ? await ctx.storage.getUrl(supplier.cinStorageId)
+      : null;
+    const diplomaUrl = supplier.diplomaStorageId
+      ? await ctx.storage.getUrl(supplier.diplomaStorageId)
+      : null;
+
     return {
       supplier,
       ordersCount: orders.length,
       orders: enrichedOrders.sort((a, b) => b.createdAt - a.createdAt),
+      cinUrl,
+      diplomaUrl,
+      cinContentType: cinMeta?.contentType ?? null,
+      diplomaContentType: diplomaMeta?.contentType ?? null,
     };
   },
 });

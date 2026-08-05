@@ -46,7 +46,10 @@ import { formatEventTime, mapConvexOrderToUi } from "@/lib/crm/map-convex-order"
 import { adminConversationHref } from "@/lib/crm/conversation-links";
 import { telUrl } from "@/lib/crm/phone-links";
 import { OrderClientRemarks } from "@/components/crm/order-client-remarks";
-import { orderShowsSchedulingFields } from "@/lib/crm/order-scheduling";
+import {
+  orderShowsSchedulingFields,
+  resolveOrderDuration,
+} from "@/lib/crm/order-scheduling";
 import { cn } from "@/lib/utils";
 
 type AdminOrderDetailPageProps = { orderId: string };
@@ -236,7 +239,13 @@ export function AdminOrderDetailPage({ orderId }: AdminOrderDetailPageProps) {
                 </div>
               </div>
               {showScheduling ? (
-                <Info label="Durée" value={o.duration || "—"} icon={Clock} />
+                <Info
+                  label="Durée"
+                  value={
+                    resolveOrderDuration(o.duration, o.desiredDate) || "—"
+                  }
+                  icon={Clock}
+                />
               ) : null}
               <div className="min-w-0 sm:col-span-2">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">

@@ -245,7 +245,7 @@ function buildInogenLanding(): ProductLandingContent {
       {
         question: "Comment obtenir un devis pour l'Inogen Rove G6 ?",
         answer:
-          "Remplissez le formulaire sur cette page, contactez-nous par WhatsApp ou appelez le 07 00 97 58 88. Nous établissons un devis personnalisé avec la configuration batterie et les accessoires adaptés.",
+          "Remplissez le formulaire sur cette page, contactez-nous par WhatsApp ou appelez le 06 07 34 73 28. Nous établissons un devis personnalisé avec la configuration batterie et les accessoires adaptés.",
       },
     ],
     ctaTitle: "Obtenez votre devis Inogen Rove G6",

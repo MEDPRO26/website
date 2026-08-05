@@ -10,10 +10,10 @@ export type WhatsAppLine =
  * Line 1 (matériel) matches `WHATSAPP_NUMBER` in lib/cities.ts.
  */
 export const WHATSAPP_LINES: Record<WhatsAppLine, string> = {
-  materiel: "212700975888",
-  aide_domicile: "212700975888",
-  garde_soins: "212700975888",
-  general: "212700975888",
+  materiel: "212607347328",
+  aide_domicile: "212607347328",
+  garde_soins: "212607347328",
+  general: "212607347328",
 };
 
 export const CHANNEL_PURPOSE_TO_LINE: Record<string, WhatsAppLine> = {

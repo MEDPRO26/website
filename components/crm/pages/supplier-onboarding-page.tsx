@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
+import { PrestataireDocumentUpload } from "@/components/crm/prestataire-document-upload";
 import { useSupplierSession } from "@/hooks/use-supplier-session";
 import { partnerPortalBaseFromPath } from "@/lib/auth-routes";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,8 @@ import {
 } from "@/components/ui/select";
 import {
   buildSupplierTypes,
-  SUPPLIER_ACTIVITY_TYPES,
+  partnerKindTypeOptions,
+  resolveSupplierPartnerKind,
   SUPPLIER_OTHER_TYPE,
 } from "@/lib/supplier-activity-types";
 
@@ -38,8 +40,21 @@ export function SupplierOnboardingPage() {
   const router = useRouter();
   const pathname = usePathname();
   const basePath = partnerPortalBaseFromPath(pathname);
-  const { supplier, profileComplete, sessionLoading } = useSupplierSession();
+  const {
+    supplier,
+    cinUrl,
+    diplomaUrl,
+    cinContentType,
+    diplomaContentType,
+    profileComplete,
+    sessionLoading,
+  } = useSupplierSession();
   const completeProfile = useMutation(api.supplierPortal.completeProfile);
+  const partnerKind =
+    resolveSupplierPartnerKind(supplier ?? { type: "" }) ??
+    (basePath.includes("prestataire") ? "soins" : "materiel");
+  const activityOptions = partnerKindTypeOptions(partnerKind);
+  const isSoins = partnerKind === "soins";
 
   const [name, setName] = useState("");
   const [types, setTypes] = useState<string[]>([]);
@@ -181,7 +196,7 @@ export function SupplierOnboardingPage() {
               Vous pouvez en sélectionner plusieurs.
             </p>
             <div className="mt-2 space-y-2 rounded-xl border border-border p-3">
-              {SUPPLIER_ACTIVITY_TYPES.map((item) => (
+              {activityOptions.map((item) => (
                 <label
                   key={item}
                   className="flex cursor-pointer items-center gap-3 text-sm text-foreground"
@@ -256,12 +271,45 @@ export function SupplierOnboardingPage() {
             </div>
           </div>
 
+          {isSoins ? (
+            <div className="space-y-3 rounded-2xl border border-border bg-muted/20 p-4">
+              <div>
+                <Label className="text-sm font-semibold">
+                  Documents professionnels (optionnel)
+                </Label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Vous pouvez passer cette étape et les ajouter plus tard dans
+                  Mon profil. Une fois votre espace créé, merci d&apos;envoyer
+                  votre CIN et votre diplôme ou certificat professionnel.
+                </p>
+              </div>
+              <PrestataireDocumentUpload
+                compact
+                kind="cin"
+                title="Carte nationale d'identité (CIN)"
+                description="Recto de votre CIN marocaine."
+                url={cinUrl}
+                contentType={cinContentType}
+              />
+              <PrestataireDocumentUpload
+                compact
+                kind="diploma"
+                title="Diplôme / certificat professionnel"
+                description="Diplôme d'infirmier, de kiné, certificat d'aide-soignant…"
+                url={diplomaUrl}
+                contentType={diplomaContentType}
+              />
+            </div>
+          ) : null}
+
           <Button type="submit" className="w-full" disabled={submitting}>
             {submitting ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
                 Enregistrement…
               </>
+            ) : isSoins ? (
+              "Accéder à mon espace prestataire"
             ) : (
               "Accéder à mon espace fournisseur"
             )}

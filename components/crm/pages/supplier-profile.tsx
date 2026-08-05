@@ -6,6 +6,7 @@ import {
   BadgeCheck,
   Camera,
   Clock,
+  IdCard,
   Loader2,
   Mail,
   MapPin,
@@ -20,6 +21,7 @@ import {
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { PrestataireDocumentUpload } from "@/components/crm/prestataire-document-upload";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Tag } from "@/components/dashboard/status-badge";
 import { Card } from "@/components/ui/card";
@@ -39,6 +41,7 @@ import { useSupplierSession } from "@/hooks/use-supplier-session";
 import { centerCropImageToSquare } from "@/lib/crm/center-crop-image";
 import {
   buildSupplierTypes,
+  resolveSupplierPartnerKind,
   splitSupplierTypes,
   SUPPLIER_ACTIVITY_TYPES,
   SUPPLIER_OTHER_TYPE,
@@ -54,7 +57,16 @@ function parseLines(value: string) {
 }
 
 export function SupplierProfilePage() {
-  const { supplier, staff, photoUrl, canQuerySupplier } = useSupplierSession();
+  const {
+    supplier,
+    staff,
+    photoUrl,
+    cinUrl,
+    diplomaUrl,
+    cinContentType,
+    diplomaContentType,
+    canQuerySupplier,
+  } = useSupplierSession();
   const stats = useQuery(
     api.supplierPortal.dashboardStats,
     canQuerySupplier ? {} : "skip"
@@ -120,6 +132,8 @@ export function SupplierProfilePage() {
     .map((w) => w[0])
     .join("")
     .toUpperCase();
+  const isSoins = resolveSupplierPartnerKind(supplier) === "soins";
+  const missingDocs = isSoins && (!cinUrl || !diplomaUrl);
 
   const handlePhotoChange = async (file: File | null) => {
     if (!file) return;
@@ -220,6 +234,18 @@ export function SupplierProfilePage() {
         }
       />
 
+      {missingDocs ? (
+        <Card className="border-amber-200 bg-amber-50/80 p-4">
+          <p className="text-sm font-medium text-amber-950">
+            Documents professionnels à ajouter
+          </p>
+          <p className="mt-1 text-xs text-amber-900/80">
+            Ajoutez votre CIN et votre diplôme ou certificat professionnel pour
+            finaliser votre dossier auprès de SOS Santé.
+          </p>
+        </Card>
+      ) : null}
+
       <Card className="overflow-hidden p-0">
         <div className="bg-gradient-to-br from-brand/10 via-brand-soft/40 to-transparent px-5 py-6">
           <div className="flex items-start gap-4">
@@ -312,6 +338,37 @@ export function SupplierProfilePage() {
           </div>
         </div>
       </Card>
+
+      {isSoins ? (
+        <Card className="space-y-4 p-5">
+          <div>
+            <h3 className="flex items-center gap-2 text-sm font-semibold">
+              <IdCard className="size-4 text-brand" />
+              Documents professionnels
+            </h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Pièces demandées pour vérifier votre identité et votre
+              qualification (infirmier, kinésithérapeute, aide-soignant…).
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <PrestataireDocumentUpload
+              kind="cin"
+              title="Carte nationale d'identité (CIN)"
+              description="Recto de votre CIN marocaine, lisible."
+              url={cinUrl}
+              contentType={cinContentType}
+            />
+            <PrestataireDocumentUpload
+              kind="diploma"
+              title="Diplôme / certificat professionnel"
+              description="Diplôme d'État, certificat d'exercice ou équivalent lié à votre métier."
+              url={diplomaUrl}
+              contentType={diplomaContentType}
+            />
+          </div>
+        </Card>
+      ) : null}
 
       {editing ? (
         <Card className="space-y-4 p-5">

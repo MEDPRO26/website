@@ -4,13 +4,16 @@ import Link from "next/link";
 import { useState } from "react";
 import { useMutation } from "convex/react";
 import { toast } from "sonner";
-import { Ban, Check, MessageCircle, PackageCheck, Phone, Truck } from "lucide-react";
+import { Ban, Check, HeartHandshake, MessageCircle, PackageCheck, Phone, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { telUrl, whatsAppUrl } from "@/lib/crm/phone-links";
-import { supplierIsEarlyClientContactPhase } from "@/lib/crm/order-scheduling";
+import {
+  isServiceOrderType,
+  supplierIsEarlyClientContactPhase,
+} from "@/lib/crm/order-scheduling";
 import { cn } from "@/lib/utils";
 
 type SupplierDeliveryPromptProps = {
@@ -18,24 +21,36 @@ type SupplierDeliveryPromptProps = {
   clientPhone?: string;
   orderRef?: string;
   item?: string;
+  orderType?: string;
   orderId?: string;
   orderStatus?: string;
   variant?: "banner" | "card" | "compact" | "delivered";
   className?: string;
 };
 
-function contactMessage(clientName?: string, item?: string, orderStatus?: string) {
+function contactMessage(
+  clientName?: string,
+  item?: string,
+  orderStatus?: string,
+  isService?: boolean
+) {
   const who = clientName?.trim() ? clientName.trim() : "le client";
   const what = item?.trim() ? ` « ${item.trim()} »` : "";
+  if (isService) {
+    if (orderStatus && supplierIsEarlyClientContactPhase(orderStatus)) {
+      return `Contactez ${who} pour organiser la prestation${what}, puis confirmez-la dans le formulaire.`;
+    }
+    return `Contactez ${who} pour organiser la prestation${what}.`;
+  }
   if (orderStatus && supplierIsEarlyClientContactPhase(orderStatus)) {
     return `Contactez ${who} pour organiser la livraison${what}, puis confirmez-la dans le formulaire.`;
   }
   return `Contactez ${who} pour organiser la livraison${what}.`;
 }
 
-function contactTitle(orderStatus?: string) {
+function contactTitle(orderStatus?: string, isService?: boolean) {
   if (orderStatus === "en_cours") {
-    return "En cours de livraison";
+    return isService ? "Prestation en cours" : "En cours de livraison";
   }
   if (orderStatus === "en_contact_client") {
     return "En contact avec le client";
@@ -43,7 +58,9 @@ function contactTitle(orderStatus?: string) {
   if (orderStatus && supplierIsEarlyClientContactPhase(orderStatus)) {
     return "Contactez le client";
   }
-  return "Livrez la commande au client";
+  return isService
+    ? "Réalisez la prestation chez le client"
+    : "Livrez la commande au client";
 }
 
 export function SupplierDeliveryPrompt({
@@ -51,18 +68,23 @@ export function SupplierDeliveryPrompt({
   clientPhone,
   orderRef,
   item,
+  orderType,
   orderId,
   orderStatus,
   variant = "card",
   className,
 }: SupplierDeliveryPromptProps) {
+  const isService = isServiceOrderType(orderType);
   const phone = clientPhone?.trim();
-  const message = contactMessage(clientName, item, orderStatus);
-  const title = contactTitle(orderStatus);
+  const message = contactMessage(clientName, item, orderStatus, isService);
+  const title = contactTitle(orderStatus, isService);
+  const StatusIcon = isService ? HeartHandshake : Truck;
   const whatsappIntro =
     orderStatus && supplierIsEarlyClientContactPhase(orderStatus)
       ? `Bonjour ${clientName?.split(" ")[0] ?? ""}, je vous contacte au sujet de votre demande${orderRef ? ` ${orderRef}` : ""}${item ? ` (${item})` : ""}.`
-      : `Bonjour ${clientName?.split(" ")[0] ?? ""}, nous organisons la livraison de votre commande${orderRef ? ` ${orderRef}` : ""}.`;
+      : isService
+        ? `Bonjour ${clientName?.split(" ")[0] ?? ""}, nous organisons votre prestation${orderRef ? ` ${orderRef}` : ""}.`
+        : `Bonjour ${clientName?.split(" ")[0] ?? ""}, nous organisons la livraison de votre commande${orderRef ? ` ${orderRef}` : ""}.`;
 
   if (variant === "compact") {
     return (
@@ -73,8 +95,10 @@ export function SupplierDeliveryPrompt({
         )}
       >
         <p className="inline-flex items-start gap-1.5 text-[11px] font-semibold leading-snug text-success">
-          <Truck className="mt-0.5 size-3 shrink-0" />
-          À livrer — contactez le client
+          <StatusIcon className="mt-0.5 size-3 shrink-0" />
+          {isService
+            ? "À réaliser — contactez le client"
+            : "À livrer — contactez le client"}
         </p>
       </div>
     );
@@ -90,7 +114,7 @@ export function SupplierDeliveryPrompt({
       >
         <p className="inline-flex items-start gap-1.5 text-[11px] font-semibold leading-snug text-success">
           <PackageCheck className="mt-0.5 size-3 shrink-0" />
-          Commande livrée
+          {isService ? "Prestation terminée" : "Commande livrée"}
         </p>
       </div>
     );
@@ -106,7 +130,7 @@ export function SupplierDeliveryPrompt({
       >
         <div className="flex min-w-0 items-start gap-2.5">
           <div className="grid size-8 shrink-0 place-items-center rounded-lg bg-success/15 text-success">
-            <Truck className="size-4" />
+            <StatusIcon className="size-4" />
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-foreground">{title}</p>
@@ -135,7 +159,7 @@ export function SupplierDeliveryPrompt({
     >
       <div className="flex items-start gap-3">
         <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-success/15 text-success">
-          <Truck className="size-4" />
+          <StatusIcon className="size-4" />
         </div>
         <div className="min-w-0 flex-1">
           <p className="font-semibold text-foreground">{title}</p>
@@ -170,14 +194,17 @@ export function SupplierDeliveryPrompt({
 export function SupplierOrderStatusActions({
   orderId,
   orderStatus,
+  orderType,
   size = "default",
   className,
 }: {
   orderId: Id<"orders">;
   orderStatus: string;
+  orderType?: string;
   size?: "default" | "compact";
   className?: string;
 }) {
+  const isService = isServiceOrderType(orderType);
   const markInContact = useMutation(api.supplierPortal.markInContactWithClient);
   const markInDelivery = useMutation(api.supplierPortal.markInDelivery);
   const markUnavailable = useMutation(api.supplierPortal.markUnavailable);
@@ -202,10 +229,13 @@ export function SupplierOrderStatusActions({
       "prix_recu",
       "offre_envoyee",
     ].includes(orderStatus);
-  const alreadyInContact =
-    orderStatus === "en_contact_client" || orderStatus === "en_cours";
+  const alreadyInContact = isService
+    ? orderStatus === "en_contact_client"
+    : orderStatus === "en_contact_client" || orderStatus === "en_cours";
 
+  // Prestations: no "en cours de livraison" step — contact then confirm prestation.
   const canMarkInDelivery =
+    !isService &&
     orderStatus !== "en_cours" &&
     orderStatus !== "location_active" &&
     [
@@ -217,13 +247,13 @@ export function SupplierOrderStatusActions({
       "acceptee",
       "planifiee",
     ].includes(orderStatus);
-  const alreadyInDelivery = orderStatus === "en_cours";
+  const alreadyInDelivery = !isService && orderStatus === "en_cours";
 
   const canMarkUnavailable = [
     "envoyee_fournisseur",
     "vue_fournisseur",
     "en_contact_client",
-    "en_cours",
+    ...(isService ? [] : ["en_cours"]),
     "prix_recu",
     "offre_envoyee",
     "acceptee",
@@ -362,15 +392,19 @@ export function SupplierOrderStatusActions({
 export function SupplierOrderStatusBox({
   orderId,
   orderStatus,
+  orderType,
   className,
 }: {
   orderId: Id<"orders">;
   orderStatus: string;
+  orderType?: string;
   className?: string;
 }) {
   if (orderStatus === "terminee" || orderStatus === "annulee") {
     return null;
   }
+
+  const isService = isServiceOrderType(orderType);
 
   return (
     <Card
@@ -389,14 +423,16 @@ export function SupplierOrderStatusBox({
           </h2>
         </div>
         <p className="text-sm font-medium leading-snug text-success sm:text-right">
-          Merci de changer le statut pour nous tenir informés — en contact avec
-          le client ou en cours de livraison.
+          {isService
+            ? "Merci de changer le statut pour nous tenir informés — en contact avec le client."
+            : "Merci de changer le statut pour nous tenir informés — en contact avec le client ou en cours de livraison."}
         </p>
       </div>
       <div className="p-5">
         <SupplierOrderStatusActions
           orderId={orderId}
           orderStatus={orderStatus}
+          orderType={orderType}
         />
       </div>
     </Card>
@@ -405,13 +441,16 @@ export function SupplierOrderStatusBox({
 
 export function SupplierDeliveredBanner({
   className,
+  orderType,
   onCancelByClient,
   cancelling = false,
 }: {
   className?: string;
+  orderType?: string;
   onCancelByClient?: () => void;
   cancelling?: boolean;
 }) {
+  const isService = isServiceOrderType(orderType);
   return (
     <div
       className={cn(
@@ -424,10 +463,13 @@ export function SupplierDeliveredBanner({
           <PackageCheck className="size-4" />
         </div>
         <div>
-          <p className="font-semibold text-foreground">Commande livrée</p>
+          <p className="font-semibold text-foreground">
+            {isService ? "Prestation terminée" : "Commande livrée"}
+          </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Vous avez confirmé la livraison au client. L&apos;équipe SOS Santé est
-            informée.
+            {isService
+              ? "Vous avez confirmé la fin de la prestation. L&apos;équipe SOS Santé est informée."
+              : "Vous avez confirmé la livraison au client. L&apos;équipe SOS Santé est informée."}
           </p>
         </div>
       </div>

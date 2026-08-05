@@ -35,6 +35,7 @@ import {
 } from "@/lib/order-request-kinds";
 import {
   formatDesiredDateRange,
+  formatDurationFromDateRange,
   formatTimeSlots,
   type TimeSlotInput,
   validateDesiredDateRange,
@@ -270,7 +271,12 @@ export function AdminOrdersNewPage() {
         address: form.address.trim() || undefined,
         type: ORDER_REQUEST_KIND_LABEL[form.requestKind],
         item: resolvedItem,
-        duration: undefined,
+        duration: showScheduling
+          ? formatDurationFromDateRange(
+              form.desiredDateFrom,
+              form.desiredDateTo
+            )
+          : undefined,
         desiredDate: showScheduling
           ? formatDesiredDateRange(form.desiredDateFrom, form.desiredDateTo)
           : undefined,

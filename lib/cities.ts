@@ -1,7 +1,7 @@
 export const CONTACT_EMAIL = "contact@sossante.ma";
-export const WHATSAPP_NUMBER = "212700975888";
-export const PHONE_NUMBER = "+212700975888";
-export const PHONE_DISPLAY = "07 00 97 58 88";
+export const WHATSAPP_NUMBER = "212607347328";
+export const PHONE_NUMBER = "+212607347328";
+export const PHONE_DISPLAY = "06 07 34 73 28";
 
 export type CitySlug = "agadir" | "rabat" | "casablanca" | "marrakech" | "tanger";
 

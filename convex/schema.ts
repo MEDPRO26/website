@@ -124,6 +124,13 @@ export default defineSchema({
     profileComplete: v.optional(v.boolean()),
     /** Profile photo in Convex file storage (square-cropped on upload). */
     photoStorageId: v.optional(v.id("_storage")),
+    /** Prestataire: Moroccan CIN (Carte nationale d'identité) image. */
+    cinStorageId: v.optional(v.id("_storage")),
+    /**
+     * Prestataire: diplôme or certificat professionnel
+     * (infirmier, kiné, aide-soignant, autorisation d'exercer…).
+     */
+    diplomaStorageId: v.optional(v.id("_storage")),
     /**
      * When false/undefined, we show a one-time popup to invite suppliers
      * to install the web app icon on their phone.
@@ -189,6 +196,14 @@ export default defineSchema({
     commissionPaidAt: v.optional(v.number()),
     commissionPaymentMethod: v.optional(commissionPaymentMethodValidator),
     commissionReceiptStorageId: v.optional(v.id("_storage")),
+    /** Prestation pricing: hour / day / flat forfait. */
+    pricingMode: v.optional(
+      v.union(v.literal("hour"), v.literal("day"), v.literal("flat"))
+    ),
+    unitPrice: v.optional(v.number()),
+    quantity: v.optional(v.number()),
+    /** What the care service includes (varies by prestataire). */
+    serviceInclusions: v.optional(v.string()),
     notes: v.optional(v.string()),
     status: supplierQuoteStatusValidator,
     createdByStaffId: v.optional(v.id("staff")),

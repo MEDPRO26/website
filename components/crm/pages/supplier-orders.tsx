@@ -48,8 +48,13 @@ import {
 } from "@/components/ui/select";
 import { useSupplierSession } from "@/hooks/use-supplier-session";
 import { resolveOrderItemPreview } from "@/lib/crm/resolve-order-item-link";
-import { SUPPLIER_STATUS_LABELS } from "@/lib/crm/order-status";
-import { orderShowsSchedulingFields } from "@/lib/crm/order-scheduling";
+import { getSupplierStatusLabels } from "@/lib/crm/order-status";
+import {
+  isServiceOrderType,
+  orderShowsSchedulingFields,
+  resolveOrderDuration,
+} from "@/lib/crm/order-scheduling";
+import { resolveSupplierPartnerKind } from "@/lib/supplier-activity-types";
 import { SupplierOrderStatusActions } from "@/components/crm/supplier-delivery-prompt";
 import { type OrderStatus } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
@@ -77,13 +82,24 @@ const ACTIVE_STATUSES: OrderStatus[] = [
 
 const DONE_STATUSES: OrderStatus[] = ["terminee", "annulee"];
 
-const SUPPLIER_STATUS_FILTERS: { value: string; label: string }[] = [
+const SUPPLIER_STATUS_FILTERS_MATERIEL: { value: string; label: string }[] = [
   { value: "all", label: "Tous les statuts" },
   { value: "envoyee_fournisseur", label: "Pas encore réclamée" },
   { value: "vue_fournisseur", label: "Commande réclamée" },
   { value: "en_contact_client", label: "En contact avec le client" },
   { value: "en_cours", label: "En cours de livraison" },
   { value: "terminee", label: "Commande livrée" },
+  { value: "annulee", label: "Commande annulée par le client" },
+  { value: "unavailable", label: "Non disponible" },
+  { value: "missed", label: "Commandes manquées" },
+];
+
+const SUPPLIER_STATUS_FILTERS_PRESTATION: { value: string; label: string }[] = [
+  { value: "all", label: "Tous les statuts" },
+  { value: "envoyee_fournisseur", label: "Pas encore réclamée" },
+  { value: "vue_fournisseur", label: "Commande réclamée" },
+  { value: "en_contact_client", label: "En contact avec le client" },
+  { value: "terminee", label: "Prestation terminée" },
   { value: "annulee", label: "Commande annulée par le client" },
   { value: "unavailable", label: "Non disponible" },
   { value: "missed", label: "Commandes manquées" },
@@ -220,6 +236,11 @@ function StatSummaryCard({
 export function SupplierOrdersPage() {
   const searchParams = useSearchParams();
   const { supplier, canQuerySupplier } = useSupplierSession();
+  const isSoinsPortal =
+    resolveSupplierPartnerKind(supplier ?? { type: "" }) === "soins";
+  const statusFilters = isSoinsPortal
+    ? SUPPLIER_STATUS_FILTERS_PRESTATION
+    : SUPPLIER_STATUS_FILTERS_MATERIEL;
   const allOrders = useQuery(
     api.supplierPortal.listOrders,
     canQuerySupplier ? {} : "skip"
@@ -252,10 +273,10 @@ export function SupplierOrdersPage() {
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [statusFilter, setStatusFilter] = useState(() => {
     const status = searchParams.get("status");
-    if (
-      status &&
-      SUPPLIER_STATUS_FILTERS.some((filter) => filter.value === status)
-    ) {
+    if (status === "en_cours" && isSoinsPortal) {
+      return "all";
+    }
+    if (status && statusFilters.some((filter) => filter.value === status)) {
       return status;
     }
     return "all";
@@ -266,10 +287,11 @@ export function SupplierOrdersPage() {
   useEffect(() => {
     setQuery(searchParams.get("q") ?? "");
     const status = searchParams.get("status");
-    if (
-      status &&
-      SUPPLIER_STATUS_FILTERS.some((filter) => filter.value === status)
-    ) {
+    if (status === "en_cours" && isSoinsPortal) {
+      setStatusFilter("all");
+      return;
+    }
+    if (status && statusFilters.some((filter) => filter.value === status)) {
       setStatusFilter(status);
       return;
     }
@@ -376,22 +398,30 @@ export function SupplierOrdersPage() {
           badgeTone="success"
         />
         <StatSummaryCard
-          label="En attente de livraison"
+          label={
+            isSoinsPortal ? "En contact client" : "En attente de livraison"
+          }
           value={stats.awaitingDelivery}
           hint={
             stats.awaitingDelivery > 0
-              ? `${stats.awaitingDelivery} à livrer`
-              : "Aucune livraison en attente"
+              ? isSoinsPortal
+                ? `${stats.awaitingDelivery} en suivi`
+                : `${stats.awaitingDelivery} à livrer`
+              : isSoinsPortal
+                ? "Aucune prestation en suivi"
+                : "Aucune livraison en attente"
           }
           icon={Truck}
         />
         <StatSummaryCard
-          label="Commandes livrées"
+          label={isSoinsPortal ? "Prestations terminées" : "Commandes livrées"}
           value={stats.delivered}
           hint={
             stats.delivered > 0
               ? "Commandes terminées"
-              : "Aucune commande livrée"
+              : isSoinsPortal
+                ? "Aucune prestation terminée"
+                : "Aucune commande livrée"
           }
           icon={CheckCircle2}
         />
@@ -432,7 +462,7 @@ export function SupplierOrdersPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {SUPPLIER_STATUS_FILTERS.map((item) => (
+                {statusFilters.map((item) => (
                   <SelectItem key={item.value} value={item.value}>
                     {item.label}
                   </SelectItem>
@@ -615,6 +645,7 @@ function SupplierOrderRow({ order }: { order: SupplierOrder }) {
   const canMarkCancelledByClient =
     !order.isMissed && order.status === "terminee";
   const showScheduling = orderShowsSchedulingFields(order.type);
+  const durationLabel = resolveOrderDuration(order.duration, order.desiredDate);
   const displayDate = order.isMissed
     ? order.missedAt ?? order.createdAt
     : order.createdAt;
@@ -684,8 +715,10 @@ function SupplierOrderRow({ order }: { order: SupplierOrder }) {
               {typeLabel(order.type)}
             </p>
             <p className="mt-0.5 font-medium text-foreground">{order.item}</p>
-            {showScheduling && order.duration ? (
-              <p className="mt-0.5 text-xs text-muted-foreground">{order.duration}</p>
+            {showScheduling && durationLabel ? (
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {durationLabel}
+              </p>
             ) : null}
           </div>
         </div>
@@ -724,11 +757,12 @@ function SupplierOrderRow({ order }: { order: SupplierOrder }) {
           <div className="space-y-2">
             <StatusBadge
               status={order.status as OrderStatus}
-              labels={SUPPLIER_STATUS_LABELS}
+              labels={getSupplierStatusLabels(isServiceOrderType(order.type))}
             />
             <SupplierOrderStatusActions
               orderId={order._id as Id<"orders">}
               orderStatus={order.status}
+              orderType={order.type}
               size="compact"
             />
           </div>
