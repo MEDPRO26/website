@@ -1203,7 +1203,7 @@ export const removeProfilePhoto = mutation({
 
 const PRESTATAIRE_DOC_MAX_BYTES = 8 * 1024 * 1024;
 
-function isAllowedPrestataireDocument(contentType: string | undefined) {
+function isAllowedPrestataireDocument(contentType: string | null | undefined) {
   if (!contentType) return false;
   return contentType.startsWith("image/") || contentType === "application/pdf";
 }
