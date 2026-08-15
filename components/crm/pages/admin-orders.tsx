@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { useAdminSession } from "@/hooks/use-admin-session";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -179,84 +179,96 @@ export function AdminOrdersPage() {
         description={description}
         actions={
           <>
-            <div className="hidden sm:flex rounded-lg border border-border bg-card p-0.5">
+            <div className="flex rounded-lg border border-border bg-card p-0.5">
               <button
+                type="button"
                 onClick={() => setView("table")}
-                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium ${view === "table" ? "bg-brand-soft text-brand-deep" : "text-muted-foreground"}`}
+                className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium sm:px-2.5 ${view === "table" ? "bg-brand-soft text-brand-deep" : "text-muted-foreground"}`}
+                aria-label="Vue tableau"
               >
-                <List className="size-3.5" /> Tableau
+                <List className="size-3.5" />
+                <span className="hidden sm:inline">Tableau</span>
               </button>
               <button
+                type="button"
                 onClick={() => setView("kanban")}
-                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium ${view === "kanban" ? "bg-brand-soft text-brand-deep" : "text-muted-foreground"}`}
+                className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium sm:px-2.5 ${view === "kanban" ? "bg-brand-soft text-brand-deep" : "text-muted-foreground"}`}
+                aria-label="Vue kanban"
               >
-                <LayoutGrid className="size-3.5" /> Kanban
+                <LayoutGrid className="size-3.5" />
+                <span className="hidden sm:inline">Kanban</span>
               </button>
             </div>
-            <Button asChild>
-              <Link href="/admin/orders/new">+ Nouvelle commande</Link>
+            <Button asChild size="sm" className="sm:h-9 sm:px-4 sm:text-sm">
+              <Link href="/admin/orders/new">
+                <Plus className="size-4 sm:hidden" />
+                <span className="sm:hidden">Nouvelle</span>
+                <span className="hidden sm:inline">+ Nouvelle commande</span>
+              </Link>
             </Button>
           </>
         }
       />
 
-      <Card className="p-3 mb-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-0 flex-1">
+      <Card className="mb-4 p-3">
+        <div className="flex flex-col gap-2">
+          <div className="relative min-w-0 w-full">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher (référence, client, téléphone)…"
+              placeholder="Rechercher…"
               className="h-9 pl-9"
             />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="h-9 w-[170px]">
-              <SelectValue placeholder="Statut" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les statuts</SelectItem>
-              {KANBAN_COLUMNS.map((s) => (
-                <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={cityFilter} onValueChange={setCityFilter}>
-            <SelectTrigger className="h-9 w-[140px]">
-              <SelectValue placeholder="Ville" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Toutes les villes</SelectItem>
-              {cities.map((city) => (
-                <SelectItem key={city.slug} value={city.slug}>
-                  {city.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={sourceFilter} onValueChange={setSourceFilter}>
-            <SelectTrigger className="h-9 w-[150px]">
-              <SelectValue placeholder="Source" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Toutes les sources</SelectItem>
-              {SOURCE_FILTERS.map((source) => (
-                <SelectItem key={source.value} value={source.value}>
-                  {source.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {hasActiveFilters ? (
-            <Button variant="outline" size="sm" onClick={clearFilters}>
-              <X className="size-3.5" /> Effacer
-            </Button>
-          ) : (
-            <Button variant="outline" size="sm" disabled>
-              <Filter className="size-3.5" /> Plus de filtres
-            </Button>
-          )}
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="h-9 w-full sm:w-[170px]">
+                <SelectValue placeholder="Statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les statuts</SelectItem>
+                {KANBAN_COLUMNS.map((s) => (
+                  <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={cityFilter} onValueChange={setCityFilter}>
+              <SelectTrigger className="h-9 w-full sm:w-[140px]">
+                <SelectValue placeholder="Ville" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les villes</SelectItem>
+                {cities.map((city) => (
+                  <SelectItem key={city.slug} value={city.slug}>
+                    {city.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={sourceFilter} onValueChange={setSourceFilter}>
+              <SelectTrigger className="h-9 w-full sm:w-[150px]">
+                <SelectValue placeholder="Source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les sources</SelectItem>
+                {SOURCE_FILTERS.map((source) => (
+                  <SelectItem key={source.value} value={source.value}>
+                    {source.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {hasActiveFilters ? (
+              <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={clearFilters}>
+                <X className="size-3.5" /> Effacer
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" className="hidden w-full sm:inline-flex sm:w-auto" disabled>
+                <Filter className="size-3.5" /> Plus de filtres
+              </Button>
+            )}
+          </div>
         </div>
       </Card>
 
@@ -413,21 +425,122 @@ function OrdersKanban({
   canDeleteOrder: boolean;
   onDelete: (order: Pick<Order, "id" | "ref" | "client">) => void;
 }) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const columnRefs = useRef<Partial<Record<OrderStatus, HTMLDivElement | null>>>(
+    {}
+  );
+  const [activeColumn, setActiveColumn] = useState<OrderStatus>(
+    KANBAN_COLUMNS[0]
+  );
+
+  const columnCounts = useMemo(() => {
+    const counts = Object.fromEntries(
+      KANBAN_COLUMNS.map((status) => [status, 0])
+    ) as Record<OrderStatus, number>;
+    for (const order of orders) {
+      const column = kanbanColumnForStatus(order.status);
+      counts[column] = (counts[column] ?? 0) + 1;
+    }
+    return counts;
+  }, [orders]);
+
+  const scrollToColumn = (status: OrderStatus) => {
+    setActiveColumn(status);
+    const node = columnRefs.current[status];
+    node?.scrollIntoView({
+      behavior: "smooth",
+      inline: "start",
+      block: "nearest",
+    });
+  };
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+
+    const updateActiveFromScroll = () => {
+      // Desktop grid does not scroll horizontally.
+      if (window.matchMedia("(min-width: 1024px)").matches) return;
+
+      let closest: OrderStatus = KANBAN_COLUMNS[0];
+      let closestDistance = Number.POSITIVE_INFINITY;
+      const left = scroller.getBoundingClientRect().left;
+
+      for (const status of KANBAN_COLUMNS) {
+        const node = columnRefs.current[status];
+        if (!node) continue;
+        const distance = Math.abs(node.getBoundingClientRect().left - left);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closest = status;
+        }
+      }
+      setActiveColumn((current) => (current === closest ? current : closest));
+    };
+
+    scroller.addEventListener("scroll", updateActiveFromScroll, {
+      passive: true,
+    });
+    return () => scroller.removeEventListener("scroll", updateActiveFromScroll);
+  }, []);
+
   return (
     <div className="w-full pb-4">
-      <div className="grid grid-cols-6 gap-2 xl:gap-2.5">
+      <div className="-mx-1 mb-3 flex gap-2 overflow-x-auto px-1 pb-1 lg:hidden">
+        {KANBAN_COLUMNS.map((status) => {
+          const label = KANBAN_COLUMN_LABEL[status] ?? STATUS_LABEL[status];
+          const active = activeColumn === status;
+          return (
+            <button
+              key={status}
+              type="button"
+              onClick={() => scrollToColumn(status)}
+              className={cn(
+                "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                active
+                  ? "border-brand bg-brand-soft text-brand-deep"
+                  : "border-border bg-card text-muted-foreground"
+              )}
+            >
+              <span className="max-w-[9.5rem] truncate">{label}</span>
+              <span
+                className={cn(
+                  "inline-flex min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-semibold",
+                  active
+                    ? "bg-brand text-white"
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                {columnCounts[status] ?? 0}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div
+        ref={scrollerRef}
+        className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 lg:mx-0 lg:grid lg:grid-cols-6 lg:gap-2 lg:overflow-visible lg:px-0 lg:snap-none xl:gap-2.5"
+      >
         {KANBAN_COLUMNS.map((status) => {
           const items = orders.filter(
             (order) => kanbanColumnForStatus(order.status) === status
           );
           return (
-            <KanbanColumn
+            <div
               key={status}
-              status={status}
-              orders={items}
-              canDeleteOrder={canDeleteOrder}
-              onDelete={onDelete}
-            />
+              ref={(node) => {
+                columnRefs.current[status] = node;
+              }}
+              className="w-[min(85vw,20rem)] shrink-0 snap-start lg:w-auto lg:min-w-0"
+            >
+              <KanbanColumn
+                status={status}
+                orders={items}
+                canDeleteOrder={canDeleteOrder}
+                onDelete={onDelete}
+              />
+            </div>
           );
         })}
       </div>
@@ -516,7 +629,7 @@ function KanbanColumn({
   return (
     <div className="flex min-w-0 flex-col">
       <div className="mb-2 flex items-start gap-1.5 px-0.5">
-        <h3 className="min-w-0 flex-1 text-[11px] font-semibold leading-tight text-foreground xl:text-xs">
+        <h3 className="min-w-0 flex-1 text-xs font-semibold leading-tight text-foreground">
           {KANBAN_COLUMN_LABEL[status] ?? STATUS_LABEL[status]}
         </h3>
         <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground">

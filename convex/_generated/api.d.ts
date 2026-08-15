@@ -38,6 +38,7 @@ import type * as lib_purgeAuthUser from "../lib/purgeAuthUser.js";
 import type * as lib_quotePricing from "../lib/quotePricing.js";
 import type * as lib_refs from "../lib/refs.js";
 import type * as lib_rentalDates from "../lib/rentalDates.js";
+import type * as lib_siteUrl from "../lib/siteUrl.js";
 import type * as lib_submitSupplierQuote from "../lib/submitSupplierQuote.js";
 import type * as lib_supplierOrderNotifications from "../lib/supplierOrderNotifications.js";
 import type * as lib_supplierProfile from "../lib/supplierProfile.js";
@@ -101,6 +102,7 @@ declare const fullApi: ApiFromModules<{
   "lib/quotePricing": typeof lib_quotePricing;
   "lib/refs": typeof lib_refs;
   "lib/rentalDates": typeof lib_rentalDates;
+  "lib/siteUrl": typeof lib_siteUrl;
   "lib/submitSupplierQuote": typeof lib_submitSupplierQuote;
   "lib/supplierOrderNotifications": typeof lib_supplierOrderNotifications;
   "lib/supplierProfile": typeof lib_supplierProfile;
