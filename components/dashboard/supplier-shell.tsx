@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import {
   SupplierWebappInstallPrompt,
 } from "@/components/crm/supplier-webapp-install-prompt";
+import { SupplierPushPrompt } from "@/components/crm/supplier-push-prompt";
 import { SupplierNotificationBell } from "@/components/dashboard/supplier-notification-bell";
 import {
   DropdownMenu,
@@ -461,6 +462,7 @@ export function SupplierShell({ children }: { children: ReactNode }) {
             {profileComplete ? (
               <SupplierWebappInstallPrompt install={pwaInstall} />
             ) : null}
+            {profileComplete ? <SupplierPushPrompt enabled /> : null}
             {children}
           </main>
         </div>

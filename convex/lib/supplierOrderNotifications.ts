@@ -24,8 +24,22 @@ export async function notifySupplierOfAssignment(
   );
   const email = args.supplier.email?.trim();
   const customer = await ctx.db.get(args.order.customerId);
-  const clientName = customer ? resolveOrderClientName(args.order, customer) : "Client";
+  const clientName = customer
+    ? resolveOrderClientName(args.order, customer)
+    : "Client";
   const clientPhone = customer?.phone?.trim() || "";
+
+  const portalBase =
+    args.supplier.partnerKind === "soins" ? "/prestataire" : "/supplier";
+  const pushUrl = `${portalBase}/orders/${args.orderId}`;
+
+  await ctx.scheduler.runAfter(0, internal.webPush.sendToSupplier, {
+    supplierId: args.supplier._id,
+    title: "Nouvelle commande SOS Santé",
+    body: `${args.order.ref} · ${clientName}${args.order.item ? ` · ${args.order.item}` : ""}`,
+    url: pushUrl,
+    tag: `order-${args.orderId}`,
+  });
 
   if (email) {
     await ctx.scheduler.runAfter(0, internal.email.sendSupplierOrderAssignment, {

@@ -50,6 +50,8 @@ import type * as notifications from "../notifications.js";
 import type * as orders from "../orders.js";
 import type * as platformSettings from "../platformSettings.js";
 import type * as presence from "../presence.js";
+import type * as pushInternal from "../pushInternal.js";
+import type * as pushSubscriptions from "../pushSubscriptions.js";
 import type * as quotes from "../quotes.js";
 import type * as rentalReminders from "../rentalReminders.js";
 import type * as seedTestSupplier from "../seedTestSupplier.js";
@@ -62,6 +64,7 @@ import type * as supplierPortal from "../supplierPortal.js";
 import type * as supplierTimeouts from "../supplierTimeouts.js";
 import type * as suppliers from "../suppliers.js";
 import type * as validators from "../validators.js";
+import type * as webPush from "../webPush.js";
 import type * as whatsappChannels from "../whatsappChannels.js";
 import type * as whatsappMessenger from "../whatsappMessenger.js";
 
@@ -114,6 +117,8 @@ declare const fullApi: ApiFromModules<{
   orders: typeof orders;
   platformSettings: typeof platformSettings;
   presence: typeof presence;
+  pushInternal: typeof pushInternal;
+  pushSubscriptions: typeof pushSubscriptions;
   quotes: typeof quotes;
   rentalReminders: typeof rentalReminders;
   seedTestSupplier: typeof seedTestSupplier;
@@ -126,6 +131,7 @@ declare const fullApi: ApiFromModules<{
   supplierTimeouts: typeof supplierTimeouts;
   suppliers: typeof suppliers;
   validators: typeof validators;
+  webPush: typeof webPush;
   whatsappChannels: typeof whatsappChannels;
   whatsappMessenger: typeof whatsappMessenger;
 }>;

@@ -24,6 +24,7 @@ import {
   BarChart3,
   AlertTriangle,
   Bell,
+  BellRing,
   UserCog,
   Settings,
   ScrollText,
@@ -71,6 +72,7 @@ export const ADMIN_NAV: NavItem[] = [
 const ADMIN_NAV_SECONDARY: NavItem[] = [
   { href: "/admin/complaints", label: "Réclamations", icon: AlertTriangle, permission: "complaints.view" },
   { href: "/admin/notifications", label: "Notifications", icon: Bell, permission: "notifications.view" },
+  { href: "/admin/push-notifications", label: "Push mobile", icon: BellRing, permission: "notifications.view" },
   { href: "/admin/users", label: "Utilisateurs", icon: UserCog, permission: "users.invite" },
   { href: "/admin/settings", label: "Paramètres", icon: Settings, permission: "settings.manage" },
   { href: "/admin/audit-logs", label: "Audit logs", icon: ScrollText, permission: "audit.view" },

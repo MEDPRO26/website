@@ -294,6 +294,19 @@ export default defineSchema({
     .index("by_supplierId_createdAt", ["supplierId", "createdAt"])
     .index("by_supplierId_read", ["supplierId", "read"]),
 
+  /** Web Push subscriptions for supplier / prestataire PWAs. */
+  pushSubscriptions: defineTable({
+    supplierId: v.id("suppliers"),
+    endpoint: v.string(),
+    p256dh: v.string(),
+    auth: v.string(),
+    userAgent: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_supplierId", ["supplierId"])
+    .index("by_endpoint", ["endpoint"]),
+
   whatsappChannels: defineTable({
     slug: v.string(),
     label: v.string(),
