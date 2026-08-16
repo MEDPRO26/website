@@ -57,8 +57,6 @@ async function deliverToSubscriptions(
             // Keep message until the phone wakes (OEM battery savers delay delivery).
             TTL: 60 * 60 * 24,
             urgency: "high",
-            topic: payload.tag?.slice(0, 32) || "sos-sante",
-            contentEncoding: "aes128gcm",
           }
         );
         sent += 1;
