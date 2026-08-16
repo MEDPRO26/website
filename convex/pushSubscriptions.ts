@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 import {
   getStaffProfile,
   requireAdminPermission,
@@ -112,6 +113,24 @@ export const assertAdminCanBroadcast = mutation({
   args: {},
   handler: async (ctx) => {
     await requireAdminPermission(ctx, "notifications.view");
+    return null;
+  },
+});
+
+/** Partner self-test: schedule a real Web Push to this account's devices. */
+export const requestSelfTest = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const { supplier } = await requireSupplierOnboarding(ctx);
+    const portalBase =
+      supplier.partnerKind === "soins" ? "/prestataire" : "/supplier";
+    await ctx.scheduler.runAfter(0, internal.webPush.sendToSupplier, {
+      supplierId: supplier._id,
+      title: "Test SOS Santé",
+      body: "Notification système OK. Fermez l'app et renvoyez un test pour vérifier en arrière-plan.",
+      url: portalBase,
+      tag: `push-test-${Date.now()}`,
+    });
     return null;
   },
 });

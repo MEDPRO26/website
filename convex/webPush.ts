@@ -53,7 +53,13 @@ async function deliverToSubscriptions(
             keys: { p256dh: sub.p256dh, auth: sub.auth },
           },
           body,
-          { TTL: 60 * 60 * 12, urgency: "high" }
+          {
+            // Keep message until the phone wakes (OEM battery savers delay delivery).
+            TTL: 60 * 60 * 24,
+            urgency: "high",
+            topic: payload.tag?.slice(0, 32) || "sos-sante",
+            contentEncoding: "aes128gcm",
+          }
         );
         sent += 1;
       } catch (err) {

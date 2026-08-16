@@ -51,11 +51,25 @@ const nextConfig: NextConfig = {
     ];
   },
   async headers() {
+    const swHeaders = [
+      {
+        source: "/sw.js",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=0, must-revalidate",
+          },
+          { key: "Service-Worker-Allowed", value: "/" },
+        ],
+      },
+    ];
+
     if (allowIndexing) {
-      return [];
+      return swHeaders;
     }
 
     return [
+      ...swHeaders,
       { source: "/:path*", headers: noIndexHeaders },
       { source: "/products/:path*", headers: noIndexHeaders },
       { source: "/services/:path*", headers: noIndexHeaders },

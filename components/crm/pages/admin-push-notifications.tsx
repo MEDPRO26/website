@@ -125,9 +125,17 @@ export function AdminPushNotificationsPage() {
 
       {stats && !stats.configured ? (
         <Card className="mb-4 border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-950">
-          Configurez <code className="font-mono">VAPID_PUBLIC_KEY</code> et{" "}
-          <code className="font-mono">VAPID_PRIVATE_KEY</code> dans les
-          variables d&apos;environnement Convex pour activer l&apos;envoi.
+          <p className="font-medium">Clés VAPID manquantes sur ce déploiement Convex</p>
+          <p className="mt-1 text-amber-900/90">
+            Vous les avez peut‑être ajoutées en <strong>Development</strong>, mais
+            sossante.ma utilise <strong>Production</strong>. Ouvrez Convex →
+            basculez sur le déploiement Production → Settings → Environment
+            Variables, puis ajoutez{" "}
+            <code className="font-mono">VAPID_PUBLIC_KEY</code>,{" "}
+            <code className="font-mono">VAPID_PRIVATE_KEY</code> et{" "}
+            <code className="font-mono">VAPID_SUBJECT</code> (mêmes valeurs).
+            Rechargez ensuite cette page.
+          </p>
         </Card>
       ) : null}
 

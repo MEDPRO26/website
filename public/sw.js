@@ -1,17 +1,31 @@
-/* Service worker: PWA install + Web Push notifications for partners. */
+/* SOS Santé partner SW — bump SW_VERSION when changing push behavior. */
+const SW_VERSION = "sos-push-v4";
+
 self.addEventListener("install", (event) => {
-  event.waitUntil(self.skipWaiting());
+  event.waitUntil(
+    (async () => {
+      await self.skipWaiting();
+    })()
+  );
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    (async () => {
+      await self.clients.claim();
+    })()
+  );
 });
 
 self.addEventListener("push", (event) => {
+  event.waitUntil(handlePush(event));
+});
+
+async function handlePush(event) {
   let data = {
     title: "SOS Santé",
     body: "Vous avez une nouvelle notification.",
-    url: "/",
+    url: "/fournisseurs",
     tag: "sos-sante",
   };
 
@@ -19,36 +33,53 @@ self.addEventListener("push", (event) => {
     if (event.data) {
       const parsed = event.data.json();
       data = {
-        title: parsed.title || data.title,
-        body: parsed.body || data.body,
-        url: parsed.url || data.url,
-        tag: parsed.tag || data.tag,
+        title: String(parsed.title || data.title),
+        body: String(parsed.body || data.body),
+        url: String(parsed.url || data.url),
+        tag: String(parsed.tag || data.tag),
       };
     }
   } catch {
     try {
       const text = event.data?.text();
-      if (text) data.body = text;
+      if (text) {
+        try {
+          const parsed = JSON.parse(text);
+          data = {
+            title: String(parsed.title || data.title),
+            body: String(parsed.body || data.body),
+            url: String(parsed.url || data.url),
+            tag: String(parsed.tag || data.tag),
+          };
+        } catch {
+          data.body = text;
+        }
+      }
     } catch {
-      // keep defaults
+      // keep defaults — still show a notification so the push is acknowledged
     }
   }
 
-  event.waitUntil(
-    self.registration.showNotification(data.title, {
-      body: data.body,
-      icon: "/apple-touch-icon.png",
-      badge: "/apple-touch-icon.png",
-      tag: data.tag,
-      renotify: true,
-      data: { url: data.url },
-    })
-  );
-});
+  // Always show a system notification, even if a tab is open.
+  // That way partners still get a real OS banner when the app is closed.
+  await self.registration.showNotification(data.title, {
+    body: data.body,
+    icon: "/apple-touch-icon.png",
+    badge: "/apple-touch-icon.png",
+    tag: data.tag,
+    renotify: true,
+    requireInteraction: true,
+    vibrate: [120, 80, 120],
+    data: {
+      url: data.url,
+      version: SW_VERSION,
+    },
+  });
+}
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || "/";
+  const targetUrl = event.notification.data?.url || "/fournisseurs";
   const absolute =
     targetUrl.startsWith("http://") || targetUrl.startsWith("https://")
       ? targetUrl
@@ -65,7 +96,11 @@ self.addEventListener("notificationclick", (event) => {
         if ("focus" in client) {
           await client.focus();
           if ("navigate" in client) {
-            await client.navigate(absolute);
+            try {
+              await client.navigate(absolute);
+            } catch {
+              // navigate may fail on older browsers
+            }
           }
           return;
         }

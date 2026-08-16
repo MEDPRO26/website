@@ -4,6 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
+import { isStandaloneMode } from "@/hooks/use-supplier-pwa-install";
+
+const SW_URL = "/sw.js?v=4";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -14,6 +17,43 @@ function urlBase64ToUint8Array(base64String: string) {
     output[i] = raw.charCodeAt(i);
   }
   return output;
+}
+
+function isIosDevice() {
+  if (typeof navigator === "undefined") return false;
+  return /iPad|iPhone|iPod/i.test(navigator.userAgent);
+}
+
+async function ensureServiceWorker() {
+  const registration = await navigator.serviceWorker.register(SW_URL, {
+    scope: "/",
+    updateViaCache: "none",
+  });
+
+  try {
+    await registration.update();
+  } catch {
+    // ignore update races
+  }
+
+  await navigator.serviceWorker.ready;
+
+  // Wait briefly for the new worker to take control (needed after SW upgrades).
+  if (!navigator.serviceWorker.controller) {
+    await new Promise<void>((resolve) => {
+      const onChange = () => {
+        navigator.serviceWorker.removeEventListener("controllerchange", onChange);
+        resolve();
+      };
+      navigator.serviceWorker.addEventListener("controllerchange", onChange);
+      window.setTimeout(() => {
+        navigator.serviceWorker.removeEventListener("controllerchange", onChange);
+        resolve();
+      }, 2500);
+    });
+  }
+
+  return registration;
 }
 
 export function useSupplierPush(enabled: boolean) {
@@ -48,6 +88,12 @@ export function useSupplierPush(enabled: boolean) {
     }
   }, []);
 
+  // Keep SW fresh while the partner uses the portal.
+  useEffect(() => {
+    if (!enabled || !supported) return;
+    void ensureServiceWorker().catch(() => undefined);
+  }, [enabled, supported]);
+
   const enablePush = useCallback(async () => {
     if (!supported) {
       toast.error(
@@ -62,25 +108,40 @@ export function useSupplierPush(enabled: boolean) {
       return false;
     }
 
+    if (isIosDevice() && !isStandaloneMode()) {
+      toast.error(
+        "Sur iPhone : installez d'abord l'app (Partager → Sur l'écran d'accueil), puis réactivez les notifications depuis l'icône."
+      );
+      return false;
+    }
+
     setBusy(true);
     try {
-      const registration = await navigator.serviceWorker.register("/sw.js");
-      await navigator.serviceWorker.ready;
+      const registration = await ensureServiceWorker();
 
       const result = await Notification.requestPermission();
       setPermission(result);
       if (result !== "granted") {
-        toast.error("Permission refusée. Activez les notifications dans les réglages.");
+        toast.error(
+          "Permission refusée. Activez les notifications dans les réglages du téléphone."
+        );
         return false;
       }
 
+      // Refresh subscription against the current SW + VAPID key.
       const existing = await registration.pushManager.getSubscription();
-      const subscription =
-        existing ??
-        (await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-        }));
+      if (existing) {
+        try {
+          await existing.unsubscribe();
+        } catch {
+          // continue and create a fresh one
+        }
+      }
+
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+      });
 
       const json = subscription.toJSON();
       if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) {
@@ -94,7 +155,9 @@ export function useSupplierPush(enabled: boolean) {
         userAgent: navigator.userAgent,
       });
 
-      toast.success("Notifications activées sur cet appareil.");
+      toast.success(
+        "Notifications système activées. Elles arriveront même si l'app est fermée."
+      );
       return true;
     } catch (err) {
       toast.error(
@@ -138,6 +201,7 @@ export function useSupplierPush(enabled: boolean) {
     permission,
     subscribed: status?.subscribed ?? false,
     configured: status?.configured ?? Boolean(vapidPublicKey),
+    needsHomeScreen: isIosDevice() && !isStandaloneMode(),
     enablePush,
     disablePush,
   };
