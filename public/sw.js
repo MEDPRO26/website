@@ -1,5 +1,5 @@
 /* SOS Santé partner SW — bump SW_VERSION when changing push behavior. */
-const SW_VERSION = "sos-push-v5";
+const SW_VERSION = "sos-push-v6";
 const ICON_CACHE = `sos-push-icons-${SW_VERSION}`;
 const PRECACHE_URLS = [
   "/notification-badge.png",
