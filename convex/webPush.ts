@@ -54,9 +54,12 @@ async function deliverToSubscriptions(
           },
           body,
           {
-            // Keep message until the phone wakes (OEM battery savers delay delivery).
-            TTL: 60 * 60 * 24,
+            // Keep the message until Chrome wakes (OEM battery savers delay delivery).
+            TTL: 60 * 60 * 24 * 3,
             urgency: "high",
+            topic: (payload.tag || "sos-sante")
+              .replace(/[^A-Za-z0-9\-_]/g, "")
+              .slice(0, 32) || "sossante",
           }
         );
         sent += 1;
@@ -156,7 +159,7 @@ export const sendBroadcast = action({
       title,
       body,
       url: args.url?.trim() || undefined,
-      tag: "sos-admin-broadcast",
+      tag: `sos-admin-${Date.now()}`,
     });
   },
 });

@@ -10,11 +10,14 @@ export default function manifest(): MetadataRoute.Manifest {
       "Accédez à vos commandes et à votre tableau de bord fournisseur SOS Santé.",
     // Open login first; already-logged-in suppliers are redirected to /supplier.
     start_url: SUPPLIER_LOGIN_PATH,
+    id: "/fournisseurs",
     scope: "/",
     display: "standalone",
     background_color: "#e8ecf2",
     theme_color: "#32a0f3",
     orientation: "portrait",
+    // Chrome's reserved Web Push sender. Helps Android wake the PWA when closed.
+    gcm_sender_id: "103953800507",
     icons: [
       {
         src: "/favicon-512.png",
@@ -28,6 +31,12 @@ export default function manifest(): MetadataRoute.Manifest {
         type: "image/png",
         purpose: "any",
       },
+      {
+        src: "/notification-badge.png",
+        sizes: "96x96",
+        type: "image/png",
+        purpose: "monochrome",
+      },
     ],
-  };
+  } as MetadataRoute.Manifest;
 }

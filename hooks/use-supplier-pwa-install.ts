@@ -57,7 +57,7 @@ export function useSupplierPwaInstall(supplier: Doc<"suppliers"> | null) {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
     void navigator.serviceWorker
-      .register("/sw.js?v=4", { scope: "/", updateViaCache: "none" })
+      .register("/sw.js", { scope: "/" })
       .catch(() => undefined);
   }, []);
 

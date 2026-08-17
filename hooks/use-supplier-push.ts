@@ -6,7 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import { isStandaloneMode } from "@/hooks/use-supplier-pwa-install";
 
-const SW_URL = "/sw.js?v=4";
+const SW_URL = "/sw.js";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -25,35 +25,9 @@ function isIosDevice() {
 }
 
 async function ensureServiceWorker() {
-  const registration = await navigator.serviceWorker.register(SW_URL, {
+  return await navigator.serviceWorker.register(SW_URL, {
     scope: "/",
-    updateViaCache: "none",
   });
-
-  try {
-    await registration.update();
-  } catch {
-    // ignore update races
-  }
-
-  await navigator.serviceWorker.ready;
-
-  // Wait briefly for the new worker to take control (needed after SW upgrades).
-  if (!navigator.serviceWorker.controller) {
-    await new Promise<void>((resolve) => {
-      const onChange = () => {
-        navigator.serviceWorker.removeEventListener("controllerchange", onChange);
-        resolve();
-      };
-      navigator.serviceWorker.addEventListener("controllerchange", onChange);
-      window.setTimeout(() => {
-        navigator.serviceWorker.removeEventListener("controllerchange", onChange);
-        resolve();
-      }, 2500);
-    });
-  }
-
-  return registration;
 }
 
 export function useSupplierPush(enabled: boolean) {
@@ -88,7 +62,6 @@ export function useSupplierPush(enabled: boolean) {
     }
   }, []);
 
-  // Keep SW fresh while the partner uses the portal.
   useEffect(() => {
     if (!enabled || !supported) return;
     void ensureServiceWorker().catch(() => undefined);
@@ -118,6 +91,7 @@ export function useSupplierPush(enabled: boolean) {
     setBusy(true);
     try {
       const registration = await ensureServiceWorker();
+      await navigator.serviceWorker.ready;
 
       const result = await Notification.requestPermission();
       setPermission(result);
@@ -128,7 +102,6 @@ export function useSupplierPush(enabled: boolean) {
         return false;
       }
 
-      // Refresh subscription against the current SW + VAPID key.
       const existing = await registration.pushManager.getSubscription();
       if (existing) {
         try {
