@@ -13,6 +13,14 @@ import {
 import { categoryParamToValue } from "@/lib/catalog-categories";
 import { DEFAULT_CITY_SLUG } from "@/lib/cities";
 import {
+  crmAbsoluteUrl,
+  isCrmHostname,
+  isCrmPath,
+  isDevLikeHostname,
+  isPublicHostname,
+  publicAbsoluteUrl,
+} from "@/lib/hosts";
+import {
   LEGACY_VENTE_PAGE_PATH,
   seoCategoryToCatalogParam,
   venteCategoryPath,
@@ -114,10 +122,45 @@ function handleLegacyRedirects(request: NextRequest) {
   return null;
 }
 
+function handleHostSplit(request: NextRequest) {
+  const host = request.headers.get("host");
+  const { pathname, search } = request.nextUrl;
+
+  if (isDevLikeHostname(host)) {
+    return null;
+  }
+
+  if (isPublicHostname(host) && isCrmPath(pathname)) {
+    return NextResponse.redirect(crmAbsoluteUrl(pathname, search), 308);
+  }
+
+  if (isCrmHostname(host)) {
+    if (pathname === "/" || pathname === "") {
+      return withNoIndex(
+        NextResponse.redirect(crmAbsoluteUrl(ADMIN_LOGIN_PATH), 308)
+      );
+    }
+    if (!isCrmPath(pathname)) {
+      return NextResponse.redirect(publicAbsoluteUrl(pathname, search), 308);
+    }
+    return "crm";
+  }
+
+  return null;
+}
+
 export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
-  const legacyRedirect = handleLegacyRedirects(request);
-  if (legacyRedirect) {
-    return legacyRedirect;
+  const hostSplit = handleHostSplit(request);
+  if (hostSplit && hostSplit !== "crm") {
+    return hostSplit;
+  }
+  const onCrmHost = hostSplit === "crm";
+
+  if (!onCrmHost) {
+    const legacyRedirect = handleLegacyRedirects(request);
+    if (legacyRedirect) {
+      return legacyRedirect;
+    }
   }
 
   if (isObscureLogin(request)) {
@@ -141,6 +184,10 @@ export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
   }
 
   if (isPrivateCrmRoute(request)) {
+    return withNoIndex(NextResponse.next());
+  }
+
+  if (onCrmHost) {
     return withNoIndex(NextResponse.next());
   }
 

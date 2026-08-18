@@ -99,7 +99,7 @@ function BrandMark() {
           Centre SOS Santé
         </p>
         <p className="truncate text-[11px] text-[var(--sidebar-foreground)] leading-tight">
-          site : sossante.ma
+          CRM · s2mbo.com
         </p>
       </div>
     </Link>

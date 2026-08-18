@@ -1,3 +1,4 @@
+import { isCrmHostname } from "@/lib/hosts";
 import {
   getSiteUrl,
   getSitemapEntries,
@@ -7,7 +8,14 @@ import {
 import { buildUrlsetXml, SITEMAP_XML_HEADERS } from "@/lib/sitemap-xml";
 
 export function createSitemapSectionHandler(id: SitemapId) {
-  return function GET() {
+  return function GET(request: Request) {
+    if (isCrmHostname(new URL(request.url).host)) {
+      return new Response(
+        `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>`,
+        { headers: SITEMAP_XML_HEADERS }
+      );
+    }
+
     const xml = buildUrlsetXml(
       getSitemapEntries(id),
       getSiteUrl(),

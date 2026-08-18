@@ -1,12 +1,24 @@
 import type { MetadataRoute } from "next";
+import { headers } from "next/headers";
 import { SITE_URL_DEFAULT } from "@/lib/brand";
+import { isCrmHostname } from "@/lib/hosts";
 import { allowIndexing, PRIVATE_CRM_PATHS } from "@/lib/indexing";
 
 const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL_DEFAULT
 ).replace(/\/$/, "");
 
-export default function robots(): MetadataRoute.Robots {
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const host = (await headers()).get("host");
+  if (isCrmHostname(host)) {
+    return {
+      rules: {
+        userAgent: "*",
+        disallow: "/",
+      },
+    };
+  }
+
   if (!allowIndexing) {
     return {
       rules: [

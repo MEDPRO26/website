@@ -2,12 +2,13 @@
 
 import { v } from "convex/values";
 import { internalAction } from "./_generated/server";
+import { siteUrl } from "./lib/siteUrl";
 
 function buildInviteEmailHtml(args: {
   supplierName: string;
   inviteUrl: string;
 }) {
-  const site = (process.env.SITE_URL ?? "https://sossante.ma").replace(/\/$/, "");
+  const site = siteUrl();
   const isSoins = args.inviteUrl.includes("/prestataire/");
   const loginUrl = `${site}${isSoins ? "/prestataires" : "/fournisseurs"}`;
   return `
@@ -146,7 +147,7 @@ function buildAssistantInviteEmailHtml(args: {
   role: string;
 }) {
   const roleLabel = args.role === "admin" ? "administrateur" : "assistant";
-  const loginUrl = `${(process.env.SITE_URL ?? "https://www.sossante.ma").replace(/\/$/, "")}/admin-me`;
+  const loginUrl = `${siteUrl()}/admin-me`;
   return `
 <!DOCTYPE html>
 <html lang="fr">

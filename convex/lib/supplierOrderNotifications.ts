@@ -3,6 +3,7 @@ import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 import { resolveOrderClientName } from "./orderClient";
+import { siteUrl } from "./siteUrl";
 import { notifySupplierNewOrderInApp } from "../supplierNotifications";
 
 export async function notifySupplierOfAssignment(
@@ -15,11 +16,11 @@ export async function notifySupplierOfAssignment(
 ) {
   await notifySupplierNewOrderInApp(ctx, args);
 
-  const siteUrl = process.env.SITE_URL ?? "http://localhost:3000";
+  const origin = siteUrl();
   // Login first so guests don't hit the hidden /supplier 404.
   const orderUrl = supplierOrderLoginUrl(
     args.orderId,
-    siteUrl,
+    origin,
     args.supplier.partnerKind
   );
   const email = args.supplier.email?.trim();
