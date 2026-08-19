@@ -50,16 +50,17 @@ function ApporteurPortal() {
         <Button
           type="button"
           variant="ghost"
+          className="shrink-0"
           onClick={() => {
             void signOut().then(() => router.push(APPORT_AFFAIRES_LOGIN_PATH));
           }}
         >
           <LogOut className="size-4" />
-          Se déconnecter
+          <span className="hidden sm:inline">Se déconnecter</span>
         </Button>
       </header>
-      <main className="mx-auto w-full max-w-[1100px] px-4 py-6 sm:px-6 sm:py-8">
-        <h1 className="mb-6 text-2xl font-bold tracking-tight text-[#2890e0] sm:text-3xl">
+      <main className="mx-auto w-full min-w-0 max-w-[1100px] px-3 py-4 sm:px-6 sm:py-8">
+        <h1 className="mb-4 text-xl font-bold leading-snug tracking-tight text-[#2890e0] sm:mb-6 sm:text-3xl">
           Tableau de Suivi des Commissions – Apport d’Affaires
         </h1>
         <ApportAffairesSheet variant="apporteur" />

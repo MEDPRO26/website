@@ -20,12 +20,12 @@ export function StatCard({
     info: "bg-info-soft text-info",
   };
   return (
-    <Card className="border-0 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)] transition-shadow hover:shadow-[0_2px_8px_rgba(15,23,42,0.06),0_12px_32px_rgba(15,23,42,0.08)] sm:p-5">
+    <Card className="border-0 bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)] transition-shadow hover:shadow-[0_2px_8px_rgba(15,23,42,0.06),0_12px_32px_rgba(15,23,42,0.08)] sm:p-5">
       <p className="text-xs font-semibold leading-snug text-foreground sm:text-sm">{label}</p>
-      <div className="mt-1.5 flex items-center justify-between gap-3 sm:mt-2">
-        <p className="text-xl font-bold tracking-tight text-foreground sm:text-3xl">{value}</p>
+      <div className="mt-1.5 flex items-center justify-between gap-2 sm:mt-2 sm:gap-3">
+        <p className="min-w-0 break-words text-lg font-bold tracking-tight text-foreground sm:text-3xl">{value}</p>
         {Icon ? (
-          <div className={cn("grid size-10 shrink-0 place-items-center rounded-2xl sm:size-11", toneBg[tone])}>
+          <div className={cn("grid size-8 shrink-0 place-items-center rounded-2xl sm:size-11", toneBg[tone])}>
             <Icon className="size-[18px] sm:size-5" />
           </div>
         ) : null}

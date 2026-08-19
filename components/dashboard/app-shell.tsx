@@ -417,7 +417,7 @@ export function AdminShell({
             onSignOut={handleSignOut}
             showAdminTools={variant === "crm"}
           />
-          <main className="flex-1 overflow-auto px-4 py-5 pb-24 sm:px-6 sm:py-6 md:pb-6">{children}</main>
+          <main className="min-w-0 flex-1 overflow-auto px-3 py-4 pb-24 sm:px-6 sm:py-6 md:pb-6">{children}</main>
         </div>
       </div>
     </div>

@@ -43,16 +43,16 @@ export function ApportAffairesPage() {
   }, [saved, settings]);
 
   return (
-    <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-6">
+    <div className="mx-auto flex w-full min-w-0 max-w-[1200px] flex-col gap-4 sm:gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#2890e0] sm:text-3xl">
+        <h1 className="text-xl font-bold leading-snug tracking-tight text-[#2890e0] sm:text-3xl">
           Tableau de Suivi des Commissions – Apport d’Affaires
         </h1>
       </div>
 
       <ApportRateNote />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         <StatCard
           label="Affaires"
           value={stats.count}

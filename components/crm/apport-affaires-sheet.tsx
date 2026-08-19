@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from "convex/react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
-import { Fragment, useEffect, useMemo, useRef, useState, type InputHTMLAttributes } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
@@ -205,6 +205,155 @@ function RateField({
   );
 }
 
+function CardField({
+  label,
+  children,
+  className,
+}: {
+  label: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("flex min-w-0 flex-col gap-1", className)}>
+      <span className="text-[10px] font-bold uppercase tracking-wide text-[#5c4d12]">
+        {label}
+      </span>
+      {children}
+    </div>
+  );
+}
+
+function SheetRowCard({
+  row,
+  variant,
+  settings,
+  onPatch,
+  onDelete,
+}: {
+  row: SheetRow;
+  variant: "admin" | "apporteur";
+  settings: ApportRateSettings;
+  onPatch: (patch: Partial<SheetRow>) => void;
+  onDelete?: () => void;
+}) {
+  const computed = computeApportRow({ ...row, settings });
+  const inputClass =
+    "h-11 w-full rounded-xl border border-[#d7deea] bg-[#eef8f1] px-3 text-sm outline-none placeholder:text-muted-foreground/70 focus:bg-white focus:ring-2 focus:ring-[#32a0f3]/35";
+
+  return (
+    <article className="rounded-2xl border border-[#d7deea] bg-white p-3 shadow-[0_8px_24px_rgba(15,23,42,0.06)] sm:p-4">
+      <div className="flex items-start gap-2">
+        <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
+          <CardField label="Client">
+            <input
+              value={row.client}
+              placeholder="Nom du client"
+              className={cn(inputClass, "font-bold")}
+              onChange={(event) => onPatch({ client: event.target.value })}
+            />
+          </CardField>
+          <CardField label="Date">
+            <input
+              type="date"
+              value={row.date}
+              className={cn(inputClass, "min-w-0")}
+              onChange={(event) => onPatch({ date: event.target.value })}
+            />
+          </CardField>
+        </div>
+        {onDelete ? (
+          <button
+            type="button"
+            className="mt-5 grid size-9 shrink-0 place-items-center rounded-xl text-muted-foreground hover:bg-red-50 hover:text-red-600"
+            onClick={onDelete}
+            aria-label="Supprimer la ligne"
+          >
+            <Trash2 className="size-4" />
+          </button>
+        ) : null}
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <CardField label="Montant contrat">
+          <div className="overflow-hidden rounded-xl border border-[#d7deea] bg-[#eef8f1]">
+            <AmountField
+              value={row.contractAmount}
+              onCommit={(next) => onPatch({ contractAmount: next })}
+            />
+          </div>
+        </CardField>
+        <CardField label="Taux commission">
+          {variant === "admin" ? (
+            <div className="overflow-hidden rounded-xl border border-[#d7deea] bg-[#eef8f1]">
+              <RateField
+                effectiveRate={computed.rate}
+                defaultRate={computed.defaultRate}
+                customRate={row.customRate}
+                onCommit={(next) => onPatch({ customRate: next })}
+              />
+            </div>
+          ) : (
+            <div className="flex h-11 items-center rounded-xl border border-[#d7deea] bg-[#eef8f1] px-3 text-sm tabular-nums text-muted-foreground">
+              {computed.rate == null ? "—" : formatRate(computed.rate)}
+            </div>
+          )}
+        </CardField>
+      </div>
+
+      <CardField label="Commission due" className="mt-3">
+        <div className="flex h-11 items-center justify-end rounded-xl border border-[#d7deea] bg-[#eef8f1] px-3 text-sm font-bold tabular-nums">
+          {computed.commissionDue == null
+            ? "—"
+            : formatDh(computed.commissionDue)}
+        </div>
+      </CardField>
+
+      {variant === "admin" ? (
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <CardField label="Acompte reçu">
+            <div className="overflow-hidden rounded-xl border border-[#d7deea] bg-[#eef8f1]">
+              <AmountField
+                value={row.depositReceived || null}
+                onCommit={(next) =>
+                  onPatch({ depositReceived: next ?? 0 })
+                }
+              />
+            </div>
+          </CardField>
+          <CardField label="Reste à payer">
+            <div
+              className={cn(
+                "flex h-11 items-center justify-end rounded-xl border border-[#d7deea] bg-[#eef8f1] px-3 text-sm font-semibold tabular-nums",
+                computed.remaining == null
+                  ? "text-muted-foreground"
+                  : computed.remaining > 0
+                    ? "text-[#c2410c]"
+                    : "text-[#15803d]"
+              )}
+            >
+              {computed.remaining == null
+                ? "—"
+                : formatDh(computed.remaining)}
+            </div>
+          </CardField>
+        </div>
+      ) : null}
+
+      <CardField label="Observation" className="mt-3">
+        <textarea
+          value={row.observation}
+          placeholder="Note"
+          rows={3}
+          title={row.observation}
+          className="min-h-[5.5rem] w-full resize-y rounded-xl border border-[#d7deea] bg-[#eef8f1] px-3 py-2 text-sm outline-none placeholder:text-muted-foreground/70 focus:bg-white focus:ring-2 focus:ring-[#32a0f3]/35"
+          onChange={(event) => onPatch({ observation: event.target.value })}
+        />
+      </CardField>
+    </article>
+  );
+}
+
 function AmountField({
   value,
   onCommit,
@@ -337,6 +486,12 @@ export function ApportAffairesSheet({
     );
   }, [rows, settings]);
 
+  const cardRows = useMemo(() => {
+    const filled = rows.filter((row) => !isBlank(row));
+    const firstBlank = rows.find((row) => isBlank(row));
+    return firstBlank ? [...filled, firstBlank] : filled;
+  }, [rows]);
+
   if (saved === undefined) {
     return (
       <p className="text-sm text-muted-foreground">Chargement du tableau…</p>
@@ -344,9 +499,60 @@ export function ApportAffairesSheet({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 space-y-4">
+      <div className="space-y-3 lg:hidden">
+        {cardRows.map((row) => (
+          <SheetRowCard
+            key={row.key}
+            row={row}
+            variant={variant}
+            settings={settings}
+            onPatch={(patch) => updateRow(row.key, patch)}
+            onDelete={
+              row.id && !isBlank(row)
+                ? () => {
+                    void remove({ id: row.id! }).then(() => {
+                      setRows((current) => [
+                        ...current.filter((item) => item.key !== row.key),
+                        newEmptyRow(),
+                      ]);
+                    });
+                  }
+                : undefined
+            }
+          />
+        ))}
+        <div className="rounded-2xl border border-[#d7deea] bg-[#f8fafc] px-4 py-3 text-sm">
+          <div className="flex items-center justify-between gap-3">
+            <span className="font-semibold">Totaux</span>
+            <span className="tabular-nums">{formatDh(totals.contracts)}</span>
+          </div>
+          <div className="mt-1 flex items-center justify-between gap-3 text-muted-foreground">
+            <span>Commission due</span>
+            <span className="font-semibold text-foreground tabular-nums">
+              {formatDh(totals.due)}
+            </span>
+          </div>
+          {variant === "admin" ? (
+            <>
+              <div className="mt-1 flex items-center justify-between gap-3 text-muted-foreground">
+                <span>Acomptes reçus</span>
+                <span className="tabular-nums">{formatDh(totals.deposits)}</span>
+              </div>
+              <div className="mt-1 flex items-center justify-between gap-3 text-muted-foreground">
+                <span>Reste à payer</span>
+                <span className="font-semibold tabular-nums text-[#c2410c]">
+                  {formatDh(totals.remaining)}
+                </span>
+              </div>
+            </>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="hidden min-w-0 lg:block">
       <div className="overflow-hidden rounded-[1.5rem] border border-[#d7deea] bg-white shadow-[0_8px_40px_rgba(15,23,42,0.08)]">
-        <div className="overflow-x-auto">
+        <div className="w-full min-w-0 overflow-x-auto overscroll-x-contain">
           <table className={cn(
             "w-full border-collapse text-sm",
             variant === "apporteur" ? "min-w-[1120px]" : "min-w-[1240px]"
@@ -493,7 +699,7 @@ export function ApportAffairesSheet({
                       {row.id && !isBlank(row) ? (
                         <button
                           type="button"
-                          className="grid size-9 place-items-center rounded-lg text-muted-foreground opacity-0 transition hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
+                          className="grid size-9 place-items-center rounded-lg text-muted-foreground transition hover:bg-red-50 hover:text-red-600 lg:opacity-0 lg:group-hover:opacity-100"
                           onClick={() => {
                             void remove({ id: row.id! }).then(() => {
                               setRows((current) => [
@@ -548,11 +754,13 @@ export function ApportAffairesSheet({
           </table>
         </div>
       </div>
+      </div>
 
       <div className="flex justify-end">
         <Button
           type="button"
           variant="outline"
+          className="w-full sm:w-auto"
           onClick={() => setRows((current) => [...current, newEmptyRow()])}
         >
           <Plus className="size-4" />
@@ -596,7 +804,7 @@ export function ApportRateNote() {
   const tiers = apportRateTiers(settings);
 
   return (
-    <div className="rounded-2xl border border-[#f0d9a8] bg-[#fff8e8] px-4 py-4 text-sm text-[#7a5b16] sm:px-5">
+    <div className="rounded-2xl border border-[#f0d9a8] bg-[#fff8e8] px-3 py-3 text-sm text-[#7a5b16] sm:px-5 sm:py-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="font-medium">
           Commission automatique selon le montant du contrat
@@ -605,9 +813,9 @@ export function ApportRateNote() {
           <span className="text-xs text-[#9a7a2e]">Enregistrement…</span>
         ) : null}
       </div>
-      <div className="mt-3 grid gap-2 sm:grid-cols-3">
-        <label className="flex flex-col gap-1 rounded-xl bg-white/80 px-3 py-2 ring-1 ring-[#ead56a]">
-          <span className="text-[11px] font-semibold uppercase tracking-wide">
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <label className="flex min-w-0 flex-col gap-1 rounded-xl bg-white/80 px-3 py-2 ring-1 ring-[#ead56a]">
+          <span className="text-[11px] font-semibold uppercase leading-tight tracking-wide">
             {tiers[0]?.hint}
           </span>
           <span className="flex items-center gap-1.5">
@@ -625,8 +833,8 @@ export function ApportRateNote() {
             <span className="text-xs font-semibold">%</span>
           </span>
         </label>
-        <label className="flex flex-col gap-1 rounded-xl bg-white/80 px-3 py-2 ring-1 ring-[#ead56a]">
-          <span className="text-[11px] font-semibold uppercase tracking-wide">
+        <label className="flex min-w-0 flex-col gap-1 rounded-xl bg-white/80 px-3 py-2 ring-1 ring-[#ead56a]">
+          <span className="text-[11px] font-semibold uppercase leading-tight tracking-wide">
             {tiers[1]?.hint}
           </span>
           <span className="flex items-center gap-1.5">
@@ -644,33 +852,33 @@ export function ApportRateNote() {
             <span className="text-xs font-semibold">%</span>
           </span>
         </label>
-        <label className="flex flex-col gap-1 rounded-xl bg-white/80 px-3 py-2 ring-1 ring-[#ead56a]">
-          <span className="text-[11px] font-semibold uppercase tracking-wide">
-            {tiers[2]?.hint}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <input
-              inputMode="decimal"
-              className="h-9 w-16 rounded-lg border border-[#ead56a] bg-white px-2 text-right text-sm font-semibold text-[#5c4d12] outline-none focus:ring-2 focus:ring-[#32a0f3]/30"
-              defaultValue={formatPercentInput(settings.highRate)}
-              key={`high-${settings.highRate}`}
-              onBlur={(event) => {
-                const rate = parsePercentInput(event.target.value);
-                if (rate == null) return;
-                update({ highRate: rate });
-              }}
-            />
-            <span className="text-xs font-semibold">%</span>
-          </span>
-        </label>
       </div>
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
-        <label className="flex items-center justify-between gap-3 rounded-xl bg-white/70 px-3 py-2 text-xs ring-1 ring-[#ead56a]/80">
-          <span className="font-medium">Plafond 1er palier</span>
+      <label className="mt-2 flex min-w-0 items-center justify-between gap-3 rounded-xl bg-white/80 px-3 py-2 ring-1 ring-[#ead56a]">
+        <span className="text-[11px] font-semibold uppercase leading-tight tracking-wide">
+          {tiers[2]?.hint}
+        </span>
+        <span className="flex shrink-0 items-center gap-1.5">
+          <input
+            inputMode="decimal"
+            className="h-9 w-16 rounded-lg border border-[#ead56a] bg-white px-2 text-right text-sm font-semibold text-[#5c4d12] outline-none focus:ring-2 focus:ring-[#32a0f3]/30"
+            defaultValue={formatPercentInput(settings.highRate)}
+            key={`high-${settings.highRate}`}
+            onBlur={(event) => {
+              const rate = parsePercentInput(event.target.value);
+              if (rate == null) return;
+              update({ highRate: rate });
+            }}
+          />
+          <span className="text-xs font-semibold">%</span>
+        </span>
+      </label>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <label className="flex min-w-0 flex-col gap-1 rounded-xl bg-white/70 px-3 py-2 text-xs ring-1 ring-[#ead56a]/80">
+          <span className="font-medium leading-tight">Plafond 1er palier</span>
           <span className="flex items-center gap-1">
             <input
               inputMode="decimal"
-              className="h-8 w-28 rounded-lg border border-[#ead56a] bg-white px-2 text-right text-sm font-semibold text-[#5c4d12] outline-none focus:ring-2 focus:ring-[#32a0f3]/30"
+              className="h-8 w-full min-w-0 rounded-lg border border-[#ead56a] bg-white px-2 text-right text-sm font-semibold text-[#5c4d12] outline-none focus:ring-2 focus:ring-[#32a0f3]/30"
               defaultValue={formatAmountInput(settings.lowMax)}
               key={`lowMax-${settings.lowMax}`}
               onBlur={(event) => {
@@ -682,12 +890,12 @@ export function ApportRateNote() {
             <span>DH</span>
           </span>
         </label>
-        <label className="flex items-center justify-between gap-3 rounded-xl bg-white/70 px-3 py-2 text-xs ring-1 ring-[#ead56a]/80">
-          <span className="font-medium">Plafond 2e palier</span>
+        <label className="flex min-w-0 flex-col gap-1 rounded-xl bg-white/70 px-3 py-2 text-xs ring-1 ring-[#ead56a]/80">
+          <span className="font-medium leading-tight">Plafond 2e palier</span>
           <span className="flex items-center gap-1">
             <input
               inputMode="decimal"
-              className="h-8 w-28 rounded-lg border border-[#ead56a] bg-white px-2 text-right text-sm font-semibold text-[#5c4d12] outline-none focus:ring-2 focus:ring-[#32a0f3]/30"
+              className="h-8 w-full min-w-0 rounded-lg border border-[#ead56a] bg-white px-2 text-right text-sm font-semibold text-[#5c4d12] outline-none focus:ring-2 focus:ring-[#32a0f3]/30"
               defaultValue={formatAmountInput(settings.midMax)}
               key={`midMax-${settings.midMax}`}
               onBlur={(event) => {
