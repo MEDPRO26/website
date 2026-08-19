@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/sonner";
-import { getPrivateRobotsMetadata } from "@/lib/indexing";
+import { crmPageMetadata } from "@/lib/crm-metadata";
 import "./crm.css";
 
-export const metadata: Metadata = {
-  robots: getPrivateRobotsMetadata(),
-};
+export const metadata: Metadata = crmPageMetadata("S2MBO");
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (

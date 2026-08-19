@@ -106,8 +106,8 @@ export function SupplierCommissionsPage() {
   return (
     <div>
       <PageHeader
-        title="Honoraire de SOS"
-        description="Commandes livrées — réglez l'honoraire de SOS Santé après paiement au client."
+        title="Honoraires"
+        description="Commandes livrées — réglez l'honoraire de S2MBO après paiement au client."
       />
 
       <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -149,10 +149,10 @@ export function SupplierCommissionsPage() {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground">
-                Virement bancaire — honoraire de SOS Santé
+                Virement bancaire — honoraire de S2MBO
               </p>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                Merci d&apos;effectuer le virement de l&apos;honoraire de SOS sur le
+                Merci d&apos;effectuer le virement de l&apos;honoraire de S2MBO sur le
                 compte CIH Bank ci-dessous, puis de téléverser le reçu lors du
                 règlement.
               </p>
@@ -222,7 +222,7 @@ export function SupplierCommissionsPage() {
 
       {rows.length === 0 ? (
         <Card className="p-8 text-center text-sm text-muted-foreground">
-          Aucun honoraire pour le moment. Les honoraires de SOS apparaissent ici une
+          Aucun honoraire pour le moment. Les honoraires de S2MBO apparaissent ici une
           fois la {isSoinsPortal ? "prestation" : "livraison"} confirmée.
         </Card>
       ) : (
@@ -247,7 +247,7 @@ export function SupplierCommissionsPage() {
                     Prix client
                   </th>
                   <th className="px-4 py-2.5 font-medium text-right whitespace-nowrap">
-                    Honoraire de SOS
+                    Honoraires
                   </th>
                   <th className="px-4 py-2.5 font-medium whitespace-nowrap">Statut</th>
                   <th className="px-4 py-2.5 font-medium whitespace-nowrap">Mode</th>

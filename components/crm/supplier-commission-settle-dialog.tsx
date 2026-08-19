@@ -238,7 +238,7 @@ export function SupplierCommissionSettleDialog({
           </DialogTitle>
           <DialogDescription>
             {targets.length === 0
-              ? "Indiquez comment vous avez réglé l'honoraire de SOS Santé."
+              ? "Indiquez comment vous avez réglé l'honoraire de S2MBO."
               : isBulk
                 ? `${targets.length} commandes · total ${formatMad(totalAmount)}`
                 : `Commande ${targets[0]!.orderRef} · honoraire ${formatMad(targets[0]!.commissionAmount)}`}

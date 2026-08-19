@@ -670,7 +670,7 @@ function SupplierOrderRow({ order }: { order: SupplierOrder }) {
     try {
       await cancelByClient({ orderId: order._id as Id<"orders"> });
       toast.success(
-        "Commande annulée par le client — retirée des honoraires SOS."
+        "Commande annulée par le client — retirée des honoraires S2MBO."
       );
       setCancelOpen(false);
     } catch (err) {
@@ -837,7 +837,7 @@ function SupplierOrderRow({ order }: { order: SupplierOrder }) {
               </AlertDialogTitle>
               <AlertDialogDescription>
                 La commande {order.ref} passera en « Commande annulée par le
-                client » et sera retirée de l&apos;onglet Honoraire de SOS.
+                client » et sera retirée de l&apos;onglet Honoraires.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

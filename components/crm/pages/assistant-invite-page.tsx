@@ -14,7 +14,7 @@ import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
-import { LOGO } from "@/lib/brand";
+import { CRM_BRAND_NAME, CRM_LOGO } from "@/lib/brand";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -85,7 +85,7 @@ export function AssistantInvitePage({ token }: AssistantInvitePageProps) {
       return;
     }
     if (staff && staff.role !== "supplier") {
-      router.replace("/admin");
+      router.replace("/projets");
     }
   }, [authLoading, emailMatches, staff, router]);
 
@@ -97,7 +97,7 @@ export function AssistantInvitePage({ token }: AssistantInvitePageProps) {
       const profile = await convex.query(api.staff.current, {});
       if (profile && profile.role !== "supplier") {
         toast.success("Compte assistant activé.");
-        router.replace("/admin");
+        router.replace("/projets");
         return;
       }
       await new Promise((resolve) => setTimeout(resolve, 200));
@@ -213,8 +213,8 @@ export function AssistantInvitePage({ token }: AssistantInvitePageProps) {
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-border">
             <Image
-              src={LOGO.crm}
-              alt="Centre SOS Santé"
+              src={CRM_LOGO}
+              alt={CRM_BRAND_NAME}
               width={56}
               height={56}
               className="size-14 object-contain"
@@ -222,7 +222,7 @@ export function AssistantInvitePage({ token }: AssistantInvitePageProps) {
           </div>
           <h1 className="text-2xl font-bold text-foreground">Invitation équipe</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Créez votre accès <strong>assistant</strong> pour le CRM SOS Santé.
+            Créez votre accès <strong>assistant</strong> pour le CRM S2MBO.
           </p>
           <p className="mt-1 text-xs text-muted-foreground">{invite.email}</p>
         </div>

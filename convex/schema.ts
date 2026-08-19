@@ -41,13 +41,15 @@ export default defineSchema({
     role: roleValidator,
     status: staffStatusValidator,
     supplierId: v.optional(v.id("suppliers")),
+    apporteurId: v.optional(v.id("apporteurs")),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_userId", ["userId"])
     .index("by_email", ["email"])
     .index("by_role", ["role"])
-    .index("by_supplierId", ["supplierId"]),
+    .index("by_supplierId", ["supplierId"])
+    .index("by_apporteurId", ["apporteurId"]),
 
   customers: defineTable({
     name: v.string(),
@@ -173,6 +175,31 @@ export default defineSchema({
   })
     .index("by_token", ["token"])
     .index("by_email", ["email"]),
+
+  apporteurs: defineTable({
+    name: v.string(),
+    email: v.string(),
+    status: staffStatusValidator,
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_email", ["email"])
+    .index("by_status", ["status"]),
+
+  apporteurInvitations: defineTable({
+    token: v.string(),
+    email: v.string(),
+    apporteurId: v.id("apporteurs"),
+    status: supplierInvitationStatusValidator,
+    invitedByStaffId: v.optional(v.id("staff")),
+    expiresAt: v.number(),
+    acceptedAt: v.optional(v.number()),
+    acceptedByUserId: v.optional(v.id("users")),
+    createdAt: v.number(),
+  })
+    .index("by_token", ["token"])
+    .index("by_email", ["email"])
+    .index("by_apporteurId", ["apporteurId"]),
 
   orderEvents: defineTable({
     orderId: v.id("orders"),
@@ -451,4 +478,33 @@ export default defineSchema({
   })
     .index("by_dateKey", ["dateKey"])
     .index("by_dateKey_sessionKey", ["dateKey", "sessionKey"]),
+
+  apportDeals: defineTable({
+    date: v.optional(v.string()),
+    client: v.string(),
+    contractAmount: v.optional(v.number()),
+    /** Override of the automatic bracket rate (0–1). Absent = use default. */
+    customRate: v.optional(v.number()),
+    /** Set when the row was created by an apporteur d’affaires. */
+    apporteurId: v.optional(v.id("apporteurs")),
+    depositReceived: v.number(),
+    observation: v.optional(v.string()),
+    sortOrder: v.number(),
+    createdBy: v.id("staff"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_sortOrder", ["sortOrder"])
+    .index("by_apporteurId", ["apporteurId"]),
+
+  apportSettings: defineTable({
+    key: v.literal("default"),
+    lowMax: v.number(),
+    lowRate: v.number(),
+    midMax: v.number(),
+    midRate: v.number(),
+    highRate: v.number(),
+    updatedAt: v.number(),
+    updatedBy: v.id("staff"),
+  }).index("by_key", ["key"]),
 });

@@ -101,7 +101,7 @@ export function buildDefaultOfferMessage(args: {
     `- Disponibilité : ${availability}`,
     "",
     "Merci de confirmer pour planification.",
-    "Équipe SOS Santé Agadir"
+    "Équipe S2MBO"
   );
 
   return lines.join("\n");

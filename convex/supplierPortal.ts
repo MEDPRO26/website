@@ -555,7 +555,7 @@ async function confirmDeliveryHandler(
     const basePrice = args.basePrice!;
     if (!args.commissionAmount || args.commissionAmount <= 0) {
       throw new Error(
-        "La commission SOS Santé est obligatoire. Indiquez le montant en MAD."
+        "La commission S2MBO est obligatoire. Indiquez le montant en MAD."
       );
     }
 

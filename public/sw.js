@@ -1,7 +1,8 @@
-/* SOS Santé partner SW — bump SW_VERSION when changing push behavior. */
-const SW_VERSION = "sos-push-v6";
-const ICON_CACHE = `sos-push-icons-${SW_VERSION}`;
+/* S2MBO partner SW — bump SW_VERSION when changing push behavior. */
+const SW_VERSION = "s2mbo-push-v1";
+const ICON_CACHE = `s2mbo-push-icons-${SW_VERSION}`;
 const PRECACHE_URLS = [
+  "/s2mbo-logo-rounded.png",
   "/notification-badge.png",
   "/favicon-512.png",
   "/apple-touch-icon.png",
@@ -27,7 +28,7 @@ self.addEventListener("activate", (event) => {
       const keys = await caches.keys();
       await Promise.all(
         keys
-          .filter((key) => key.startsWith("sos-push-icons-") && key !== ICON_CACHE)
+          .filter((key) => key.startsWith("s2mbo-push-icons-") && key !== ICON_CACHE)
           .map((key) => caches.delete(key))
       );
       await self.clients.claim();
@@ -49,10 +50,10 @@ self.addEventListener("push", (event) => {
 
 function parsePushData(event) {
   const fallback = {
-    title: "SOS Santé",
+    title: "S2MBO",
     body: "Nouvelle demande à traiter.",
     url: "/fournisseurs",
-    tag: `sos-${Date.now()}`,
+    tag: `s2mbo-${Date.now()}`,
   };
 
   if (!event.data) return fallback;
@@ -90,7 +91,7 @@ async function showPushNotification(data) {
   const origin = self.location.origin;
   const options = {
     body: data.body,
-    icon: `${origin}/favicon-512.png`,
+    icon: `${origin}/s2mbo-logo-rounded.png`,
     badge: `${origin}/notification-badge.png`,
     tag: data.tag,
     renotify: true,

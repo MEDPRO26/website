@@ -411,7 +411,7 @@ export function AdminSupplierDetailPage({
           </Card>
 
           <Card className="p-5">
-            <h3 className="mb-3 text-sm font-semibold">Commission SOS Santé</h3>
+            <h3 className="mb-3 text-sm font-semibold">Commission S2MBO</h3>
             <div className="rounded-lg border border-border p-4 text-sm">
               <p className="text-muted-foreground">
                 Le fournisseur déclare la commission (MAD) à chaque devis. Le client

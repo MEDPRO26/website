@@ -64,12 +64,19 @@ const nextConfig: NextConfig = {
       },
     ];
 
+    const crmHostNoIndex = ["www.s2mbo.com", "s2mbo.com"].map((host) => ({
+      source: "/:path*",
+      has: [{ type: "host" as const, value: host }],
+      headers: noIndexHeaders,
+    }));
+
     if (allowIndexing) {
-      return swHeaders;
+      return [...swHeaders, ...crmHostNoIndex];
     }
 
     return [
       ...swHeaders,
+      ...crmHostNoIndex,
       { source: "/:path*", headers: noIndexHeaders },
       { source: "/products/:path*", headers: noIndexHeaders },
       { source: "/services/:path*", headers: noIndexHeaders },

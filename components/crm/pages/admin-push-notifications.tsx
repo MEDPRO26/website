@@ -38,7 +38,7 @@ export function AdminPushNotificationsPage() {
 
   const [audience, setAudience] = useState<Audience>("all");
   const [supplierId, setSupplierId] = useState<string>("all");
-  const [title, setTitle] = useState("Message SOS Santé");
+  const [title, setTitle] = useState("Message S2MBO");
   const [body, setBody] = useState("");
   const [url, setUrl] = useState("");
   const [sending, setSending] = useState(false);
@@ -128,7 +128,7 @@ export function AdminPushNotificationsPage() {
           <p className="font-medium">Clés VAPID manquantes sur ce déploiement Convex</p>
           <p className="mt-1 text-amber-900/90">
             Vous les avez peut‑être ajoutées en <strong>Development</strong>, mais
-            sossante.ma utilise <strong>Production</strong>. Ouvrez Convex →
+            s2mbo.com utilise <strong>Production</strong>. Ouvrez Convex →
             basculez sur le déploiement Production → Settings → Environment
             Variables, puis ajoutez{" "}
             <code className="font-mono">VAPID_PUBLIC_KEY</code>,{" "}

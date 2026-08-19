@@ -41,7 +41,7 @@ export async function upsertSupplierQuote(ctx: MutationCtx, args: SubmitQuoteInp
   if (args.submittedBySupplier) {
     if (args.commissionAmount === undefined || args.commissionAmount <= 0) {
       throw new Error(
-        "La commission SOS Santé est obligatoire. Indiquez le montant en MAD."
+        "La commission S2MBO est obligatoire. Indiquez le montant en MAD."
       );
     }
   }
@@ -130,7 +130,7 @@ export async function upsertSupplierQuote(ctx: MutationCtx, args: SubmitQuoteInp
 
   const commissionLabel =
     args.commissionAmount !== undefined
-      ? ` · commission SOS ${args.commissionAmount.toLocaleString("fr-FR")} MAD`
+      ? ` · commission S2MBO ${args.commissionAmount.toLocaleString("fr-FR")} MAD`
       : "";
 
   await appendOrderEvent(ctx, {

@@ -76,7 +76,7 @@ export function useSupplierPush(enabled: boolean) {
     }
     if (!vapidPublicKey) {
       toast.error(
-        "Notifications push non configurées côté serveur. Contactez SOS Santé."
+        "Notifications push non configurées côté serveur. Contactez S2MBO."
       );
       return false;
     }

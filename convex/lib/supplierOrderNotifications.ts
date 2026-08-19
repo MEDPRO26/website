@@ -36,7 +36,7 @@ export async function notifySupplierOfAssignment(
 
   await ctx.scheduler.runAfter(0, internal.webPush.sendToSupplier, {
     supplierId: args.supplier._id,
-    title: "Nouvelle commande SOS Santé",
+    title: "Nouvelle commande S2MBO",
     body: `${args.order.ref} · ${clientName}${args.order.item ? ` · ${args.order.item}` : ""}`,
     url: pushUrl,
     tag: `order-${args.orderId}`,
@@ -64,7 +64,7 @@ export async function notifySupplierOfAssignment(
       "Consultez les détails et répondez avec votre offre :",
       orderUrl,
       "",
-      "- Centre SOS Santé",
+      "- S2MBO",
     ].join("\n");
 
     await ctx.scheduler.runAfter(0, internal.whatsappMessenger.sendDirectMessage, {

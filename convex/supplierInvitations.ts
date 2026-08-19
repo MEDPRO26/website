@@ -187,7 +187,7 @@ export const accept = mutation({
 
     if (invite.expiresAt < Date.now()) {
       await ctx.db.patch(invite._id, { status: "expired" });
-      throw new Error("Cette invitation a expiré. Demandez un nouvel envoi à SOS Santé.");
+      throw new Error("Cette invitation a expiré. Demandez un nouvel envoi à S2MBO.");
     }
 
     const authUser = await ctx.db.get(userId);

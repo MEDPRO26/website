@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { LOGO } from "@/lib/brand";
+import { CRM_BRAND_NAME, CRM_LOGO } from "@/lib/brand";
 import type { useSupplierPwaInstall } from "@/hooks/use-supplier-pwa-install";
 
 type InstallState = ReturnType<typeof useSupplierPwaInstall>;
@@ -47,13 +47,13 @@ export function SupplierWebappInstallDialog({
       <DialogContent className="gap-5 border-border/60 bg-white p-6 sm:max-w-md">
         <DialogHeader className="space-y-3 text-left">
           <div className="flex items-center gap-3">
-            <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-brand-soft">
+            <div className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-border/70">
               <Image
-                src={LOGO.crm}
-                alt="SOS Santé"
-                width={32}
-                height={32}
-                className="size-8 object-contain"
+                src={CRM_LOGO}
+                alt={CRM_BRAND_NAME}
+                width={48}
+                height={48}
+                className="size-12 object-cover"
               />
             </div>
             <div className="min-w-0">
@@ -61,7 +61,7 @@ export function SupplierWebappInstallDialog({
                 Installer l&apos;application
               </DialogTitle>
               <DialogDescription className="mt-1 text-sm">
-                Ajoutez SOS Santé sur votre téléphone pour ouvrir votre espace
+                Ajoutez S2MBO sur votre téléphone pour ouvrir votre espace
                 fournisseur en un clic.
               </DialogDescription>
             </div>

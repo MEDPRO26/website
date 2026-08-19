@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 import { internalAction, internalMutation, type ActionCtx } from "./_generated/server";
+import { linkApporteurStaff } from "./lib/linkApporteurStaff";
 import { linkSupplierStaff } from "./lib/linkSupplierStaff";
 import { normalizePhone } from "./lib/refs";
 
@@ -17,6 +18,10 @@ const TEST_SUPPLIER_2_NAME = "Fournisseur Test 2";
 export const TEST_PRESTATAIRE_EMAIL = "prestataire.test@sossante.ma";
 export const TEST_PRESTATAIRE_PASSWORD = "SosTest2026!";
 const TEST_PRESTATAIRE_NAME = "Prestataire Test Soins";
+
+export const TEST_APPORTEUR_EMAIL = "apporteur.test@s2mbo.com";
+export const TEST_APPORTEUR_PASSWORD = "SosTest2026!";
+const TEST_APPORTEUR_NAME = "Apporteur Test";
 
 type EnsureTestSupplierResult = {
   email: string;
@@ -183,6 +188,63 @@ export const ensureTestPrestataire = internalAction({
   handler: async (ctx) => ensureTestSupplierAccount(ctx, TEST_PRESTATAIRE),
 });
 
+/**
+ * Creates or refreshes the test apporteur d’affaires account.
+ * Run: npx convex run seedTestSupplier:ensureTestApporteur
+ */
+export const ensureTestApporteur = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    const email = TEST_APPORTEUR_EMAIL;
+    const password = TEST_APPORTEUR_PASSWORD;
+    const name = TEST_APPORTEUR_NAME;
+
+    const prep: { apporteurId: Id<"apporteurs">; userId: Id<"users"> | null } =
+      await ctx.runMutation(internal.seedTestSupplier.prepareApporteur, {
+        email,
+        name,
+      });
+
+    let userId = prep.userId;
+    if (!userId) {
+      const { user } = await createAccount(ctx, {
+        provider: "password",
+        account: {
+          id: email,
+          secret: password,
+        },
+        profile: {
+          email,
+          name,
+        },
+      });
+      userId = user._id;
+    } else {
+      await modifyAccountCredentials(ctx, {
+        provider: "password",
+        account: {
+          id: email,
+          secret: password,
+        },
+      });
+    }
+
+    await ctx.runMutation(internal.seedTestSupplier.linkApporteur, {
+      userId,
+      apporteurId: prep.apporteurId,
+      email,
+      name,
+    });
+
+    return {
+      email,
+      password,
+      apporteurId: prep.apporteurId,
+      loginUrl: "/apport-affaires",
+    };
+  },
+});
+
 export const prepare = internalMutation({
   args: {
     email: v.string(),
@@ -281,6 +343,65 @@ export const link = internalMutation({
     await linkSupplierStaff(ctx, {
       userId: args.userId,
       supplierId: args.supplierId,
+      email: args.email,
+      name: args.name,
+    });
+  },
+});
+
+export const prepareApporteur = internalMutation({
+  args: {
+    email: v.string(),
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const email = args.email.trim().toLowerCase();
+    const now = Date.now();
+
+    let apporteur = (await ctx.db.query("apporteurs").collect()).find(
+      (row) => row.email.trim().toLowerCase() === email
+    );
+
+    if (!apporteur) {
+      const apporteurId = await ctx.db.insert("apporteurs", {
+        name: args.name,
+        email,
+        status: "actif",
+        createdAt: now,
+        updatedAt: now,
+      });
+      apporteur = (await ctx.db.get(apporteurId))!;
+    } else {
+      await ctx.db.patch(apporteur._id, {
+        name: args.name,
+        email,
+        status: "actif",
+        updatedAt: now,
+      });
+    }
+
+    const authUser = (await ctx.db.query("users").collect()).find(
+      (user) => user.email?.trim().toLowerCase() === email
+    );
+
+    return {
+      apporteurId: apporteur._id,
+      userId: authUser?._id ?? null,
+    };
+  },
+});
+
+export const linkApporteur = internalMutation({
+  args: {
+    userId: v.id("users"),
+    apporteurId: v.id("apporteurs"),
+    email: v.string(),
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await linkApporteurStaff(ctx, {
+      userId: args.userId,
+      apporteurId: args.apporteurId,
       email: args.email,
       name: args.name,
     });

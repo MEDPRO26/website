@@ -7,7 +7,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { useEffect, useState } from "react";
 import { api } from "@/convex/_generated/api";
-import { LOGO } from "@/lib/brand";
+import { CRM_BRAND_NAME, CRM_LOGO } from "@/lib/brand";
 import {
   homePathForPartnerKind,
   homePathForRole,
@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export type StaffLoginAudience = "admin" | "supplier" | "prestataire";
+export type StaffLoginAudience = "admin" | "supplier" | "prestataire" | "apporteur";
 
 function loginErrorMessage(err: unknown): string {
   const raw =
@@ -64,10 +64,10 @@ const COPY: Record<
   { title: string; subtitle: string; wrongRole: string }
 > = {
   admin: {
-    title: "Espace équipe SOS Santé",
-    subtitle: "Connexion réservée à l'équipe interne.",
+    title: "Espace projets",
+    subtitle: "Connectez-vous pour ouvrir un projet.",
     wrongRole:
-      "Ce portail est réservé à l'équipe SOS Santé. Utilisez l'espace partenaires.",
+      "Ce portail est réservé à l'équipe. Utilisez l'espace partenaires.",
   },
   supplier: {
     title: "Espace fournisseurs",
@@ -81,6 +81,12 @@ const COPY: Record<
       "Connexion réservée aux prestataires de soins à domicile (infirmier, kiné, aide…).",
     wrongRole:
       "Ce portail est réservé aux prestataires soins. Les fournisseurs matériel utilisent /fournisseurs.",
+  },
+  apporteur: {
+    title: "Espace Apport d’Affaires",
+    subtitle: "Connexion réservée aux apporteurs d’affaires.",
+    wrongRole:
+      "Ce portail est réservé aux apporteurs d’affaires. L’équipe utilise /admin-me.",
   },
 };
 
@@ -119,15 +125,27 @@ export function StaffLoginPage({ audience }: { audience: StaffLoginAudience }) {
     }
 
     const isSupplier = staff.role === "supplier";
+    const isApporteur = staff.role === "apporteur";
 
     if (audience === "admin") {
-      if (isSupplier) {
+      if (isSupplier || isApporteur) {
         setError(copy.wrongRole);
         void signOut().then(() => setRedirecting(false));
         return;
       }
       setRedirecting(true);
       router.replace(nextPath ?? homePathForRole(staff.role));
+      return;
+    }
+
+    if (audience === "apporteur") {
+      if (!isApporteur) {
+        setError(copy.wrongRole);
+        void signOut().then(() => setRedirecting(false));
+        return;
+      }
+      setRedirecting(true);
+      router.replace(nextPath ?? homePathForRole("apporteur"));
       return;
     }
 
@@ -143,7 +161,7 @@ export function StaffLoginPage({ audience }: { audience: StaffLoginAudience }) {
 
     if (partnerProfile === null) {
       setError(
-        "Compte partenaire incomplet. Contactez un administrateur SOS Santé."
+        "Compte partenaire incomplet. Contactez un administrateur S2MBO."
       );
       void signOut().then(() => setRedirecting(false));
       return;
@@ -212,13 +230,13 @@ export function StaffLoginPage({ audience }: { audience: StaffLoginAudience }) {
       ) : (
         <div className="w-full max-w-md rounded-[1.75rem] border border-border/60 bg-card p-8 shadow-[0_4px_6px_rgba(15,23,42,0.02),0_24px_56px_rgba(15,23,42,0.1)]">
           <div className="mb-8 flex flex-col items-center text-center">
-            <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-border/70">
+            <div className="mb-4 flex size-16 items-center justify-center overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-border/70">
               <Image
-                src={LOGO.crm}
-                alt="SOS Santé"
-                width={56}
-                height={56}
-                className="size-14 object-contain"
+                src={CRM_LOGO}
+                alt={CRM_BRAND_NAME}
+                width={64}
+                height={64}
+                className="size-16 object-cover"
               />
             </div>
             <h1 className="text-2xl font-bold text-foreground">{copy.title}</h1>
@@ -236,7 +254,9 @@ export function StaffLoginPage({ audience }: { audience: StaffLoginAudience }) {
                 required
                 placeholder={
                   audience === "admin"
-                    ? "vous@sossante.ma"
+                    ? "vous@email.com"
+                    : audience === "apporteur"
+                      ? "vous@email.com"
                     : audience === "prestataire"
                       ? "contact@prestataire.ma"
                       : "contact@fournisseur.ma"

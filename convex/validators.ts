@@ -23,6 +23,7 @@ export const roleValidator = v.union(
   v.literal("admin"),
   v.literal("assistant"),
   v.literal("supplier"),
+  v.literal("apporteur"),
   v.literal("customer")
 );
 

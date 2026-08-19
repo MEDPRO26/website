@@ -45,10 +45,23 @@ export function getPrivateRobotsMetadata(): Metadata["robots"] {
 export const PRIVATE_CRM_PATHS = [
   "/admin",
   "/admin-me",
+  "/projets",
+  "/apport-affaires",
   "/supplier",
   "/fournisseurs",
   "/prestataire",
   "/prestataires",
   "/__crm-hidden",
+] as const;
+
+/** Crawlers blocked on s2mbo.com (entire CRM host). */
+export const CRM_ROBOTS_USER_AGENTS = [
+  "*",
+  "Googlebot",
+  "Googlebot-Image",
+  "Storebot-Google",
+  "Google-InspectionTool",
+  "AdsBot-Google",
+  "Bingbot",
 ] as const;
 

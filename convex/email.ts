@@ -4,6 +4,45 @@ import { v } from "convex/values";
 import { internalAction } from "./_generated/server";
 import { siteUrl } from "./lib/siteUrl";
 
+function buildApporteurInviteEmailHtml(args: {
+  apporteurName: string;
+  inviteUrl: string;
+}) {
+  const site = siteUrl();
+  const loginUrl = `${site}/apport-affaires`;
+  return `
+<!DOCTYPE html>
+<html lang="fr">
+  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #474b56; max-width: 560px; margin: 0 auto; padding: 24px;">
+    <h1 style="color: #2890e0; font-size: 22px;">S2MBO</h1>
+    <p>Bonjour,</p>
+    <p>
+      Vous êtes invité à rejoindre l'espace Apport d’Affaires S2MBO
+      (<strong>${args.apporteurName}</strong>).
+    </p>
+    <p>
+      Cliquez sur le bouton ci-dessous pour créer votre mot de passe et saisir
+      vos affaires proposées.
+    </p>
+    <p style="margin: 32px 0;">
+      <a href="${args.inviteUrl}"
+         style="background: #32a0f3; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; display: inline-block;">
+        Accepter l'invitation
+      </a>
+    </p>
+    <p style="font-size: 13px; color: #747782;">
+      Ce lien expire dans 7 jours. Si vous n'êtes pas concerné, ignorez cet email.
+    </p>
+    <p style="font-size: 13px; color: #747782;">
+      Lien direct : <a href="${args.inviteUrl}">${args.inviteUrl}</a>
+    </p>
+    <p style="font-size: 13px; color: #747782;">
+      Pour vos prochaines connexions : <a href="${loginUrl}">${loginUrl}</a>
+    </p>
+  </body>
+</html>`;
+}
+
 function buildInviteEmailHtml(args: {
   supplierName: string;
   inviteUrl: string;
@@ -15,10 +54,10 @@ function buildInviteEmailHtml(args: {
 <!DOCTYPE html>
 <html lang="fr">
   <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #474b56; max-width: 560px; margin: 0 auto; padding: 24px;">
-    <h1 style="color: #2890e0; font-size: 22px;">Centre SOS Santé</h1>
+    <h1 style="color: #2890e0; font-size: 22px;">S2MBO</h1>
     <p>Bonjour,</p>
     <p>
-      Vous êtes invité à rejoindre l'espace partenaire SOS Santé pour
+      Vous êtes invité à rejoindre l'espace partenaire S2MBO pour
       <strong>${args.supplierName}</strong>.
     </p>
     <p>
@@ -61,7 +100,7 @@ function buildSupplierOrderAssignmentHtml(args: {
 <!DOCTYPE html>
 <html lang="fr">
   <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #474b56; max-width: 560px; margin: 0 auto; padding: 24px;">
-    <h1 style="color: #2890e0; font-size: 22px;">Centre SOS Santé</h1>
+    <h1 style="color: #2890e0; font-size: 22px;">S2MBO</h1>
     <p>Bonjour <strong>${args.supplierName}</strong>,</p>
     <p>
       Une nouvelle commande vous a été affectée : <strong>${args.orderRef}</strong>.
@@ -92,7 +131,7 @@ function buildStaffNotificationHtml(args: {
 <!DOCTYPE html>
 <html lang="fr">
   <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #474b56; max-width: 560px; margin: 0 auto; padding: 24px;">
-    <h1 style="color: #2890e0; font-size: 20px;">SOS Santé CRM</h1>
+    <h1 style="color: #2890e0; font-size: 20px;">S2MBO CRM</h1>
     <p>${args.description}</p>
     <p style="margin: 24px 0;">
       <a href="${args.link}"
@@ -113,7 +152,7 @@ async function sendResendEmail(args: {
 }) {
   const apiKey = process.env.RESEND_API_KEY;
   const from =
-    process.env.EMAIL_FROM ?? "Centre SOS Santé <onboarding@resend.dev>";
+    process.env.EMAIL_FROM ?? "S2MBO <onboarding@resend.dev>";
 
   if (!apiKey) {
     console.log(`[DEV] ${args.devLabel} (RESEND_API_KEY not set):`, args.devPayload);
@@ -152,10 +191,10 @@ function buildAssistantInviteEmailHtml(args: {
 <!DOCTYPE html>
 <html lang="fr">
   <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #474b56; max-width: 560px; margin: 0 auto; padding: 24px;">
-    <h1 style="color: #2890e0; font-size: 22px;">Centre SOS Santé</h1>
+    <h1 style="color: #2890e0; font-size: 22px;">S2MBO</h1>
     <p>Bonjour,</p>
     <p>
-      Vous êtes invité à rejoindre l'équipe SOS Santé en tant que
+      Vous êtes invité à rejoindre l'équipe S2MBO en tant que
       <strong>${roleLabel}</strong>.
     </p>
     <p>
@@ -190,7 +229,7 @@ export const sendAssistantInvitation = internalAction({
   handler: async (_ctx, args) => {
     return await sendResendEmail({
       to: args.to,
-      subject: "Invitation équipe SOS Santé",
+      subject: "Invitation équipe S2MBO",
       html: buildAssistantInviteEmailHtml(args),
       devLabel: "Assistant invitation email",
       devPayload: args,
@@ -210,6 +249,23 @@ export const sendSupplierInvitation = internalAction({
       subject: `Invitation espace partenaire — ${args.supplierName}`,
       html: buildInviteEmailHtml(args),
       devLabel: "Supplier invitation email",
+      devPayload: args,
+    });
+  },
+});
+
+export const sendApporteurInvitation = internalAction({
+  args: {
+    to: v.string(),
+    apporteurName: v.string(),
+    inviteUrl: v.string(),
+  },
+  handler: async (_ctx, args) => {
+    return await sendResendEmail({
+      to: args.to,
+      subject: `Invitation Apport d’Affaires — ${args.apporteurName}`,
+      html: buildApporteurInviteEmailHtml(args),
+      devLabel: "Apporteur invitation email",
       devPayload: args,
     });
   },

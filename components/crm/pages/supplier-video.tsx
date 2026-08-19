@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Monitor, Play, Smartphone } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { HERO_IMAGE, LOGO, LOGO_ALT, SITE_WEBSITE } from "@/lib/brand";
+import { CRM_BRAND_NAME, CRM_LOGO, HERO_IMAGE } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 const SUPPLIER_VIDEOS = [
@@ -12,14 +12,14 @@ const SUPPLIER_VIDEOS = [
     id: "8PeZJuEQsOg",
     title: "Version ordinateur",
     description:
-      "Comment utiliser votre espace fournisseur SOS Santé sur ordinateur.",
+      "Comment utiliser votre espace fournisseur S2MBO sur ordinateur.",
     orientation: "landscape" as const,
   },
   {
     id: "ab08IIZn3Qg",
     title: "Version mobile",
     description:
-      "Comment utiliser votre espace fournisseur SOS Santé sur téléphone.",
+      "Comment utiliser votre espace fournisseur S2MBO sur téléphone.",
     orientation: "portrait" as const,
   },
 ] as const;
@@ -132,14 +132,14 @@ function BrandCover({
 
       <div className="relative z-10 flex max-w-[85%] flex-col items-center gap-3">
         <Image
-          src={LOGO.white}
-          alt={LOGO_ALT}
-          width={isPortrait ? 180 : 240}
-          height={isPortrait ? 51 : 68}
-          className="h-auto w-auto max-w-full object-contain drop-shadow"
+          src={CRM_LOGO}
+          alt={CRM_BRAND_NAME}
+          width={isPortrait ? 88 : 112}
+          height={isPortrait ? 88 : 112}
+          className="size-20 rounded-full object-cover drop-shadow sm:size-24"
         />
         <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/70">
-          {SITE_WEBSITE}
+          s2mbo.com
         </p>
         <div className="mt-1 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
           <Icon className="size-3.5" aria-hidden />
@@ -418,7 +418,7 @@ export function SupplierVideoPage() {
     <div>
       <PageHeader
         title="Vidéo explicatif"
-        description="Regardez ces courtes vidéos pour comprendre comment utiliser votre espace fournisseur SOS Santé sur ordinateur et sur mobile."
+        description="Regardez ces courtes vidéos pour comprendre comment utiliser votre espace fournisseur S2MBO sur ordinateur et sur mobile."
       />
 
       <div className="mx-auto flex max-w-3xl flex-col gap-8">

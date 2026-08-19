@@ -119,7 +119,7 @@ export function AdminComplaintsPage() {
                   <Label>Commande liée</Label>
                   <Input
                     className="mt-1.5"
-                    placeholder="Rechercher par réf. SOS-AG…"
+                    placeholder="Rechercher par réf. commande…"
                     value={orderSearch}
                     onChange={(e) => {
                       setOrderSearch(e.target.value);

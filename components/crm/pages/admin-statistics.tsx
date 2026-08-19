@@ -325,7 +325,7 @@ export function AdminStatisticsPage() {
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-4 py-3">
           <h2 className="text-sm font-semibold flex items-center gap-2">
             <Wallet className="size-4 text-brand" />
-            Règlement des commissions SOS
+            Règlement des commissions S2MBO
           </h2>
           <p className="text-xs text-muted-foreground">
             Taux global :{" "}

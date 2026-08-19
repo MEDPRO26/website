@@ -8,6 +8,8 @@
  * @module
  */
 
+import type * as apportAffaires from "../apportAffaires.js";
+import type * as apporteurInvitations from "../apporteurInvitations.js";
 import type * as auditLogs from "../auditLogs.js";
 import type * as auth from "../auth.js";
 import type * as authAdmin from "../authAdmin.js";
@@ -27,6 +29,7 @@ import type * as lib_authz from "../lib/authz.js";
 import type * as lib_clientOffer from "../lib/clientOffer.js";
 import type * as lib_createOrder from "../lib/createOrder.js";
 import type * as lib_customers from "../lib/customers.js";
+import type * as lib_linkApporteurStaff from "../lib/linkApporteurStaff.js";
 import type * as lib_linkSupplierStaff from "../lib/linkSupplierStaff.js";
 import type * as lib_messenger360 from "../lib/messenger360.js";
 import type * as lib_notifications from "../lib/notifications.js";
@@ -75,6 +78,8 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  apportAffaires: typeof apportAffaires;
+  apporteurInvitations: typeof apporteurInvitations;
   auditLogs: typeof auditLogs;
   auth: typeof auth;
   authAdmin: typeof authAdmin;
@@ -94,6 +99,7 @@ declare const fullApi: ApiFromModules<{
   "lib/clientOffer": typeof lib_clientOffer;
   "lib/createOrder": typeof lib_createOrder;
   "lib/customers": typeof lib_customers;
+  "lib/linkApporteurStaff": typeof lib_linkApporteurStaff;
   "lib/linkSupplierStaff": typeof lib_linkSupplierStaff;
   "lib/messenger360": typeof lib_messenger360;
   "lib/notifications": typeof lib_notifications;

@@ -23,7 +23,7 @@ function configureWebPush() {
   const publicKey = process.env.VAPID_PUBLIC_KEY?.trim();
   const privateKey = process.env.VAPID_PRIVATE_KEY?.trim();
   const subject =
-    process.env.VAPID_SUBJECT?.trim() || "mailto:contact@sossante.ma";
+    process.env.VAPID_SUBJECT?.trim() || "mailto:noreply@s2mbo.com";
 
   if (!publicKey || !privateKey) {
     throw new Error(
@@ -57,9 +57,9 @@ async function deliverToSubscriptions(
             // Keep the message until Chrome wakes (OEM battery savers delay delivery).
             TTL: 60 * 60 * 24 * 3,
             urgency: "high",
-            topic: (payload.tag || "sos-sante")
+            topic: (payload.tag || "s2mbo")
               .replace(/[^A-Za-z0-9\-_]/g, "")
-              .slice(0, 32) || "sossante",
+              .slice(0, 32) || "s2mbo",
           }
         );
         sent += 1;

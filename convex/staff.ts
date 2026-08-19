@@ -28,6 +28,16 @@ async function hasPendingStaffInvite(ctx: QueryCtx, email: string) {
   );
 }
 
+async function hasPendingApporteurInvite(ctx: QueryCtx, email: string) {
+  const invites = await ctx.db
+    .query("apporteurInvitations")
+    .withIndex("by_email", (q) => q.eq("email", email))
+    .collect();
+  return invites.some(
+    (invite) => invite.status === "pending" && invite.expiresAt > Date.now()
+  );
+}
+
 export const ensureProfile = mutation({
   args: {},
   handler: async (ctx) => {
@@ -56,6 +66,12 @@ export const ensureProfile = mutation({
     if (email && (await hasPendingStaffInvite(ctx, email))) {
       throw new Error(
         "Acceptez d'abord votre invitation assistant reçue par email."
+      );
+    }
+
+    if (email && (await hasPendingApporteurInvite(ctx, email))) {
+      throw new Error(
+        "Acceptez d'abord votre invitation apporteur d’affaires reçue par email."
       );
     }
 

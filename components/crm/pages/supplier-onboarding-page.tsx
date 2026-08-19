@@ -172,7 +172,7 @@ export function SupplierOnboardingPage() {
       <div className="w-full max-w-lg rounded-3xl border border-border bg-card p-8 shadow-xl">
         <h1 className="text-2xl font-bold text-foreground">Complétez votre profil</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Ces informations seront visibles par l&apos;équipe SOS Santé avant d&apos;accéder
+          Ces informations seront visibles par l&apos;équipe S2MBO avant d&apos;accéder
           à vos commandes.
         </p>
         {supplier.email ? (

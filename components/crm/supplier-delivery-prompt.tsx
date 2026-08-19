@@ -468,8 +468,8 @@ export function SupplierDeliveredBanner({
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             {isService
-              ? "Vous avez confirmé la fin de la prestation. L&apos;équipe SOS Santé est informée."
-              : "Vous avez confirmé la livraison au client. L&apos;équipe SOS Santé est informée."}
+              ? "Vous avez confirmé la fin de la prestation. L&apos;équipe S2MBO est informée."
+              : "Vous avez confirmé la livraison au client. L&apos;équipe S2MBO est informée."}
           </p>
         </div>
       </div>

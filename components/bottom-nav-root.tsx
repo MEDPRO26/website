@@ -1,6 +1,6 @@
 "use client";
 
-import { ADMIN_LOGIN_PATH, PRESTATAIRE_LOGIN_PATH, SUPPLIER_LOGIN_PATH } from "@/lib/auth-routes";
+import { ADMIN_LOGIN_PATH, APPORT_AFFAIRES_HOME_PATH, PRESTATAIRE_LOGIN_PATH, SUPPLIER_LOGIN_PATH } from "@/lib/auth-routes";
 import { usePathname } from "next/navigation";
 import { useConvexAuth, useQuery } from "convex/react";
 import MobileBottomNav from "@/components/mobile-bottom-nav";
@@ -8,6 +8,7 @@ import { AdminBottomNav } from "@/components/admin-bottom-nav";
 import { getFooterContextFromPath } from "@/lib/footer-context";
 import { api } from "@/convex/_generated/api";
 import { isAdminStaffRole } from "@/lib/crm/staff-roles";
+import { isCrmPath } from "@/lib/hosts";
 import { whatsAppHref } from "@/lib/products";
 
 function PublicBottomNav() {
@@ -35,17 +36,37 @@ export function BottomNavRoot() {
     pathname.startsWith(ADMIN_LOGIN_PATH) ||
     pathname.startsWith(SUPPLIER_LOGIN_PATH) ||
     pathname.startsWith(PRESTATAIRE_LOGIN_PATH) ||
+    pathname.startsWith(APPORT_AFFAIRES_HOME_PATH) ||
     pathname.startsWith("/admin/login");
   const isAdminPath = pathname.startsWith("/admin");
   const isSupplierPath =
     pathname.startsWith("/supplier") || pathname.startsWith("/prestataire");
+
+  // CRM (s2mbo.com) must not show the public SOS Santé chrome.
+  if (isCrmPath(pathname ?? "/")) {
+    if (isAdminInvite || isSupplierInvite || isObscureLogin) {
+      return null;
+    }
+    if (isSupplierPath) {
+      return null;
+    }
+    if (isAdminPath) {
+      if (authLoading) return null;
+      if (isAuthenticated && staff === undefined) return null;
+      if (isAuthenticated && isAdminStaff) {
+        return <AdminBottomNav />;
+      }
+      return null;
+    }
+    return null;
+  }
 
   // Invite flows stay clean (no public chrome).
   if (isAdminInvite || isSupplierInvite) {
     return null;
   }
 
-  // Login pages: always the public site nav.
+  // Public-site login URLs (localhost / preview): keep public nav.
   if (isObscureLogin) {
     return <PublicBottomNav />;
   }

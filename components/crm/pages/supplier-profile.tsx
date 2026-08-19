@@ -215,7 +215,7 @@ export function SupplierProfilePage() {
     <div className="mx-auto max-w-2xl space-y-5 pb-8">
       <PageHeader
         title="Mon profil"
-        description="Informations visibles par l'équipe SOS Santé"
+        description="Informations visibles par l'équipe S2MBO"
         actions={
           editing ? (
             <div className="flex gap-2">
@@ -241,7 +241,7 @@ export function SupplierProfilePage() {
           </p>
           <p className="mt-1 text-xs text-amber-900/80">
             Ajoutez votre CIN et votre diplôme ou certificat professionnel pour
-            finaliser votre dossier auprès de SOS Santé.
+            finaliser votre dossier auprès de S2MBO.
           </p>
         </Card>
       ) : null}
@@ -518,7 +518,7 @@ export function SupplierProfilePage() {
             </div>
             <p className="flex items-center gap-2 text-xs text-muted-foreground">
               <Clock className="size-3.5" />
-              Honoraire de SOS Santé déclaré à chaque devis (MAD)
+              Honoraire de S2MBO déclaré à chaque devis (MAD)
             </p>
           </Card>
         </>

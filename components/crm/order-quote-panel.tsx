@@ -83,8 +83,8 @@ export function OrderQuotePanel({ orderId, supplierId }: OrderQuotePanelProps) {
         <Row
           label={
             usesDeclaredCommission
-              ? "Commission SOS (déclarée)"
-              : `Commission SOS (${pricing!.commissionPct} %)`
+              ? "Commission S2MBO (déclarée)"
+              : `Commission S2MBO (${pricing!.commissionPct} %)`
           }
           value={formatMad(pricing!.commissionAmount)}
           highlight
@@ -116,7 +116,7 @@ export function OrderQuotePanel({ orderId, supplierId }: OrderQuotePanelProps) {
           </div>
           <div className="border-t border-white/15 pt-4">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-white/70">
-              Commission SOS
+              Commission S2MBO
             </p>
             <p className="mt-2 font-mono text-2xl font-bold leading-none text-white">
               {formatMad(pricing!.commissionAmount).replace(" MAD", "")}

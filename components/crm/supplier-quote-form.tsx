@@ -206,7 +206,7 @@ export function SupplierQuoteForm({
     setSubmitting(true);
     try {
       await markUnavailable({ orderId });
-      toast.success("Indisponibilité signalée à SOS Santé.");
+      toast.success("Indisponibilité signalée à S2MBO.");
       onUnavailable?.();
     } catch (err) {
       toast.error(
@@ -280,8 +280,8 @@ export function SupplierQuoteForm({
     if (!commissionAmount.trim() || Number.isNaN(commission) || commission <= 0) {
       toast.error(
         isService
-          ? "L'honoraire de SOS Santé est obligatoire. Indiquez le montant en MAD avant de confirmer la prestation."
-          : "L'honoraire de SOS Santé est obligatoire. Indiquez le montant en MAD avant de confirmer la livraison."
+          ? "L'honoraire de S2MBO est obligatoire. Indiquez le montant en MAD avant de confirmer la prestation."
+          : "L'honoraire de S2MBO est obligatoire. Indiquez le montant en MAD avant de confirmer la livraison."
       );
       return;
     }
@@ -569,7 +569,7 @@ export function SupplierQuoteForm({
       )}
 
       <div>
-        <Label className={fieldLabelClass}>Honoraire de SOS Santé *</Label>
+        <Label className={fieldLabelClass}>Honoraire de S2MBO *</Label>
         <div className="relative">
           <Input
             type="number"
@@ -587,7 +587,7 @@ export function SupplierQuoteForm({
           ) : null}
         </div>
         <p className="mt-1.5 text-xs text-muted-foreground">
-          Montant reversé à SOS Santé pour cette commande.
+          Montant reversé à S2MBO pour cette commande.
         </p>
       </div>
 
@@ -607,7 +607,7 @@ export function SupplierQuoteForm({
           onChange={(e) => setNotes(e.target.value)}
           placeholder={
             isService
-              ? "Précisions pour SOS Santé ou le client…"
+              ? "Précisions pour S2MBO ou le client…"
               : isSidebar
                 ? "Ex. : Matériel de secours inclus…"
                 : "Précisions sur le matériel, accessoires inclus…"
@@ -632,7 +632,7 @@ export function SupplierQuoteForm({
           <Row label="Sous-total" value={formatMad(preview.total)} />
         )}
         <Row
-          label="Honoraire de SOS Santé"
+          label="Honoraire de S2MBO"
           value={formatMad(preview.commission)}
         />
         <Row

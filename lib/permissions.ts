@@ -3,6 +3,7 @@ export const ROLES = [
   "admin",
   "assistant",
   "supplier",
+  "apporteur",
   "customer",
 ] as const;
 
@@ -103,6 +104,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     "quotes.submit_supplier_price",
     "notifications.view",
   ],
+  apporteur: [],
   customer: [
     "orders.view_assigned",
     "notifications.view",

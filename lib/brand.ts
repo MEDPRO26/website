@@ -27,6 +27,10 @@ export const LOGO = {
   apple: "/apple-touch-icon.png",
 } as const;
 
+/** Branding shown in the CRM (admin, fournisseurs, prestataires). */
+export const CRM_BRAND_NAME = "S2MBO";
+export const CRM_LOGO = "/s2mbo-logo-rounded.png";
+
 export const LOGO_ALT = "SOS Santé - location de matériel médical et soins à domicile";
 
 /** Intrinsic aspect ratio (width / height) of the logo assets */

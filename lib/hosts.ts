@@ -10,6 +10,8 @@ const CRM_HOSTS = new Set(["s2mbo.com", "www.s2mbo.com"]);
 export const CRM_PATH_PREFIXES = [
   "/admin",
   "/admin-me",
+  "/projets",
+  "/apport-affaires",
   "/supplier",
   "/prestataire",
   "/fournisseurs",
@@ -17,7 +19,8 @@ export const CRM_PATH_PREFIXES = [
 ] as const;
 
 export function hostnameFromHostHeader(host: string | null | undefined) {
-  return (host ?? "").split(":")[0].toLowerCase();
+  const first = (host ?? "").split(",")[0]?.trim() ?? "";
+  return first.split(":")[0].toLowerCase();
 }
 
 export function isCrmHostname(host: string | null | undefined) {

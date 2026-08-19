@@ -271,7 +271,7 @@ export function AdminSettingsPage() {
     <div>
       <PageHeader
         title="Paramètres"
-        description="Configuration plateforme SOS Santé — général, notifications, WhatsApp, SEO."
+        description="Configuration plateforme S2MBO - général, notifications, WhatsApp, SEO."
       />
 
       <div className="grid gap-4 lg:grid-cols-2">

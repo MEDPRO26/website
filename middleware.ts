@@ -7,8 +7,10 @@ import type { NextRequest } from "next/server";
 import { X_ROBOTS_NOINDEX } from "@/lib/indexing";
 import {
   ADMIN_LOGIN_PATH,
+  APPORT_AFFAIRES_HOME_PATH,
   PRESTATAIRE_LOGIN_PATH,
   SUPPLIER_LOGIN_PATH,
+  WORKSPACE_HOME_PATH,
 } from "@/lib/auth-routes";
 import { categoryParamToValue } from "@/lib/catalog-categories";
 import { DEFAULT_CITY_SLUG } from "@/lib/cities";
@@ -32,6 +34,11 @@ import { isProductLandingSlug } from "@/lib/product-landing-pages";
 const legacyCategorySlugs = Object.keys(seoCategoryToCatalogParam);
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
 const isAdminInvite = createRouteMatcher(["/admin/invite(.*)"]);
+const isWorkspaceRoute = createRouteMatcher([
+  "/projets(.*)",
+  "/apport-affaires/propositions(.*)",
+]);
+const isApportInvite = createRouteMatcher(["/apport-affaires/invite(.*)"]);
 const isSupplierRoute = createRouteMatcher([
   "/supplier(.*)",
   "/prestataire(.*)",
@@ -44,9 +51,12 @@ const isObscureLogin = createRouteMatcher([
   ADMIN_LOGIN_PATH,
   SUPPLIER_LOGIN_PATH,
   PRESTATAIRE_LOGIN_PATH,
+  APPORT_AFFAIRES_HOME_PATH,
 ]);
 const isPrivateCrmRoute = createRouteMatcher([
   "/admin(.*)",
+  "/projets(.*)",
+  "/apport-affaires(.*)",
   "/supplier(.*)",
   "/prestataire(.*)",
   ADMIN_LOGIN_PATH,
@@ -135,10 +145,15 @@ function handleHostSplit(request: NextRequest) {
   }
 
   if (isCrmHostname(host)) {
+    if (
+      pathname === "/robots.txt" ||
+      pathname === "/sitemap.xml" ||
+      pathname.startsWith("/sitemap/")
+    ) {
+      return "crm";
+    }
     if (pathname === "/" || pathname === "") {
-      return withNoIndex(
-        NextResponse.redirect(crmAbsoluteUrl(ADMIN_LOGIN_PATH), 308)
-      );
+      return "crm-root";
     }
     if (!isCrmPath(pathname)) {
       return NextResponse.redirect(publicAbsoluteUrl(pathname, search), 308);
@@ -151,10 +166,19 @@ function handleHostSplit(request: NextRequest) {
 
 export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
   const hostSplit = handleHostSplit(request);
-  if (hostSplit && hostSplit !== "crm") {
+  if (hostSplit && hostSplit !== "crm" && hostSplit !== "crm-root") {
     return hostSplit;
   }
-  const onCrmHost = hostSplit === "crm";
+  const onCrmHost = hostSplit === "crm" || hostSplit === "crm-root";
+
+  if (hostSplit === "crm-root") {
+    const destination = (await convexAuth.isAuthenticated())
+      ? WORKSPACE_HOME_PATH
+      : ADMIN_LOGIN_PATH;
+    return withNoIndex(
+      NextResponse.redirect(crmAbsoluteUrl(destination), 308)
+    );
+  }
 
   if (!onCrmHost) {
     const legacyRedirect = handleLegacyRedirects(request);
@@ -163,15 +187,20 @@ export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
     }
   }
 
-  if (isObscureLogin(request)) {
+  if (isObscureLogin(request) || isApportInvite(request)) {
     return withNoIndex(NextResponse.next());
   }
 
   if (
-    isAdminRoute(request) &&
+    (isAdminRoute(request) || isWorkspaceRoute(request)) &&
     !isAdminInvite(request) &&
     !(await convexAuth.isAuthenticated())
   ) {
+    if (onCrmHost) {
+      return withNoIndex(
+        NextResponse.redirect(new URL(ADMIN_LOGIN_PATH, request.url), 307)
+      );
+    }
     return hideAsNotFound(request);
   }
 
@@ -180,6 +209,14 @@ export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
     !isSupplierInvite(request) &&
     !(await convexAuth.isAuthenticated())
   ) {
+    if (onCrmHost) {
+      const login = request.nextUrl.pathname.startsWith("/prestataire")
+        ? PRESTATAIRE_LOGIN_PATH
+        : SUPPLIER_LOGIN_PATH;
+      return withNoIndex(
+        NextResponse.redirect(new URL(login, request.url), 307)
+      );
+    }
     return hideAsNotFound(request);
   }
 

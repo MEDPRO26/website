@@ -1,6 +1,6 @@
 export function buildOrderRef(sequence: number) {
   const year = new Date().getFullYear();
-  return `SOS-${year}-${String(sequence).padStart(4, "0")}`;
+  return `S2M-${year}-${String(sequence).padStart(4, "0")}`;
 }
 
 export function normalizePhone(phone: string) {

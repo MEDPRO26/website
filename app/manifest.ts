@@ -1,13 +1,13 @@
 import type { MetadataRoute } from "next";
-import { SITE_DISPLAY_NAME } from "@/lib/brand";
+import { CRM_BRAND_NAME, CRM_LOGO } from "@/lib/brand";
 import { SUPPLIER_LOGIN_PATH } from "@/lib/auth-routes";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: `${SITE_DISPLAY_NAME} - Espace fournisseur`,
-    short_name: "SOS Fournisseur",
+    name: `${CRM_BRAND_NAME} - Espace partenaire`,
+    short_name: CRM_BRAND_NAME,
     description:
-      "Accédez à vos commandes et à votre tableau de bord fournisseur SOS Santé.",
+      "Accédez à vos commandes et à votre tableau de bord partenaire.",
     // Open login first; already-logged-in suppliers are redirected to /supplier.
     start_url: SUPPLIER_LOGIN_PATH,
     id: "/fournisseurs",
@@ -19,6 +19,12 @@ export default function manifest(): MetadataRoute.Manifest {
     // Chrome's reserved Web Push sender. Helps Android wake the PWA when closed.
     gcm_sender_id: "103953800507",
     icons: [
+      {
+        src: CRM_LOGO,
+        sizes: "1024x1024",
+        type: "image/png",
+        purpose: "any",
+      },
       {
         src: "/favicon-512.png",
         sizes: "512x512",

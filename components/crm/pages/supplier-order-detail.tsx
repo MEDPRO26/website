@@ -132,7 +132,7 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
     try {
       await cancelByClient({ orderId: order._id });
       toast.success(
-        "Commande annulée par le client — retirée des honoraires SOS."
+        "Commande annulée par le client — retirée des honoraires S2MBO."
       );
       setCancelOpen(false);
       router.push("/supplier/orders");
@@ -314,7 +314,7 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
               <div className="p-5">
                 <p className="text-sm text-muted-foreground">
                   Les coordonnées du client seront visibles dès que la commande
-                  vous est affectée par SOS Santé.
+                  vous est affectée par S2MBO.
                 </p>
               </div>
             )}
@@ -477,7 +477,7 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
             </AlertDialogTitle>
             <AlertDialogDescription>
               La commande {order.ref} passera en « Commande annulée par le
-              client » et sera retirée de l&apos;onglet Honoraire de SOS.
+              client » et sera retirée de l&apos;onglet Honoraires.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

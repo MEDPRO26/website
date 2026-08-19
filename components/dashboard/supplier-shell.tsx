@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { LOGO } from "@/lib/brand";
+import { CRM_BRAND_NAME, CRM_LOGO } from "@/lib/brand";
 
 const SUPPLIER_NAV_ITEMS: {
   path: string;
@@ -54,7 +54,7 @@ const SUPPLIER_NAV_ITEMS: {
   { path: "/orders", label: "Mes commandes", icon: ClipboardList },
   {
     path: "/commissions",
-    label: "Honoraire de SOS",
+    label: "Honoraires",
     icon: Wallet,
     badgeKey: "unpaidCommissions",
   },
@@ -167,19 +167,19 @@ function SupplierSidebar({
     <>
       <div className="border-b border-white/10 px-5 py-5">
         <Link href={basePath} onClick={onNavigate} className="flex items-center gap-3">
-          <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm">
+          <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white shadow-sm">
             <Image
-              src={LOGO.crm}
-              alt="SOS Santé"
+              src={CRM_LOGO}
+              alt={CRM_BRAND_NAME}
               width={40}
               height={40}
-              className="h-[92%] w-[92%] object-contain object-center"
+              className="size-full object-cover"
               priority
             />
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-bold text-white leading-tight">
-              SOS Santé
+              {CRM_BRAND_NAME}
             </p>
             <p className="truncate text-[11px] text-slate-400 leading-tight">
               Espace {roleLabel.toLowerCase()}
@@ -389,7 +389,7 @@ export function SupplierShell({ children }: { children: ReactNode }) {
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <p className="text-center text-sm text-muted-foreground">
           Accès {roleLabel.toLowerCase()} indisponible pour ce compte. Contactez
-          SOS Santé pour activer votre espace.
+          S2MBO pour activer votre espace.
         </p>
       </div>
     );
@@ -502,8 +502,8 @@ export function SupplierShell({ children }: { children: ReactNode }) {
                 </span>
                 {item.label === "Mes commandes"
                   ? "Commandes"
-                  : item.label === "Honoraire de SOS"
-                    ? "Honoraire"
+                  : item.label === "Honoraires"
+                    ? "Honoraires"
                     : item.label}
               </Link>
             );

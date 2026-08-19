@@ -38,7 +38,7 @@ export async function requireAdminStaff(
 ): Promise<Doc<"staff">> {
   const staff = await requireStaff(ctx);
   if (!ADMIN_ROLES.has(staff.role)) {
-    throw new Error("Accès réservé à l'équipe SOS Santé.");
+    throw new Error("Accès réservé à l'équipe S2MBO.");
   }
   return staff;
 }
@@ -85,4 +85,33 @@ export async function requireSupplierOnboarding(ctx: QueryCtx | MutationCtx) {
   }
 
   return { staff, supplier };
+}
+
+export async function requireApporteurStaff(ctx: QueryCtx | MutationCtx) {
+  const staff = await requireStaff(ctx);
+  if (staff.role !== "apporteur" || !staff.apporteurId) {
+    throw new Error("Accès réservé aux apporteurs d’affaires.");
+  }
+
+  const apporteur = await ctx.db.get(staff.apporteurId);
+  if (!apporteur || apporteur.status === "suspendu") {
+    throw new Error("Compte apporteur inactif ou introuvable.");
+  }
+
+  return { staff, apporteur };
+}
+
+export async function requireApportViewer(ctx: QueryCtx | MutationCtx) {
+  const staff = await requireStaff(ctx);
+  if (ADMIN_ROLES.has(staff.role)) {
+    return { staff, kind: "admin" as const, apporteurId: null };
+  }
+  if (staff.role === "apporteur" && staff.apporteurId) {
+    const apporteur = await ctx.db.get(staff.apporteurId);
+    if (!apporteur || apporteur.status === "suspendu") {
+      throw new Error("Compte apporteur inactif ou introuvable.");
+    }
+    return { staff, kind: "apporteur" as const, apporteurId: staff.apporteurId };
+  }
+  throw new Error("Accès réservé au suivi des commissions.");
 }

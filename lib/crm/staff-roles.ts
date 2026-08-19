@@ -9,3 +9,7 @@ export function isAdminStaffRole(role: string | undefined | null): role is Admin
     (ADMIN_STAFF_ROLES as readonly string[]).includes(role)
   );
 }
+
+export function isApporteurStaffRole(role: string | undefined | null) {
+  return role === "apporteur";
+}

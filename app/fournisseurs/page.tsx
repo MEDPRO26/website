@@ -1,13 +1,10 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { StaffLoginPage } from "@/components/crm/staff-login-page";
-import { getPrivateRobotsMetadata } from "@/lib/indexing";
+import { crmPageMetadata } from "@/lib/crm-metadata";
 import "@/app/admin/crm.css";
 
-export const metadata: Metadata = {
-  title: "Espace fournisseurs",
-  robots: getPrivateRobotsMetadata(),
-};
+export const metadata: Metadata = crmPageMetadata("Espace fournisseurs");
 
 export default function FournisseursLoginPage() {
   return (

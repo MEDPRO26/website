@@ -14,7 +14,7 @@ import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
-import { LOGO } from "@/lib/brand";
+import { CRM_BRAND_NAME, CRM_LOGO } from "@/lib/brand";
 import {
   loginPathForPartnerKind,
   partnerKindFromPortalPath,
@@ -197,10 +197,10 @@ export function SupplierInvitePage({ token }: SupplierInvitePageProps) {
       invite.reason === "already_accepted"
         ? "Cette invitation a déjà été acceptée."
         : invite.reason === "cancelled"
-          ? "Cette invitation a été remplacée. Demandez un nouveau lien à SOS Santé."
+          ? "Cette invitation a été remplacée. Demandez un nouveau lien à S2MBO."
           : invite.reason === "expired"
-            ? "Cette invitation a expiré. Demandez un nouvel envoi à SOS Santé."
-            : "Invitation introuvable ou invalide. Demandez un nouveau lien à SOS Santé.";
+            ? "Cette invitation a expiré. Demandez un nouvel envoi à S2MBO."
+            : "Invitation introuvable ou invalide. Demandez un nouveau lien à S2MBO.";
 
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -225,16 +225,16 @@ export function SupplierInvitePage({ token }: SupplierInvitePageProps) {
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-border">
             <Image
-              src={LOGO.crm}
-              alt="Centre SOS Santé"
+              src={CRM_LOGO}
+              alt={CRM_BRAND_NAME}
               width={56}
               height={56}
-              className="size-14 object-contain"
+              className="size-14 object-cover"
             />
           </div>
           <h1 className="text-2xl font-bold text-foreground">Invitation partenaire</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Rejoignez l&apos;espace partenaire SOS Santé pour{" "}
+            Rejoignez l&apos;espace partenaire S2MBO pour{" "}
             <strong>{invite.supplierName}</strong>
           </p>
           <p className="mt-1 text-xs text-muted-foreground">{invite.supplierType}</p>
