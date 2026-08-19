@@ -81,7 +81,7 @@ export function ApportAffairesHome() {
     );
   }
 
-  if (!isAuthenticated || staff === null) {
+  if (!isAuthenticated || !staff) {
     return <StaffLoginPage audience="apporteur" />;
   }
 
