@@ -32,7 +32,12 @@ import {
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-const APPORTEUR_NAV = [
+const APPORTEUR_NAV: {
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  exact?: boolean;
+}[] = [
   {
     href: APPORT_AFFAIRES_HOME_PATH,
     label: "Tableau de bord",
@@ -44,7 +49,7 @@ const APPORTEUR_NAV = [
     label: "Profil",
     icon: UserRound,
   },
-] as const;
+];
 
 function NavList({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
