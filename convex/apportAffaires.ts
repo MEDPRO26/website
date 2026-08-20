@@ -35,17 +35,31 @@ export const getSettings = query({
     if (!existing) {
       return DEFAULT_APPORT_RATE_SETTINGS;
     }
-    return normalizeApportRateSettings(existing);
+    const settings = normalizeApportRateSettings(existing);
+    // Legacy auto defaults (7% / 5% / 3%) — clear so rates are entered manually.
+    const isLegacyAutoDefault =
+      settings.lowRate === 0.07 &&
+      settings.midRate === 0.05 &&
+      settings.highRate === 0.03;
+    if (isLegacyAutoDefault) {
+      return {
+        ...settings,
+        lowRate: null,
+        midRate: null,
+        highRate: null,
+      };
+    }
+    return settings;
   },
 });
 
 export const saveSettings = mutation({
   args: {
     lowMax: v.number(),
-    lowRate: v.number(),
+    lowRate: v.union(v.number(), v.null()),
     midMax: v.number(),
-    midRate: v.number(),
-    highRate: v.number(),
+    midRate: v.union(v.number(), v.null()),
+    highRate: v.union(v.number(), v.null()),
   },
   handler: async (ctx, args) => {
     const staff = await requireAdminStaff(ctx);
@@ -55,20 +69,21 @@ export const saveSettings = mutation({
       .query("apportSettings")
       .withIndex("by_key", (q) => q.eq("key", "default"))
       .unique();
-    if (existing) {
-      await ctx.db.patch(existing._id, {
-        ...settings,
-        updatedAt: now,
-        updatedBy: staff._id,
-      });
-      return settings;
-    }
-    await ctx.db.insert("apportSettings", {
-      key: "default",
-      ...settings,
+    const doc = {
+      key: "default" as const,
+      lowMax: settings.lowMax,
+      midMax: settings.midMax,
+      ...(settings.lowRate != null ? { lowRate: settings.lowRate } : {}),
+      ...(settings.midRate != null ? { midRate: settings.midRate } : {}),
+      ...(settings.highRate != null ? { highRate: settings.highRate } : {}),
       updatedAt: now,
       updatedBy: staff._id,
-    });
+    };
+    if (existing) {
+      await ctx.db.replace(existing._id, doc);
+      return settings;
+    }
+    await ctx.db.insert("apportSettings", doc);
     return settings;
   },
 });
@@ -86,8 +101,24 @@ export const list = query({
               q.eq("apporteurId", viewer.apporteurId!)
             )
             .collect();
-    return rows.sort(
+
+    const sorted = rows.sort(
       (a, b) => a.sortOrder - b.sortOrder || a.createdAt - b.createdAt
+    );
+
+    return await Promise.all(
+      sorted.map(async (row) => {
+        const staff = await ctx.db.get(row.createdBy);
+        let authorName =
+          staff?.name?.trim() || staff?.email?.trim() || "";
+        if (row.apporteurId) {
+          const apporteur = await ctx.db.get(row.apporteurId);
+          const label =
+            apporteur?.name?.trim() || apporteur?.email?.trim() || "";
+          if (label) authorName = label;
+        }
+        return { ...row, authorName: authorName || "—" };
+      })
     );
   },
 });
@@ -109,10 +140,11 @@ export const upsert = mutation({
     const client = args.client.trim();
     const isApporteur = viewer.kind === "apporteur";
     const observation = args.observation?.trim() || undefined;
-    const customRate = isApporteur
-      ? undefined
-      : args.customRate == null
-        ? undefined
+    // `undefined` = leave unchanged on patch; `null` = clear; number = set.
+    const hasRateArg = args.customRate !== undefined;
+    const customRate =
+      args.customRate == null
+        ? null
         : Math.min(1, Math.max(0, args.customRate));
     const depositReceived = isApporteur ? 0 : (args.depositReceived ?? 0);
 
@@ -120,7 +152,7 @@ export const upsert = mutation({
       date,
       client,
       contractAmount: args.contractAmount,
-      customRate,
+      customRate: hasRateArg ? customRate : undefined,
       depositReceived,
       observation,
     };
@@ -132,30 +164,40 @@ export const upsert = mutation({
       }
       if (
         isApporteur &&
+        existing.apporteurId &&
         existing.apporteurId !== viewer.apporteurId
       ) {
         throw new Error("Vous ne pouvez modifier que vos propres affaires.");
       }
-      if (isEmptyRow({ ...payload, depositReceived })) {
+      // Only overwrite the rate when the client sent customRate.
+      // Omitting it must never wipe a previously saved %.
+      const nextRate = hasRateArg
+        ? customRate
+        : (existing.customRate ?? null);
+      if (
+        isEmptyRow({
+          ...payload,
+          customRate: nextRate,
+          depositReceived: isApporteur
+            ? existing.depositReceived
+            : depositReceived,
+        })
+      ) {
         await ctx.db.delete(args.id);
         return { id: null, deleted: true };
       }
+
+      const apporteurId =
+        existing.apporteurId ??
+        (isApporteur ? viewer.apporteurId : undefined) ??
+        undefined;
+
       await ctx.db.replace(args.id, {
         date,
         client,
         contractAmount: args.contractAmount,
-        ...(isApporteur
-          ? existing.customRate != null
-            ? { customRate: existing.customRate }
-            : {}
-          : customRate != null
-            ? { customRate }
-            : {}),
-        ...(existing.apporteurId
-          ? { apporteurId: existing.apporteurId }
-          : isApporteur && viewer.apporteurId
-            ? { apporteurId: viewer.apporteurId }
-            : {}),
+        ...(nextRate != null ? { customRate: nextRate } : {}),
+        ...(apporteurId ? { apporteurId } : {}),
         depositReceived: isApporteur
           ? existing.depositReceived
           : depositReceived,
@@ -168,7 +210,7 @@ export const upsert = mutation({
       return { id: args.id, deleted: false };
     }
 
-    if (isEmptyRow({ ...payload, depositReceived })) {
+    if (isEmptyRow({ ...payload, customRate, depositReceived })) {
       return { id: null, deleted: false };
     }
 

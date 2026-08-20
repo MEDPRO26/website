@@ -480,10 +480,12 @@ export default defineSchema({
     .index("by_dateKey_sessionKey", ["dateKey", "sessionKey"]),
 
   apportDeals: defineTable({
+    /** @deprecated unused — author shown via createdBy / apporteurId */
+    entreprise: v.optional(v.string()),
     date: v.optional(v.string()),
     client: v.string(),
     contractAmount: v.optional(v.number()),
-    /** Override of the automatic bracket rate (0–1). Absent = use default. */
+    /** Manual commission rate (0–1). */
     customRate: v.optional(v.number()),
     /** Set when the row was created by an apporteur d’affaires. */
     apporteurId: v.optional(v.id("apporteurs")),
@@ -500,10 +502,10 @@ export default defineSchema({
   apportSettings: defineTable({
     key: v.literal("default"),
     lowMax: v.number(),
-    lowRate: v.number(),
+    lowRate: v.optional(v.number()),
     midMax: v.number(),
-    midRate: v.number(),
-    highRate: v.number(),
+    midRate: v.optional(v.number()),
+    highRate: v.optional(v.number()),
     updatedAt: v.number(),
     updatedBy: v.id("staff"),
   }).index("by_key", ["key"]),

@@ -1,22 +1,17 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { Fragment, useEffect, useMemo, useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
-  DEFAULT_APPORT_RATE_SETTINGS,
-  apportRateTiers,
   computeApportRow,
   formatAmountInput,
   formatDh,
   formatPercentInput,
-  formatRate,
-  normalizeApportRateSettings,
   parseAmountInput,
   parsePercentInput,
-  type ApportRateSettings,
 } from "@/lib/apport-affaires";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,6 +19,7 @@ import { cn } from "@/lib/utils";
 type SheetRow = {
   key: string;
   id?: Id<"apportDeals">;
+  authorName: string;
   date: string;
   client: string;
   contractAmount: number | null;
@@ -37,6 +33,7 @@ const EMPTY_ROW_COUNT = 8;
 function newEmptyRow(): SheetRow {
   return {
     key: `draft-${crypto.randomUUID()}`,
+    authorName: "",
     date: "",
     client: "",
     contractAmount: null,
@@ -48,6 +45,7 @@ function newEmptyRow(): SheetRow {
 
 function rowFromDoc(doc: {
   _id: Id<"apportDeals">;
+  authorName?: string;
   date?: string;
   client: string;
   contractAmount?: number;
@@ -58,6 +56,7 @@ function rowFromDoc(doc: {
   return {
     key: doc._id,
     id: doc._id,
+    authorName: doc.authorName ?? "",
     date: doc.date ?? "",
     client: doc.client,
     contractAmount: doc.contractAmount ?? null,
@@ -80,122 +79,72 @@ function isBlank(row: SheetRow) {
 
 function SheetInput({
   className,
+  onKeyDown,
   ...props
 }: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
       className={cn(
-        "h-11 w-full min-w-0 bg-transparent px-3 text-sm text-foreground outline-none placeholder:text-muted-foreground/70",
+        "h-11 w-full min-w-0 bg-transparent px-2 text-sm text-foreground outline-none placeholder:text-muted-foreground/70 sm:px-3",
         "focus:bg-white focus:ring-2 focus:ring-inset focus:ring-[#32a0f3]/35",
         className
       )}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          event.currentTarget.blur();
+        }
+        onKeyDown?.(event);
+      }}
     />
   );
 }
 
 function RateField({
-  effectiveRate,
-  defaultRate,
-  customRate,
+  value,
   onCommit,
 }: {
-  effectiveRate: number | null;
-  defaultRate: number | null;
-  customRate: number | null;
+  value: number | null;
   onCommit: (next: number | null) => void;
 }) {
-  const [editing, setEditing] = useState(false);
-  const [text, setText] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-  const skipCommit = useRef(false);
-  const isCustom = customRate != null;
+  const [text, setText] = useState(formatPercentInput(value));
+  const focusedRef = useRef(false);
+  const textRef = useRef(text);
+  textRef.current = text;
 
   useEffect(() => {
-    if (editing) {
-      inputRef.current?.focus();
-      inputRef.current?.select();
+    if (!focusedRef.current) {
+      setText(formatPercentInput(value));
     }
-  }, [editing]);
+  }, [value]);
 
-  const commit = (raw: string) => {
-    const parsed = parsePercentInput(raw);
-    if (parsed == null) {
-      onCommit(null);
-      return;
-    }
-    if (
-      defaultRate != null &&
-      Math.abs(parsed - defaultRate) < 0.00001
-    ) {
-      onCommit(null);
-      return;
-    }
+  const commit = () => {
+    const parsed = parsePercentInput(textRef.current);
+    setText(formatPercentInput(parsed));
     onCommit(parsed);
   };
 
-  if (!editing) {
-    return (
-      <div className="flex h-11 items-center justify-end gap-1 px-2">
-        <span
-          className={cn(
-            "tabular-nums",
-            isCustom ? "font-semibold text-foreground" : "text-muted-foreground"
-          )}
-        >
-          {effectiveRate == null ? "" : formatRate(effectiveRate)}
-        </span>
-        <button
-          type="button"
-          className={cn(
-            "grid size-7 shrink-0 place-items-center rounded-md transition hover:bg-white hover:text-foreground",
-            isCustom
-              ? "text-[#1d4ed8]"
-              : "text-muted-foreground/70 group-hover:text-muted-foreground"
-          )}
-          onClick={() => {
-            setText(
-              effectiveRate == null ? "" : formatPercentInput(effectiveRate)
-            );
-            setEditing(true);
-          }}
-          aria-label="Modifier le taux"
-          title={
-            isCustom
-              ? "Taux modifié — vider le champ pour revenir au taux automatique"
-              : "Modifier le taux de cette ligne"
-          }
-        >
-          <Pencil className="size-3.5" />
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex h-11 items-center justify-end gap-1 px-1">
+    <div className="flex h-11 items-center justify-end gap-1 px-2">
       <input
-        ref={inputRef}
         inputMode="decimal"
-        className="h-8 w-16 rounded-md border border-[#32a0f3]/50 bg-white px-2 text-right text-sm tabular-nums outline-none focus:ring-2 focus:ring-[#32a0f3]/35"
+        placeholder="—"
         value={text}
+        className="h-11 w-full min-w-0 bg-transparent text-right text-sm font-semibold tabular-nums outline-none placeholder:text-muted-foreground/70 focus:bg-white focus:ring-2 focus:ring-inset focus:ring-[#32a0f3]/35"
+        onFocus={() => {
+          focusedRef.current = true;
+          setText(value == null ? "" : formatPercentInput(value));
+        }}
         onChange={(event) => setText(event.target.value)}
         onBlur={() => {
-          if (skipCommit.current) {
-            skipCommit.current = false;
-            setEditing(false);
-            return;
-          }
-          commit(text);
-          setEditing(false);
+          focusedRef.current = false;
+          commit();
         }}
         onKeyDown={(event) => {
           if (event.key === "Enter") {
+            event.preventDefault();
             event.currentTarget.blur();
-          }
-          if (event.key === "Escape") {
-            skipCommit.current = true;
-            setEditing(false);
           }
         }}
         aria-label="Taux de commission en pourcentage"
@@ -227,22 +176,28 @@ function CardField({
 function SheetRowCard({
   row,
   variant,
-  settings,
   onPatch,
   onDelete,
 }: {
   row: SheetRow;
   variant: "admin" | "apporteur";
-  settings: ApportRateSettings;
-  onPatch: (patch: Partial<SheetRow>) => void;
+  onPatch: (
+    patch: Partial<SheetRow>,
+    options?: { immediate?: boolean }
+  ) => void;
   onDelete?: () => void;
 }) {
-  const computed = computeApportRow({ ...row, settings });
+  const computed = computeApportRow({ ...row });
   const inputClass =
     "h-11 w-full rounded-xl border border-[#d7deea] bg-[#eef8f1] px-3 text-sm outline-none placeholder:text-muted-foreground/70 focus:bg-white focus:ring-2 focus:ring-[#32a0f3]/35";
 
   return (
     <article className="rounded-2xl border border-[#d7deea] bg-white p-3 shadow-[0_8px_24px_rgba(15,23,42,0.06)] sm:p-4">
+      {variant === "admin" && row.authorName ? (
+        <p className="mb-2 text-xs font-semibold text-[#5c4d12]">
+          Apporteur : <span className="font-bold text-foreground">{row.authorName}</span>
+        </p>
+      ) : null}
       <div className="flex items-start gap-2">
         <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
           <CardField label="Client">
@@ -251,6 +206,18 @@ function SheetRowCard({
               placeholder="Nom du client"
               className={cn(inputClass, "font-bold")}
               onChange={(event) => onPatch({ client: event.target.value })}
+              onBlur={(event) =>
+                onPatch(
+                  { client: event.target.value.trim() },
+                  { immediate: true }
+                )
+              }
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  event.currentTarget.blur();
+                }
+              }}
             />
           </CardField>
           <CardField label="Date">
@@ -284,20 +251,14 @@ function SheetRowCard({
           </div>
         </CardField>
         <CardField label="Taux commission">
-          {variant === "admin" ? (
-            <div className="overflow-hidden rounded-xl border border-[#d7deea] bg-[#eef8f1]">
-              <RateField
-                effectiveRate={computed.rate}
-                defaultRate={computed.defaultRate}
-                customRate={row.customRate}
-                onCommit={(next) => onPatch({ customRate: next })}
-              />
-            </div>
-          ) : (
-            <div className="flex h-11 items-center rounded-xl border border-[#d7deea] bg-[#eef8f1] px-3 text-sm tabular-nums text-muted-foreground">
-              {computed.rate == null ? "—" : formatRate(computed.rate)}
-            </div>
-          )}
+          <div className="overflow-hidden rounded-xl border border-[#d7deea] bg-[#eef8f1]">
+            <RateField
+              value={row.customRate}
+              onCommit={(next) =>
+                onPatch({ customRate: next }, { immediate: true })
+              }
+            />
+          </div>
         </CardField>
       </div>
 
@@ -367,12 +328,20 @@ function AmountField({
 }) {
   const [focused, setFocused] = useState(false);
   const [text, setText] = useState(formatAmountInput(value));
+  const textRef = useRef(text);
+  textRef.current = text;
 
   useEffect(() => {
     if (!focused) {
       setText(formatAmountInput(value));
     }
   }, [focused, value]);
+
+  const commit = () => {
+    const parsed = parseAmountInput(textRef.current);
+    setText(formatAmountInput(parsed));
+    onCommit(parsed);
+  };
 
   return (
     <SheetInput
@@ -387,7 +356,13 @@ function AmountField({
       onChange={(event) => setText(event.target.value)}
       onBlur={() => {
         setFocused(false);
-        onCommit(parseAmountInput(text));
+        commit();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          event.currentTarget.blur();
+        }
       }}
     />
   );
@@ -399,83 +374,187 @@ export function ApportAffairesSheet({
   variant?: "admin" | "apporteur";
 }) {
   const saved = useQuery(api.apportAffaires.list);
-  const settingsQuery = useQuery(api.apportAffaires.getSettings);
   const upsert = useMutation(api.apportAffaires.upsert);
   const remove = useMutation(api.apportAffaires.remove);
-  const settings = settingsQuery ?? DEFAULT_APPORT_RATE_SETTINGS;
   const [rows, setRows] = useState<SheetRow[]>([]);
   const syncedRef = useRef(false);
+  const rowsRef = useRef<SheetRow[]>([]);
   const saveTimers = useRef(new Map<string, number>());
+  const saveSeq = useRef(new Map<string, number>());
+  const dirtyKeys = useRef(new Set<string>());
+  /** Keys where the user edited the commission % (incl. clearing it). */
+  const rateTouchedKeys = useRef(new Set<string>());
+
+  useEffect(() => {
+    rowsRef.current = rows;
+  }, [rows]);
 
   useEffect(() => {
     if (saved === undefined) return;
     setRows((current) => {
+      const localById = new Map(
+        current.filter((row) => row.id).map((row) => [row.id!, row])
+      );
+      const fromServer = saved.map((doc) => {
+        const local = localById.get(doc._id);
+        // Keep in-progress edits so a slow save cannot wipe the % the user just typed.
+        if (
+          local &&
+          (dirtyKeys.current.has(local.key) || dirtyKeys.current.has(doc._id))
+        ) {
+          return {
+            ...local,
+            id: doc._id,
+            authorName: doc.authorName ?? local.authorName,
+            // If a slow amount-save wiped the server %, keep the local % while dirty.
+            // When local % is empty but server has one, prefer server.
+            customRate: local.customRate ?? doc.customRate ?? null,
+          };
+        }
+        const mapped = rowFromDoc(doc);
+        // Keep a stable React/persist key if we already had this row locally.
+        if (local) {
+          return { ...mapped, key: local.key };
+        }
+        return mapped;
+      });
+      const serverIds = new Set(saved.map((doc) => doc._id));
       const drafts = syncedRef.current
-        ? current.filter((row) => !row.id)
+        ? current.filter((row) => !row.id || !serverIds.has(row.id))
         : [];
+      // Drop drafts that already got an id and are on the server.
+      const pendingDrafts = drafts.filter((row) => !row.id);
       const nextDrafts =
-        drafts.length >= EMPTY_ROW_COUNT
-          ? drafts
+        pendingDrafts.length >= EMPTY_ROW_COUNT
+          ? pendingDrafts
           : [
-              ...drafts,
-              ...Array.from({ length: EMPTY_ROW_COUNT - drafts.length }, newEmptyRow),
+              ...pendingDrafts,
+              ...Array.from(
+                { length: EMPTY_ROW_COUNT - pendingDrafts.length },
+                newEmptyRow
+              ),
             ];
       syncedRef.current = true;
-      return [...saved.map(rowFromDoc), ...nextDrafts];
+      const next = [...fromServer, ...nextDrafts];
+      rowsRef.current = next;
+      return next;
     });
   }, [saved]);
 
-  const persist = (row: SheetRow) => {
-    const previous = saveTimers.current.get(row.key);
+  const persist = (
+    key: string,
+    immediate = false,
+    rateTouched = false
+  ) => {
+    const previous = saveTimers.current.get(key);
     if (previous) window.clearTimeout(previous);
-    const timer = window.setTimeout(() => {
+    const seq = (saveSeq.current.get(key) ?? 0) + 1;
+    saveSeq.current.set(key, seq);
+    dirtyKeys.current.add(key);
+    if (rateTouched) {
+      rateTouchedKeys.current.add(key);
+    }
+
+    const run = () => {
       void (async () => {
-        const result = await upsert({
-          id: row.id,
-          date: row.date || undefined,
-          client: row.client,
-          contractAmount: row.contractAmount ?? undefined,
-          observation: row.observation || undefined,
-          ...(variant === "admin"
-            ? {
-                customRate: row.customRate,
-                depositReceived: row.depositReceived,
-              }
-            : {}),
-        });
-        if (result.id && result.id !== row.id) {
-          setRows((current) =>
-            current.map((item) =>
-              item.key === row.key ? { ...item, key: result.id!, id: result.id! } : item
-            )
-          );
+        const row = rowsRef.current.find((item) => item.key === key);
+        if (!row) {
+          dirtyKeys.current.delete(key);
+          rateTouchedKeys.current.delete(key);
+          return;
         }
-        if (result.deleted) {
-          setRows((current) => {
-            const without = current.filter((item) => item.key !== row.key);
-            return [...without, newEmptyRow()];
+        try {
+          // Never send customRate: null on unrelated edits — that wiped the %
+          // via db.replace. Only send the rate when the user edited it, or when
+          // reinforcing a non-null value already in local state.
+          const includeRate =
+            rateTouchedKeys.current.has(key) || row.customRate != null;
+          const result = await upsert({
+            id: row.id,
+            date: row.date || undefined,
+            client: row.client,
+            contractAmount: row.contractAmount ?? undefined,
+            ...(includeRate ? { customRate: row.customRate } : {}),
+            observation: row.observation || undefined,
+            ...(variant === "admin"
+              ? { depositReceived: row.depositReceived }
+              : {}),
           });
+
+          // A newer edit started while this save was in flight — save again.
+          if (saveSeq.current.get(key) !== seq) {
+            persist(key, true, rateTouchedKeys.current.has(key));
+            return;
+          }
+
+          // Keep local key stable — only attach the server id.
+          if (result.id && result.id !== row.id) {
+            setRows((current) => {
+              const next = current.map((item) =>
+                item.key === key ? { ...item, id: result.id! } : item
+              );
+              rowsRef.current = next;
+              return next;
+            });
+          }
+
+          if (result.deleted) {
+            dirtyKeys.current.delete(key);
+            rateTouchedKeys.current.delete(key);
+            setRows((current) => {
+              const next = [
+                ...current.filter((item) => item.key !== key),
+                newEmptyRow(),
+              ];
+              rowsRef.current = next;
+              return next;
+            });
+            return;
+          }
+
+          dirtyKeys.current.delete(key);
+          rateTouchedKeys.current.delete(key);
+        } catch {
+          if (saveSeq.current.get(key) === seq) {
+            dirtyKeys.current.delete(key);
+            rateTouchedKeys.current.delete(key);
+          }
         }
       })();
-    }, 350);
-    saveTimers.current.set(row.key, timer);
+    };
+
+    if (immediate) {
+      run();
+      return;
+    }
+
+    const timer = window.setTimeout(run, 200);
+    saveTimers.current.set(key, timer);
   };
 
-  const updateRow = (key: string, patch: Partial<SheetRow>) => {
+  const updateRow = (
+    key: string,
+    patch: Partial<SheetRow>,
+    options?: { immediate?: boolean }
+  ) => {
     setRows((current) => {
       const next = current.map((row) =>
         row.key === key ? { ...row, ...patch } : row
       );
-      const updated = next.find((row) => row.key === key);
-      if (updated) persist(updated);
+      rowsRef.current = next;
       return next;
     });
+    persist(
+      key,
+      options?.immediate,
+      Object.prototype.hasOwnProperty.call(patch, "customRate")
+    );
   };
 
   const totals = useMemo(() => {
     return rows.reduce(
       (acc, row) => {
-        const computed = computeApportRow({ ...row, settings });
+        const computed = computeApportRow({ ...row });
         if (row.contractAmount) acc.contracts += row.contractAmount;
         if (computed.commissionDue != null) acc.due += computed.commissionDue;
         acc.deposits += row.depositReceived;
@@ -484,7 +563,7 @@ export function ApportAffairesSheet({
       },
       { contracts: 0, due: 0, deposits: 0, remaining: 0 }
     );
-  }, [rows, settings]);
+  }, [rows]);
 
   const cardRows = useMemo(() => {
     const filled = rows.filter((row) => !isBlank(row));
@@ -500,14 +579,13 @@ export function ApportAffairesSheet({
 
   return (
     <div className="min-w-0 space-y-4">
-      <div className="space-y-3 lg:hidden">
+      <div className="space-y-3 md:hidden">
         {cardRows.map((row) => (
           <SheetRowCard
             key={row.key}
             row={row}
             variant={variant}
-            settings={settings}
-            onPatch={(patch) => updateRow(row.key, patch)}
+            onPatch={(patch, options) => updateRow(row.key, patch, options)}
             onDelete={
               row.id && !isBlank(row)
                 ? () => {
@@ -550,71 +628,101 @@ export function ApportAffairesSheet({
         </div>
       </div>
 
-      <div className="hidden min-w-0 lg:block">
+      <div className="hidden min-w-0 md:block">
       <div className="overflow-hidden rounded-[1.5rem] border border-[#d7deea] bg-white shadow-[0_8px_40px_rgba(15,23,42,0.08)]">
-        <div className="w-full min-w-0 overflow-x-auto overscroll-x-contain">
-          <table className={cn(
-            "w-full border-collapse text-sm",
-            variant === "apporteur" ? "min-w-[1120px]" : "min-w-[1240px]"
-          )}>
+        <div className="w-full min-w-0">
+          <table className="w-full table-fixed border-collapse text-sm">
             <thead>
               <tr className="bg-[#f6e27a] text-[11px] font-bold uppercase tracking-wide text-[#5c4d12]">
-                <th className="border-b border-[#ead56a] px-3 py-3 text-left font-bold">
+                {variant === "admin" ? (
+                  <th className="w-[9%] border-b border-[#ead56a] px-1.5 py-3 text-left font-bold sm:px-2">
+                    Apporteur
+                  </th>
+                ) : null}
+                <th
+                  className={cn(
+                    "border-b border-[#ead56a] px-2 py-3 text-left font-bold sm:px-3",
+                    variant === "admin" ? "w-[9%]" : "w-[10%]"
+                  )}
+                >
                   Date
                 </th>
-                <th className="border-b border-[#ead56a] px-3 py-3 text-left font-bold">
+                <th className="w-[11%] border-b border-[#ead56a] px-2 py-3 text-left font-bold sm:px-3">
                   Client
                 </th>
-                <th className="border-b border-[#ead56a] px-3 py-3 text-right font-bold">
+                <th className="w-[8%] border-b border-[#ead56a] px-1.5 py-3 text-right font-bold sm:px-2">
                   Montant contrat
                 </th>
-                <th className="border-b border-[#ead56a] px-3 py-3 text-right font-bold">
+                <th className="w-[6%] border-b border-[#ead56a] px-1.5 py-3 text-right font-bold sm:px-2">
                   Taux commission
                 </th>
-                <th className="border-b border-[#ead56a] px-3 py-3 text-right font-bold">
+                <th className="w-[8%] border-b border-[#ead56a] px-1.5 py-3 text-right font-bold sm:px-2">
                   Commission due
                 </th>
                 {variant === "admin" ? (
                   <>
-                    <th className="border-b border-[#ead56a] px-3 py-3 text-right font-bold">
+                    <th className="w-[7%] border-b border-[#ead56a] px-1.5 py-3 text-right font-bold sm:px-2">
                       Acompte reçu
                     </th>
-                    <th className="border-b border-[#ead56a] px-3 py-3 text-right font-bold">
+                    <th className="w-[7%] border-b border-[#ead56a] px-1.5 py-3 text-right font-bold sm:px-2">
                       Reste à payer
                     </th>
                   </>
                 ) : null}
-                <th className="min-w-[280px] border-b border-[#ead56a] px-3 py-3 text-left font-bold">
+                <th className="w-[28%] min-w-[12rem] border-b border-[#ead56a] px-2 py-3 text-left font-bold sm:px-3">
                   Observation
                 </th>
-                <th className="w-12 border-b border-[#ead56a]" />
+                <th className="w-10 border-b border-[#ead56a]" />
               </tr>
             </thead>
             <tbody>
               {rows.map((row, index) => {
-                const computed = computeApportRow({ ...row, settings });
+                const computed = computeApportRow({ ...row });
                 const stripe = index % 2 === 1;
+                const cellMint = cn(
+                  "border-b border-[#e6edf3] bg-[#eef8f1]",
+                  stripe && "bg-[#e6f3ea]"
+                );
                 return (
                   <tr key={row.key} className="group">
-                    <td className={cn("border-b border-[#e6edf3] bg-[#eef8f1]", stripe && "bg-[#e6f3ea]")}>
+                    {variant === "admin" ? (
+                      <td
+                        className={cn(
+                          cellMint,
+                          "px-1.5 py-2 text-sm font-bold sm:px-2"
+                        )}
+                      >
+                        {row.id ? row.authorName || "—" : ""}
+                      </td>
+                    ) : null}
+                    <td className={cellMint}>
                       <SheetInput
                         type="date"
                         value={row.date}
+                        className="px-2 sm:px-3"
                         onChange={(event) =>
                           updateRow(row.key, { date: event.target.value })
                         }
                       />
                     </td>
-                    <td className={cn("border-b border-[#e6edf3] bg-[#eef8f1]", stripe && "bg-[#e6f3ea]")}>
+                    <td className={cellMint}>
                       <SheetInput
                         value={row.client}
                         placeholder="Nom du client"
+                        className="px-2 font-bold sm:px-3"
                         onChange={(event) =>
                           updateRow(row.key, { client: event.target.value })
                         }
+                        onBlur={(event) =>
+                          updateRow(
+                            row.key,
+                            { client: event.target.value.trim() },
+                            { immediate: true }
+                          )
+                        }
                       />
                     </td>
-                    <td className="border-b border-[#e6edf3] bg-white">
+                    <td className={cellMint}>
                       <AmountField
                         value={row.contractAmount}
                         onCommit={(next) =>
@@ -622,40 +730,26 @@ export function ApportAffairesSheet({
                         }
                       />
                     </td>
-                    {variant === "admin" ? (
-                      <td
-                      className={cn(
-                        "border-b border-[#e6edf3] bg-[#eef8f1]",
-                        stripe && "bg-[#e6f3ea]"
-                      )}
-                    >
+                    <td className={cellMint}>
                       <RateField
-                        effectiveRate={computed.rate}
-                        defaultRate={computed.defaultRate}
-                        customRate={row.customRate}
+                        value={row.customRate}
                         onCommit={(next) =>
-                          updateRow(row.key, { customRate: next })
+                          updateRow(
+                            row.key,
+                            { customRate: next },
+                            { immediate: true }
+                          )
                         }
                       />
                     </td>
-                    ) : (
-                    <td
-                      className={cn(
-                        "border-b border-[#e6edf3] bg-[#eef8f1] px-3 text-right tabular-nums text-muted-foreground",
-                        stripe && "bg-[#e6f3ea]"
-                      )}
-                    >
-                      {computed.rate == null ? "" : formatRate(computed.rate)}
-                    </td>
-                    )}
-                    <td className="border-b border-[#e6edf3] bg-white px-3 text-right font-semibold tabular-nums">
+                    <td className="border-b border-[#e6edf3] bg-white px-1.5 text-right font-semibold tabular-nums sm:px-2">
                       {computed.commissionDue == null
                         ? ""
                         : formatDh(computed.commissionDue)}
                     </td>
                     {variant === "admin" ? (
                       <Fragment>
-                    <td className="border-b border-[#e6edf3] bg-white">
+                    <td className={cellMint}>
                       <AmountField
                         value={row.depositReceived || null}
                         onCommit={(next) =>
@@ -665,8 +759,8 @@ export function ApportAffairesSheet({
                     </td>
                     <td
                       className={cn(
-                        "border-b border-[#e6edf3] bg-[#eef8f1] px-3 text-right font-semibold tabular-nums",
-                        stripe && "bg-[#e6f3ea]",
+                        cellMint,
+                        "px-1.5 text-right font-semibold tabular-nums sm:px-2",
                         computed.remaining == null
                           ? "text-muted-foreground"
                           : computed.remaining > 0
@@ -680,22 +774,18 @@ export function ApportAffairesSheet({
                     </td>
                       </Fragment>
                     ) : null}
-                    <td
-                      className={cn(
-                        "min-w-[280px] border-b border-[#e6edf3] bg-[#eef8f1]",
-                        stripe && "bg-[#e6f3ea]"
-                      )}
-                    >
+                    <td className={cn(cellMint, "min-w-0")}>
                       <SheetInput
                         value={row.observation}
                         placeholder="Note"
                         title={row.observation}
+                        className="px-2 sm:px-3"
                         onChange={(event) =>
                           updateRow(row.key, { observation: event.target.value })
                         }
                       />
                     </td>
-                    <td className="border-b border-[#e6edf3] bg-white text-center">
+                    <td className={cn(cellMint, "text-center")}>
                       {row.id && !isBlank(row) ? (
                         <button
                           type="button"
@@ -720,7 +810,7 @@ export function ApportAffairesSheet({
             </tbody>
             <tfoot>
               <tr className="bg-[#f8fafc] text-sm font-semibold">
-                <td className="px-3 py-3.5" colSpan={2}>
+                <td className="px-3 py-3.5" colSpan={variant === "admin" ? 3 : 2}>
                   Totaux
                 </td>
                 <td className="px-3 py-3.5 text-right tabular-nums">
@@ -766,147 +856,6 @@ export function ApportAffairesSheet({
           <Plus className="size-4" />
           Ajouter une ligne
         </Button>
-      </div>
-    </div>
-  );
-}
-
-export function ApportRateNote() {
-  const savedSettings = useQuery(api.apportAffaires.getSettings);
-  const saveSettings = useMutation(api.apportAffaires.saveSettings);
-  const [draft, setDraft] = useState<ApportRateSettings | null>(null);
-  const settings = draft ?? savedSettings ?? DEFAULT_APPORT_RATE_SETTINGS;
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (savedSettings && !draft) {
-      setDraft(savedSettings);
-    }
-  }, [draft, savedSettings]);
-
-  const persist = async (next: ApportRateSettings) => {
-    const normalized = normalizeApportRateSettings(next);
-    setDraft(normalized);
-    setSaving(true);
-    try {
-      await saveSettings(normalized);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const update = (patch: Partial<ApportRateSettings>) => {
-    const next = normalizeApportRateSettings({ ...settings, ...patch });
-    setDraft(next);
-    void persist(next);
-  };
-
-  const tiers = apportRateTiers(settings);
-
-  return (
-    <div className="rounded-2xl border border-[#f0d9a8] bg-[#fff8e8] px-3 py-3 text-sm text-[#7a5b16] sm:px-5 sm:py-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="font-medium">
-          Commission automatique selon le montant du contrat
-        </p>
-        {saving ? (
-          <span className="text-xs text-[#9a7a2e]">Enregistrement…</span>
-        ) : null}
-      </div>
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <label className="flex min-w-0 flex-col gap-1 rounded-xl bg-white/80 px-3 py-2 ring-1 ring-[#ead56a]">
-          <span className="text-[11px] font-semibold uppercase leading-tight tracking-wide">
-            {tiers[0]?.hint}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <input
-              inputMode="decimal"
-              className="h-9 w-16 rounded-lg border border-[#ead56a] bg-white px-2 text-right text-sm font-semibold text-[#5c4d12] outline-none focus:ring-2 focus:ring-[#32a0f3]/30"
-              defaultValue={formatPercentInput(settings.lowRate)}
-              key={`low-${settings.lowRate}`}
-              onBlur={(event) => {
-                const rate = parsePercentInput(event.target.value);
-                if (rate == null) return;
-                update({ lowRate: rate });
-              }}
-            />
-            <span className="text-xs font-semibold">%</span>
-          </span>
-        </label>
-        <label className="flex min-w-0 flex-col gap-1 rounded-xl bg-white/80 px-3 py-2 ring-1 ring-[#ead56a]">
-          <span className="text-[11px] font-semibold uppercase leading-tight tracking-wide">
-            {tiers[1]?.hint}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <input
-              inputMode="decimal"
-              className="h-9 w-16 rounded-lg border border-[#ead56a] bg-white px-2 text-right text-sm font-semibold text-[#5c4d12] outline-none focus:ring-2 focus:ring-[#32a0f3]/30"
-              defaultValue={formatPercentInput(settings.midRate)}
-              key={`mid-${settings.midRate}`}
-              onBlur={(event) => {
-                const rate = parsePercentInput(event.target.value);
-                if (rate == null) return;
-                update({ midRate: rate });
-              }}
-            />
-            <span className="text-xs font-semibold">%</span>
-          </span>
-        </label>
-      </div>
-      <label className="mt-2 flex min-w-0 items-center justify-between gap-3 rounded-xl bg-white/80 px-3 py-2 ring-1 ring-[#ead56a]">
-        <span className="text-[11px] font-semibold uppercase leading-tight tracking-wide">
-          {tiers[2]?.hint}
-        </span>
-        <span className="flex shrink-0 items-center gap-1.5">
-          <input
-            inputMode="decimal"
-            className="h-9 w-16 rounded-lg border border-[#ead56a] bg-white px-2 text-right text-sm font-semibold text-[#5c4d12] outline-none focus:ring-2 focus:ring-[#32a0f3]/30"
-            defaultValue={formatPercentInput(settings.highRate)}
-            key={`high-${settings.highRate}`}
-            onBlur={(event) => {
-              const rate = parsePercentInput(event.target.value);
-              if (rate == null) return;
-              update({ highRate: rate });
-            }}
-          />
-          <span className="text-xs font-semibold">%</span>
-        </span>
-      </label>
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <label className="flex min-w-0 flex-col gap-1 rounded-xl bg-white/70 px-3 py-2 text-xs ring-1 ring-[#ead56a]/80">
-          <span className="font-medium leading-tight">Plafond 1er palier</span>
-          <span className="flex items-center gap-1">
-            <input
-              inputMode="decimal"
-              className="h-8 w-full min-w-0 rounded-lg border border-[#ead56a] bg-white px-2 text-right text-sm font-semibold text-[#5c4d12] outline-none focus:ring-2 focus:ring-[#32a0f3]/30"
-              defaultValue={formatAmountInput(settings.lowMax)}
-              key={`lowMax-${settings.lowMax}`}
-              onBlur={(event) => {
-                const amount = parseAmountInput(event.target.value);
-                if (amount == null) return;
-                update({ lowMax: amount });
-              }}
-            />
-            <span>DH</span>
-          </span>
-        </label>
-        <label className="flex min-w-0 flex-col gap-1 rounded-xl bg-white/70 px-3 py-2 text-xs ring-1 ring-[#ead56a]/80">
-          <span className="font-medium leading-tight">Plafond 2e palier</span>
-          <span className="flex items-center gap-1">
-            <input
-              inputMode="decimal"
-              className="h-8 w-full min-w-0 rounded-lg border border-[#ead56a] bg-white px-2 text-right text-sm font-semibold text-[#5c4d12] outline-none focus:ring-2 focus:ring-[#32a0f3]/30"
-              defaultValue={formatAmountInput(settings.midMax)}
-              key={`midMax-${settings.midMax}`}
-              onBlur={(event) => {
-                const amount = parseAmountInput(event.target.value);
-                if (amount == null) return;
-                update({ midMax: amount });
-              }}
-            />
-            <span>DH</span>
-          </span>
-        </label>
       </div>
     </div>
   );

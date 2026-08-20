@@ -7,6 +7,7 @@ export const ADMIN_HOME_PATH = "/admin";
 export const WORKSPACE_HOME_PATH = "/projets";
 export const APPORT_AFFAIRES_LOGIN_PATH = "/apport-affaires";
 export const APPORT_AFFAIRES_HOME_PATH = "/apport-affaires";
+export const APPORT_AFFAIRES_PROFILE_PATH = "/apport-affaires/profil";
 export const APPORT_AFFAIRES_SUBMIT_PATH = "/apport-affaires/propositions";
 export const SUPPLIER_HOME_PATH = "/supplier";
 export const PRESTATAIRE_HOME_PATH = "/prestataire";

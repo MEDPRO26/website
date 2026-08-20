@@ -1,18 +1,27 @@
 export type ApportRateSettings = {
   lowMax: number;
-  lowRate: number;
+  lowRate: number | null;
   midMax: number;
-  midRate: number;
-  highRate: number;
+  midRate: number | null;
+  highRate: number | null;
 };
 
 export const DEFAULT_APPORT_RATE_SETTINGS: ApportRateSettings = {
   lowMax: 100_000,
-  lowRate: 0.07,
+  lowRate: null,
   midMax: 250_000,
-  midRate: 0.05,
-  highRate: 0.03,
+  midRate: null,
+  highRate: null,
 };
+
+function clampRate(rate: number) {
+  return Math.min(1, Math.max(0, Number.isFinite(rate) ? rate : 0));
+}
+
+function normalizeOptionalRate(rate: number | null | undefined): number | null {
+  if (rate == null || !Number.isFinite(rate)) return null;
+  return clampRate(rate);
+}
 
 export function normalizeApportRateSettings(
   settings?: Partial<ApportRateSettings> | null
@@ -20,14 +29,12 @@ export function normalizeApportRateSettings(
   const next = { ...DEFAULT_APPORT_RATE_SETTINGS, ...settings };
   const lowMax = Math.max(1, next.lowMax);
   const midMax = Math.max(lowMax + 1, next.midMax);
-  const clampRate = (rate: number) =>
-    Math.min(1, Math.max(0, Number.isFinite(rate) ? rate : 0));
   return {
     lowMax,
     midMax,
-    lowRate: clampRate(next.lowRate),
-    midRate: clampRate(next.midRate),
-    highRate: clampRate(next.highRate),
+    lowRate: normalizeOptionalRate(next.lowRate),
+    midRate: normalizeOptionalRate(next.midRate),
+    highRate: normalizeOptionalRate(next.highRate),
   };
 }
 
@@ -36,39 +43,31 @@ export function apportRateTiers(settings: ApportRateSettings) {
   return [
     {
       rate: s.lowRate,
-      label: formatRate(s.lowRate),
+      label: s.lowRate == null ? "" : formatRate(s.lowRate),
       hint: `jusqu’à ${s.lowMax.toLocaleString("fr-FR")} DH`,
     },
     {
       rate: s.midRate,
-      label: formatRate(s.midRate),
+      label: s.midRate == null ? "" : formatRate(s.midRate),
       hint: `entre ${(s.lowMax + 1).toLocaleString("fr-FR")} et ${s.midMax.toLocaleString("fr-FR")} DH`,
     },
     {
       rate: s.highRate,
-      label: formatRate(s.highRate),
+      label: s.highRate == null ? "" : formatRate(s.highRate),
       hint: `au-delà de ${s.midMax.toLocaleString("fr-FR")} DH`,
     },
   ];
 }
 
-/** Excel: =SI(C6="";"";SI(C6<=100000;7%;SI(C6<=250000;5%;3%))) */
+/** Bracket rate from settings, or null when that tier has no rate yet. */
 export function commissionRateForContract(
   amount: number,
   settings: ApportRateSettings = DEFAULT_APPORT_RATE_SETTINGS
-) {
+): number | null {
   const s = normalizeApportRateSettings(settings);
   if (amount <= s.lowMax) return s.lowRate;
   if (amount <= s.midMax) return s.midRate;
   return s.highRate;
-}
-
-/** Excel: =SI(C6="";"";C6*D6) */
-export function commissionDueForContract(
-  amount: number,
-  settings: ApportRateSettings = DEFAULT_APPORT_RATE_SETTINGS
-) {
-  return Math.round(amount * commissionRateForContract(amount, settings));
 }
 
 /** Excel: =SI(E6="";"";E6-F6) */
@@ -76,10 +75,10 @@ export function remainingToPay(commissionDue: number, depositReceived: number) {
   return Math.round(commissionDue - depositReceived);
 }
 
-function clampRate(rate: number) {
-  return Math.min(1, Math.max(0, Number.isFinite(rate) ? rate : 0));
-}
-
+/**
+ * Commission uses the manually entered rate only.
+ * Bracket settings are optional reference values, not auto-applied.
+ */
 export function computeApportRow(args: {
   contractAmount: number | null | undefined;
   depositReceived: number | null | undefined;
@@ -101,15 +100,19 @@ export function computeApportRow(args: {
   const defaultRate = commissionRateForContract(amount, settings);
   const isCustomRate =
     args.customRate != null && Number.isFinite(args.customRate);
-  const rate = isCustomRate ? clampRate(args.customRate!) : defaultRate;
-  const commissionDue = Math.round(amount * rate);
+  const rate = isCustomRate ? clampRate(args.customRate!) : null;
+  const commissionDue =
+    rate == null ? null : Math.round(amount * rate);
   const deposit = args.depositReceived ?? 0;
   return {
     rate,
     defaultRate,
     isCustomRate,
     commissionDue,
-    remaining: remainingToPay(commissionDue, deposit),
+    remaining:
+      commissionDue == null
+        ? null
+        : remainingToPay(commissionDue, deposit),
   };
 }
 
@@ -140,8 +143,9 @@ export function formatRate(rate: number) {
   return `${text} %`;
 }
 
-export function formatPercentInput(rate: number) {
-  const pct = rate * 100;
+export function formatPercentInput(rate: number | null | undefined) {
+  if (rate == null || !Number.isFinite(rate)) return "";
+  const pct = Math.round(rate * 10000) / 100;
   return Number.isInteger(pct)
     ? String(pct)
     : pct.toLocaleString("fr-FR", { maximumFractionDigits: 2 });

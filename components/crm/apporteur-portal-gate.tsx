@@ -2,22 +2,22 @@
 
 import { useRouter } from "next/navigation";
 import { useConvexAuth, useQuery } from "convex/react";
+import type { ReactNode } from "react";
 import { StaffLoginPage } from "@/components/crm/staff-login-page";
-import { ApportAffairesPage } from "@/components/crm/apport-affaires-page";
-import { ApportAffairesSheet } from "@/components/crm/apport-affaires-sheet";
-import { AdminShell } from "@/components/dashboard/app-shell";
 import { ApporteurShell } from "@/components/dashboard/apporteur-shell";
 import { api } from "@/convex/_generated/api";
+import {
+  ADMIN_LOGIN_PATH,
+  APPORT_AFFAIRES_HOME_PATH,
+  SUPPLIER_HOME_PATH,
+} from "@/lib/auth-routes";
 import {
   isAdminStaffRole,
   isApporteurStaffRole,
 } from "@/lib/crm/staff-roles";
-import {
-  ADMIN_LOGIN_PATH,
-  SUPPLIER_HOME_PATH,
-} from "@/lib/auth-routes";
 
-export function ApportAffairesHome() {
+/** Auth gate + sidebar shell for apporteur-only pages. */
+export function ApporteurPortalGate({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useConvexAuth();
   const staff = useQuery(api.staff.current, isAuthenticated ? {} : "skip");
@@ -35,22 +35,12 @@ export function ApportAffairesHome() {
   }
 
   if (isApporteurStaffRole(staff.role)) {
-    return (
-      <ApporteurShell>
-        <h1 className="mb-4 text-xl font-bold leading-snug tracking-tight text-[#2890e0] sm:mb-6 sm:text-3xl">
-          Tableau de Suivi des Commissions – Apport d’Affaires
-        </h1>
-        <ApportAffairesSheet variant="apporteur" />
-      </ApporteurShell>
-    );
+    return <ApporteurShell>{children}</ApporteurShell>;
   }
 
   if (isAdminStaffRole(staff.role)) {
-    return (
-      <AdminShell variant="apport">
-        <ApportAffairesPage />
-      </AdminShell>
-    );
+    router.replace(APPORT_AFFAIRES_HOME_PATH);
+    return null;
   }
 
   if (staff.role === "supplier") {
