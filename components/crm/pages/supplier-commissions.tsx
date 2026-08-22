@@ -18,11 +18,14 @@ import {
   type SettleTargetItem,
 } from "@/components/crm/supplier-commission-settle-dialog";
 import { formatMad } from "@/lib/crm/pricing";
+import {
+  S2MBO_BANK_LOGO,
+  S2MBO_BANK_NAME,
+  S2MBO_COMMISSION_RIB,
+  S2MBO_COMMISSION_RIB_COMPACT,
+} from "@/lib/s2mbo-bank";
 import { resolveSupplierPartnerKind } from "@/lib/supplier-activity-types";
 import { cn } from "@/lib/utils";
-
-const SOS_COMMISSION_RIB = "230 010 5253573211017900 35";
-const SOS_COMMISSION_RIB_COMPACT = "230010525357321101790035";
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString("fr-FR", {
@@ -85,7 +88,7 @@ export function SupplierCommissionsPage() {
 
   const copyRib = async () => {
     try {
-      await navigator.clipboard.writeText(SOS_COMMISSION_RIB_COMPACT);
+      await navigator.clipboard.writeText(S2MBO_COMMISSION_RIB_COMPACT);
       toast.success("RIB copié.");
     } catch {
       toast.error("Impossible de copier le RIB.");
@@ -138,13 +141,13 @@ export function SupplierCommissionsPage() {
       <Card className="mb-4 border-primary/15 bg-primary/[0.03] p-4 sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-stretch gap-3 sm:gap-4">
-            <div className="flex w-28 shrink-0 items-center justify-center self-stretch overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-border/60 sm:w-36">
+            <div className="flex w-28 shrink-0 items-center justify-center self-stretch overflow-hidden rounded-xl bg-white p-2 shadow-sm ring-1 ring-border/60 sm:w-36">
               <Image
-                src="/cih-bank-logo.png"
-                alt="CIH Bank"
+                src={S2MBO_BANK_LOGO}
+                alt={S2MBO_BANK_NAME}
                 width={180}
                 height={100}
-                className="h-full min-h-[4.5rem] w-full object-cover object-center"
+                className="h-auto w-full object-contain object-center"
               />
             </div>
             <div className="min-w-0">
@@ -153,11 +156,11 @@ export function SupplierCommissionsPage() {
               </p>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                 Merci d&apos;effectuer le virement de l&apos;honoraire de S2MBO sur le
-                compte CIH Bank ci-dessous, puis de téléverser le reçu lors du
-                règlement.
+                compte {S2MBO_BANK_NAME} ci-dessous, puis de téléverser le reçu lors
+                du règlement.
               </p>
               <p className="mt-2 font-mono text-sm font-semibold tracking-wide text-foreground sm:text-base">
-                RIB CIH : {SOS_COMMISSION_RIB}
+                RIB {S2MBO_BANK_NAME} : {S2MBO_COMMISSION_RIB}
               </p>
             </div>
           </div>

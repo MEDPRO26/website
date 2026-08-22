@@ -22,7 +22,7 @@ import {
 import { useAdminSession } from "@/hooks/use-admin-session";
 import { resolveSupplierPartnerKind } from "@/lib/supplier-activity-types";
 
-type Audience = "all" | "materiel" | "soins";
+type Audience = "all" | "materiel" | "soins" | "apporteurs";
 
 export function AdminPushNotificationsPage() {
   const { canQueryAdmin } = useAdminSession();
@@ -30,10 +30,7 @@ export function AdminPushNotificationsPage() {
     api.pushSubscriptions.adminStats,
     canQueryAdmin ? {} : "skip"
   );
-  const suppliers = useQuery(
-    api.suppliers.list,
-    canQueryAdmin ? {} : "skip"
-  );
+  const suppliers = useQuery(api.suppliers.list, canQueryAdmin ? {} : "skip");
   const sendBroadcast = useAction(api.webPush.sendBroadcast);
 
   const [audience, setAudience] = useState<Audience>("all");
@@ -44,19 +41,21 @@ export function AdminPushNotificationsPage() {
   const [sending, setSending] = useState(false);
 
   const partnerOptions = useMemo(() => {
-    if (!suppliers) return [];
+    if (!suppliers || audience === "apporteurs") return [];
     return suppliers
       .filter((s: { status: string }) => s.status === "actif")
-      .filter((s: {
-        type: string;
-        types?: string[];
-        partnerKind?: "materiel" | "soins";
-      }) => {
-        const kind =
-          resolveSupplierPartnerKind(s) ?? s.partnerKind ?? "materiel";
-        if (audience === "all") return true;
-        return kind === audience;
-      })
+      .filter(
+        (s: {
+          type: string;
+          types?: string[];
+          partnerKind?: "materiel" | "soins";
+        }) => {
+          const kind =
+            resolveSupplierPartnerKind(s) ?? s.partnerKind ?? "materiel";
+          if (audience === "all") return true;
+          return kind === audience;
+        }
+      )
       .sort((a: { name: string }, b: { name: string }) =>
         a.name.localeCompare(b.name, "fr")
       );
@@ -72,7 +71,7 @@ export function AdminPushNotificationsPage() {
       const result = await sendBroadcast({
         audience,
         supplierId:
-          supplierId !== "all"
+          audience !== "apporteurs" && supplierId !== "all"
             ? (supplierId as Id<"suppliers">)
             : undefined,
         title,
@@ -87,9 +86,7 @@ export function AdminPushNotificationsPage() {
         );
       }
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Envoi impossible."
-      );
+      toast.error(err instanceof Error ? err.message : "Envoi impossible.");
     } finally {
       setSending(false);
     }
@@ -99,10 +96,10 @@ export function AdminPushNotificationsPage() {
     <div>
       <PageHeader
         title="Push notifications"
-        description="Envoyez une alerte mobile aux fournisseurs et prestataires qui ont installé l'app"
+        description="Envoyez une alerte mobile aux fournisseurs, prestataires et apporteurs qui ont installé l'app"
       />
 
-      <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Card className="p-4">
           <p className="text-xs text-muted-foreground">Appareils abonnés</p>
           <p className="mt-1 text-2xl font-bold">{stats?.devices ?? "—"}</p>
@@ -119,16 +116,26 @@ export function AdminPushNotificationsPage() {
         </Card>
         <Card className="p-4">
           <p className="text-xs text-muted-foreground">Prestataires</p>
-          <p className="mt-1 text-2xl font-bold">{stats?.soinsDevices ?? "—"}</p>
+          <p className="mt-1 text-2xl font-bold">
+            {stats?.soinsDevices ?? "—"}
+          </p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs text-muted-foreground">Apporteurs</p>
+          <p className="mt-1 text-2xl font-bold">
+            {stats?.apporteurDevices ?? "—"}
+          </p>
         </Card>
       </div>
 
       {stats && !stats.configured ? (
         <Card className="mb-4 border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-950">
-          <p className="font-medium">Clés VAPID manquantes sur ce déploiement Convex</p>
+          <p className="font-medium">
+            Clés VAPID manquantes sur ce déploiement Convex
+          </p>
           <p className="mt-1 text-amber-900/90">
-            Vous les avez peut‑être ajoutées en <strong>Development</strong>, mais
-            s2mbo.com utilise <strong>Production</strong>. Ouvrez Convex →
+            Vous les avez peut‑être ajoutées en <strong>Development</strong>,
+            mais s2mbo.com utilise <strong>Production</strong>. Ouvrez Convex →
             basculez sur le déploiement Production → Settings → Environment
             Variables, puis ajoutez{" "}
             <code className="font-mono">VAPID_PUBLIC_KEY</code>,{" "}
@@ -162,25 +169,38 @@ export function AdminPushNotificationsPage() {
                 <SelectItem value="all">Tous les partenaires</SelectItem>
                 <SelectItem value="materiel">Fournisseurs seulement</SelectItem>
                 <SelectItem value="soins">Prestataires seulement</SelectItem>
+                <SelectItem value="apporteurs">Apporteurs seulement</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <div>
-            <Label>Partenaire précis (optionnel)</Label>
-            <Select value={supplierId} onValueChange={setSupplierId}>
-              <SelectTrigger className="mt-1.5">
-                <SelectValue placeholder="Tous" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous de la sélection</SelectItem>
-                {partnerOptions.map((s: { _id: Id<"suppliers">; name: string }) => (
-                  <SelectItem key={s._id} value={s._id}>
-                    {s.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {audience !== "apporteurs" ? (
+            <div>
+              <Label>Partenaire précis (optionnel)</Label>
+              <Select value={supplierId} onValueChange={setSupplierId}>
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue placeholder="Tous" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous de la sélection</SelectItem>
+                  {partnerOptions.map(
+                    (s: { _id: Id<"suppliers">; name: string }) => (
+                      <SelectItem key={s._id} value={s._id}>
+                        {s.name}
+                      </SelectItem>
+                    )
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <div>
+              <Label>Lien conseillé</Label>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Ex. <code className="font-mono">/apport-affaires</code> ou{" "}
+                <code className="font-mono">/apport-affaires/honoraires</code>
+              </p>
+            </div>
+          )}
         </div>
 
         <div>
@@ -212,7 +232,7 @@ export function AdminPushNotificationsPage() {
           <Input
             className="mt-1.5"
             value={url}
-            placeholder="/supplier ou /prestataire/orders/…"
+            placeholder="/apport-affaires ou /supplier/orders/…"
             onChange={(e) => setUrl(e.target.value)}
           />
         </div>

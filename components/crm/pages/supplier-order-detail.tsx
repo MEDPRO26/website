@@ -7,6 +7,7 @@ import { useMutation, useQuery } from "convex/react";
 import { toast } from "sonner";
 import { StatusBadge, Tag } from "@/components/dashboard/status-badge";
 import { SupplierQuoteForm } from "@/components/crm/supplier-quote-form";
+import { SupplierOrderSchedulingEditor } from "@/components/crm/supplier-order-scheduling-editor";
 import { OrderClientRemarks } from "@/components/crm/order-client-remarks";
 import { Card } from "@/components/ui/card";
 import {
@@ -27,6 +28,7 @@ import {
   isServiceOrderType,
   orderShowsSchedulingFields,
   resolveOrderDuration,
+  serviceOrderSchedulingComplete,
   supplierShouldDeliverOrder,
 } from "@/lib/crm/order-scheduling";
 import { SupplierDeliveryPrompt, SupplierDeliveredBanner, SupplierOrderStatusBox } from "@/components/crm/supplier-delivery-prompt";
@@ -122,6 +124,9 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
   const supplierName = supplier?.name ?? staff?.name ?? "Fournisseur";
   const preview = resolveOrderItemPreview(order.type, order.item, customer?.city);
   const showScheduling = orderShowsSchedulingFields(order.type);
+  const schedulingComplete = serviceOrderSchedulingComplete(order);
+  const needsSchedulingInput =
+    isService && showScheduling && !schedulingComplete && canSubmitPrice;
   const needsDelivery =
     clientContactVisible && supplierShouldDeliverOrder(order.status);
   const isDelivered = order.status === "terminee";
@@ -248,22 +253,30 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
                       label={durationLabel(order.type)}
                       value={
                         resolveOrderDuration(order.duration, order.desiredDate) ??
-                        "—"
+                        "À confirmer avec le client"
                       }
                     />
                     <DetailField
                       label="Date souhaitée"
-                      value={order.desiredDate ?? "—"}
+                      value={order.desiredDate?.trim() ? order.desiredDate : "À confirmer avec le client"}
                       icon={Calendar}
                     />
                     <DetailField
                       label="Créneau"
-                      value={order.slot ?? "—"}
+                      value={order.slot?.trim() ? order.slot : "À confirmer avec le client"}
                       icon={Clock}
                     />
                   </>
                 ) : null}
               </div>
+
+              {needsSchedulingInput ? (
+                <SupplierOrderSchedulingEditor
+                  orderId={order._id}
+                  desiredDate={order.desiredDate}
+                  slot={order.slot}
+                />
+              ) : null}
 
               <div className="rounded-xl border border-border/60 bg-muted/20 p-4">
                 <p className="inline-flex items-center gap-2 text-sm font-semibold">
@@ -430,6 +443,7 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
                       order.desiredDate
                     )}
                     orderSlot={order.slot}
+                    schedulingComplete={schedulingComplete}
                     variant="sidebar"
                     readOnly={!canSubmitPrice}
                     existingQuote={

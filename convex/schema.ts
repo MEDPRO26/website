@@ -321,9 +321,10 @@ export default defineSchema({
     .index("by_supplierId_createdAt", ["supplierId", "createdAt"])
     .index("by_supplierId_read", ["supplierId", "read"]),
 
-  /** Web Push subscriptions for supplier / prestataire PWAs. */
+  /** Web Push subscriptions for supplier / prestataire / apporteur PWAs. */
   pushSubscriptions: defineTable({
-    supplierId: v.id("suppliers"),
+    supplierId: v.optional(v.id("suppliers")),
+    apporteurId: v.optional(v.id("apporteurs")),
     endpoint: v.string(),
     p256dh: v.string(),
     auth: v.string(),
@@ -332,6 +333,7 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_supplierId", ["supplierId"])
+    .index("by_apporteurId", ["apporteurId"])
     .index("by_endpoint", ["endpoint"]),
 
   whatsappChannels: defineTable({
@@ -484,11 +486,14 @@ export default defineSchema({
     entreprise: v.optional(v.string()),
     date: v.optional(v.string()),
     client: v.string(),
+    phone: v.optional(v.string()),
     contractAmount: v.optional(v.number()),
     /** Manual commission rate (0–1). */
     customRate: v.optional(v.number()),
     /** Set when the row was created by an apporteur d’affaires. */
     apporteurId: v.optional(v.id("apporteurs")),
+    /** Lien vers une demande CRM (sync depuis l’espace apporteur). */
+    demandeId: v.optional(v.id("apportDemandes")),
     depositReceived: v.number(),
     observation: v.optional(v.string()),
     sortOrder: v.number(),
@@ -497,7 +502,68 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_sortOrder", ["sortOrder"])
-    .index("by_apporteurId", ["apporteurId"]),
+    .index("by_apporteurId", ["apporteurId"])
+    .index("by_demandeId", ["demandeId"]),
+
+  /** Demandes CRM / apporteurs — leads assignés à un apporteur. */
+  apportDemandes: defineTable({
+    apporteurId: v.id("apporteurs"),
+    date: v.optional(v.string()),
+    clientName: v.string(),
+    projectType: v.string(),
+    localisation: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    note: v.string(),
+    attachments: v.optional(
+      v.array(
+        v.object({
+          storageId: v.id("_storage"),
+          fileName: v.string(),
+          contentType: v.string(),
+        })
+      )
+    ),
+    /** Rempli par l’apporteur (suivi commission). */
+    contractAmount: v.optional(v.number()),
+    customRate: v.optional(v.number()),
+    observation: v.optional(v.string()),
+    /** Première ouverture par l’apporteur. */
+    openedAt: v.optional(v.number()),
+    /** Paiement honoraire S2MBO par l’apporteur. */
+    paymentStatus: v.optional(
+      v.union(v.literal("unpaid"), v.literal("paid"))
+    ),
+    paymentReceiptStorageId: v.optional(v.id("_storage")),
+    paymentReceiptFileName: v.optional(v.string()),
+    paymentReceiptContentType: v.optional(v.string()),
+    paidAt: v.optional(v.number()),
+    status: v.union(v.literal("ouverte"), v.literal("traitee")),
+    createdBy: v.id("staff"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    treatedAt: v.optional(v.number()),
+    treatedBy: v.optional(v.id("staff")),
+    adminNote: v.optional(v.string()),
+  })
+    .index("by_apporteurId", ["apporteurId"])
+    .index("by_status", ["status"])
+    .index("by_createdAt", ["createdAt"]),
+
+  apportDemandeEvents: defineTable({
+    demandeId: v.id("apportDemandes"),
+    type: v.union(
+      v.literal("created"),
+      v.literal("opened"),
+      v.literal("commission_update"),
+      v.literal("paid"),
+      v.literal("status_change"),
+      v.literal("assigned"),
+      v.literal("system")
+    ),
+    label: v.string(),
+    actorStaffId: v.optional(v.id("staff")),
+    createdAt: v.number(),
+  }).index("by_demandeId", ["demandeId"]),
 
   apportSettings: defineTable({
     key: v.literal("default"),

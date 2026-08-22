@@ -22,6 +22,7 @@ type SheetRow = {
   authorName: string;
   date: string;
   client: string;
+  phone: string;
   contractAmount: number | null;
   customRate: number | null;
   depositReceived: number;
@@ -36,6 +37,7 @@ function newEmptyRow(): SheetRow {
     authorName: "",
     date: "",
     client: "",
+    phone: "",
     contractAmount: null,
     customRate: null,
     depositReceived: 0,
@@ -48,6 +50,7 @@ function rowFromDoc(doc: {
   authorName?: string;
   date?: string;
   client: string;
+  phone?: string;
   contractAmount?: number;
   customRate?: number;
   depositReceived: number;
@@ -59,6 +62,7 @@ function rowFromDoc(doc: {
     authorName: doc.authorName ?? "",
     date: doc.date ?? "",
     client: doc.client,
+    phone: doc.phone ?? "",
     contractAmount: doc.contractAmount ?? null,
     customRate: doc.customRate ?? null,
     depositReceived: doc.depositReceived,
@@ -70,6 +74,7 @@ function isBlank(row: SheetRow) {
   return (
     !row.date.trim() &&
     !row.client.trim() &&
+    !row.phone.trim() &&
     (row.contractAmount == null || row.contractAmount === 0) &&
     row.customRate == null &&
     row.depositReceived === 0 &&
@@ -240,6 +245,28 @@ function SheetRowCard({
           </button>
         ) : null}
       </div>
+
+      <CardField label="Téléphone" className="mt-3">
+        <input
+          type="tel"
+          value={row.phone}
+          placeholder="Numéro de téléphone"
+          className={inputClass}
+          onChange={(event) => onPatch({ phone: event.target.value })}
+          onBlur={(event) =>
+            onPatch(
+              { phone: event.target.value.trim() },
+              { immediate: true }
+            )
+          }
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              event.currentTarget.blur();
+            }
+          }}
+        />
+      </CardField>
 
       <div className="mt-3 grid grid-cols-2 gap-2">
         <CardField label="Montant contrat">
@@ -473,6 +500,7 @@ export function ApportAffairesSheet({
             id: row.id,
             date: row.date || undefined,
             client: row.client,
+            phone: row.phone || undefined,
             contractAmount: row.contractAmount ?? undefined,
             ...(includeRate ? { customRate: row.customRate } : {}),
             observation: row.observation || undefined,
@@ -647,13 +675,15 @@ export function ApportAffairesSheet({
                 >
                   Date
                 </th>
-                <th className="w-[11%] border-b border-[#ead56a] px-2 py-3 text-left font-bold sm:px-3">
+                <th className="w-[10%] border-b border-[#ead56a] px-2 py-3 text-left font-bold sm:px-3">
                   Client
+                </th>
+                <th className="w-[9%] border-b border-[#ead56a] px-1.5 py-3 text-left font-bold sm:px-2">
+                  Téléphone
                 </th>
                 <th className="w-[8%] border-b border-[#ead56a] px-1.5 py-3 text-right font-bold sm:px-2">
                   Montant contrat
-                </th>
-                <th className="w-[6%] border-b border-[#ead56a] px-1.5 py-3 text-right font-bold sm:px-2">
+                </th>                <th className="w-[6%] border-b border-[#ead56a] px-1.5 py-3 text-right font-bold sm:px-2">
                   Taux commission
                 </th>
                 <th className="w-[8%] border-b border-[#ead56a] px-1.5 py-3 text-right font-bold sm:px-2">
@@ -669,10 +699,9 @@ export function ApportAffairesSheet({
                     </th>
                   </>
                 ) : null}
-                <th className="w-[28%] min-w-[12rem] border-b border-[#ead56a] px-2 py-3 text-left font-bold sm:px-3">
+                <th className="w-[24%] min-w-[10rem] border-b border-[#ead56a] px-2 py-3 text-left font-bold sm:px-3">
                   Observation
-                </th>
-                <th className="w-10 border-b border-[#ead56a]" />
+                </th>                <th className="w-10 border-b border-[#ead56a]" />
               </tr>
             </thead>
             <tbody>
@@ -723,14 +752,31 @@ export function ApportAffairesSheet({
                       />
                     </td>
                     <td className={cellMint}>
+                      <SheetInput
+                        type="tel"
+                        value={row.phone}
+                        placeholder="Téléphone"
+                        className="px-1.5 sm:px-2"
+                        onChange={(event) =>
+                          updateRow(row.key, { phone: event.target.value })
+                        }
+                        onBlur={(event) =>
+                          updateRow(
+                            row.key,
+                            { phone: event.target.value.trim() },
+                            { immediate: true }
+                          )
+                        }
+                      />
+                    </td>
+                    <td className={cellMint}>
                       <AmountField
                         value={row.contractAmount}
                         onCommit={(next) =>
                           updateRow(row.key, { contractAmount: next })
                         }
                       />
-                    </td>
-                    <td className={cellMint}>
+                    </td>                    <td className={cellMint}>
                       <RateField
                         value={row.customRate}
                         onCommit={(next) =>

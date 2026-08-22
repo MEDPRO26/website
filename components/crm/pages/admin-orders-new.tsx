@@ -202,6 +202,7 @@ export function AdminOrdersNewPage() {
     ADMIN_REQUEST_OPTIONS
   );
   const showScheduling = orderShowsSchedulingForKind(form.requestKind);
+  const isServiceRequest = form.requestKind === "service";
   const resolvedItem = form.item.trim();
 
   const handleRequestKindChange = (kind: OrderRequestKind) => {
@@ -238,7 +239,8 @@ export function AdminOrdersNewPage() {
     if (showScheduling) {
       const dateError = validateDesiredDateRange(
         form.desiredDateFrom,
-        form.desiredDateTo
+        form.desiredDateTo,
+        { allowPartial: isServiceRequest }
       );
       if (dateError) {
         return dateError;
@@ -474,7 +476,21 @@ export function AdminOrdersNewPage() {
             {showScheduling ? (
               <>
                 <div className="sm:col-span-2">
-                  <Label className="mb-1.5 block">Période souhaitée</Label>
+                  <Label className="mb-1.5 block">
+                    Période souhaitée
+                    {isServiceRequest ? (
+                      <span className="font-normal text-muted-foreground">
+                        {" "}
+                        (optionnel)
+                      </span>
+                    ) : null}
+                  </Label>
+                  {isServiceRequest ? (
+                    <p className="mb-2 text-xs text-muted-foreground">
+                      Le prestataire peut convenir la date avec le client s&apos;elle
+                      n&apos;est pas connue.
+                    </p>
+                  ) : null}
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
                       <Label className="mb-1.5 block text-xs text-muted-foreground">
@@ -500,7 +516,15 @@ export function AdminOrdersNewPage() {
                   </div>
                 </div>
                 <div className="sm:col-span-2 space-y-3">
-                  <Label className="block">Créneau horaire</Label>
+                  <Label className="block">
+                    Créneau horaire
+                    {isServiceRequest ? (
+                      <span className="font-normal text-muted-foreground">
+                        {" "}
+                        (optionnel)
+                      </span>
+                    ) : null}
+                  </Label>
                   {form.timeSlots.map((slot, index) => (
                     <div
                       key={`time-slot-${index}`}

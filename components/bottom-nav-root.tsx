@@ -32,11 +32,13 @@ export function BottomNavRoot() {
   const isSupplierInvite =
     pathname.startsWith("/supplier/invite") ||
     pathname.startsWith("/prestataire/invite");
+  const isApportPath =
+    pathname === APPORT_AFFAIRES_HOME_PATH ||
+    pathname.startsWith(`${APPORT_AFFAIRES_HOME_PATH}/`);
   const isObscureLogin =
     pathname.startsWith(ADMIN_LOGIN_PATH) ||
     pathname.startsWith(SUPPLIER_LOGIN_PATH) ||
     pathname.startsWith(PRESTATAIRE_LOGIN_PATH) ||
-    pathname.startsWith(APPORT_AFFAIRES_HOME_PATH) ||
     pathname.startsWith("/admin/login");
   const isAdminPath = pathname.startsWith("/admin");
   const isSupplierPath =
@@ -44,7 +46,7 @@ export function BottomNavRoot() {
 
   // CRM (s2mbo.com) must not show the public SOS Santé chrome.
   if (isCrmPath(pathname ?? "/")) {
-    if (isAdminInvite || isSupplierInvite || isObscureLogin) {
+    if (isAdminInvite || isSupplierInvite || isObscureLogin || isApportPath) {
       return null;
     }
     if (isSupplierPath) {
@@ -63,6 +65,11 @@ export function BottomNavRoot() {
 
   // Invite flows stay clean (no public chrome).
   if (isAdminInvite || isSupplierInvite) {
+    return null;
+  }
+
+  // Apporteur portal has its own mobile bar (or clean login).
+  if (isApportPath) {
     return null;
   }
 

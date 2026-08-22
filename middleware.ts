@@ -37,6 +37,7 @@ const isAdminInvite = createRouteMatcher(["/admin/invite(.*)"]);
 const isWorkspaceRoute = createRouteMatcher([
   "/projets(.*)",
   "/apport-affaires/propositions(.*)",
+  "/apport-affaires/push(.*)",
 ]);
 const isApportInvite = createRouteMatcher(["/apport-affaires/invite(.*)"]);
 const isSupplierRoute = createRouteMatcher([

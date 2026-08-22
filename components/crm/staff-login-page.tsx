@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "@/convex/_generated/api";
 import { CRM_BRAND_NAME, CRM_LOGO } from "@/lib/brand";
 import {
@@ -109,6 +109,44 @@ export function StaffLoginPage({ audience }: { audience: StaffLoginAudience }) {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
+  const ensuringProfile = useRef(false);
+
+  // After sign-in, auth can lag one tick — wait until authenticated, then
+  // bootstrap the staff profile if missing (first admin / edge cases).
+  useEffect(() => {
+    if (
+      isLoading ||
+      !isAuthenticated ||
+      staff !== null ||
+      staff === undefined ||
+      ensuringProfile.current ||
+      redirecting
+    ) {
+      return;
+    }
+
+    ensuringProfile.current = true;
+    void (async () => {
+      try {
+        const id = await ensureProfile();
+        if (!id) {
+          // Token not ready yet — allow another attempt on next render.
+          ensuringProfile.current = false;
+        }
+      } catch (err) {
+        ensuringProfile.current = false;
+        setError(loginErrorMessage(err));
+        void signOut();
+      }
+    })();
+  }, [
+    ensureProfile,
+    isAuthenticated,
+    isLoading,
+    redirecting,
+    signOut,
+    staff,
+  ]);
 
   useEffect(() => {
     if (
@@ -208,6 +246,7 @@ export function StaffLoginPage({ audience }: { audience: StaffLoginAudience }) {
     event.preventDefault();
     setSubmitting(true);
     setError(null);
+    ensuringProfile.current = false;
 
     try {
       await signIn("password", {
@@ -215,7 +254,7 @@ export function StaffLoginPage({ audience }: { audience: StaffLoginAudience }) {
         email,
         password,
       });
-      await ensureProfile();
+      // ensureProfile runs in useEffect once auth is ready.
     } catch (err) {
       setError(loginErrorMessage(err));
     } finally {

@@ -12,16 +12,37 @@ export const listSubscriptionsForSupplier = internalQuery({
   },
 });
 
+export const listSubscriptionsForApporteur = internalQuery({
+  args: { apporteurId: v.id("apporteurs") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("pushSubscriptions")
+      .withIndex("by_apporteurId", (q) => q.eq("apporteurId", args.apporteurId))
+      .collect();
+  },
+});
+
 export const listSubscriptionsForAudience = internalQuery({
   args: {
     audience: v.union(
       v.literal("all"),
       v.literal("materiel"),
-      v.literal("soins")
+      v.literal("soins"),
+      v.literal("apporteurs")
     ),
     supplierId: v.optional(v.id("suppliers")),
+    apporteurId: v.optional(v.id("apporteurs")),
   },
   handler: async (ctx, args) => {
+    if (args.apporteurId) {
+      return await ctx.db
+        .query("pushSubscriptions")
+        .withIndex("by_apporteurId", (q) =>
+          q.eq("apporteurId", args.apporteurId!)
+        )
+        .collect();
+    }
+
     if (args.supplierId) {
       return await ctx.db
         .query("pushSubscriptions")
@@ -34,9 +55,14 @@ export const listSubscriptionsForAudience = internalQuery({
       return subscriptions;
     }
 
+    if (args.audience === "apporteurs") {
+      return subscriptions.filter((sub) => Boolean(sub.apporteurId));
+    }
+
     const suppliers = await ctx.db.query("suppliers").collect();
     const byId = new Map(suppliers.map((s) => [s._id, s] as const));
     return subscriptions.filter((sub) => {
+      if (!sub.supplierId || sub.apporteurId) return false;
       const supplier = byId.get(sub.supplierId);
       if (!supplier) return false;
       const kind =

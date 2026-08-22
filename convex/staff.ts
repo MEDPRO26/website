@@ -42,8 +42,9 @@ export const ensureProfile = mutation({
   args: {},
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
+    // Auth token can lag just after signIn — callers retry when ready.
     if (!userId) {
-      throw new Error("Non authentifié.");
+      return null;
     }
 
     const existing = await ctx.db

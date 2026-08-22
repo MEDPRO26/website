@@ -9,6 +9,7 @@
  */
 
 import type * as apportAffaires from "../apportAffaires.js";
+import type * as apportDemandes from "../apportDemandes.js";
 import type * as apporteurInvitations from "../apporteurInvitations.js";
 import type * as auditLogs from "../auditLogs.js";
 import type * as auth from "../auth.js";
@@ -79,6 +80,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   apportAffaires: typeof apportAffaires;
+  apportDemandes: typeof apportDemandes;
   apporteurInvitations: typeof apporteurInvitations;
   auditLogs: typeof auditLogs;
   auth: typeof auth;

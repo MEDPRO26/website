@@ -116,14 +116,51 @@ export const sendToSupplier = internalAction({
   },
 });
 
+export const sendToApporteur = internalAction({
+  args: {
+    apporteurId: v.id("apporteurs"),
+    title: v.string(),
+    body: v.string(),
+    url: v.optional(v.string()),
+    tag: v.optional(v.string()),
+  },
+  handler: async (ctx, args): Promise<PushResult> => {
+    const subscriptions: Doc<"pushSubscriptions">[] = await ctx.runQuery(
+      internal.pushInternal.listSubscriptionsForApporteur,
+      { apporteurId: args.apporteurId }
+    );
+    if (subscriptions.length === 0) {
+      return { sent: 0, failed: 0, total: 0 };
+    }
+
+    try {
+      return await deliverToSubscriptions(ctx, subscriptions, {
+        title: args.title,
+        body: args.body,
+        url: args.url,
+        tag: args.tag,
+      });
+    } catch (err) {
+      console.error("web push sendToApporteur failed", err);
+      return {
+        sent: 0,
+        failed: subscriptions.length,
+        total: subscriptions.length,
+      };
+    }
+  },
+});
+
 export const sendBroadcast = action({
   args: {
     audience: v.union(
       v.literal("all"),
       v.literal("materiel"),
-      v.literal("soins")
+      v.literal("soins"),
+      v.literal("apporteurs")
     ),
     supplierId: v.optional(v.id("suppliers")),
+    apporteurId: v.optional(v.id("apporteurs")),
     title: v.string(),
     body: v.string(),
     url: v.optional(v.string()),
@@ -148,6 +185,7 @@ export const sendBroadcast = action({
       {
         audience: args.audience,
         supplierId: args.supplierId,
+        apporteurId: args.apporteurId,
       }
     );
 

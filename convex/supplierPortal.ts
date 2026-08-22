@@ -14,6 +14,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { commissionPaymentMethodValidator } from "./validators";
 import { commissionPaymentLabel } from "../lib/crm/commission-payment";
+import { isServiceOrderType } from "../lib/crm/order-scheduling";
 import {
   resolveSupplierPartnerKind,
   type SupplierPartnerKind,
@@ -412,6 +413,77 @@ export const markInContactWithClient = mutation({
   },
 });
 
+export const updateOrderScheduling = mutation({
+  args: {
+    orderId: v.id("orders"),
+    desiredDate: v.string(),
+    duration: v.string(),
+    slot: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { staff, supplier } = await requireSupplierStaff(ctx);
+    const order = await ctx.db.get(args.orderId);
+    if (!order || order.supplierId !== supplier._id) {
+      throw new Error("Commande introuvable.");
+    }
+
+    if (!isServiceOrderType(order.type)) {
+      throw new Error(
+        "La période ne peut être modifiée que pour un service à domicile."
+      );
+    }
+
+    const allowed = new Set([
+      "envoyee_fournisseur",
+      "vue_fournisseur",
+      "en_contact_client",
+      "prix_recu",
+      "offre_envoyee",
+      "acceptee",
+      "planifiee",
+      "en_cours",
+    ]);
+    if (!allowed.has(order.status)) {
+      throw new Error("Cette commande ne peut plus être modifiée.");
+    }
+
+    const desiredDate = args.desiredDate.trim();
+    const duration = args.duration.trim();
+    const slot = args.slot.trim();
+    if (!desiredDate || !duration || !slot) {
+      throw new Error("Indiquez la période et le créneau confirmés avec le client.");
+    }
+
+    const now = Date.now();
+    await ctx.db.patch(args.orderId, {
+      desiredDate,
+      duration,
+      slot,
+      updatedAt: now,
+    });
+
+    await appendOrderEvent(ctx, {
+      orderId: args.orderId,
+      type: "note",
+      label: `${supplier.name} — période confirmée : ${desiredDate} · ${slot}`,
+      actorStaffId: staff._id,
+    });
+
+    await logAudit(ctx, {
+      actorStaffId: staff._id,
+      actorName: staff.name,
+      action: "update",
+      entityType: "order",
+      entityId: args.orderId,
+      entityLabel: order.ref,
+      fromValue: order.desiredDate ?? "—",
+      toValue: desiredDate,
+    });
+
+    return { ok: true as const };
+  },
+});
+
 export const markInDelivery = mutation({
   args: { orderId: v.id("orders") },
   handler: async (ctx, args) => {
@@ -540,6 +612,16 @@ async function confirmDeliveryHandler(
 
   if (order.status === "annulee") {
     throw new Error("Cette commande est annulée.");
+  }
+
+  if (isServiceOrderType(order.type)) {
+    const desiredDate = order.desiredDate?.trim();
+    const slot = order.slot?.trim();
+    if (!desiredDate || !slot) {
+      throw new Error(
+        "Indiquez la période et le créneau confirmés avec le client avant de confirmer la prestation."
+      );
+    }
   }
 
   const existingQuote = await ctx.db

@@ -9,6 +9,7 @@ import { requireAdminStaff, requireApportViewer } from "./lib/authz";
 function isEmptyRow(args: {
   date?: string;
   client: string;
+  phone?: string;
   contractAmount?: number;
   customRate?: number | null;
   depositReceived: number;
@@ -17,6 +18,7 @@ function isEmptyRow(args: {
   return (
     !args.date?.trim() &&
     !args.client.trim() &&
+    !args.phone?.trim() &&
     (args.contractAmount == null || args.contractAmount === 0) &&
     args.customRate == null &&
     args.depositReceived === 0 &&
@@ -128,6 +130,7 @@ export const upsert = mutation({
     id: v.optional(v.id("apportDeals")),
     date: v.optional(v.string()),
     client: v.string(),
+    phone: v.optional(v.string()),
     contractAmount: v.optional(v.number()),
     customRate: v.optional(v.union(v.number(), v.null())),
     depositReceived: v.optional(v.number()),
@@ -138,6 +141,7 @@ export const upsert = mutation({
     const now = Date.now();
     const date = args.date?.trim() || undefined;
     const client = args.client.trim();
+    const phone = args.phone?.trim() || undefined;
     const isApporteur = viewer.kind === "apporteur";
     const observation = args.observation?.trim() || undefined;
     // `undefined` = leave unchanged on patch; `null` = clear; number = set.
@@ -151,6 +155,7 @@ export const upsert = mutation({
     const payload = {
       date,
       client,
+      phone,
       contractAmount: args.contractAmount,
       customRate: hasRateArg ? customRate : undefined,
       depositReceived,
@@ -195,9 +200,11 @@ export const upsert = mutation({
       await ctx.db.replace(args.id, {
         date,
         client,
+        ...(phone ? { phone } : {}),
         contractAmount: args.contractAmount,
         ...(nextRate != null ? { customRate: nextRate } : {}),
         ...(apporteurId ? { apporteurId } : {}),
+        ...(existing.demandeId ? { demandeId: existing.demandeId } : {}),
         depositReceived: isApporteur
           ? existing.depositReceived
           : depositReceived,
@@ -217,6 +224,7 @@ export const upsert = mutation({
     const id = await ctx.db.insert("apportDeals", {
       date,
       client,
+      ...(phone ? { phone } : {}),
       contractAmount: args.contractAmount,
       ...(customRate != null ? { customRate } : {}),
       ...(isApporteur && viewer.apporteurId

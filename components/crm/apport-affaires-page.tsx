@@ -4,36 +4,39 @@ import { useQuery } from "convex/react";
 import { Handshake, Wallet } from "lucide-react";
 import { useMemo } from "react";
 import { api } from "@/convex/_generated/api";
-import {
-  ApportAffairesSheet,
-} from "@/components/crm/apport-affaires-sheet";
+import { ApportAffairesSheet } from "@/components/crm/apport-affaires-sheet";
 import { StatCard } from "@/components/dashboard/stat-card";
-import { useAdminSession } from "@/hooks/use-admin-session";
 import { computeApportRow, formatDh } from "@/lib/apport-affaires";
-import { isAdminStaffRole } from "@/lib/crm/staff-roles";
 
-export function ApportAffairesPage() {
-  const { staff } = useAdminSession();
-  const canQuery = Boolean(staff && isAdminStaffRole(staff.role));
-  const saved = useQuery(api.apportAffaires.list, canQuery ? {} : "skip");
+export function ApportAffairesPage({
+  variant = "admin",
+}: {
+  variant?: "admin" | "apporteur";
+}) {
+  const saved = useQuery(api.apportAffaires.list);
 
   const stats = useMemo(() => {
     const rows = saved ?? [];
-    return rows.reduce(
+    const totals = rows.reduce(
       (acc, row) => {
         const computed = computeApportRow({
           contractAmount: row.contractAmount,
           depositReceived: row.depositReceived,
           customRate: row.customRate,
         });
+        if (row.contractAmount) acc.contracts += row.contractAmount;
         if (computed.commissionDue != null) acc.due += computed.commissionDue;
         acc.deposits += row.depositReceived;
         if (computed.remaining != null) acc.remaining += computed.remaining;
         acc.count += 1;
         return acc;
       },
-      { due: 0, deposits: 0, remaining: 0, count: 0 }
+      { contracts: 0, due: 0, deposits: 0, remaining: 0, count: 0 }
     );
+    return {
+      ...totals,
+      net: totals.contracts - totals.remaining,
+    };
   }, [saved]);
 
   return (
@@ -44,11 +47,22 @@ export function ApportAffairesPage() {
         </h1>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+      <div
+        className={
+          variant === "admin"
+            ? "grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-5"
+            : "grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-5"
+        }
+      >
         <StatCard
           label="Affaires"
           value={stats.count}
           icon={Handshake}
+          tone="info"
+        />
+        <StatCard
+          label="Chiffre d’affaires"
+          value={formatDh(stats.contracts)}
           tone="info"
         />
         <StatCard
@@ -57,19 +71,28 @@ export function ApportAffairesPage() {
           icon={Wallet}
           tone="brand"
         />
-        <StatCard
-          label="Acomptes reçus"
-          value={formatDh(stats.deposits)}
-          tone="success"
-        />
+        {variant === "admin" ? (
+          <StatCard
+            label="Acomptes reçus"
+            value={formatDh(stats.deposits)}
+            tone="success"
+          />
+        ) : null}
         <StatCard
           label="Reste à payer"
           value={formatDh(stats.remaining)}
           tone={stats.remaining > 0 ? "warning" : "success"}
         />
+        {variant === "apporteur" ? (
+          <StatCard
+            label="Net"
+            value={formatDh(stats.net)}
+            tone="success"
+          />
+        ) : null}
       </div>
 
-      <ApportAffairesSheet />
+      <ApportAffairesSheet variant={variant} />
     </div>
   );
 }

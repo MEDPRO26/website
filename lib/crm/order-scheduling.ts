@@ -218,10 +218,20 @@ export function estimatePrestationTotalHours(
   return Math.round(days * hoursPerDay * 4) / 4;
 }
 
-export function validateDesiredDateRange(from: string, to: string): string | null {
+export function validateDesiredDateRange(
+  from: string,
+  to: string,
+  options?: { allowPartial?: boolean }
+): string | null {
   const start = from.trim();
   const end = to.trim();
   if (!start && !end) {
+    return null;
+  }
+  if (options?.allowPartial) {
+    if (start && end && end < start) {
+      return "La date de fin doit être après la date de début.";
+    }
     return null;
   }
   if (start && !end) {
@@ -234,6 +244,67 @@ export function validateDesiredDateRange(from: string, to: string): string | nul
     return "La date de fin doit être après la date de début.";
   }
   return null;
+}
+
+/** Parse stored `03/08/2026 — 17/08/2026` back to ISO date inputs. */
+export function parseDesiredDateRangeToIso(desiredDate?: string | null): {
+  from: string;
+  to: string;
+} {
+  const range = desiredDate?.trim();
+  if (!range) {
+    return { from: "", to: "" };
+  }
+
+  const parts = range.split(/\s*[—–-]\s*/).map((part) => part.trim());
+  if (parts.length === 2) {
+    return {
+      from: parseFrDateToIso(parts[0]) ?? "",
+      to: parseFrDateToIso(parts[1]) ?? "",
+    };
+  }
+
+  const single = parseFrDateToIso(range);
+  return { from: single ?? "", to: single ?? "" };
+}
+
+/** Parse `de 8h18 à 21h18` into time picker values (`08:18`). */
+export function parseSlotToTimeSlotInput(slot?: string | null): TimeSlotInput {
+  const empty = { from: "", to: "" };
+  if (!slot?.trim()) {
+    return empty;
+  }
+
+  const range = slot.match(
+    /(?:de\s+)?(\d{1,2}(?:[h:]\d{1,2})?)\s+(?:à|a|[-–—])\s+(\d{1,2}(?:[h:]\d{1,2})?)/i
+  );
+  if (!range) {
+    return empty;
+  }
+
+  const fromMinutes = parseFrenchTimeToMinutes(range[1]);
+  const toMinutes = parseFrenchTimeToMinutes(range[2]);
+  if (fromMinutes == null || toMinutes == null) {
+    return empty;
+  }
+
+  const toHhmm = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+  };
+
+  return {
+    from: toHhmm(fromMinutes),
+    to: toHhmm(toMinutes),
+  };
+}
+
+export function serviceOrderSchedulingComplete(order: {
+  desiredDate?: string | null;
+  slot?: string | null;
+}) {
+  return Boolean(order.desiredDate?.trim() && order.slot?.trim());
 }
 
 export function formatTimeFr(hhmm: string) {

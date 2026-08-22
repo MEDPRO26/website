@@ -3,20 +3,20 @@
 import { useRouter } from "next/navigation";
 import { useConvexAuth, useQuery } from "convex/react";
 import { StaffLoginPage } from "@/components/crm/staff-login-page";
-import { ApportAffairesPage } from "@/components/crm/apport-affaires-page";
+import { ApportDemandesPage } from "@/components/crm/pages/apport-demandes";
+import { ApporteurPortalGate } from "@/components/crm/apporteur-portal-gate";
 import { AdminShell } from "@/components/dashboard/app-shell";
-import { ApporteurShell } from "@/components/dashboard/apporteur-shell";
 import { api } from "@/convex/_generated/api";
-import {
-  isAdminStaffRole,
-  isApporteurStaffRole,
-} from "@/lib/crm/staff-roles";
 import {
   ADMIN_LOGIN_PATH,
   SUPPLIER_HOME_PATH,
 } from "@/lib/auth-routes";
+import {
+  isAdminStaffRole,
+  isApporteurStaffRole,
+} from "@/lib/crm/staff-roles";
 
-export function ApportAffairesHome() {
+export default function ApportDemandesRoute() {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useConvexAuth();
   const staff = useQuery(api.staff.current, isAuthenticated ? {} : "skip");
@@ -35,16 +35,16 @@ export function ApportAffairesHome() {
 
   if (isApporteurStaffRole(staff.role)) {
     return (
-      <ApporteurShell>
-        <ApportAffairesPage variant="apporteur" />
-      </ApporteurShell>
+      <ApporteurPortalGate>
+        <ApportDemandesPage variant="apporteur" />
+      </ApporteurPortalGate>
     );
   }
 
   if (isAdminStaffRole(staff.role)) {
     return (
       <AdminShell variant="apport">
-        <ApportAffairesPage variant="admin" />
+        <ApportDemandesPage variant="admin" />
       </AdminShell>
     );
   }

@@ -3,9 +3,17 @@ import { Toaster } from "@/components/ui/sonner";
 import { crmPageMetadata } from "@/lib/crm-metadata";
 import "@/app/admin/crm.css";
 
-export const metadata: Metadata = crmPageMetadata(
-  "Tableau de Suivi des Commissions – Apport d’Affaires"
-);
+export const metadata: Metadata = {
+  ...crmPageMetadata(
+    "Tableau de Suivi des Commissions – Apport d’Affaires"
+  ),
+  manifest: "/apport-affaires/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "S2MBO",
+    statusBarStyle: "default",
+  },
+};
 
 export default function ApportAffairesLayout({
   children,

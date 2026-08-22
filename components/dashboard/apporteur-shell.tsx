@@ -6,15 +6,23 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useQuery } from "convex/react";
 import {
+  Download,
+  ClipboardList,
   LayoutDashboard,
   LogOut,
   Menu,
   UserRound,
+  Wallet,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { ApporteurWebappInstallPrompt } from "@/components/crm/apporteur-webapp-install-prompt";
+import { ApporteurPushPrompt } from "@/components/crm/apporteur-push-prompt";
 import { api } from "@/convex/_generated/api";
+import { useApporteurPwaInstall } from "@/hooks/use-apporteur-pwa-install";
 import {
+  APPORT_AFFAIRES_DEMANDES_PATH,
   APPORT_AFFAIRES_HOME_PATH,
+  APPORT_AFFAIRES_HONORAIRES_PATH,
   APPORT_AFFAIRES_LOGIN_PATH,
   APPORT_AFFAIRES_PROFILE_PATH,
 } from "@/lib/auth-routes";
@@ -35,18 +43,33 @@ import { cn } from "@/lib/utils";
 const APPORTEUR_NAV: {
   href: string;
   label: string;
+  shortLabel: string;
   icon: typeof LayoutDashboard;
   exact?: boolean;
 }[] = [
   {
+    href: APPORT_AFFAIRES_DEMANDES_PATH,
+    label: "Demandes",
+    shortLabel: "Demandes",
+    icon: ClipboardList,
+  },
+  {
     href: APPORT_AFFAIRES_HOME_PATH,
-    label: "Tableau de bord",
+    label: "Tableau de suivi",
+    shortLabel: "Suivi",
     icon: LayoutDashboard,
     exact: true,
   },
   {
+    href: APPORT_AFFAIRES_HONORAIRES_PATH,
+    label: "Honoraires S2MBO",
+    shortLabel: "Honoraires",
+    icon: Wallet,
+  },
+  {
     href: APPORT_AFFAIRES_PROFILE_PATH,
     label: "Profil",
+    shortLabel: "Profil",
     icon: UserRound,
   },
 ];
@@ -130,9 +153,11 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
 export function ApporteurShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
   const router = useRouter();
   const { signOut } = useAuthActions();
   const staff = useQuery(api.staff.current);
+  const pwaInstall = useApporteurPwaInstall();
 
   const userName = staff?.name ?? "Apporteur";
   const userInitials = userName
@@ -217,11 +242,50 @@ export function ApporteurShell({ children }: { children: ReactNode }) {
               </DropdownMenuContent>
             </DropdownMenu>
           </header>
-          <main className="min-w-0 flex-1 overflow-auto px-3 py-4 pb-24 sm:px-6 sm:py-6 md:pb-6">
+          <main className="min-w-0 flex-1 overflow-auto px-3 py-4 pb-28 sm:px-6 sm:py-6 md:pb-6">
+            <ApporteurWebappInstallPrompt install={pwaInstall} />
+            <ApporteurPushPrompt enabled />
             {children}
           </main>
         </div>
       </div>
+
+      <nav
+        className={cn(
+          "fixed inset-x-3 bottom-3 z-40 grid rounded-2xl border border-border/60 bg-white/95 shadow-[0_8px_32px_rgba(15,23,42,0.12)] backdrop-blur-md md:hidden",
+          pwaInstall.canInstall ? "grid-cols-5" : "grid-cols-4"
+        )}
+      >
+        {APPORTEUR_NAV.map((item) => {
+          const Icon = item.icon;
+          const active = item.exact
+            ? pathname === item.href
+            : pathname === item.href || pathname.startsWith(`${item.href}/`);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex flex-col items-center justify-center gap-0.5 py-2.5 text-[10px] font-medium",
+                active ? "text-brand" : "text-muted-foreground"
+              )}
+            >
+              <Icon className="size-5" />
+              {item.shortLabel}
+            </Link>
+          );
+        })}
+        {pwaInstall.canInstall ? (
+          <button
+            type="button"
+            onClick={pwaInstall.openInstallDialog}
+            className="flex flex-col items-center justify-center gap-0.5 py-2.5 text-[10px] font-medium text-muted-foreground"
+          >
+            <Download className="size-5" />
+            Installer
+          </button>
+        ) : null}
+      </nav>
     </div>
   );
 }

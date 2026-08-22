@@ -26,6 +26,7 @@ type SupplierQuoteFormProps = {
   orderType?: string;
   orderDuration?: string;
   orderSlot?: string;
+  schedulingComplete?: boolean;
   existingQuote?: {
     basePrice: number;
     deliveryFee: number;
@@ -51,6 +52,7 @@ export function SupplierQuoteForm({
   orderType,
   orderDuration,
   orderSlot,
+  schedulingComplete = true,
   existingQuote,
   variant = "default",
   readOnly = false,
@@ -233,6 +235,13 @@ export function SupplierQuoteForm({
   };
 
   const handleSubmit = async () => {
+    if (isService && !schedulingComplete) {
+      toast.error(
+        "Indiquez la période et le créneau confirmés avec le client avant de confirmer la prestation."
+      );
+      return;
+    }
+
     const commission = Number(commissionAmount);
     let base = 0;
     let qty: number | undefined;
@@ -665,9 +674,15 @@ export function SupplierQuoteForm({
         </p>
       ) : isSidebar ? (
         <div className="space-y-3">
+          {isService && !schedulingComplete ? (
+            <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-900">
+              Complétez la période et le créneau confirmés avec le client dans
+              l&apos;aperçu de la demande avant de confirmer la prestation.
+            </p>
+          ) : null}
           <Button
             className="h-12 w-full rounded-xl bg-[#0f172a] text-base font-semibold hover:bg-[#1e293b]"
-            disabled={submitting}
+            disabled={submitting || (isService && !schedulingComplete)}
             onClick={() => void handleSubmit()}
           >
             {submitting ? (
@@ -716,7 +731,11 @@ export function SupplierQuoteForm({
           </Button>
         </div>
       ) : (
-        <Button className="w-full" disabled={submitting} onClick={() => void handleSubmit()}>
+        <Button
+          className="w-full"
+          disabled={submitting || (isService && !schedulingComplete)}
+          onClick={() => void handleSubmit()}
+        >
           {submitting ? (
             <>
               <Loader2 className="size-4 animate-spin" />

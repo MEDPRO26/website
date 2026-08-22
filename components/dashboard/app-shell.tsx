@@ -10,7 +10,9 @@ import { useAdminSession } from "@/hooks/use-admin-session";
 import { usePermissions } from "@/hooks/use-permissions";
 import {
   ADMIN_LOGIN_PATH,
+  APPORT_AFFAIRES_DEMANDES_PATH,
   APPORT_AFFAIRES_HOME_PATH,
+  APPORT_AFFAIRES_PUSH_PATH,
   APPORT_AFFAIRES_SUBMIT_PATH,
   WORKSPACE_HOME_PATH,
 } from "@/lib/auth-routes";
@@ -89,8 +91,13 @@ type ShellVariant = "crm" | "apport";
 
 const APPORT_NAV: NavItem[] = [
   {
+    href: APPORT_AFFAIRES_DEMANDES_PATH,
+    label: "Demandes",
+    icon: ClipboardList,
+  },
+  {
     href: APPORT_AFFAIRES_HOME_PATH,
-    label: "Tableau de bord",
+    label: "Tableau de suivi",
     icon: LayoutDashboard,
     exact: true,
   },
@@ -98,6 +105,12 @@ const APPORT_NAV: NavItem[] = [
     href: APPORT_AFFAIRES_SUBMIT_PATH,
     label: "Apport d’Affaires",
     icon: Handshake,
+  },
+  {
+    href: APPORT_AFFAIRES_PUSH_PATH,
+    label: "Push mobile",
+    icon: BellRing,
+    permission: "notifications.view",
   },
 ];
 
