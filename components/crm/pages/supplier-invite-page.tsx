@@ -55,7 +55,9 @@ export function SupplierInvitePage({ token }: SupplierInvitePageProps) {
   const router = useRouter();
   const pathname = usePathname();
   const basePath = partnerPortalBaseFromPath(pathname);
-  const loginPath = loginPathForPartnerKind(partnerKindFromPortalPath(pathname));
+  const partnerKind = partnerKindFromPortalPath(pathname);
+  const loginPath = loginPathForPartnerKind(partnerKind);
+  const accountLabel = partnerKind === "soins" ? "prestataire" : "fournisseur";
   const convex = useConvex();
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const { signIn, signOut } = useAuthActions();
@@ -177,7 +179,7 @@ export function SupplierInvitePage({ token }: SupplierInvitePageProps) {
       setError(
         err instanceof Error
           ? err.message
-          : "Impossible de créer le compte fournisseur."
+          : `Impossible de créer le compte ${accountLabel}.`
       );
     } finally {
       setSubmitting(false);
@@ -349,7 +351,7 @@ export function SupplierInvitePage({ token }: SupplierInvitePageProps) {
                     Création du compte…
                   </>
                 ) : mode === "signUp" ? (
-                  "Créer mon compte fournisseur"
+                  `Créer mon compte ${accountLabel}`
                 ) : (
                   "Se connecter et activer"
                 )}

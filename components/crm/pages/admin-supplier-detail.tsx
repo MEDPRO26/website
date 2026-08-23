@@ -307,6 +307,17 @@ export function AdminSupplierDetailPage({
                     <Tag tone="warning">Manquant</Tag>
                   )}
                 </div>
+                {s.cinNumber ? (
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-muted-foreground">N° CIN</span>
+                    <span className="font-medium tabular-nums">{s.cinNumber}</span>
+                  </div>
+                ) : isAideSoignant ? (
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-muted-foreground">N° CIN</span>
+                    <Tag tone="warning">Manquant</Tag>
+                  </div>
+                ) : null}
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-muted-foreground">
                     Diplôme / certificat

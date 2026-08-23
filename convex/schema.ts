@@ -128,6 +128,8 @@ export default defineSchema({
     photoStorageId: v.optional(v.id("_storage")),
     /** Prestataire: Moroccan CIN (Carte nationale d'identité) image. */
     cinStorageId: v.optional(v.id("_storage")),
+    /** Prestataire: CIN number typed at onboarding (e.g. AB123456). */
+    cinNumber: v.optional(v.string()),
     /**
      * Prestataire: diplôme or certificat professionnel
      * (infirmier, kiné, aide-soignant, autorisation d'exercer…).

@@ -64,6 +64,7 @@ export function SupplierOnboardingPage() {
   const [zonesText, setZonesText] = useState("");
   const [phone, setPhone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [cinNumber, setCinNumber] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [prefilled, setPrefilled] = useState(false);
 
@@ -92,6 +93,9 @@ export function SupplierOnboardingPage() {
     }
     if (supplier.whatsapp) {
       setWhatsapp(supplier.whatsapp);
+    }
+    if (supplier.cinNumber) {
+      setCinNumber(supplier.cinNumber);
     }
     setPrefilled(true);
   }, [supplier, prefilled]);
@@ -153,11 +157,20 @@ export function SupplierOnboardingPage() {
       return;
     }
 
-    if (resolvedTypes.some(isAideSoignantSupplierType) && !cinUrl) {
-      toast.error(
-        "Pour les aide-soignants, la CIN est obligatoire. Ajoutez-la avant de créer votre espace."
-      );
-      return;
+    if (resolvedTypes.some(isAideSoignantSupplierType)) {
+      const normalizedCin = cinNumber.trim().toUpperCase().replace(/\s+/g, "");
+      if (normalizedCin.length < 5) {
+        toast.error(
+          "Pour les aide-soignants, le numéro de CIN est obligatoire."
+        );
+        return;
+      }
+      if (!cinUrl) {
+        toast.error(
+          "Pour les aide-soignants, ajoutez la photo/scan de votre CIN avant de créer votre espace."
+        );
+        return;
+      }
     }
 
     setSubmitting(true);
@@ -171,6 +184,7 @@ export function SupplierOnboardingPage() {
         whatsapp,
         items: [],
         services: [],
+        cinNumber: cinNumber.trim() || undefined,
       });
       toast.success("Profil enregistré. Bienvenue !");
       // Full navigation avoids soft-nav redirect races after invite/onboarding.
@@ -301,6 +315,27 @@ export function SupplierOnboardingPage() {
           </div>
 
           {isSoins ? (
+            <div>
+              <Label htmlFor="cin-number">
+                Numéro de CIN{isAideSoignant ? " *" : " (optionnel)"}
+              </Label>
+              <Input
+                id="cin-number"
+                className="mt-1.5 uppercase"
+                value={cinNumber}
+                onChange={(e) => setCinNumber(e.target.value.toUpperCase())}
+                placeholder="Ex. AB123456"
+                required={isAideSoignant}
+                minLength={isAideSoignant ? 5 : undefined}
+                autoComplete="off"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Numéro figurant sur votre carte nationale d&apos;identité.
+              </p>
+            </div>
+          ) : null}
+
+          {isSoins ? (
             <div className="space-y-3 rounded-2xl border border-border bg-muted/20 p-4">
               <div>
                 <Label className="text-sm font-semibold">
@@ -309,7 +344,7 @@ export function SupplierOnboardingPage() {
                 </Label>
                 <p className="mt-1 text-xs text-muted-foreground">
                   {isAideSoignant
-                    ? "Pour les aide-soignants, le nom complet et la CIN sont obligatoires pour créer votre espace. Le contrat d'engagement se télécharge ensuite dans Mon profil."
+                    ? "Pour les aide-soignants, le nom complet, le numéro de CIN et le scan de la CIN sont obligatoires. Le contrat d'engagement se télécharge ensuite dans Mon profil."
                     : "Vous pouvez passer cette étape et les ajouter plus tard dans Mon profil. Une fois votre espace créé, merci d'envoyer votre CIN et votre diplôme ou certificat professionnel."}
                 </p>
               </div>
@@ -318,8 +353,8 @@ export function SupplierOnboardingPage() {
                 kind="cin"
                 title={
                   isAideSoignant
-                    ? "Carte nationale d'identité (CIN) *"
-                    : "Carte nationale d'identité (CIN)"
+                    ? "Scan / photo de la CIN *"
+                    : "Scan / photo de la CIN"
                 }
                 description="Recto de votre CIN marocaine, lisible."
                 url={cinUrl}

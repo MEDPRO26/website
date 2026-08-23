@@ -1015,6 +1015,7 @@ export const completeProfile = mutation({
     whatsapp: v.string(),
     items: v.array(v.string()),
     services: v.array(v.string()),
+    cinNumber: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { staff, supplier } = await requireSupplierOnboarding(ctx);
@@ -1027,6 +1028,10 @@ export const completeProfile = mutation({
     const zones = args.zones.filter(Boolean);
     const items = args.items.filter(Boolean);
     const services = args.services.filter(Boolean);
+    const cinNumber = (args.cinNumber ?? "")
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, "");
 
     if (!name || !city || !phone) {
       throw new Error("Nom, ville et téléphone sont obligatoires.");
@@ -1039,10 +1044,17 @@ export const completeProfile = mutation({
     }
 
     const isAideSoignant = types.some(isAideSoignantSupplierType);
-    if (isAideSoignant && !supplier.cinStorageId) {
-      throw new Error(
-        "Pour les aide-soignants, la CIN est obligatoire avant de créer l'espace."
-      );
+    if (isAideSoignant) {
+      if (!cinNumber || cinNumber.length < 5) {
+        throw new Error(
+          "Pour les aide-soignants, le numéro de CIN est obligatoire."
+        );
+      }
+      if (!supplier.cinStorageId) {
+        throw new Error(
+          "Pour les aide-soignants, la photo/scan de la CIN est obligatoire avant de créer l'espace."
+        );
+      }
     }
     if (name.length < 3 || name.includes("@")) {
       throw new Error("Indiquez un nom complet valide (pas un email).");
@@ -1069,6 +1081,7 @@ export const completeProfile = mutation({
       whatsapp,
       items,
       services,
+      ...(cinNumber ? { cinNumber } : {}),
       status: "actif",
       profileComplete: true,
       updatedAt: now,
@@ -1093,6 +1106,7 @@ export const updateProfile = mutation({
     whatsapp: v.string(),
     items: v.array(v.string()),
     services: v.array(v.string()),
+    cinNumber: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { staff, supplier } = await requireSupplierOnboarding(ctx);
@@ -1105,6 +1119,10 @@ export const updateProfile = mutation({
     const zones = args.zones.filter(Boolean);
     const items = args.items.filter(Boolean);
     const services = args.services.filter(Boolean);
+    const cinNumber = (args.cinNumber ?? "")
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, "");
 
     if (!name || !city || !phone || !whatsapp) {
       throw new Error("Nom, ville, téléphone et WhatsApp sont obligatoires.");
@@ -1116,10 +1134,18 @@ export const updateProfile = mutation({
       throw new Error("Indiquez un nom complet valide (pas un email).");
     }
     const isAideSoignant = types.some(isAideSoignantSupplierType);
-    if (isAideSoignant && !supplier.cinStorageId) {
-      throw new Error(
-        "Pour les aide-soignants, la CIN est obligatoire. Ajoutez-la dans Documents professionnels."
-      );
+    if (isAideSoignant) {
+      const resolvedCin = cinNumber || supplier.cinNumber?.trim() || "";
+      if (!resolvedCin || resolvedCin.length < 5) {
+        throw new Error(
+          "Pour les aide-soignants, le numéro de CIN est obligatoire."
+        );
+      }
+      if (!supplier.cinStorageId) {
+        throw new Error(
+          "Pour les aide-soignants, la CIN est obligatoire. Ajoutez-la dans Documents professionnels."
+        );
+      }
     }
 
     const now = Date.now();
@@ -1143,6 +1169,9 @@ export const updateProfile = mutation({
       whatsapp,
       items,
       services,
+      ...(args.cinNumber !== undefined
+        ? { cinNumber: cinNumber || undefined }
+        : {}),
       profileComplete: true,
       updatedAt: now,
     });

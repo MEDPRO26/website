@@ -98,6 +98,7 @@ export function SupplierProfilePage() {
   const [zonesText, setZonesText] = useState("");
   const [phone, setPhone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [cinNumber, setCinNumber] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
   const [contractDownloading, setContractDownloading] = useState(false);
@@ -118,6 +119,7 @@ export function SupplierProfilePage() {
     setZonesText(supplier.zones.join(", "));
     setPhone(supplier.phone === "—" ? "" : supplier.phone);
     setWhatsapp(supplier.whatsapp ?? "");
+    setCinNumber(supplier.cinNumber ?? "");
   }, [supplier]);
 
   const toggleType = (value: string, checked: boolean) => {
@@ -203,6 +205,7 @@ export function SupplierProfilePage() {
         city: supplier.city,
         phone: supplier.phone === "—" ? "" : supplier.phone,
         date: new Date(),
+        cinNumber: supplier.cinNumber,
       });
       downloadUint8Array(
         bytes,
@@ -243,6 +246,13 @@ export function SupplierProfilePage() {
       );
       return;
     }
+    if (
+      resolvedTypes.some(isAideSoignantSupplierType) &&
+      cinNumber.trim().replace(/\s+/g, "").length < 5
+    ) {
+      toast.error("Pour les aide-soignants, le numéro de CIN est obligatoire.");
+      return;
+    }
     setSubmitting(true);
     try {
       await updateProfile({
@@ -254,6 +264,7 @@ export function SupplierProfilePage() {
         whatsapp,
         items: supplier.items,
         services: supplier.services,
+        cinNumber: cinNumber.trim() || undefined,
       });
       toast.success("Profil mis à jour.");
       setEditing(false);
@@ -533,6 +544,20 @@ export function SupplierProfilePage() {
               <Input className="mt-1.5" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
             </div>
           </div>
+          {isSoins ? (
+            <div>
+              <Label htmlFor="profile-cin-number">
+                Numéro de CIN{isAideSoignant ? " *" : " (optionnel)"}
+              </Label>
+              <Input
+                id="profile-cin-number"
+                className="mt-1.5 uppercase"
+                value={cinNumber}
+                onChange={(e) => setCinNumber(e.target.value.toUpperCase())}
+                placeholder="Ex. AB123456"
+              />
+            </div>
+          ) : null}
         </Card>
       ) : (
         <>
@@ -555,6 +580,15 @@ export function SupplierProfilePage() {
                   <div>
                     <dt className="text-xs text-muted-foreground">WhatsApp</dt>
                     <dd className="font-medium">{supplier.whatsapp}</dd>
+                  </div>
+                </div>
+              ) : null}
+              {supplier.cinNumber ? (
+                <div className="flex items-center gap-3">
+                  <IdCard className="size-4 shrink-0 text-muted-foreground" />
+                  <div>
+                    <dt className="text-xs text-muted-foreground">N° CIN</dt>
+                    <dd className="font-medium tabular-nums">{supplier.cinNumber}</dd>
                   </div>
                 </div>
               ) : null}
