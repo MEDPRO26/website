@@ -89,7 +89,7 @@ export async function buildCollaborationContractDocx(
 export function downloadUint8Array(bytes: Uint8Array, filename: string) {
   const copy = new Uint8Array(bytes.byteLength);
   copy.set(bytes);
-  const blob = new Blob([copy], {
+  const blob = new Blob([copy.buffer], {
     type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   });
   const url = URL.createObjectURL(blob);

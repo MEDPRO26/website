@@ -41,11 +41,18 @@ function writeU32(out: number[], value: number) {
   );
 }
 
+/** Copy into a fresh ArrayBuffer so BlobPart typing accepts the bytes. */
+function toBlobPart(data: Uint8Array): BlobPart {
+  const copy = new Uint8Array(data.byteLength);
+  copy.set(data);
+  return copy.buffer;
+}
+
 async function inflateRaw(data: Uint8Array) {
   if (typeof DecompressionStream === "undefined") {
     throw new Error("Décompression ZIP non supportée par ce navigateur.");
   }
-  const stream = new Blob([data]).stream().pipeThrough(
+  const stream = new Blob([toBlobPart(data)]).stream().pipeThrough(
     new DecompressionStream("deflate-raw")
   );
   return new Uint8Array(await new Response(stream).arrayBuffer());
@@ -55,7 +62,7 @@ async function deflateRaw(data: Uint8Array) {
   if (typeof CompressionStream === "undefined") {
     throw new Error("Compression ZIP non supportée par ce navigateur.");
   }
-  const stream = new Blob([data]).stream().pipeThrough(
+  const stream = new Blob([toBlobPart(data)]).stream().pipeThrough(
     new CompressionStream("deflate-raw")
   );
   return new Uint8Array(await new Response(stream).arrayBuffer());
