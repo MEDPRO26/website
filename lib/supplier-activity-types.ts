@@ -110,6 +110,59 @@ export function supplierIsAideSoignant(supplier: {
   return getSupplierTypeList(supplier).some(isAideSoignantSupplierType);
 }
 
+/** Short badge label for the portal header (e.g. Aide-soignant, Ambulance). */
+export function supplierActivityBadgeLabel(
+  supplier: {
+    type: string;
+    types?: string[];
+    partnerKind?: SupplierPartnerKind;
+  } | null | undefined,
+  fallback: string
+): string {
+  if (!supplier) {
+    return fallback;
+  }
+
+  const types = getSupplierTypeList(supplier);
+  if (types.length === 0) {
+    return fallback;
+  }
+
+  const shorten = (value: string) => {
+    const trimmed = value.trim();
+    if (isAideSoignantSupplierType(trimmed)) return "Aide-soignant";
+    const lower = trimmed.toLowerCase();
+    if (lower.includes("ambulance")) return "Ambulance";
+    if (lower.includes("kiné") || lower.includes("kinesi")) {
+      return "Kinésithérapeute";
+    }
+    if (lower.includes("infirm")) return "Infirmier";
+    if (lower.includes("médecin") || lower.includes("medecin")) {
+      return "Médecin";
+    }
+    if (isMaterialSupplierType(trimmed)) {
+      if (lower.includes("location")) return "Location";
+      if (lower.includes("vente")) return "Vente";
+      return "Matériel";
+    }
+    // Drop trailing "à domicile" / city noise for a compact badge.
+    return trimmed
+      .replace(/\s+à\s+domicile$/i, "")
+      .replace(/\s+Maroc$/i, "")
+      .trim();
+  };
+
+  const labels = [...new Set(types.map(shorten).filter(Boolean))];
+  if (labels.length === 0) {
+    return fallback;
+  }
+  if (labels.length === 1) {
+    return labels[0];
+  }
+  // Keep badge readable: first activity + count of extras.
+  return `${labels[0]} +${labels.length - 1}`;
+}
+
 export function resolveSupplierPartnerKind(supplier: {
   type: string;
   types?: string[];

@@ -7,7 +7,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { useConvexAuth, useQuery } from "convex/react";
 import { useEffect, useState, type ComponentType, type FormEvent, type ReactNode } from "react";
 import { SUPPLIER_LOGIN_PATH, partnerPortalBaseFromPath, loginPathForPartnerKind, homePathForPartnerKind } from "@/lib/auth-routes";
-import { resolveSupplierPartnerKind } from "@/lib/supplier-activity-types";
+import { resolveSupplierPartnerKind, supplierActivityBadgeLabel } from "@/lib/supplier-activity-types";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -323,11 +323,14 @@ export function SupplierShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const basePath = partnerPortalBaseFromPath(pathname);
   const isSoinsPortal = basePath === "/prestataire";
-  const roleLabel = isSoinsPortal ? "Prestataire" : "Fournisseur";
   const { signOut } = useAuthActions();
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const { staff, supplier, photoUrl, profileComplete, sessionLoading, canQuerySupplier } =
     useSupplierSession();
+  const roleLabel = supplierActivityBadgeLabel(
+    supplier,
+    isSoinsPortal ? "Prestataire" : "Fournisseur"
+  );
   const pwaInstall = useSupplierPwaInstall(supplier);
   const unpaidCommissionCount = useQuery(
     api.supplierPortal.unpaidCommissionCount,
