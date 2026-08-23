@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useAdminSession } from "@/hooks/use-admin-session";
+import { supplierIsAideSoignant } from "@/lib/supplier-activity-types";
 
 type AdminSupplierDetailPageProps = {
   supplierId: string;
@@ -83,6 +84,7 @@ export function AdminSupplierDetailPage({
   const listHref = isSoins ? "/admin/prestataires" : "/admin/suppliers";
   const partnerKind = isSoins ? "soins" : "materiel";
   const entityLabel = isSoins ? "prestataire" : "fournisseur";
+  const isAideSoignant = supplierIsAideSoignant(s);
 
   const handleStatusChange = async (status: "actif" | "suspendu" | "en_attente") => {
     try {
@@ -322,7 +324,26 @@ export function AdminSupplierDetailPage({
                     <Tag tone="warning">Manquant</Tag>
                   )}
                 </div>
-                {data.cinUrl || data.diplomaUrl ? (
+                {isAideSoignant ? (
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-muted-foreground">Contrat signé</span>
+                    {data.contractUrl ? (
+                      <a
+                        href={data.contractUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 font-medium text-brand hover:underline"
+                      >
+                        Voir <ExternalLink className="size-3.5" />
+                      </a>
+                    ) : (
+                      <Tag tone="warning">Manquant</Tag>
+                    )}
+                  </div>
+                ) : null}
+                {data.cinUrl ||
+                data.diplomaUrl ||
+                (isAideSoignant && data.contractUrl) ? (
                   <div className="grid grid-cols-2 gap-2 pt-1">
                     {data.cinUrl ? (
                       <a
@@ -369,6 +390,32 @@ export function AdminSupplierDetailPage({
                             <FileText className="size-6" />
                             <span className="text-[11px] font-semibold">
                               {data.diplomaContentType === "application/pdf"
+                                ? "PDF"
+                                : "Document"}
+                            </span>
+                          </span>
+                        )}
+                      </a>
+                    ) : null}
+                    {isAideSoignant && data.contractUrl ? (
+                      <a
+                        href={data.contractUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex h-24 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/20"
+                      >
+                        {data.contractContentType?.startsWith("image/") ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={data.contractUrl}
+                            alt="Contrat signé"
+                            className="h-full w-full object-cover object-top"
+                          />
+                        ) : (
+                          <span className="flex flex-col items-center gap-1 text-brand">
+                            <FileText className="size-6" />
+                            <span className="text-[11px] font-semibold">
+                              {data.contractContentType === "application/pdf"
                                 ? "PDF"
                                 : "Document"}
                             </span>

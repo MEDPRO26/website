@@ -17,6 +17,7 @@ import { commissionPaymentLabel } from "../lib/crm/commission-payment";
 import { isServiceOrderType } from "../lib/crm/order-scheduling";
 import {
   resolveSupplierPartnerKind,
+  isAideSoignantSupplierType,
   type SupplierPartnerKind,
 } from "../lib/supplier-activity-types";
 
@@ -109,11 +110,17 @@ export const current = query({
     const diplomaMeta = supplier.diplomaStorageId
       ? await ctx.storage.getMetadata(supplier.diplomaStorageId)
       : null;
+    const contractMeta = supplier.contractStorageId
+      ? await ctx.storage.getMetadata(supplier.contractStorageId)
+      : null;
     const cinUrl = supplier.cinStorageId
       ? await ctx.storage.getUrl(supplier.cinStorageId)
       : null;
     const diplomaUrl = supplier.diplomaStorageId
       ? await ctx.storage.getUrl(supplier.diplomaStorageId)
+      : null;
+    const contractUrl = supplier.contractStorageId
+      ? await ctx.storage.getUrl(supplier.contractStorageId)
       : null;
 
     return {
@@ -122,8 +129,10 @@ export const current = query({
       photoUrl,
       cinUrl,
       diplomaUrl,
+      contractUrl,
       cinContentType: cinMeta?.contentType ?? null,
       diplomaContentType: diplomaMeta?.contentType ?? null,
+      contractContentType: contractMeta?.contentType ?? null,
       profileComplete: isSupplierProfileComplete(supplier),
     };
   },
@@ -1029,6 +1038,16 @@ export const completeProfile = mutation({
       throw new Error("WhatsApp est obligatoire.");
     }
 
+    const isAideSoignant = types.some(isAideSoignantSupplierType);
+    if (isAideSoignant && !supplier.cinStorageId) {
+      throw new Error(
+        "Pour les aide-soignants, la CIN est obligatoire avant de créer l'espace."
+      );
+    }
+    if (name.length < 3 || name.includes("@")) {
+      throw new Error("Indiquez un nom complet valide (pas un email).");
+    }
+
     const now = Date.now();
     const partnerKind: SupplierPartnerKind =
       resolveSupplierPartnerKind({
@@ -1092,6 +1111,15 @@ export const updateProfile = mutation({
     }
     if (types.length === 0) {
       throw new Error("Sélectionnez au moins un type d'activité.");
+    }
+    if (name.length < 3 || name.includes("@")) {
+      throw new Error("Indiquez un nom complet valide (pas un email).");
+    }
+    const isAideSoignant = types.some(isAideSoignantSupplierType);
+    if (isAideSoignant && !supplier.cinStorageId) {
+      throw new Error(
+        "Pour les aide-soignants, la CIN est obligatoire. Ajoutez-la dans Documents professionnels."
+      );
     }
 
     const now = Date.now();
@@ -1325,9 +1353,17 @@ export const generatePrestataireDocumentUploadUrl = mutation({
   },
 });
 
+function prestataireDocumentField(
+  kind: "cin" | "diploma" | "contract"
+): "cinStorageId" | "diplomaStorageId" | "contractStorageId" {
+  if (kind === "cin") return "cinStorageId";
+  if (kind === "diploma") return "diplomaStorageId";
+  return "contractStorageId";
+}
+
 export const updatePrestataireDocument = mutation({
   args: {
-    kind: v.union(v.literal("cin"), v.literal("diploma")),
+    kind: v.union(v.literal("cin"), v.literal("diploma"), v.literal("contract")),
     storageId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
@@ -1335,7 +1371,7 @@ export const updatePrestataireDocument = mutation({
     assertSoinsPrestataire(supplier);
     await assertPrestataireDocument(ctx, args.storageId);
 
-    const field = args.kind === "cin" ? "cinStorageId" : "diplomaStorageId";
+    const field = prestataireDocumentField(args.kind);
     const previous = supplier[field];
     await ctx.db.patch(supplier._id, {
       [field]: args.storageId,
@@ -1356,12 +1392,23 @@ export const updatePrestataireDocument = mutation({
 
 export const removePrestataireDocument = mutation({
   args: {
-    kind: v.union(v.literal("cin"), v.literal("diploma")),
+    kind: v.union(v.literal("cin"), v.literal("diploma"), v.literal("contract")),
   },
   handler: async (ctx, args) => {
     const { supplier } = await requireSupplierOnboarding(ctx);
     assertSoinsPrestataire(supplier);
-    const field = args.kind === "cin" ? "cinStorageId" : "diplomaStorageId";
+    if (args.kind === "cin") {
+      if (
+        [supplier.type, ...(supplier.types ?? [])]
+          .flatMap((value) => value.split(","))
+          .some(isAideSoignantSupplierType)
+      ) {
+        throw new Error(
+          "La CIN est obligatoire pour les aide-soignants et ne peut pas être supprimée."
+        );
+      }
+    }
+    const field = prestataireDocumentField(args.kind);
     const previous = supplier[field];
     await ctx.db.patch(supplier._id, {
       [field]: undefined,

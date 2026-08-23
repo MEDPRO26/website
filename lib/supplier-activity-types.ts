@@ -93,6 +93,23 @@ export function isCareSupplierType(type: string): boolean {
   );
 }
 
+export function isAideSoignantSupplierType(type: string): boolean {
+  const lower = type.toLowerCase();
+  return (
+    lower.includes("aide-soignant") ||
+    lower.includes("aide soignant") ||
+    lower.includes("aidesoignant")
+  );
+}
+
+/** True when the prestataire offers aide-soignant activity (contract applies). */
+export function supplierIsAideSoignant(supplier: {
+  type: string;
+  types?: string[];
+}): boolean {
+  return getSupplierTypeList(supplier).some(isAideSoignantSupplierType);
+}
+
 export function resolveSupplierPartnerKind(supplier: {
   type: string;
   types?: string[];

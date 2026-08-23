@@ -134,6 +134,11 @@ export default defineSchema({
      */
     diplomaStorageId: v.optional(v.id("_storage")),
     /**
+     * Prestataire: signed engagement de collaboration indépendante
+     * (scanned PDF/image after handwritten signature).
+     */
+    contractStorageId: v.optional(v.id("_storage")),
+    /**
      * When false/undefined, we show a one-time popup to invite suppliers
      * to install the web app icon on their phone.
      */

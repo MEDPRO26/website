@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import {
   buildSupplierTypes,
+  isAideSoignantSupplierType,
   partnerKindTypeOptions,
   resolveSupplierPartnerKind,
   SUPPLIER_OTHER_TYPE,
@@ -55,6 +56,7 @@ export function SupplierOnboardingPage() {
     (basePath.includes("prestataire") ? "soins" : "materiel");
   const activityOptions = partnerKindTypeOptions(partnerKind);
   const isSoins = partnerKind === "soins";
+  const isAideSoignant = types.some(isAideSoignantSupplierType);
 
   const [name, setName] = useState("");
   const [types, setTypes] = useState<string[]>([]);
@@ -139,15 +141,28 @@ export function SupplierOnboardingPage() {
       return;
     }
 
+    const trimmedName = name.trim();
+    if (trimmedName.length < 3 || trimmedName.includes("@")) {
+      toast.error("Indiquez votre nom complet (pas un email).");
+      return;
+    }
+
     if (!whatsapp.trim()) {
       toast.error("WhatsApp est obligatoire.");
+      return;
+    }
+
+    if (resolvedTypes.some(isAideSoignantSupplierType) && !cinUrl) {
+      toast.error(
+        "Pour les aide-soignants, la CIN est obligatoire. Ajoutez-la avant de créer votre espace."
+      );
       return;
     }
 
     setSubmitting(true);
     try {
       await completeProfile({
-        name,
+        name: trimmedName,
         types: resolvedTypes,
         city,
         zones: parseLines(zonesText),
@@ -181,13 +196,26 @@ export function SupplierOnboardingPage() {
 
         <form onSubmit={(e) => void handleSubmit(e)} className="mt-6 space-y-4">
           <div>
-            <Label>Nom de l&apos;entreprise *</Label>
+            <Label>
+              {isAideSoignant ? "Nom complet *" : "Nom de l'entreprise *"}
+            </Label>
             <Input
               className="mt-1.5"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              placeholder={
+                isAideSoignant
+                  ? "Ex. Fatima Benali"
+                  : "Nom de votre entreprise"
+              }
               required
+              minLength={3}
             />
+            {isAideSoignant ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Utilisez votre nom et prénom tels qu&apos;ils figurent sur la CIN.
+              </p>
+            ) : null}
           </div>
 
           <div>
@@ -275,21 +303,27 @@ export function SupplierOnboardingPage() {
             <div className="space-y-3 rounded-2xl border border-border bg-muted/20 p-4">
               <div>
                 <Label className="text-sm font-semibold">
-                  Documents professionnels (optionnel)
+                  Documents professionnels
+                  {isAideSoignant ? " *" : " (optionnel)"}
                 </Label>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Vous pouvez passer cette étape et les ajouter plus tard dans
-                  Mon profil. Une fois votre espace créé, merci d&apos;envoyer
-                  votre CIN et votre diplôme ou certificat professionnel.
+                  {isAideSoignant
+                    ? "Pour les aide-soignants, le nom complet et la CIN sont obligatoires pour créer votre espace. Le contrat d'engagement se télécharge ensuite dans Mon profil."
+                    : "Vous pouvez passer cette étape et les ajouter plus tard dans Mon profil. Une fois votre espace créé, merci d'envoyer votre CIN et votre diplôme ou certificat professionnel."}
                 </p>
               </div>
               <PrestataireDocumentUpload
                 compact
                 kind="cin"
-                title="Carte nationale d'identité (CIN)"
-                description="Recto de votre CIN marocaine."
+                title={
+                  isAideSoignant
+                    ? "Carte nationale d'identité (CIN) *"
+                    : "Carte nationale d'identité (CIN)"
+                }
+                description="Recto de votre CIN marocaine, lisible."
                 url={cinUrl}
                 contentType={cinContentType}
+                allowRemove={!isAideSoignant}
               />
               <PrestataireDocumentUpload
                 compact

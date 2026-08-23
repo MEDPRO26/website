@@ -17,6 +17,8 @@ import {
   Truck,
   User,
   Wrench,
+  Download,
+  FileSignature,
 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
@@ -40,9 +42,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSupplierSession } from "@/hooks/use-supplier-session";
 import { centerCropImageToSquare } from "@/lib/crm/center-crop-image";
 import {
+  buildCollaborationContractDocx,
+  collaborationContractFilename,
+  downloadUint8Array,
+} from "@/lib/crm/collaboration-contract";
+import {
   buildSupplierTypes,
+  isAideSoignantSupplierType,
   resolveSupplierPartnerKind,
   splitSupplierTypes,
+  supplierIsAideSoignant,
   SUPPLIER_ACTIVITY_TYPES,
   SUPPLIER_OTHER_TYPE,
 } from "@/lib/supplier-activity-types";
@@ -63,8 +72,10 @@ export function SupplierProfilePage() {
     photoUrl,
     cinUrl,
     diplomaUrl,
+    contractUrl,
     cinContentType,
     diplomaContentType,
+    contractContentType,
     canQuerySupplier,
   } = useSupplierSession();
   const stats = useQuery(
@@ -89,6 +100,7 @@ export function SupplierProfilePage() {
   const [whatsapp, setWhatsapp] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
+  const [contractDownloading, setContractDownloading] = useState(false);
 
   useEffect(() => {
     if (!supplier) return;
@@ -133,7 +145,12 @@ export function SupplierProfilePage() {
     .join("")
     .toUpperCase();
   const isSoins = resolveSupplierPartnerKind(supplier) === "soins";
-  const missingDocs = isSoins && (!cinUrl || !diplomaUrl);
+  const isAideSoignant = supplierIsAideSoignant(supplier);
+  const missingCin = isAideSoignant && !cinUrl;
+  const missingContract = isAideSoignant && !contractUrl;
+  const missingDiploma = isSoins && !diplomaUrl;
+  const showMissingDocsBanner =
+    missingCin || missingDiploma || missingContract;
 
   const handlePhotoChange = async (file: File | null) => {
     if (!file) return;
@@ -178,6 +195,33 @@ export function SupplierProfilePage() {
     }
   };
 
+  const handleDownloadContract = async () => {
+    setContractDownloading(true);
+    try {
+      const bytes = await buildCollaborationContractDocx({
+        fullName: supplier.name,
+        city: supplier.city,
+        phone: supplier.phone === "—" ? "" : supplier.phone,
+        date: new Date(),
+      });
+      downloadUint8Array(
+        bytes,
+        collaborationContractFilename(supplier.name)
+      );
+      toast.success(
+        "Contrat téléchargé — signez-le à la main puis renvoyez-le ici."
+      );
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Impossible de télécharger le contrat."
+      );
+    } finally {
+      setContractDownloading(false);
+    }
+  };
+
   const handleSave = async () => {
     const resolvedTypes = buildSupplierTypes(types, otherTypeText);
     if (!resolvedTypes) {
@@ -188,10 +232,21 @@ export function SupplierProfilePage() {
       );
       return;
     }
+    const trimmedName = name.trim();
+    if (trimmedName.length < 3 || trimmedName.includes("@")) {
+      toast.error("Indiquez un nom complet valide (pas un email).");
+      return;
+    }
+    if (resolvedTypes.some(isAideSoignantSupplierType) && !cinUrl) {
+      toast.error(
+        "Pour les aide-soignants, la CIN est obligatoire. Ajoutez-la dans Documents professionnels."
+      );
+      return;
+    }
     setSubmitting(true);
     try {
       await updateProfile({
-        name,
+        name: trimmedName,
         types: resolvedTypes,
         city,
         zones: parseLines(zonesText),
@@ -234,14 +289,15 @@ export function SupplierProfilePage() {
         }
       />
 
-      {missingDocs ? (
+      {showMissingDocsBanner ? (
         <Card className="border-amber-200 bg-amber-50/80 p-4">
           <p className="text-sm font-medium text-amber-950">
             Documents professionnels à ajouter
           </p>
           <p className="mt-1 text-xs text-amber-900/80">
-            Ajoutez votre CIN et votre diplôme ou certificat professionnel pour
-            finaliser votre dossier auprès de S2MBO.
+            {isAideSoignant
+              ? "Ajoutez votre CIN (obligatoire), votre diplôme ou certificat, et le contrat d'engagement signé."
+              : "Ajoutez votre CIN et votre diplôme ou certificat professionnel pour finaliser votre dossier auprès de S2MBO."}
           </p>
         </Card>
       ) : null}
@@ -354,10 +410,15 @@ export function SupplierProfilePage() {
           <div className="grid gap-3 sm:grid-cols-2">
             <PrestataireDocumentUpload
               kind="cin"
-              title="Carte nationale d'identité (CIN)"
+              title={
+                isAideSoignant
+                  ? "Carte nationale d'identité (CIN) *"
+                  : "Carte nationale d'identité (CIN)"
+              }
               description="Recto de votre CIN marocaine, lisible."
               url={cinUrl}
               contentType={cinContentType}
+              allowRemove={!isAideSoignant}
             />
             <PrestataireDocumentUpload
               kind="diploma"
@@ -367,6 +428,47 @@ export function SupplierProfilePage() {
               contentType={diplomaContentType}
             />
           </div>
+
+          {isAideSoignant ? (
+            <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-4">
+              <div className="flex items-start gap-3">
+                <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand">
+                  <FileSignature className="size-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-foreground">
+                    Engagement de collaboration indépendante
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Réservé aux aide-soignants. Téléchargez le contrat
+                    prérempli (nom, ville, téléphone, date du jour). Signez-le
+                    à la main, puis renvoyez le scan ou la photo ici.
+                  </p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full sm:w-auto"
+                disabled={contractDownloading}
+                onClick={() => void handleDownloadContract()}
+              >
+                {contractDownloading ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Download className="size-4" />
+                )}
+                Télécharger le contrat
+              </Button>
+              <PrestataireDocumentUpload
+                kind="contract"
+                title="Contrat signé"
+                description="Photo ou PDF du contrat après signature manuscrite."
+                url={contractUrl}
+                contentType={contractContentType}
+              />
+            </div>
+          ) : null}
         </Card>
       ) : null}
 

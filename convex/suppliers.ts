@@ -129,11 +129,17 @@ export const get = query({
     const diplomaMeta = supplier.diplomaStorageId
       ? await ctx.storage.getMetadata(supplier.diplomaStorageId)
       : null;
+    const contractMeta = supplier.contractStorageId
+      ? await ctx.storage.getMetadata(supplier.contractStorageId)
+      : null;
     const cinUrl = supplier.cinStorageId
       ? await ctx.storage.getUrl(supplier.cinStorageId)
       : null;
     const diplomaUrl = supplier.diplomaStorageId
       ? await ctx.storage.getUrl(supplier.diplomaStorageId)
+      : null;
+    const contractUrl = supplier.contractStorageId
+      ? await ctx.storage.getUrl(supplier.contractStorageId)
       : null;
 
     return {
@@ -142,8 +148,10 @@ export const get = query({
       orders: enrichedOrders.sort((a, b) => b.createdAt - a.createdAt),
       cinUrl,
       diplomaUrl,
+      contractUrl,
       cinContentType: cinMeta?.contentType ?? null,
       diplomaContentType: diplomaMeta?.contentType ?? null,
+      contractContentType: contractMeta?.contentType ?? null,
     };
   },
 });

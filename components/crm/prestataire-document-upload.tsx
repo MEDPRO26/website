@@ -9,7 +9,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
-export type PrestataireDocumentKind = "cin" | "diploma";
+export type PrestataireDocumentKind = "cin" | "diploma" | "contract";
 
 type PrestataireDocumentUploadProps = {
   kind: PrestataireDocumentKind;
@@ -18,6 +18,8 @@ type PrestataireDocumentUploadProps = {
   url: string | null | undefined;
   contentType?: string | null;
   compact?: boolean;
+  /** When false, hide the remove action (e.g. required CIN for aide-soignant). */
+  allowRemove?: boolean;
 };
 
 function isPdf(contentType?: string | null, url?: string | null) {
@@ -37,6 +39,7 @@ export function PrestataireDocumentUpload({
   url,
   contentType,
   compact = false,
+  allowRemove = true,
 }: PrestataireDocumentUploadProps) {
   const generateUploadUrl = useMutation(
     api.supplierPortal.generatePrestataireDocumentUploadUrl
@@ -80,7 +83,11 @@ export function PrestataireDocumentUpload({
       };
       await updateDocument({ kind, storageId: payload.storageId });
       toast.success(
-        kind === "cin" ? "CIN enregistrée." : "Diplôme / certificat enregistré."
+        kind === "cin"
+          ? "CIN enregistrée."
+          : kind === "diploma"
+            ? "Diplôme / certificat enregistré."
+            : "Contrat signé enregistré."
       );
     } catch (err) {
       toast.error(
@@ -169,17 +176,19 @@ export function PrestataireDocumentUpload({
               )}
               Remplacer
             </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              className="text-muted-foreground"
-              disabled={uploading}
-              onClick={() => void handleRemove()}
-            >
-              <Trash2 className="size-3.5" />
-              Supprimer
-            </Button>
+            {allowRemove ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="text-muted-foreground"
+                disabled={uploading}
+                onClick={() => void handleRemove()}
+              >
+                <Trash2 className="size-3.5" />
+                Supprimer
+              </Button>
+            ) : null}
           </div>
         </div>
       ) : (
