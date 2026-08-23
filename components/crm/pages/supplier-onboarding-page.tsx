@@ -56,7 +56,6 @@ export function SupplierOnboardingPage() {
     (basePath.includes("prestataire") ? "soins" : "materiel");
   const activityOptions = partnerKindTypeOptions(partnerKind);
   const isSoins = partnerKind === "soins";
-  const isAideSoignant = types.some(isAideSoignantSupplierType);
 
   const [name, setName] = useState("");
   const [types, setTypes] = useState<string[]>([]);
@@ -67,6 +66,8 @@ export function SupplierOnboardingPage() {
   const [whatsapp, setWhatsapp] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [prefilled, setPrefilled] = useState(false);
+
+  const isAideSoignant = types.some(isAideSoignantSupplierType);
 
   useEffect(() => {
     if (!sessionLoading && profileComplete) {
