@@ -534,16 +534,30 @@ export default defineSchema({
     contractAmount: v.optional(v.number()),
     customRate: v.optional(v.number()),
     observation: v.optional(v.string()),
+    /** Devis envoyé au client par l’apporteur (contrôle S2MBO). */
+    devisStorageId: v.optional(v.id("_storage")),
+    devisFileName: v.optional(v.string()),
+    devisContentType: v.optional(v.string()),
+    devisUploadedAt: v.optional(v.number()),
     /** Première ouverture par l’apporteur. */
     openedAt: v.optional(v.number()),
-    /** Paiement honoraire S2MBO par l’apporteur. */
+    /** Paiement honoraire S2MBO : unpaid → pending_review (reçu envoyé) → paid (CRM confirme). */
     paymentStatus: v.optional(
-      v.union(v.literal("unpaid"), v.literal("paid"))
+      v.union(
+        v.literal("unpaid"),
+        v.literal("pending_review"),
+        v.literal("paid")
+      )
     ),
     paymentReceiptStorageId: v.optional(v.id("_storage")),
     paymentReceiptFileName: v.optional(v.string()),
     paymentReceiptContentType: v.optional(v.string()),
+    /** Montant du virement déclaré par l’apporteur (→ Acompte reçu après confirmation). */
+    paymentAmountSent: v.optional(v.number()),
     paidAt: v.optional(v.number()),
+    /** Admin qui a confirmé le paiement après vérification bancaire. */
+    paymentConfirmedBy: v.optional(v.id("staff")),
+    paymentConfirmedAt: v.optional(v.number()),
     status: v.union(v.literal("ouverte"), v.literal("traitee")),
     createdBy: v.id("staff"),
     createdAt: v.number(),
@@ -563,6 +577,8 @@ export default defineSchema({
       v.literal("opened"),
       v.literal("commission_update"),
       v.literal("paid"),
+      v.literal("payment_submitted"),
+      v.literal("devis_uploaded"),
       v.literal("status_change"),
       v.literal("assigned"),
       v.literal("system")

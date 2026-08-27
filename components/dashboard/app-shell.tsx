@@ -12,6 +12,7 @@ import {
   ADMIN_LOGIN_PATH,
   APPORT_AFFAIRES_DEMANDES_PATH,
   APPORT_AFFAIRES_HOME_PATH,
+  APPORT_AFFAIRES_HONORAIRES_PATH,
   APPORT_AFFAIRES_PUSH_PATH,
   APPORT_AFFAIRES_SUBMIT_PATH,
   WORKSPACE_HOME_PATH,
@@ -100,6 +101,11 @@ const APPORT_NAV: NavItem[] = [
     label: "Tableau de suivi",
     icon: LayoutDashboard,
     exact: true,
+  },
+  {
+    href: APPORT_AFFAIRES_HONORAIRES_PATH,
+    label: "Honoraires",
+    icon: Wallet,
   },
   {
     href: APPORT_AFFAIRES_SUBMIT_PATH,

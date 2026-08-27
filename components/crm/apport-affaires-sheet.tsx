@@ -1,8 +1,17 @@
 "use client";
 
+import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
-import { Plus, Trash2 } from "lucide-react";
-import { Fragment, useEffect, useMemo, useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
+import { Eye, FileText, Plus, Trash2 } from "lucide-react";
+import {
+  Fragment,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type InputHTMLAttributes,
+  type ReactNode,
+} from "react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
@@ -13,12 +22,22 @@ import {
   parseAmountInput,
   parsePercentInput,
 } from "@/lib/apport-affaires";
+import { APPORT_AFFAIRES_DEMANDES_PATH } from "@/lib/auth-routes";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Tag } from "@/components/dashboard/status-badge";
 import { cn } from "@/lib/utils";
 
 type SheetRow = {
   key: string;
   id?: Id<"apportDeals">;
+  demandeId?: Id<"apportDemandes">;
   authorName: string;
   date: string;
   client: string;
@@ -47,6 +66,7 @@ function newEmptyRow(): SheetRow {
 
 function rowFromDoc(doc: {
   _id: Id<"apportDeals">;
+  demandeId?: Id<"apportDemandes">;
   authorName?: string;
   date?: string;
   client: string;
@@ -59,6 +79,7 @@ function rowFromDoc(doc: {
   return {
     key: doc._id,
     id: doc._id,
+    demandeId: doc.demandeId,
     authorName: doc.authorName ?? "",
     date: doc.date ?? "",
     client: doc.client,
@@ -79,6 +100,230 @@ function isBlank(row: SheetRow) {
     row.customRate == null &&
     row.depositReceived === 0 &&
     !row.observation.trim()
+  );
+}
+
+function formatWhen(ts: number) {
+  return new Date(ts).toLocaleString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function DemandePreviewDialog({
+  demandeId,
+  open,
+  onOpenChange,
+}: {
+  demandeId: Id<"apportDemandes"> | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const demande = useQuery(
+    api.apportDemandes.get,
+    open && demandeId ? { id: demandeId } : "skip"
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Détail de la demande</DialogTitle>
+          <DialogDescription>
+            Informations complètes liées à cette ligne du suivi.
+          </DialogDescription>
+        </DialogHeader>
+
+        {demande === undefined ? (
+          <p className="text-sm text-muted-foreground">Chargement…</p>
+        ) : demande === null ? (
+          <p className="text-sm text-muted-foreground">
+            Demande introuvable (peut-être supprimée).
+          </p>
+        ) : (
+          <div className="space-y-4 text-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-bold text-foreground">
+                  {demande.clientName.trim() || "Client sans nom"}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {formatWhen(demande.createdAt)}
+                  {demande.apporteurName
+                    ? ` · ${demande.apporteurName}`
+                    : ""}
+                </p>
+              </div>
+              <Tag
+                tone={
+                  demande.status === "traitee"
+                    ? "success"
+                    : demande.openedAt
+                      ? "warning"
+                      : "info"
+                }
+              >
+                {demande.status === "traitee"
+                  ? "Projet complété"
+                  : demande.openedAt
+                    ? "Ouverte"
+                    : "En cours"}
+              </Tag>
+            </div>
+
+            <dl className="space-y-1.5">
+              {demande.phone ? (
+                <div>
+                  <dt className="inline text-muted-foreground">Téléphone : </dt>
+                  <dd className="inline">
+                    <a
+                      href={`tel:${demande.phone.replace(/\s+/g, "")}`}
+                      className="underline-offset-2 hover:underline"
+                    >
+                      {demande.phone}
+                    </a>
+                  </dd>
+                </div>
+              ) : null}
+              <div>
+                <dt className="inline text-muted-foreground">Type : </dt>
+                <dd className="inline">{demande.projectType}</dd>
+              </div>
+              {demande.localisation ? (
+                <div>
+                  <dt className="inline text-muted-foreground">
+                    Localisation :{" "}
+                  </dt>
+                  <dd className="inline">{demande.localisation}</dd>
+                </div>
+              ) : null}
+              {demande.note ? (
+                <div>
+                  <dt className="text-muted-foreground">Note</dt>
+                  <dd className="mt-0.5 whitespace-pre-wrap">{demande.note}</dd>
+                </div>
+              ) : null}
+            </dl>
+
+            <div className="rounded-xl border border-[#d7deea] bg-[#eef8f1] px-3 py-2.5">
+              <p className="text-xs text-muted-foreground">Commission</p>
+              <p className="mt-1 tabular-nums">
+                Contrat :{" "}
+                <span className="font-semibold">
+                  {demande.contractAmount == null
+                    ? "—"
+                    : formatDh(demande.contractAmount)}
+                </span>
+                {" · "}
+                Taux :{" "}
+                <span className="font-semibold">
+                  {demande.customRate == null
+                    ? "—"
+                    : `${formatPercentInput(demande.customRate)} %`}
+                </span>
+                {" · "}
+                Due :{" "}
+                <span className="font-semibold">
+                  {(() => {
+                    const due = computeApportRow({
+                      contractAmount: demande.contractAmount,
+                      depositReceived: 0,
+                      customRate: demande.customRate,
+                    }).commissionDue;
+                    return due == null ? "—" : formatDh(due);
+                  })()}
+                </span>
+              </p>
+              {demande.observation?.trim() ? (
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  Observation : {demande.observation}
+                </p>
+              ) : null}
+            </div>
+
+            {demande.attachments && demande.attachments.length > 0 ? (
+              <div>
+                <p className="mb-1.5 text-xs font-medium text-muted-foreground">
+                  Pièces jointes S2MBO
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {demande.attachments.map((file) =>
+                    file.url ? (
+                      <a
+                        key={file.storageId}
+                        href={file.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-[#2890e0] hover:bg-muted/40"
+                      >
+                        <FileText className="size-3.5" />
+                        {file.fileName}
+                      </a>
+                    ) : null
+                  )}
+                </div>
+              </div>
+            ) : null}
+
+            {demande.devisUrl ? (
+              <div>
+                <p className="mb-1.5 text-xs font-medium text-muted-foreground">
+                  Devis envoyé au client
+                </p>
+                <a
+                  href={demande.devisUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-[#2890e0] hover:bg-muted/40"
+                >
+                  <FileText className="size-3.5" />
+                  {demande.devisFileName || "Voir le devis"}
+                </a>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">Aucun devis joint.</p>
+            )}
+
+            {demande.paymentReceiptUrl ? (
+              <div>
+                <p className="mb-1.5 text-xs font-medium text-muted-foreground">
+                  Reçu bancaire
+                </p>
+                <a
+                  href={demande.paymentReceiptUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-[#2890e0] hover:bg-muted/40"
+                >
+                  <FileText className="size-3.5" />
+                  {demande.paymentReceiptFileName || "Voir le reçu"}
+                </a>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Statut :{" "}
+                  {demande.paymentStatus === "paid"
+                    ? "Payé"
+                    : demande.paymentStatus === "pending_review"
+                      ? "En attente de confirmation"
+                      : "Non payé"}
+                  {demande.paymentAmountSent != null
+                    ? ` · Montant : ${formatDh(demande.paymentAmountSent)}`
+                    : ""}
+                </p>
+              </div>
+            ) : null}
+
+            <Button asChild variant="outline" className="w-full sm:w-auto">
+              <Link href={APPORT_AFFAIRES_DEMANDES_PATH}>
+                Ouvrir dans Demandes
+              </Link>
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -183,6 +428,7 @@ function SheetRowCard({
   variant,
   onPatch,
   onDelete,
+  onViewDemande,
 }: {
   row: SheetRow;
   variant: "admin" | "apporteur";
@@ -191,6 +437,7 @@ function SheetRowCard({
     options?: { immediate?: boolean }
   ) => void;
   onDelete?: () => void;
+  onViewDemande?: () => void;
 }) {
   const computed = computeApportRow({ ...row });
   const inputClass =
@@ -234,16 +481,29 @@ function SheetRowCard({
             />
           </CardField>
         </div>
-        {onDelete ? (
-          <button
-            type="button"
-            className="mt-5 grid size-9 shrink-0 place-items-center rounded-xl text-muted-foreground hover:bg-red-50 hover:text-red-600"
-            onClick={onDelete}
-            aria-label="Supprimer la ligne"
-          >
-            <Trash2 className="size-4" />
-          </button>
-        ) : null}
+        <div className="mt-5 flex shrink-0 gap-1">
+          {onViewDemande ? (
+            <button
+              type="button"
+              className="grid size-9 place-items-center rounded-xl text-[#2890e0] hover:bg-[#2890e0]/10"
+              onClick={onViewDemande}
+              aria-label="Voir la demande"
+              title="Voir la demande"
+            >
+              <Eye className="size-4" />
+            </button>
+          ) : null}
+          {onDelete ? (
+            <button
+              type="button"
+              className="grid size-9 place-items-center rounded-xl text-muted-foreground hover:bg-red-50 hover:text-red-600"
+              onClick={onDelete}
+              aria-label="Supprimer la ligne"
+            >
+              <Trash2 className="size-4" />
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <CardField label="Téléphone" className="mt-3">
@@ -404,6 +664,8 @@ export function ApportAffairesSheet({
   const upsert = useMutation(api.apportAffaires.upsert);
   const remove = useMutation(api.apportAffaires.remove);
   const [rows, setRows] = useState<SheetRow[]>([]);
+  const [previewDemandeId, setPreviewDemandeId] =
+    useState<Id<"apportDemandes"> | null>(null);
   const syncedRef = useRef(false);
   const rowsRef = useRef<SheetRow[]>([]);
   const saveTimers = useRef(new Map<string, number>());
@@ -432,6 +694,7 @@ export function ApportAffairesSheet({
           return {
             ...local,
             id: doc._id,
+            demandeId: doc.demandeId ?? local.demandeId,
             authorName: doc.authorName ?? local.authorName,
             // If a slow amount-save wiped the server %, keep the local % while dirty.
             // When local % is empty but server has one, prefer server.
@@ -614,6 +877,11 @@ export function ApportAffairesSheet({
             row={row}
             variant={variant}
             onPatch={(patch, options) => updateRow(row.key, patch, options)}
+            onViewDemande={
+              row.demandeId
+                ? () => setPreviewDemandeId(row.demandeId!)
+                : undefined
+            }
             onDelete={
               row.id && !isBlank(row)
                 ? () => {
@@ -832,23 +1100,38 @@ export function ApportAffairesSheet({
                       />
                     </td>
                     <td className={cn(cellMint, "text-center")}>
-                      {row.id && !isBlank(row) ? (
-                        <button
-                          type="button"
-                          className="grid size-9 place-items-center rounded-lg text-muted-foreground transition hover:bg-red-50 hover:text-red-600 lg:opacity-0 lg:group-hover:opacity-100"
-                          onClick={() => {
-                            void remove({ id: row.id! }).then(() => {
-                              setRows((current) => [
-                                ...current.filter((item) => item.key !== row.key),
-                                newEmptyRow(),
-                              ]);
-                            });
-                          }}
-                          aria-label="Supprimer la ligne"
-                        >
-                          <Trash2 className="size-4" />
-                        </button>
-                      ) : null}
+                      <div className="flex items-center justify-center gap-0.5">
+                        {row.demandeId ? (
+                          <button
+                            type="button"
+                            className="grid size-9 place-items-center rounded-lg text-[#2890e0] transition hover:bg-[#2890e0]/10"
+                            onClick={() => setPreviewDemandeId(row.demandeId!)}
+                            aria-label="Voir la demande"
+                            title="Voir la demande"
+                          >
+                            <Eye className="size-4" />
+                          </button>
+                        ) : null}
+                        {row.id && !isBlank(row) ? (
+                          <button
+                            type="button"
+                            className="grid size-9 place-items-center rounded-lg text-muted-foreground transition hover:bg-red-50 hover:text-red-600 lg:opacity-0 lg:group-hover:opacity-100"
+                            onClick={() => {
+                              void remove({ id: row.id! }).then(() => {
+                                setRows((current) => [
+                                  ...current.filter(
+                                    (item) => item.key !== row.key
+                                  ),
+                                  newEmptyRow(),
+                                ]);
+                              });
+                            }}
+                            aria-label="Supprimer la ligne"
+                          >
+                            <Trash2 className="size-4" />
+                          </button>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -903,6 +1186,14 @@ export function ApportAffairesSheet({
           Ajouter une ligne
         </Button>
       </div>
+
+      <DemandePreviewDialog
+        demandeId={previewDemandeId}
+        open={previewDemandeId != null}
+        onOpenChange={(next) => {
+          if (!next) setPreviewDemandeId(null);
+        }}
+      />
     </div>
   );
 }

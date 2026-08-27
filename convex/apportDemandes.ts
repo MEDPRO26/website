@@ -47,6 +47,8 @@ async function appendDemandeEvent(
       | "opened"
       | "commission_update"
       | "paid"
+      | "payment_submitted"
+      | "devis_uploaded"
       | "status_change"
       | "assigned"
       | "system";
@@ -198,8 +200,12 @@ async function syncDemandeToSuivi(
     depositReceived: linked?.depositReceived ?? 0,
   });
   const depositReceived =
-    demande.paymentStatus === "paid" && computed.commissionDue != null
-      ? computed.commissionDue
+    demande.paymentStatus === "paid"
+      ? demande.paymentAmountSent != null && demande.paymentAmountSent > 0
+        ? demande.paymentAmountSent
+        : computed.commissionDue != null
+          ? computed.commissionDue
+          : (linked?.depositReceived ?? 0)
       : (linked?.depositReceived ?? 0);
 
   const payload = {
@@ -277,6 +283,9 @@ export const list = query({
         const paymentReceiptUrl = row.paymentReceiptStorageId
           ? await ctx.storage.getUrl(row.paymentReceiptStorageId)
           : null;
+        const devisUrl = row.devisStorageId
+          ? await ctx.storage.getUrl(row.devisStorageId)
+          : null;
         const isUnpaid = isDemandeUnpaid(row);
         const canOpen =
           viewer.kind === "admin" ||
@@ -286,6 +295,7 @@ export const list = query({
           ...row,
           attachments,
           paymentReceiptUrl,
+          devisUrl,
           isUnpaid,
           canOpen,
           unpaidCount,
@@ -295,6 +305,46 @@ export const list = query({
         };
       })
     );
+  },
+});
+
+export const get = query({
+  args: { id: v.id("apportDemandes") },
+  handler: async (ctx, args) => {
+    const viewer = await requireApportViewer(ctx);
+    const row = await ctx.db.get(args.id);
+    if (!row) {
+      return null;
+    }
+    if (
+      viewer.kind === "apporteur" &&
+      row.apporteurId !== viewer.apporteurId
+    ) {
+      throw new Error("Accès refusé.");
+    }
+
+    const apporteur = await ctx.db.get(row.apporteurId);
+    const attachments = await Promise.all(
+      (row.attachments ?? []).map(async (file) => {
+        const url = await ctx.storage.getUrl(file.storageId);
+        return { ...file, url };
+      })
+    );
+    const paymentReceiptUrl = row.paymentReceiptStorageId
+      ? await ctx.storage.getUrl(row.paymentReceiptStorageId)
+      : null;
+    const devisUrl = row.devisStorageId
+      ? await ctx.storage.getUrl(row.devisStorageId)
+      : null;
+
+    return {
+      ...row,
+      attachments,
+      paymentReceiptUrl,
+      devisUrl,
+      apporteurName: apporteur?.name?.trim() || "—",
+      apporteurEmail: apporteur?.email?.trim() || "",
+    };
   },
 });
 
@@ -451,6 +501,42 @@ export const markTreated = mutation({
   },
 });
 
+/** Apporteur déclare le projet terminé — visible comme « Projet complété » côté CRM. */
+export const markProjectCompleted = mutation({
+  args: { id: v.id("apportDemandes") },
+  handler: async (ctx, args) => {
+    const { staff, apporteur } = await requireApporteurStaff(ctx);
+    const existing = await ctx.db.get(args.id);
+    if (!existing) {
+      throw new Error("Demande introuvable.");
+    }
+    if (existing.apporteurId !== apporteur._id) {
+      throw new Error("Accès refusé.");
+    }
+    if (!existing.openedAt) {
+      throw new Error("Ouvrez d’abord la demande avant de la marquer complétée.");
+    }
+    if (existing.status === "traitee") {
+      return args.id;
+    }
+
+    const now = Date.now();
+    await ctx.db.patch(args.id, {
+      status: "traitee",
+      treatedAt: now,
+      treatedBy: staff._id,
+      updatedAt: now,
+    });
+    await appendDemandeEvent(ctx, {
+      demandeId: args.id,
+      type: "status_change",
+      label: "Projet déclaré complété par l’apporteur",
+      actorStaffId: staff._id,
+    });
+    return args.id;
+  },
+});
+
 export const reopen = mutation({
   args: { id: v.id("apportDemandes") },
   handler: async (ctx, args) => {
@@ -493,6 +579,13 @@ export const remove = mutation({
     if (existing.paymentReceiptStorageId) {
       try {
         await ctx.storage.delete(existing.paymentReceiptStorageId);
+      } catch {
+        // Ignore.
+      }
+    }
+    if (existing.devisStorageId) {
+      try {
+        await ctx.storage.delete(existing.devisStorageId);
       } catch {
         // Ignore.
       }
@@ -552,10 +645,75 @@ export const markOpened = mutation({
   },
 });
 
-export const markPaid = mutation({
+export const submitPaymentReceipt = mutation({
   args: {
     id: v.id("apportDemandes"),
     receiptStorageId: v.id("_storage"),
+    fileName: v.string(),
+    amountSent: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const { staff, apporteur } = await requireApporteurStaff(ctx);
+    const existing = await ctx.db.get(args.id);
+    if (!existing) {
+      throw new Error("Demande introuvable.");
+    }
+    if (existing.apporteurId !== apporteur._id) {
+      throw new Error("Accès refusé.");
+    }
+    if (!existing.openedAt) {
+      throw new Error("Ouvrez d’abord la demande avant d’envoyer un reçu.");
+    }
+    if (existing.paymentStatus === "paid") {
+      throw new Error("Ce paiement a déjà été confirmé par S2MBO.");
+    }
+    if (!Number.isFinite(args.amountSent) || args.amountSent <= 0) {
+      throw new Error("Indiquez le montant envoyé (supérieur à 0).");
+    }
+    if (args.amountSent > 50_000_000) {
+      throw new Error("Montant envoyé trop élevé.");
+    }
+
+    const contentType = await assertAttachment(
+      ctx,
+      args.receiptStorageId,
+      args.fileName
+    );
+    const amountSent = Math.round(args.amountSent * 100) / 100;
+    const now = Date.now();
+    const previousReceipt = existing.paymentReceiptStorageId;
+    await ctx.db.patch(args.id, {
+      paymentStatus: "pending_review",
+      paymentReceiptStorageId: args.receiptStorageId,
+      paymentReceiptFileName: args.fileName.trim().slice(0, 180) || "reçu",
+      paymentReceiptContentType: contentType,
+      paymentAmountSent: amountSent,
+      updatedAt: now,
+    });
+
+    if (previousReceipt && previousReceipt !== args.receiptStorageId) {
+      try {
+        await ctx.storage.delete(previousReceipt);
+      } catch {
+        // Ignore.
+      }
+    }
+
+    await appendDemandeEvent(ctx, {
+      demandeId: args.id,
+      type: "payment_submitted",
+      label: `Reçu bancaire envoyé (${amountSent.toLocaleString("fr-FR")} DH) — en attente de confirmation S2MBO`,
+      actorStaffId: staff._id,
+    });
+    return args.id;
+  },
+});
+
+/** Apporteur joint le devis envoyé au client (contrôle S2MBO). */
+export const submitDevis = mutation({
+  args: {
+    id: v.id("apportDemandes"),
+    devisStorageId: v.id("_storage"),
     fileName: v.string(),
   },
   handler: async (ctx, args) => {
@@ -568,35 +726,84 @@ export const markPaid = mutation({
       throw new Error("Accès refusé.");
     }
     if (!existing.openedAt) {
-      throw new Error("Ouvrez d’abord la demande avant de la marquer payée.");
-    }
-    if (existing.paymentStatus === "paid") {
-      return args.id;
+      throw new Error("Ouvrez d’abord la demande avant de joindre le devis.");
     }
 
     const contentType = await assertAttachment(
       ctx,
-      args.receiptStorageId,
+      args.devisStorageId,
       args.fileName
     );
     const now = Date.now();
-    const previousReceipt = existing.paymentReceiptStorageId;
+    const previous = existing.devisStorageId;
     await ctx.db.patch(args.id, {
-      paymentStatus: "paid",
-      paymentReceiptStorageId: args.receiptStorageId,
-      paymentReceiptFileName: args.fileName.trim().slice(0, 180) || "reçu",
-      paymentReceiptContentType: contentType,
-      paidAt: now,
+      devisStorageId: args.devisStorageId,
+      devisFileName: args.fileName.trim().slice(0, 180) || "devis",
+      devisContentType: contentType,
+      devisUploadedAt: now,
       updatedAt: now,
     });
 
-    if (previousReceipt && previousReceipt !== args.receiptStorageId) {
+    if (previous && previous !== args.devisStorageId) {
       try {
-        await ctx.storage.delete(previousReceipt);
+        await ctx.storage.delete(previous);
       } catch {
         // Ignore.
       }
     }
+
+    await appendDemandeEvent(ctx, {
+      demandeId: args.id,
+      type: "devis_uploaded",
+      label: previous
+        ? "Devis client mis à jour"
+        : "Devis client joint par l’apporteur",
+      actorStaffId: staff._id,
+    });
+    return args.id;
+  },
+});
+
+/** Admin confirme le paiement après vérification du virement en banque. */
+export const confirmPaid = mutation({
+  args: { id: v.id("apportDemandes") },
+  handler: async (ctx, args) => {
+    const staff = await requireAdminStaff(ctx);
+    const existing = await ctx.db.get(args.id);
+    if (!existing) {
+      throw new Error("Demande introuvable.");
+    }
+    if (!existing.openedAt) {
+      throw new Error("Cette demande n’a pas encore été ouverte.");
+    }
+    if (existing.paymentStatus === "paid") {
+      return args.id;
+    }
+    if (existing.paymentStatus !== "pending_review") {
+      throw new Error(
+        "L’apporteur doit d’abord envoyer le reçu bancaire avant confirmation."
+      );
+    }
+    if (!existing.paymentReceiptStorageId) {
+      throw new Error("Aucun reçu bancaire joint à cette demande.");
+    }
+    if (
+      existing.paymentAmountSent == null ||
+      existing.paymentAmountSent <= 0
+    ) {
+      throw new Error(
+        "L’apporteur doit indiquer le montant envoyé avant confirmation."
+      );
+    }
+
+    const now = Date.now();
+    await ctx.db.patch(args.id, {
+      paymentStatus: "paid",
+      paidAt: now,
+      paymentConfirmedBy: staff._id,
+      paymentConfirmedAt: now,
+      updatedAt: now,
+    });
 
     const updated = await ctx.db.get(args.id);
     if (updated) {
@@ -606,7 +813,7 @@ export const markPaid = mutation({
     await appendDemandeEvent(ctx, {
       demandeId: args.id,
       type: "paid",
-      label: "Honoraire marqué payé — reçu bancaire envoyé",
+      label: `Paiement confirmé par S2MBO (${existing.paymentAmountSent.toLocaleString("fr-FR")} DH → acompte reçu)`,
       actorStaffId: staff._id,
     });
     return args.id;

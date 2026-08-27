@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery } from "convex/react";
 import {
+  CheckCircle2,
   ClipboardList,
   FileText,
   History,
@@ -341,6 +342,94 @@ function DemandeCommissionPanel({
   );
 }
 
+function DemandeDevisPanel({
+  devisUrl,
+  devisFileName,
+  devisContentType,
+  canUpload,
+  uploading,
+  onUpload,
+}: {
+  devisUrl?: string | null;
+  devisFileName?: string;
+  devisContentType?: string;
+  canUpload: boolean;
+  uploading: boolean;
+  onUpload: (file: File) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const pdf = isPdf(devisContentType, devisFileName);
+  const image = !pdf && isImage(devisContentType);
+
+  return (
+    <div className="mt-3 space-y-2 border-t border-border pt-3">
+      <Label className="text-xs text-muted-foreground">
+        Devis envoyé au client
+      </Label>
+      {devisUrl ? (
+        <a
+          href={devisUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="flex h-24 w-full max-w-[11rem] items-center justify-center overflow-hidden rounded-lg border border-border bg-white transition-opacity hover:opacity-90"
+          title={devisFileName || "Devis"}
+        >
+          {image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={devisUrl}
+              alt={devisFileName || "Devis"}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <span className="flex flex-col items-center gap-1 px-2 text-center text-brand">
+              <FileText className="size-7" />
+              <span className="line-clamp-2 text-[11px] font-semibold">
+                {devisFileName || (pdf ? "Devis PDF" : "Devis")}
+              </span>
+            </span>
+          )}
+        </a>
+      ) : (
+        <p className="text-xs text-muted-foreground">
+          {canUpload
+            ? "Joignez le devis que vous avez envoyé au client."
+            : "Aucun devis joint."}
+        </p>
+      )}
+      {canUpload ? (
+        <>
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf,.pdf"
+            className="sr-only"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) onUpload(file);
+              e.target.value = "";
+            }}
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={uploading}
+            onClick={() => inputRef.current?.click()}
+          >
+            {uploading ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Upload className="size-4" />
+            )}
+            {devisUrl ? "Remplacer le devis" : "Joindre le devis"}
+          </Button>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 export function ApportDemandesPage({
   variant,
 }: {
@@ -352,10 +441,17 @@ export function ApportDemandesPage({
     variant === "admin" ? {} : "skip"
   );
   const generateUploadUrl = useMutation(api.apportDemandes.generateUploadUrl);
+  const generatePaymentUploadUrl = useMutation(
+    api.apportDemandes.generatePaymentUploadUrl
+  );
+  const submitDevis = useMutation(api.apportDemandes.submitDevis);
   const createForApporteur = useMutation(api.apportDemandes.createForApporteur);
   const assignApporteur = useMutation(api.apportDemandes.assignApporteur);
   const markOpened = useMutation(api.apportDemandes.markOpened);
   const markTreated = useMutation(api.apportDemandes.markTreated);
+  const markProjectCompleted = useMutation(
+    api.apportDemandes.markProjectCompleted
+  );
   const reopen = useMutation(api.apportDemandes.reopen);
   const removeDemande = useMutation(api.apportDemandes.remove);
   const updateCommission = useMutation(api.apportDemandes.updateCommission);
@@ -371,6 +467,7 @@ export function ApportDemandesPage({
   const [apporteurId, setApporteurId] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [actingId, setActingId] = useState<string | null>(null);
+  const [devisUploadingId, setDevisUploadingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<Id<"apportDemandes"> | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [lockMessage, setLockMessage] = useState<string | null>(null);
@@ -551,6 +648,20 @@ export function ApportDemandesPage({
     }
   };
 
+  const handleProjectCompleted = async (id: Id<"apportDemandes">) => {
+    setActingId(id);
+    try {
+      await markProjectCompleted({ id });
+      toast.success("Projet marqué comme complété.");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Impossible de mettre à jour."
+      );
+    } finally {
+      setActingId(null);
+    }
+  };
+
   const handleReopen = async (id: Id<"apportDemandes">) => {
     setActingId(id);
     try {
@@ -597,6 +708,55 @@ export function ApportDemandesPage({
           ? err.message
           : "Impossible d’enregistrer la commission."
       );
+    }
+  };
+
+  const handleDevisUpload = async (
+    id: Id<"apportDemandes">,
+    file: File
+  ) => {
+    if (!isAllowedFile(file)) {
+      toast.error("Devis : image (JPG, PNG, WebP) ou PDF uniquement.");
+      return;
+    }
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      toast.error("Le devis ne doit pas dépasser 10 Mo.");
+      return;
+    }
+
+    setDevisUploadingId(id);
+    try {
+      const contentType =
+        file.type ||
+        (file.name.toLowerCase().endsWith(".pdf")
+          ? "application/pdf"
+          : "image/jpeg");
+      const uploadUrl = await generatePaymentUploadUrl({});
+      const uploadResult = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": contentType },
+        body: file,
+      });
+      if (!uploadResult.ok) {
+        throw new Error(`Impossible d’envoyer « ${file.name} ».`);
+      }
+      const payload = (await uploadResult.json()) as {
+        storageId: Id<"_storage">;
+      };
+      await submitDevis({
+        id,
+        devisStorageId: payload.storageId,
+        fileName: file.name,
+      });
+      toast.success("Devis enregistré.");
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Impossible d’envoyer le devis."
+      );
+    } finally {
+      setDevisUploadingId(null);
     }
   };
 
@@ -918,7 +1078,7 @@ export function ApportDemandesPage({
                         }
                       >
                         {row.status === "traitee"
-                          ? "Traitée"
+                          ? "Projet complété"
                           : row.openedAt
                             ? "Ouverte"
                             : "En cours"}
@@ -1045,6 +1205,25 @@ export function ApportDemandesPage({
                         Supprimer
                       </Button>
                     </div>
+                  ) : row.openedAt && row.status === "ouverte" ? (
+                    <Button
+                      size="sm"
+                      disabled={actingId === row._id}
+                      onClick={() => void handleProjectCompleted(row._id)}
+                    >
+                      {actingId === row._id ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="size-4" />
+                      )}
+                      Projet complété
+                    </Button>
+                  ) : row.status === "traitee" ? (
+                    <p className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
+                      <CheckCircle2 className="size-3.5" />
+                      Projet déclaré complété
+                      {row.treatedAt ? ` · ${formatWhen(row.treatedAt)}` : ""}
+                    </p>
                   ) : null}
                 </div>
 
@@ -1059,6 +1238,43 @@ export function ApportDemandesPage({
                       void handleCommissionSave(row._id, patch)
                     }
                   />
+                  {row.openedAt ? (
+                    <DemandeDevisPanel
+                      devisUrl={row.devisUrl}
+                      devisFileName={row.devisFileName}
+                      devisContentType={row.devisContentType}
+                      canUpload={variant === "apporteur"}
+                      uploading={devisUploadingId === row._id}
+                      onUpload={(file) =>
+                        void handleDevisUpload(row._id, file)
+                      }
+                    />
+                  ) : null}
+                  {variant === "admin" &&
+                  row.paymentStatus === "pending_review" ? (
+                    <p className="mt-3 text-xs font-medium text-amber-700">
+                      Reçu envoyé — à confirmer dans{" "}
+                      <a
+                        href="/apport-affaires/honoraires"
+                        className="underline underline-offset-2"
+                      >
+                        Honoraires
+                      </a>
+                      {row.paymentReceiptUrl ? (
+                        <>
+                          {" · "}
+                          <a
+                            href={row.paymentReceiptUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="underline underline-offset-2"
+                          >
+                            Voir le reçu
+                          </a>
+                        </>
+                      ) : null}
+                    </p>
+                  ) : null}
                   {variant === "admin" && row.paymentStatus === "paid" ? (
                     <p className="mt-3 text-xs font-medium text-emerald-700">
                       Honoraire payé
