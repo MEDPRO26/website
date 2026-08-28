@@ -16,6 +16,7 @@ import { categoryParamToValue } from "@/lib/catalog-categories";
 import { DEFAULT_CITY_SLUG } from "@/lib/cities";
 import {
   crmAbsoluteUrl,
+  isCrmApiPath,
   isCrmHostname,
   isCrmPath,
   isDevLikeHostname,
@@ -155,6 +156,9 @@ function handleHostSplit(request: NextRequest) {
     }
     if (pathname === "/" || pathname === "") {
       return "crm-root";
+    }
+    if (isCrmApiPath(pathname)) {
+      return "crm";
     }
     if (!isCrmPath(pathname)) {
       return NextResponse.redirect(publicAbsoluteUrl(pathname, search), 308);

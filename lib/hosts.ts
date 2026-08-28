@@ -47,6 +47,11 @@ export function isCrmPath(pathname: string) {
   );
 }
 
+/** Next.js API routes (auth, geo, …) must stay on the CRM host, not redirect to sossante.ma. */
+export function isCrmApiPath(pathname: string) {
+  return pathname === "/api" || pathname.startsWith("/api/");
+}
+
 export function crmAbsoluteUrl(pathname: string, search = "") {
   return `${CRM_SITE_ORIGIN}${pathname}${search}`;
 }
