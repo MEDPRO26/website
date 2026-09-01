@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { CRM_BRAND_NAME, CRM_LOGO } from "@/lib/brand";
+import { CRM_BRAND_NAME, CRM_PWA_ICONS } from "@/lib/brand";
 import { APPORT_AFFAIRES_HOME_PATH } from "@/lib/auth-routes";
 
 export function GET() {
@@ -15,26 +15,7 @@ export function GET() {
     background_color: "#e8ecf2",
     theme_color: "#32a0f3",
     orientation: "portrait",
-    icons: [
-      {
-        src: CRM_LOGO,
-        sizes: "1024x1024",
-        type: "image/png",
-        purpose: "any",
-      },
-      {
-        src: "/favicon-512.png",
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "any",
-      },
-      {
-        src: "/apple-touch-icon.png",
-        sizes: "180x180",
-        type: "image/png",
-        purpose: "any",
-      },
-    ],
+    icons: CRM_PWA_ICONS.map((icon) => ({ ...icon })),
   };
 
   return NextResponse.json(manifest, {

@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { computeApportRow, formatDh, parseAmountInput } from "@/lib/apport-affaires";
+import { resolveApportCommissionDue, formatDh, parseAmountInput } from "@/lib/apport-affaires";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -68,12 +68,12 @@ export function ApporteurHonorairesPage() {
   const stats = useMemo(() => {
     return opened.reduce(
       (acc, row) => {
-        const computed = computeApportRow({
+        const due = resolveApportCommissionDue({
+          commissionDue: row.commissionDue,
           contractAmount: row.contractAmount,
-          depositReceived: 0,
           customRate: row.customRate,
         });
-        if (computed.commissionDue != null) acc.due += computed.commissionDue;
+        if (due != null) acc.due += due;
         if (row.paymentStatus === "paid") acc.paid += 1;
         else if (row.paymentStatus === "pending_review") acc.pending += 1;
         else acc.unpaid += 1;
@@ -258,9 +258,9 @@ export function ApporteurHonorairesPage() {
       ) : (
         <div className="space-y-3">
           {opened.map((row) => {
-            const computed = computeApportRow({
+            const due = resolveApportCommissionDue({
+              commissionDue: row.commissionDue,
               contractAmount: row.contractAmount,
-              depositReceived: 0,
               customRate: row.customRate,
             });
             const isPaid = row.paymentStatus === "paid";
@@ -316,9 +316,7 @@ export function ApporteurHonorairesPage() {
                     Commission due
                   </span>
                   <span className="text-sm font-semibold tabular-nums">
-                    {computed.commissionDue == null
-                      ? "—"
-                      : formatDh(computed.commissionDue)}
+                    {due == null ? "—" : formatDh(due)}
                   </span>
                 </div>
 
@@ -398,9 +396,7 @@ export function ApporteurHonorairesPage() {
                         inputMode="decimal"
                         className="mt-1 h-9 tabular-nums"
                         placeholder={
-                          computed.commissionDue == null
-                            ? "0"
-                            : String(computed.commissionDue)
+                          due == null ? "0" : String(due)
                         }
                         value={amountText}
                         disabled={submittingId === row._id}

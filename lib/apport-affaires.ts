@@ -116,6 +116,29 @@ export function computeApportRow(args: {
   };
 }
 
+/** Direct commission on a demande, or legacy amount × rate. */
+export function resolveApportCommissionDue(args: {
+  commissionDue?: number | null;
+  contractAmount?: number | null;
+  customRate?: number | null;
+  depositReceived?: number | null;
+  settings?: ApportRateSettings;
+}): number | null {
+  if (
+    args.commissionDue != null &&
+    Number.isFinite(args.commissionDue) &&
+    args.commissionDue > 0
+  ) {
+    return Math.round(args.commissionDue);
+  }
+  return computeApportRow({
+    contractAmount: args.contractAmount,
+    customRate: args.customRate,
+    depositReceived: args.depositReceived,
+    settings: args.settings,
+  }).commissionDue;
+}
+
 export function parseAmountInput(raw: string): number | null {
   const trimmed = raw.trim();
   if (!trimmed) return null;

@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { computeApportRow, formatDh } from "@/lib/apport-affaires";
+import { resolveApportCommissionDue, formatDh } from "@/lib/apport-affaires";
 
 export function AdminApportHonorairesPage() {
   const rows = useQuery(api.apportDemandes.list);
@@ -46,12 +46,12 @@ export function AdminApportHonorairesPage() {
   const stats = useMemo(() => {
     return opened.reduce(
       (acc, row) => {
-        const computed = computeApportRow({
+        const due = resolveApportCommissionDue({
+          commissionDue: row.commissionDue,
           contractAmount: row.contractAmount,
-          depositReceived: 0,
           customRate: row.customRate,
         });
-        if (computed.commissionDue != null) acc.due += computed.commissionDue;
+        if (due != null) acc.due += due;
         if (row.paymentStatus === "paid") acc.paid += 1;
         else if (row.paymentStatus === "pending_review") acc.pending += 1;
         else acc.unpaid += 1;
@@ -164,9 +164,9 @@ export function AdminApportHonorairesPage() {
       ) : (
         <div className="space-y-3">
           {sorted.map((row) => {
-            const computed = computeApportRow({
+            const due = resolveApportCommissionDue({
+              commissionDue: row.commissionDue,
               contractAmount: row.contractAmount,
-              depositReceived: 0,
               customRate: row.customRate,
             });
             const isPaid = row.paymentStatus === "paid";
@@ -219,9 +219,7 @@ export function AdminApportHonorairesPage() {
                     Commission due
                   </span>
                   <span className="text-sm font-semibold tabular-nums">
-                    {computed.commissionDue == null
-                      ? "—"
-                      : formatDh(computed.commissionDue)}
+                    {due == null ? "—" : formatDh(due)}
                   </span>
                 </div>
 

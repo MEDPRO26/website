@@ -11,6 +11,7 @@ function isEmptyRow(args: {
   client: string;
   phone?: string;
   contractAmount?: number;
+  commissionDue?: number | null;
   customRate?: number | null;
   depositReceived: number;
   observation?: string;
@@ -20,6 +21,7 @@ function isEmptyRow(args: {
     !args.client.trim() &&
     !args.phone?.trim() &&
     (args.contractAmount == null || args.contractAmount === 0) &&
+    (args.commissionDue == null || args.commissionDue === 0) &&
     args.customRate == null &&
     args.depositReceived === 0 &&
     !args.observation?.trim()
@@ -132,7 +134,7 @@ export const upsert = mutation({
     client: v.string(),
     phone: v.optional(v.string()),
     contractAmount: v.optional(v.number()),
-    customRate: v.optional(v.union(v.number(), v.null())),
+    commissionDue: v.optional(v.union(v.number(), v.null())),
     depositReceived: v.optional(v.number()),
     observation: v.optional(v.string()),
   },
@@ -144,12 +146,20 @@ export const upsert = mutation({
     const phone = args.phone?.trim() || undefined;
     const isApporteur = viewer.kind === "apporteur";
     const observation = args.observation?.trim() || undefined;
-    // `undefined` = leave unchanged on patch; `null` = clear; number = set.
-    const hasRateArg = args.customRate !== undefined;
-    const customRate =
-      args.customRate == null
-        ? null
-        : Math.min(1, Math.max(0, args.customRate));
+    const hasCommissionDueArg = args.commissionDue !== undefined;
+    const commissionDue =
+      args.commissionDue == null
+        ? undefined
+        : !Number.isFinite(args.commissionDue) || args.commissionDue < 0
+          ? undefined
+          : Math.round(args.commissionDue);
+    if (
+      hasCommissionDueArg &&
+      args.commissionDue != null &&
+      (!Number.isFinite(args.commissionDue) || args.commissionDue < 0)
+    ) {
+      throw new Error("Commission due invalide.");
+    }
     const depositReceived = isApporteur ? 0 : (args.depositReceived ?? 0);
 
     const payload = {
@@ -157,7 +167,7 @@ export const upsert = mutation({
       client,
       phone,
       contractAmount: args.contractAmount,
-      customRate: hasRateArg ? customRate : undefined,
+      commissionDue: hasCommissionDueArg ? commissionDue : undefined,
       depositReceived,
       observation,
     };
@@ -174,15 +184,14 @@ export const upsert = mutation({
       ) {
         throw new Error("Vous ne pouvez modifier que vos propres affaires.");
       }
-      // Only overwrite the rate when the client sent customRate.
-      // Omitting it must never wipe a previously saved %.
-      const nextRate = hasRateArg
-        ? customRate
-        : (existing.customRate ?? null);
+      const nextCommissionDue = hasCommissionDueArg
+        ? commissionDue
+        : existing.commissionDue;
       if (
         isEmptyRow({
           ...payload,
-          customRate: nextRate,
+          commissionDue: nextCommissionDue ?? null,
+          customRate: existing.customRate ?? null,
           depositReceived: isApporteur
             ? existing.depositReceived
             : depositReceived,
@@ -202,7 +211,13 @@ export const upsert = mutation({
         client,
         ...(phone ? { phone } : {}),
         contractAmount: args.contractAmount,
-        ...(nextRate != null ? { customRate: nextRate } : {}),
+        ...(hasCommissionDueArg
+          ? commissionDue != null
+            ? { commissionDue }
+            : {}
+          : existing.commissionDue != null
+            ? { commissionDue: existing.commissionDue }
+            : {}),
         ...(apporteurId ? { apporteurId } : {}),
         ...(existing.demandeId ? { demandeId: existing.demandeId } : {}),
         depositReceived: isApporteur
@@ -217,7 +232,14 @@ export const upsert = mutation({
       return { id: args.id, deleted: false };
     }
 
-    if (isEmptyRow({ ...payload, customRate, depositReceived })) {
+    if (
+      isEmptyRow({
+        ...payload,
+        commissionDue: commissionDue ?? null,
+        customRate: null,
+        depositReceived,
+      })
+    ) {
       return { id: null, deleted: false };
     }
 
@@ -226,7 +248,7 @@ export const upsert = mutation({
       client,
       ...(phone ? { phone } : {}),
       contractAmount: args.contractAmount,
-      ...(customRate != null ? { customRate } : {}),
+      ...(commissionDue != null ? { commissionDue } : {}),
       ...(isApporteur && viewer.apporteurId
         ? { apporteurId: viewer.apporteurId }
         : {}),

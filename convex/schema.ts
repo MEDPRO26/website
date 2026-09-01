@@ -495,8 +495,10 @@ export default defineSchema({
     client: v.string(),
     phone: v.optional(v.string()),
     contractAmount: v.optional(v.number()),
-    /** Manual commission rate (0–1). */
+    /** @deprecated legacy — use commissionDue */
     customRate: v.optional(v.number()),
+    /** Montant de commission saisi directement. */
+    commissionDue: v.optional(v.number()),
     /** Set when the row was created by an apporteur d’affaires. */
     apporteurId: v.optional(v.id("apporteurs")),
     /** Lien vers une demande CRM (sync depuis l’espace apporteur). */
@@ -533,6 +535,8 @@ export default defineSchema({
     /** Rempli par l’apporteur (suivi commission). */
     contractAmount: v.optional(v.number()),
     customRate: v.optional(v.number()),
+    /** Montant de commission saisi directement par l’apporteur. */
+    commissionDue: v.optional(v.number()),
     observation: v.optional(v.string()),
     /** Devis envoyé au client par l’apporteur (contrôle S2MBO). */
     devisStorageId: v.optional(v.id("_storage")),

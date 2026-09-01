@@ -23,6 +23,7 @@ export function crmPageMetadata(title: string): Metadata {
       icon: [
         { url: CRM_LOGO, type: "image/png", sizes: "32x32" },
         { url: CRM_LOGO, type: "image/png", sizes: "192x192" },
+        { url: CRM_LOGO, type: "image/png", sizes: "512x512" },
       ],
       apple: CRM_LOGO,
       shortcut: CRM_LOGO,

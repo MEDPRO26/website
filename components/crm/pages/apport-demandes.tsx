@@ -45,12 +45,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
-  computeApportRow,
   formatAmountInput,
   formatDh,
-  formatPercentInput,
   parseAmountInput,
-  parsePercentInput,
 } from "@/lib/apport-affaires";
 
 const MAX_ATTACHMENTS = 5;
@@ -145,65 +142,6 @@ function CommissionAmountInput({
   );
 }
 
-function CommissionRateInput({
-  value,
-  readOnly,
-  onCommit,
-}: {
-  value: number | null | undefined;
-  readOnly?: boolean;
-  onCommit: (next: number | null) => void;
-}) {
-  const [focused, setFocused] = useState(false);
-  const [text, setText] = useState(formatPercentInput(value));
-  const textRef = useRef(text);
-  textRef.current = text;
-
-  useEffect(() => {
-    if (!focused) setText(formatPercentInput(value));
-  }, [focused, value]);
-
-  if (readOnly) {
-    return (
-      <div className="flex h-9 items-center justify-end gap-1 rounded-lg border border-border bg-muted/40 px-2.5 text-sm tabular-nums">
-        <span>{value == null ? "—" : formatPercentInput(value)}</span>
-        {value != null ? (
-          <span className="text-xs text-muted-foreground">%</span>
-        ) : null}
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex h-9 items-center gap-1 rounded-lg border border-input bg-background px-2 focus-within:ring-2 focus-within:ring-ring/40">
-      <input
-        inputMode="decimal"
-        className="h-full w-full min-w-0 bg-transparent text-right text-sm tabular-nums outline-none"
-        placeholder="—"
-        value={focused ? text : formatPercentInput(value)}
-        onFocus={() => {
-          setFocused(true);
-          setText(formatPercentInput(value));
-        }}
-        onChange={(e) => setText(e.target.value)}
-        onBlur={() => {
-          setFocused(false);
-          const parsed = parsePercentInput(textRef.current);
-          setText(formatPercentInput(parsed));
-          onCommit(parsed);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            e.currentTarget.blur();
-          }
-        }}
-      />
-      <span className="text-xs text-muted-foreground">%</span>
-    </div>
-  );
-}
-
 function DemandeHistory({ id }: { id: Id<"apportDemandes"> }) {
   const [open, setOpen] = useState(false);
   const events = useQuery(
@@ -254,18 +192,18 @@ function DemandeHistory({ id }: { id: Id<"apportDemandes"> }) {
 
 function DemandeCommissionPanel({
   contractAmount,
-  customRate,
+  commissionDue,
   observation,
   readOnly,
   onSave,
 }: {
   contractAmount?: number;
-  customRate?: number;
+  commissionDue?: number;
   observation?: string;
   readOnly?: boolean;
   onSave: (patch: {
     contractAmount?: number | null;
-    customRate?: number | null;
+    commissionDue?: number | null;
     observation?: string | null;
   }) => void;
 }) {
@@ -275,12 +213,6 @@ function DemandeCommissionPanel({
   useEffect(() => {
     if (!obsFocused.current) setObs(observation ?? "");
   }, [observation]);
-
-  const computed = computeApportRow({
-    contractAmount,
-    depositReceived: 0,
-    customRate,
-  });
 
   return (
     <div className="space-y-2.5">
@@ -295,21 +227,13 @@ function DemandeCommissionPanel({
         </div>
       </div>
       <div>
-        <Label className="text-xs text-muted-foreground">Taux commission</Label>
-        <div className="mt-1">
-          <CommissionRateInput
-            value={customRate}
-            readOnly={readOnly}
-            onCommit={(next) => onSave({ customRate: next })}
-          />
-        </div>
-      </div>
-      <div>
         <Label className="text-xs text-muted-foreground">Commission due</Label>
-        <div className="mt-1 flex h-9 items-center rounded-lg border border-[#d7deea] bg-[#eef8f1] px-2.5 text-sm font-semibold tabular-nums">
-          {computed.commissionDue == null
-            ? "—"
-            : formatDh(computed.commissionDue)}
+        <div className="mt-1">
+          <CommissionAmountInput
+            value={commissionDue}
+            readOnly={readOnly}
+            onCommit={(next) => onSave({ commissionDue: next })}
+          />
         </div>
       </div>
       <div>
@@ -696,7 +620,7 @@ export function ApportDemandesPage({
     id: Id<"apportDemandes">,
     patch: {
       contractAmount?: number | null;
-      customRate?: number | null;
+      commissionDue?: number | null;
       observation?: string | null;
     }
   ) => {
@@ -1231,7 +1155,7 @@ export function ApportDemandesPage({
                 <div className="border-t border-border pt-4 sm:border-t-0 sm:pl-4 sm:pt-0">
                   <DemandeCommissionPanel
                     contractAmount={row.contractAmount}
-                    customRate={row.customRate}
+                    commissionDue={row.commissionDue ?? undefined}
                     observation={row.observation}
                     readOnly={variant === "admin"}
                     onSave={(patch) =>

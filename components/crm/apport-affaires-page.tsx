@@ -6,7 +6,21 @@ import { useMemo } from "react";
 import { api } from "@/convex/_generated/api";
 import { ApportAffairesSheet } from "@/components/crm/apport-affaires-sheet";
 import { StatCard } from "@/components/dashboard/stat-card";
-import { computeApportRow, formatDh } from "@/lib/apport-affaires";
+import { resolveApportCommissionDue, formatDh, remainingToPay } from "@/lib/apport-affaires";
+
+function dealCommissionDue(row: {
+  commissionDue?: number;
+  contractAmount?: number;
+  customRate?: number;
+  depositReceived: number;
+}) {
+  return resolveApportCommissionDue({
+    commissionDue: row.commissionDue,
+    contractAmount: row.contractAmount,
+    customRate: row.customRate,
+    depositReceived: row.depositReceived,
+  });
+}
 
 export function ApportAffairesPage({
   variant = "admin",
@@ -19,15 +33,13 @@ export function ApportAffairesPage({
     const rows = saved ?? [];
     const totals = rows.reduce(
       (acc, row) => {
-        const computed = computeApportRow({
-          contractAmount: row.contractAmount,
-          depositReceived: row.depositReceived,
-          customRate: row.customRate,
-        });
+        const due = dealCommissionDue(row);
         if (row.contractAmount) acc.contracts += row.contractAmount;
-        if (computed.commissionDue != null) acc.due += computed.commissionDue;
+        if (due != null) acc.due += due;
         acc.deposits += row.depositReceived;
-        if (computed.remaining != null) acc.remaining += computed.remaining;
+        const remaining =
+          due == null ? null : remainingToPay(due, row.depositReceived);
+        if (remaining != null) acc.remaining += remaining;
         acc.count += 1;
         return acc;
       },

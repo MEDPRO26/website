@@ -2,7 +2,7 @@ import { mutation, query } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
-import { computeApportRow } from "../lib/apport-affaires";
+import { resolveApportCommissionDue } from "../lib/apport-affaires";
 import {
   requireAdminStaff,
   requireApportViewer,
@@ -180,7 +180,12 @@ async function syncDemandeToSuivi(
 
   const hasCommission =
     (demande.contractAmount != null && demande.contractAmount > 0) ||
-    demande.customRate != null ||
+    resolveApportCommissionDue({
+      commissionDue: demande.commissionDue,
+      contractAmount: demande.contractAmount,
+      customRate: demande.customRate,
+      depositReceived: linked?.depositReceived ?? 0,
+    }) != null ||
     Boolean(demande.observation?.trim());
 
   if (!hasCommission) {
@@ -195,7 +200,8 @@ async function syncDemandeToSuivi(
     demande.date?.trim() || isoDateFromTimestamp(demande.createdAt);
   const client = demande.clientName.trim();
   const phone = demande.phone?.trim() || undefined;
-  const computed = computeApportRow({
+  const resolvedDue = resolveApportCommissionDue({
+    commissionDue: demande.commissionDue,
     contractAmount: demande.contractAmount,
     customRate: demande.customRate,
     depositReceived: linked?.depositReceived ?? 0,
@@ -204,17 +210,23 @@ async function syncDemandeToSuivi(
     demande.paymentStatus === "paid"
       ? demande.paymentAmountSent != null && demande.paymentAmountSent > 0
         ? demande.paymentAmountSent
-        : computed.commissionDue != null
-          ? computed.commissionDue
+        : resolvedDue != null
+          ? resolvedDue
           : (linked?.depositReceived ?? 0)
       : (linked?.depositReceived ?? 0);
+
+  let syncContractAmount = demande.contractAmount;
+  const syncCommissionDue =
+    demande.commissionDue != null && demande.commissionDue > 0
+      ? demande.commissionDue
+      : undefined;
 
   const payload = {
     date,
     client,
     ...(phone ? { phone } : {}),
-    contractAmount: demande.contractAmount,
-    ...(demande.customRate != null ? { customRate: demande.customRate } : {}),
+    contractAmount: syncContractAmount,
+    ...(syncCommissionDue != null ? { commissionDue: syncCommissionDue } : {}),
     apporteurId: demande.apporteurId,
     demandeId: demande._id,
     depositReceived,
@@ -846,6 +858,7 @@ export const updateCommission = mutation({
     id: v.id("apportDemandes"),
     contractAmount: v.optional(v.union(v.number(), v.null())),
     customRate: v.optional(v.union(v.number(), v.null())),
+    commissionDue: v.optional(v.union(v.number(), v.null())),
     observation: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
@@ -867,6 +880,7 @@ export const updateCommission = mutation({
     const patch: {
       contractAmount?: number;
       customRate?: number;
+      commissionDue?: number;
       observation?: string;
       updatedAt: number;
     } = { updatedAt: Date.now() };
@@ -891,6 +905,16 @@ export const updateCommission = mutation({
       }
     }
 
+    if (args.commissionDue !== undefined) {
+      if (args.commissionDue == null) {
+        patch.commissionDue = undefined;
+      } else if (!Number.isFinite(args.commissionDue) || args.commissionDue < 0) {
+        throw new Error("Commission due invalide.");
+      } else {
+        patch.commissionDue = Math.round(args.commissionDue);
+      }
+    }
+
     if (args.observation !== undefined) {
       const text = args.observation?.trim() || undefined;
       if (text && text.length > 2000) {
@@ -905,6 +929,9 @@ export const updateCommission = mutation({
         ? { contractAmount: patch.contractAmount }
         : {}),
       ...(args.customRate !== undefined ? { customRate: patch.customRate } : {}),
+      ...(args.commissionDue !== undefined
+        ? { commissionDue: patch.commissionDue }
+        : {}),
       ...(args.observation !== undefined
         ? { observation: patch.observation }
         : {}),

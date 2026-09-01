@@ -30,6 +30,41 @@ export const LOGO = {
 /** Branding shown in the CRM (admin, fournisseurs, prestataires). */
 export const CRM_BRAND_NAME = "S2MBO";
 export const CRM_LOGO = "/s2mbo-logo-rounded.png";
+/** Small icon in Android notification/status bar — must not use SOS Santé assets. */
+export const CRM_NOTIFICATION_BADGE = CRM_LOGO;
+
+export const CRM_PWA_ICONS = [
+  {
+    src: CRM_LOGO,
+    sizes: "1024x1024",
+    type: "image/png",
+    purpose: "any",
+  },
+  {
+    src: CRM_LOGO,
+    sizes: "512x512",
+    type: "image/png",
+    purpose: "any",
+  },
+  {
+    src: CRM_LOGO,
+    sizes: "192x192",
+    type: "image/png",
+    purpose: "any",
+  },
+  {
+    src: CRM_LOGO,
+    sizes: "180x180",
+    type: "image/png",
+    purpose: "any",
+  },
+  {
+    src: CRM_LOGO,
+    sizes: "96x96",
+    type: "image/png",
+    purpose: "monochrome",
+  },
+] as const;
 
 export const LOGO_ALT = "SOS Santé - location de matériel médical et soins à domicile";
 

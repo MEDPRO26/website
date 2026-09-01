@@ -1,12 +1,8 @@
 /* S2MBO partner SW — bump SW_VERSION when changing push behavior. */
-const SW_VERSION = "s2mbo-push-v1";
+const SW_VERSION = "s2mbo-push-v2";
 const ICON_CACHE = `s2mbo-push-icons-${SW_VERSION}`;
-const PRECACHE_URLS = [
-  "/s2mbo-logo-rounded.png",
-  "/notification-badge.png",
-  "/favicon-512.png",
-  "/apple-touch-icon.png",
-];
+const S2MBO_ICON = "/s2mbo-logo-rounded.png";
+const PRECACHE_URLS = [S2MBO_ICON];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -91,8 +87,8 @@ async function showPushNotification(data) {
   const origin = self.location.origin;
   const options = {
     body: data.body,
-    icon: `${origin}/s2mbo-logo-rounded.png`,
-    badge: `${origin}/notification-badge.png`,
+    icon: `${origin}${S2MBO_ICON}`,
+    badge: `${origin}${S2MBO_ICON}`,
     tag: data.tag,
     renotify: true,
     silent: false,

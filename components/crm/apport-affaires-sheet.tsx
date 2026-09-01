@@ -15,12 +15,11 @@ import {
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
-  computeApportRow,
   formatAmountInput,
   formatDh,
-  formatPercentInput,
   parseAmountInput,
-  parsePercentInput,
+  remainingToPay,
+  resolveApportCommissionDue,
 } from "@/lib/apport-affaires";
 import { APPORT_AFFAIRES_DEMANDES_PATH } from "@/lib/auth-routes";
 import { Button } from "@/components/ui/button";
@@ -43,10 +42,41 @@ type SheetRow = {
   client: string;
   phone: string;
   contractAmount: number | null;
-  customRate: number | null;
+  commissionDue: number | null;
   depositReceived: number;
   observation: string;
 };
+
+function legacyCommissionDue(doc: {
+  commissionDue?: number;
+  contractAmount?: number;
+  customRate?: number;
+}) {
+  if (doc.commissionDue != null && doc.commissionDue > 0) {
+    return doc.commissionDue;
+  }
+  if (
+    doc.customRate != null &&
+    doc.contractAmount != null &&
+    doc.contractAmount > 0
+  ) {
+    return Math.round(doc.contractAmount * doc.customRate);
+  }
+  return null;
+}
+
+function sheetRowDue(row: Pick<SheetRow, "commissionDue" | "contractAmount">) {
+  return resolveApportCommissionDue({
+    commissionDue: row.commissionDue,
+    contractAmount: row.contractAmount,
+  });
+}
+
+function sheetRowRemaining(row: SheetRow) {
+  const due = sheetRowDue(row);
+  if (due == null) return null;
+  return remainingToPay(due, row.depositReceived);
+}
 
 const EMPTY_ROW_COUNT = 8;
 
@@ -58,7 +88,7 @@ function newEmptyRow(): SheetRow {
     client: "",
     phone: "",
     contractAmount: null,
-    customRate: null,
+    commissionDue: null,
     depositReceived: 0,
     observation: "",
   };
@@ -72,6 +102,7 @@ function rowFromDoc(doc: {
   client: string;
   phone?: string;
   contractAmount?: number;
+  commissionDue?: number;
   customRate?: number;
   depositReceived: number;
   observation?: string;
@@ -85,7 +116,7 @@ function rowFromDoc(doc: {
     client: doc.client,
     phone: doc.phone ?? "",
     contractAmount: doc.contractAmount ?? null,
-    customRate: doc.customRate ?? null,
+    commissionDue: legacyCommissionDue(doc),
     depositReceived: doc.depositReceived,
     observation: doc.observation ?? "",
   };
@@ -97,7 +128,7 @@ function isBlank(row: SheetRow) {
     !row.client.trim() &&
     !row.phone.trim() &&
     (row.contractAmount == null || row.contractAmount === 0) &&
-    row.customRate == null &&
+    (row.commissionDue == null || row.commissionDue === 0) &&
     row.depositReceived === 0 &&
     !row.observation.trim()
   );
@@ -218,21 +249,14 @@ function DemandePreviewDialog({
                     : formatDh(demande.contractAmount)}
                 </span>
                 {" · "}
-                Taux :{" "}
-                <span className="font-semibold">
-                  {demande.customRate == null
-                    ? "—"
-                    : `${formatPercentInput(demande.customRate)} %`}
-                </span>
-                {" · "}
                 Due :{" "}
                 <span className="font-semibold">
                   {(() => {
-                    const due = computeApportRow({
+                    const due = resolveApportCommissionDue({
+                      commissionDue: demande.commissionDue,
                       contractAmount: demande.contractAmount,
-                      depositReceived: 0,
                       customRate: demande.customRate,
-                    }).commissionDue;
+                    });
                     return due == null ? "—" : formatDh(due);
                   })()}
                 </span>
@@ -351,59 +375,6 @@ function SheetInput({
   );
 }
 
-function RateField({
-  value,
-  onCommit,
-}: {
-  value: number | null;
-  onCommit: (next: number | null) => void;
-}) {
-  const [text, setText] = useState(formatPercentInput(value));
-  const focusedRef = useRef(false);
-  const textRef = useRef(text);
-  textRef.current = text;
-
-  useEffect(() => {
-    if (!focusedRef.current) {
-      setText(formatPercentInput(value));
-    }
-  }, [value]);
-
-  const commit = () => {
-    const parsed = parsePercentInput(textRef.current);
-    setText(formatPercentInput(parsed));
-    onCommit(parsed);
-  };
-
-  return (
-    <div className="flex h-11 items-center justify-end gap-1 px-2">
-      <input
-        inputMode="decimal"
-        placeholder="—"
-        value={text}
-        className="h-11 w-full min-w-0 bg-transparent text-right text-sm font-semibold tabular-nums outline-none placeholder:text-muted-foreground/70 focus:bg-white focus:ring-2 focus:ring-inset focus:ring-[#32a0f3]/35"
-        onFocus={() => {
-          focusedRef.current = true;
-          setText(value == null ? "" : formatPercentInput(value));
-        }}
-        onChange={(event) => setText(event.target.value)}
-        onBlur={() => {
-          focusedRef.current = false;
-          commit();
-        }}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            event.preventDefault();
-            event.currentTarget.blur();
-          }
-        }}
-        aria-label="Taux de commission en pourcentage"
-      />
-      <span className="pr-1 text-xs text-muted-foreground">%</span>
-    </div>
-  );
-}
-
 function CardField({
   label,
   children,
@@ -439,7 +410,8 @@ function SheetRowCard({
   onDelete?: () => void;
   onViewDemande?: () => void;
 }) {
-  const computed = computeApportRow({ ...row });
+  const due = sheetRowDue(row);
+  const remaining = sheetRowRemaining(row);
   const inputClass =
     "h-11 w-full rounded-xl border border-[#d7deea] bg-[#eef8f1] px-3 text-sm outline-none placeholder:text-muted-foreground/70 focus:bg-white focus:ring-2 focus:ring-[#32a0f3]/35";
 
@@ -537,25 +509,17 @@ function SheetRowCard({
             />
           </div>
         </CardField>
-        <CardField label="Taux commission">
+        <CardField label="Commission due">
           <div className="overflow-hidden rounded-xl border border-[#d7deea] bg-[#eef8f1]">
-            <RateField
-              value={row.customRate}
+            <AmountField
+              value={row.commissionDue}
               onCommit={(next) =>
-                onPatch({ customRate: next }, { immediate: true })
+                onPatch({ commissionDue: next }, { immediate: true })
               }
             />
           </div>
         </CardField>
       </div>
-
-      <CardField label="Commission due" className="mt-3">
-        <div className="flex h-11 items-center justify-end rounded-xl border border-[#d7deea] bg-[#eef8f1] px-3 text-sm font-bold tabular-nums">
-          {computed.commissionDue == null
-            ? "—"
-            : formatDh(computed.commissionDue)}
-        </div>
-      </CardField>
 
       {variant === "admin" ? (
         <div className="mt-3 grid grid-cols-2 gap-2">
@@ -573,16 +537,14 @@ function SheetRowCard({
             <div
               className={cn(
                 "flex h-11 items-center justify-end rounded-xl border border-[#d7deea] bg-[#eef8f1] px-3 text-sm font-semibold tabular-nums",
-                computed.remaining == null
+                remaining == null
                   ? "text-muted-foreground"
-                  : computed.remaining > 0
+                  : remaining > 0
                     ? "text-[#c2410c]"
                     : "text-[#15803d]"
               )}
             >
-              {computed.remaining == null
-                ? "—"
-                : formatDh(computed.remaining)}
+              {remaining == null ? "—" : formatDh(remaining)}
             </div>
           </CardField>
         </div>
@@ -671,8 +633,6 @@ export function ApportAffairesSheet({
   const saveTimers = useRef(new Map<string, number>());
   const saveSeq = useRef(new Map<string, number>());
   const dirtyKeys = useRef(new Set<string>());
-  /** Keys where the user edited the commission % (incl. clearing it). */
-  const rateTouchedKeys = useRef(new Set<string>());
 
   useEffect(() => {
     rowsRef.current = rows;
@@ -698,7 +658,7 @@ export function ApportAffairesSheet({
             authorName: doc.authorName ?? local.authorName,
             // If a slow amount-save wiped the server %, keep the local % while dirty.
             // When local % is empty but server has one, prefer server.
-            customRate: local.customRate ?? doc.customRate ?? null,
+            commissionDue: local.commissionDue ?? legacyCommissionDue(doc),
           };
         }
         const mapped = rowFromDoc(doc);
@@ -731,50 +691,36 @@ export function ApportAffairesSheet({
     });
   }, [saved]);
 
-  const persist = (
-    key: string,
-    immediate = false,
-    rateTouched = false
-  ) => {
+  const persist = (key: string, immediate = false) => {
     const previous = saveTimers.current.get(key);
     if (previous) window.clearTimeout(previous);
     const seq = (saveSeq.current.get(key) ?? 0) + 1;
     saveSeq.current.set(key, seq);
     dirtyKeys.current.add(key);
-    if (rateTouched) {
-      rateTouchedKeys.current.add(key);
-    }
 
     const run = () => {
       void (async () => {
         const row = rowsRef.current.find((item) => item.key === key);
         if (!row) {
           dirtyKeys.current.delete(key);
-          rateTouchedKeys.current.delete(key);
           return;
         }
         try {
-          // Never send customRate: null on unrelated edits — that wiped the %
-          // via db.replace. Only send the rate when the user edited it, or when
-          // reinforcing a non-null value already in local state.
-          const includeRate =
-            rateTouchedKeys.current.has(key) || row.customRate != null;
           const result = await upsert({
             id: row.id,
             date: row.date || undefined,
             client: row.client,
             phone: row.phone || undefined,
             contractAmount: row.contractAmount ?? undefined,
-            ...(includeRate ? { customRate: row.customRate } : {}),
+            commissionDue: row.commissionDue,
             observation: row.observation || undefined,
             ...(variant === "admin"
               ? { depositReceived: row.depositReceived }
               : {}),
           });
 
-          // A newer edit started while this save was in flight — save again.
           if (saveSeq.current.get(key) !== seq) {
-            persist(key, true, rateTouchedKeys.current.has(key));
+            persist(key, true);
             return;
           }
 
@@ -791,7 +737,6 @@ export function ApportAffairesSheet({
 
           if (result.deleted) {
             dirtyKeys.current.delete(key);
-            rateTouchedKeys.current.delete(key);
             setRows((current) => {
               const next = [
                 ...current.filter((item) => item.key !== key),
@@ -804,11 +749,9 @@ export function ApportAffairesSheet({
           }
 
           dirtyKeys.current.delete(key);
-          rateTouchedKeys.current.delete(key);
         } catch {
           if (saveSeq.current.get(key) === seq) {
             dirtyKeys.current.delete(key);
-            rateTouchedKeys.current.delete(key);
           }
         }
       })();
@@ -835,21 +778,18 @@ export function ApportAffairesSheet({
       rowsRef.current = next;
       return next;
     });
-    persist(
-      key,
-      options?.immediate,
-      Object.prototype.hasOwnProperty.call(patch, "customRate")
-    );
+    persist(key, options?.immediate);
   };
 
   const totals = useMemo(() => {
     return rows.reduce(
       (acc, row) => {
-        const computed = computeApportRow({ ...row });
+        const due = sheetRowDue(row);
         if (row.contractAmount) acc.contracts += row.contractAmount;
-        if (computed.commissionDue != null) acc.due += computed.commissionDue;
+        if (due != null) acc.due += due;
         acc.deposits += row.depositReceived;
-        if (computed.remaining != null) acc.remaining += computed.remaining;
+        const remaining = sheetRowRemaining(row);
+        if (remaining != null) acc.remaining += remaining;
         return acc;
       },
       { contracts: 0, due: 0, deposits: 0, remaining: 0 }
@@ -951,8 +891,6 @@ export function ApportAffairesSheet({
                 </th>
                 <th className="w-[8%] border-b border-[#ead56a] px-1.5 py-3 text-right font-bold sm:px-2">
                   Montant contrat
-                </th>                <th className="w-[6%] border-b border-[#ead56a] px-1.5 py-3 text-right font-bold sm:px-2">
-                  Taux commission
                 </th>
                 <th className="w-[8%] border-b border-[#ead56a] px-1.5 py-3 text-right font-bold sm:px-2">
                   Commission due
@@ -974,7 +912,8 @@ export function ApportAffairesSheet({
             </thead>
             <tbody>
               {rows.map((row, index) => {
-                const computed = computeApportRow({ ...row });
+                const due = sheetRowDue(row);
+                const remaining = sheetRowRemaining(row);
                 const stripe = index % 2 === 1;
                 const cellMint = cn(
                   "border-b border-[#e6edf3] bg-[#eef8f1]",
@@ -1044,22 +983,18 @@ export function ApportAffairesSheet({
                           updateRow(row.key, { contractAmount: next })
                         }
                       />
-                    </td>                    <td className={cellMint}>
-                      <RateField
-                        value={row.customRate}
+                    </td>
+                    <td className={cellMint}>
+                      <AmountField
+                        value={row.commissionDue}
                         onCommit={(next) =>
                           updateRow(
                             row.key,
-                            { customRate: next },
+                            { commissionDue: next },
                             { immediate: true }
                           )
                         }
                       />
-                    </td>
-                    <td className="border-b border-[#e6edf3] bg-white px-1.5 text-right font-semibold tabular-nums sm:px-2">
-                      {computed.commissionDue == null
-                        ? ""
-                        : formatDh(computed.commissionDue)}
                     </td>
                     {variant === "admin" ? (
                       <Fragment>
@@ -1075,16 +1010,14 @@ export function ApportAffairesSheet({
                       className={cn(
                         cellMint,
                         "px-1.5 text-right font-semibold tabular-nums sm:px-2",
-                        computed.remaining == null
+                        remaining == null
                           ? "text-muted-foreground"
-                          : computed.remaining > 0
+                          : remaining > 0
                             ? "text-[#c2410c]"
                             : "text-[#15803d]"
                       )}
                     >
-                      {computed.remaining == null
-                        ? ""
-                        : formatDh(computed.remaining)}
+                      {remaining == null ? "" : formatDh(remaining)}
                     </td>
                       </Fragment>
                     ) : null}
@@ -1147,7 +1080,6 @@ export function ApportAffairesSheet({
                 </td>
                 {variant === "admin" ? (
                   <Fragment>
-                    <td />
                     <td className="px-3 py-3.5 text-right tabular-nums">
                       {formatDh(totals.due)}
                     </td>
@@ -1161,7 +1093,6 @@ export function ApportAffairesSheet({
                   </Fragment>
                 ) : (
                   <>
-                    <td />
                     <td className="px-3 py-3.5 text-right tabular-nums">
                       {formatDh(totals.due)}
                     </td>
