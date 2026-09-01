@@ -8,6 +8,7 @@ import {
   requireApportViewer,
   requireApporteurStaff,
 } from "./lib/authz";
+import { notifyApporteurOfAssignment } from "./lib/apportDemandeNotifications";
 
 const ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024;
 const ATTACHMENT_MAX_COUNT = 5;
@@ -438,6 +439,14 @@ export const createForApporteur = mutation({
       label: `Demande créée et affectée à ${apporteur.name.trim() || apporteur.email}`,
       actorStaffId: staff._id,
     });
+    const demande = await ctx.db.get(id);
+    if (demande) {
+      await notifyApporteurOfAssignment(ctx, {
+        apporteur,
+        demande,
+        demandeId: id,
+      });
+    }
     return id;
   },
 });
@@ -457,6 +466,9 @@ export const assignApporteur = mutation({
     if (!apporteur || apporteur.status === "suspendu") {
       throw new Error("Apporteur introuvable ou inactif.");
     }
+    if (existing.apporteurId === args.apporteurId) {
+      return args.id;
+    }
     await ctx.db.patch(args.id, {
       apporteurId: args.apporteurId,
       updatedAt: Date.now(),
@@ -467,6 +479,14 @@ export const assignApporteur = mutation({
       label: `Affectée à ${apporteur.name.trim() || apporteur.email}`,
       actorStaffId: staff._id,
     });
+    const demande = await ctx.db.get(args.id);
+    if (demande) {
+      await notifyApporteurOfAssignment(ctx, {
+        apporteur,
+        demande,
+        demandeId: args.id,
+      });
+    }
     return args.id;
   },
 });

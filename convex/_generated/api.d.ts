@@ -24,6 +24,7 @@ import type * as crons from "../crons.js";
 import type * as customers from "../customers.js";
 import type * as email from "../email.js";
 import type * as http from "../http.js";
+import type * as lib_apportDemandeNotifications from "../lib/apportDemandeNotifications.js";
 import type * as lib_audioUpload from "../lib/audioUpload.js";
 import type * as lib_auditLog from "../lib/auditLog.js";
 import type * as lib_authz from "../lib/authz.js";
@@ -95,6 +96,7 @@ declare const fullApi: ApiFromModules<{
   customers: typeof customers;
   email: typeof email;
   http: typeof http;
+  "lib/apportDemandeNotifications": typeof lib_apportDemandeNotifications;
   "lib/audioUpload": typeof lib_audioUpload;
   "lib/auditLog": typeof lib_auditLog;
   "lib/authz": typeof lib_authz;

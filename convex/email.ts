@@ -83,6 +83,51 @@ function buildInviteEmailHtml(args: {
 </html>`;
 }
 
+function buildApportDemandeAssignmentHtml(args: {
+  apporteurName: string;
+  clientName: string;
+  projectType: string;
+  demandeUrl: string;
+  clientPhone?: string;
+  localisation?: string;
+}) {
+  const clientBlock =
+    args.clientPhone
+      ? `<p style="margin-top: 10px;"><strong>Téléphone :</strong> ${args.clientPhone}</p>`
+      : "";
+  const localisationBlock = args.localisation
+    ? `<p style="margin-top: 10px;"><strong>Localisation :</strong> ${args.localisation}</p>`
+    : "";
+  return `
+<!DOCTYPE html>
+<html lang="fr">
+  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #474b56; max-width: 560px; margin: 0 auto; padding: 24px;">
+    <h1 style="color: #2890e0; font-size: 22px;">S2MBO</h1>
+    <p>Bonjour <strong>${args.apporteurName}</strong>,</p>
+    <p>
+      Une nouvelle demande vous a été affectée pour le client
+      <strong>${args.clientName}</strong>.
+    </p>
+    <p><strong>Type de projet :</strong> ${args.projectType}</p>
+    ${clientBlock}
+    ${localisationBlock}
+    <p>
+      Connectez-vous à votre espace Apport d’Affaires pour consulter les détails
+      et suivre le projet.
+    </p>
+    <p style="margin: 32px 0;">
+      <a href="${args.demandeUrl}"
+         style="background: #32a0f3; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; display: inline-block;">
+        Voir la demande
+      </a>
+    </p>
+    <p style="font-size: 13px; color: #747782;">
+      Lien direct : <a href="${args.demandeUrl}">${args.demandeUrl}</a>
+    </p>
+  </body>
+</html>`;
+}
+
 function buildSupplierOrderAssignmentHtml(args: {
   supplierName: string;
   orderRef: string;
@@ -286,6 +331,27 @@ export const sendSupplierOrderAssignment = internalAction({
       subject: `Nouvelle commande affectée — ${args.orderRef}`,
       html: buildSupplierOrderAssignmentHtml(args),
       devLabel: "Supplier order assignment email",
+      devPayload: args,
+    });
+  },
+});
+
+export const sendApportDemandeAssignment = internalAction({
+  args: {
+    to: v.string(),
+    apporteurName: v.string(),
+    clientName: v.string(),
+    projectType: v.string(),
+    demandeUrl: v.string(),
+    clientPhone: v.optional(v.string()),
+    localisation: v.optional(v.string()),
+  },
+  handler: async (_ctx, args) => {
+    return await sendResendEmail({
+      to: args.to,
+      subject: `Nouvelle demande affectée — ${args.clientName}`,
+      html: buildApportDemandeAssignmentHtml(args),
+      devLabel: "Apport demande assignment email",
       devPayload: args,
     });
   },

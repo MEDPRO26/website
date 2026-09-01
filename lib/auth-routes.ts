@@ -126,3 +126,12 @@ export function supplierOrderLoginUrl(
     siteUrl
   );
 }
+
+/** Email link: login first, then open apporteur demandes after auth. */
+export function apportDemandeLoginUrl(siteUrl: string) {
+  return portalLoginUrl(
+    "apporteur",
+    APPORT_AFFAIRES_DEMANDES_PATH,
+    siteUrl
+  );
+}
