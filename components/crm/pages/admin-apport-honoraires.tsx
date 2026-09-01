@@ -7,12 +7,23 @@ import {
   Handshake,
   Loader2,
   Receipt,
+  Trash2,
   Wallet,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Tag } from "@/components/dashboard/status-badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { api } from "@/convex/_generated/api";
@@ -22,7 +33,10 @@ import { computeApportRow, formatDh } from "@/lib/apport-affaires";
 export function AdminApportHonorairesPage() {
   const rows = useQuery(api.apportDemandes.list);
   const confirmPaid = useMutation(api.apportDemandes.confirmPaid);
+  const removeDemande = useMutation(api.apportDemandes.remove);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<Id<"apportDemandes"> | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const opened = useMemo(
     () => (rows ?? []).filter((row) => Boolean(row.openedAt)),
@@ -76,6 +90,22 @@ export function AdminApportHonorairesPage() {
       );
     } finally {
       setConfirmingId(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setDeleting(true);
+    try {
+      await removeDemande({ id: deleteId });
+      toast.success("Ligne supprimée.");
+      setDeleteId(null);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Impossible de supprimer."
+      );
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -158,17 +188,30 @@ export function AdminApportHonorairesPage() {
                       {row.projectType}
                     </p>
                   </div>
-                  <Tag
-                    tone={
-                      isPaid ? "success" : isPending ? "warning" : "neutral"
-                    }
-                  >
-                    {isPaid
-                      ? "Payé"
-                      : isPending
-                        ? "Reçu à vérifier"
-                        : "Sans reçu"}
-                  </Tag>
+                  <div className="flex shrink-0 items-start gap-2">
+                    <Tag
+                      tone={
+                        isPaid ? "success" : isPending ? "warning" : "neutral"
+                      }
+                    >
+                      {isPaid
+                        ? "Payé"
+                        : isPending
+                          ? "Reçu à vérifier"
+                          : "Sans reçu"}
+                    </Tag>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="outline"
+                      className="size-8 text-red-600 hover:bg-red-50 hover:text-red-700"
+                      disabled={deleting || confirmingId === row._id}
+                      aria-label="Supprimer"
+                      onClick={() => setDeleteId(row._id)}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between gap-3 rounded-lg border border-[#d7deea] bg-[#eef8f1] px-3 py-2">
@@ -252,6 +295,37 @@ export function AdminApportHonorairesPage() {
           })}
         </div>
       )}
+
+      <AlertDialog
+        open={deleteId != null}
+        onOpenChange={(open) => {
+          if (!open && !deleting) setDeleteId(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer cette ligne ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              La demande, le reçu bancaire et la ligne du tableau de suivi
+              seront définitivement supprimés. Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleting}
+              onClick={(e) => {
+                e.preventDefault();
+                void handleDelete();
+              }}
+            >
+              {deleting ? <Loader2 className="size-4 animate-spin" /> : null}
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
