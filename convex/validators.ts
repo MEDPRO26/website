@@ -83,6 +83,14 @@ export const complaintStatusValidator = v.union(
   v.literal("resolue")
 );
 
+export const apportDemandeStatusValidator = v.union(
+  v.literal("ouverte"),
+  v.literal("en_discussion"),
+  v.literal("client_accepte"),
+  v.literal("client_refuse"),
+  v.literal("traitee")
+);
+
 export const complaintPriorityValidator = v.union(
   v.literal("basse"),
   v.literal("moyenne"),

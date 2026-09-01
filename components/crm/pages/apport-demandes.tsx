@@ -2,7 +2,6 @@
 
 import { useMutation, useQuery } from "convex/react";
 import {
-  CheckCircle2,
   ClipboardList,
   FileText,
   History,
@@ -44,6 +43,12 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import {
+  APPORT_DEMANDE_WORKFLOW_OPTIONS,
+  apportDemandeStatusLabel,
+  apportDemandeStatusTone,
+  type ApportDemandeStatus,
+} from "@/lib/apport-demande-status";
 import {
   formatAmountInput,
   formatDh,
@@ -373,9 +378,7 @@ export function ApportDemandesPage({
   const assignApporteur = useMutation(api.apportDemandes.assignApporteur);
   const markOpened = useMutation(api.apportDemandes.markOpened);
   const markTreated = useMutation(api.apportDemandes.markTreated);
-  const markProjectCompleted = useMutation(
-    api.apportDemandes.markProjectCompleted
-  );
+  const updateDemandeStatus = useMutation(api.apportDemandes.updateDemandeStatus);
   const reopen = useMutation(api.apportDemandes.reopen);
   const removeDemande = useMutation(api.apportDemandes.remove);
   const updateCommission = useMutation(api.apportDemandes.updateCommission);
@@ -572,11 +575,14 @@ export function ApportDemandesPage({
     }
   };
 
-  const handleProjectCompleted = async (id: Id<"apportDemandes">) => {
+  const handleDemandeStatusChange = async (
+    id: Id<"apportDemandes">,
+    status: ApportDemandeStatus
+  ) => {
     setActingId(id);
     try {
-      await markProjectCompleted({ id });
-      toast.success("Projet marqué comme complété.");
+      await updateDemandeStatus({ id, status });
+      toast.success("Statut mis à jour.");
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Impossible de mettre à jour."
@@ -992,20 +998,10 @@ export function ApportDemandesPage({
                       <p className="whitespace-nowrap text-right text-xs text-muted-foreground">
                         {formatWhen(row.createdAt)}
                       </p>
-                      <Tag
-                        tone={
-                          row.status === "traitee"
-                            ? "success"
-                            : row.openedAt
-                              ? "warning"
-                              : "info"
-                        }
-                      >
-                        {row.status === "traitee"
-                          ? "Projet complété"
-                          : row.openedAt
-                            ? "Ouverte"
-                            : "En cours"}
+                      <Tag tone={apportDemandeStatusTone(row.status)}>
+                        {row.openedAt
+                          ? apportDemandeStatusLabel(row.status)
+                          : "En cours"}
                       </Tag>
                     </div>
                   </div>
@@ -1097,7 +1093,7 @@ export function ApportDemandesPage({
                           ))}
                         </SelectContent>
                       </Select>
-                      {row.status === "ouverte" ? (
+                      {row.status !== "traitee" ? (
                         <Button
                           size="sm"
                           disabled={actingId === row._id}
@@ -1129,25 +1125,33 @@ export function ApportDemandesPage({
                         Supprimer
                       </Button>
                     </div>
-                  ) : row.openedAt && row.status === "ouverte" ? (
-                    <Button
-                      size="sm"
-                      disabled={actingId === row._id}
-                      onClick={() => void handleProjectCompleted(row._id)}
-                    >
-                      {actingId === row._id ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : (
-                        <CheckCircle2 className="size-4" />
-                      )}
-                      Projet complété
-                    </Button>
-                  ) : row.status === "traitee" ? (
-                    <p className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
-                      <CheckCircle2 className="size-3.5" />
-                      Projet déclaré complété
-                      {row.treatedAt ? ` · ${formatWhen(row.treatedAt)}` : ""}
-                    </p>
+                  ) : row.openedAt ? (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">
+                        Statut de la demande
+                      </Label>
+                      <Select
+                        value={row.status}
+                        disabled={actingId === row._id}
+                        onValueChange={(value) =>
+                          void handleDemandeStatusChange(
+                            row._id,
+                            value as ApportDemandeStatus
+                          )
+                        }
+                      >
+                        <SelectTrigger className="h-9 w-full sm:max-w-xs">
+                          <SelectValue placeholder="Choisir un statut…" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {APPORT_DEMANDE_WORKFLOW_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   ) : null}
                 </div>
 

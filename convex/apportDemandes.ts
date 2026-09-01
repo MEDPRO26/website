@@ -3,6 +3,7 @@ import type { MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { resolveApportCommissionDue } from "../lib/apport-affaires";
+import { apportDemandeStatusValidator } from "./validators";
 import {
   requireAdminStaff,
   requireApportViewer,
@@ -528,6 +529,61 @@ export const markTreated = mutation({
       type: "status_change",
       label: "Demande marquée comme traitée",
       actorStaffId: staff._id,
+    });
+    return args.id;
+  },
+});
+
+/** Apporteur (ou admin) met à jour le statut de suivi client. */
+export const updateDemandeStatus = mutation({
+  args: {
+    id: v.id("apportDemandes"),
+    status: apportDemandeStatusValidator,
+  },
+  handler: async (ctx, args) => {
+    const viewer = await requireApportViewer(ctx);
+    const existing = await ctx.db.get(args.id);
+    if (!existing) {
+      throw new Error("Demande introuvable.");
+    }
+    if (
+      viewer.kind === "apporteur" &&
+      existing.apporteurId !== viewer.apporteurId
+    ) {
+      throw new Error("Accès refusé.");
+    }
+    if (viewer.kind === "apporteur" && !existing.openedAt) {
+      throw new Error("Ouvrez d’abord la demande avant de mettre à jour le statut.");
+    }
+    if (existing.status === args.status) {
+      return args.id;
+    }
+
+    const now = Date.now();
+    const statusLabels: Record<string, string> = {
+      ouverte: "Ouverte",
+      en_discussion: "En cours de discussion avec client",
+      client_accepte: "Client accepté",
+      client_refuse: "Client n'a pas accepté",
+      traitee: "Projet complété",
+    };
+
+    await ctx.db.patch(args.id, {
+      status: args.status,
+      updatedAt: now,
+      ...(args.status === "traitee"
+        ? { treatedAt: now, treatedBy: viewer.staff._id }
+        : {
+            treatedAt: undefined,
+            treatedBy: undefined,
+          }),
+    });
+
+    await appendDemandeEvent(ctx, {
+      demandeId: args.id,
+      type: "status_change",
+      label: `Statut : ${statusLabels[args.status] ?? args.status}`,
+      actorStaffId: viewer.staff._id,
     });
     return args.id;
   },

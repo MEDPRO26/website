@@ -2,6 +2,7 @@ import { defineSchema, defineTable } from "convex/server";
 import { authTables } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import {
+  apportDemandeStatusValidator,
   clientOfferStatusValidator,
   cmsPageStatusValidator,
   cmsPageTypeValidator,
@@ -562,7 +563,7 @@ export default defineSchema({
     /** Admin qui a confirmé le paiement après vérification bancaire. */
     paymentConfirmedBy: v.optional(v.id("staff")),
     paymentConfirmedAt: v.optional(v.number()),
-    status: v.union(v.literal("ouverte"), v.literal("traitee")),
+    status: apportDemandeStatusValidator,
     createdBy: v.id("staff"),
     createdAt: v.number(),
     updatedAt: v.number(),

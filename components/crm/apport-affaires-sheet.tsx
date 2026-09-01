@@ -21,6 +21,10 @@ import {
   remainingToPay,
   resolveApportCommissionDue,
 } from "@/lib/apport-affaires";
+import {
+  apportDemandeStatusLabel,
+  apportDemandeStatusTone,
+} from "@/lib/apport-demande-status";
 import { APPORT_AFFAIRES_DEMANDES_PATH } from "@/lib/auth-routes";
 import { Button } from "@/components/ui/button";
 import {
@@ -190,18 +194,14 @@ function DemandePreviewDialog({
               </div>
               <Tag
                 tone={
-                  demande.status === "traitee"
-                    ? "success"
-                    : demande.openedAt
-                      ? "warning"
-                      : "info"
+                  demande.openedAt
+                    ? apportDemandeStatusTone(demande.status)
+                    : "info"
                 }
               >
-                {demande.status === "traitee"
-                  ? "Projet complété"
-                  : demande.openedAt
-                    ? "Ouverte"
-                    : "En cours"}
+                {demande.openedAt
+                  ? apportDemandeStatusLabel(demande.status)
+                  : "En cours"}
               </Tag>
             </div>
 
