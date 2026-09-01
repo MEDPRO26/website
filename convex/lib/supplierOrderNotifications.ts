@@ -48,8 +48,7 @@ export async function notifySupplierOfAssignment(
       supplierName: args.supplier.name,
       orderRef: args.order.ref,
       orderUrl,
-      clientName,
-      clientPhone,
+      partnerKind: args.supplier.partnerKind,
     });
   }
 

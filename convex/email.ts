@@ -85,19 +85,8 @@ function buildInviteEmailHtml(args: {
 
 function buildApportDemandeAssignmentHtml(args: {
   apporteurName: string;
-  clientName: string;
-  projectType: string;
   demandeUrl: string;
-  clientPhone?: string;
-  localisation?: string;
 }) {
-  const clientBlock =
-    args.clientPhone
-      ? `<p style="margin-top: 10px;"><strong>Téléphone :</strong> ${args.clientPhone}</p>`
-      : "";
-  const localisationBlock = args.localisation
-    ? `<p style="margin-top: 10px;"><strong>Localisation :</strong> ${args.localisation}</p>`
-    : "";
   return `
 <!DOCTYPE html>
 <html lang="fr">
@@ -105,12 +94,8 @@ function buildApportDemandeAssignmentHtml(args: {
     <h1 style="color: #2890e0; font-size: 22px;">S2MBO</h1>
     <p>Bonjour <strong>${args.apporteurName}</strong>,</p>
     <p>
-      Une nouvelle demande vous a été affectée pour le client
-      <strong>${args.clientName}</strong>.
+      Une nouvelle demande vous a été affectée.
     </p>
-    <p><strong>Type de projet :</strong> ${args.projectType}</p>
-    ${clientBlock}
-    ${localisationBlock}
     <p>
       Connectez-vous à votre espace Apport d’Affaires pour consulter les détails
       et suivre le projet.
@@ -132,15 +117,10 @@ function buildSupplierOrderAssignmentHtml(args: {
   supplierName: string;
   orderRef: string;
   orderUrl: string;
-  clientName?: string;
-  clientPhone?: string;
+  partnerKind?: string | null;
 }) {
-  const clientBlock =
-    args.clientName || args.clientPhone
-      ? `<p style="margin-top: 10px;"><strong>Client :</strong> ${args.clientName ?? "—"}${
-          args.clientPhone ? ` · ${args.clientPhone}` : ""
-        }</p>`
-      : "";
+  const portalLabel =
+    args.partnerKind === "soins" ? "prestataires" : "fournisseurs";
   return `
 <!DOCTYPE html>
 <html lang="fr">
@@ -150,9 +130,8 @@ function buildSupplierOrderAssignmentHtml(args: {
     <p>
       Une nouvelle commande vous a été affectée : <strong>${args.orderRef}</strong>.
     </p>
-    ${clientBlock}
     <p>
-      Connectez-vous via votre espace fournisseurs pour consulter les détails
+      Connectez-vous via votre espace ${portalLabel} pour consulter les détails
       et envoyer votre offre de prix.
     </p>
     <p style="margin: 32px 0;">
@@ -322,8 +301,7 @@ export const sendSupplierOrderAssignment = internalAction({
     supplierName: v.string(),
     orderRef: v.string(),
     orderUrl: v.string(),
-    clientName: v.optional(v.string()),
-    clientPhone: v.optional(v.string()),
+    partnerKind: v.optional(v.string()),
   },
   handler: async (_ctx, args) => {
     return await sendResendEmail({
@@ -340,16 +318,12 @@ export const sendApportDemandeAssignment = internalAction({
   args: {
     to: v.string(),
     apporteurName: v.string(),
-    clientName: v.string(),
-    projectType: v.string(),
     demandeUrl: v.string(),
-    clientPhone: v.optional(v.string()),
-    localisation: v.optional(v.string()),
   },
   handler: async (_ctx, args) => {
     return await sendResendEmail({
       to: args.to,
-      subject: `Nouvelle demande affectée — ${args.clientName}`,
+      subject: "Nouvelle demande affectée — S2MBO",
       html: buildApportDemandeAssignmentHtml(args),
       devLabel: "Apport demande assignment email",
       devPayload: args,

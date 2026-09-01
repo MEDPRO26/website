@@ -16,7 +16,6 @@ export async function notifyApporteurOfAssignment(
   const demandeUrl = apportDemandeLoginUrl(origin);
   const email = args.apporteur.email?.trim();
   const clientName = args.demande.clientName.trim();
-  const clientPhone = args.demande.phone?.trim() || "";
   const projectType = args.demande.projectType.trim();
 
   await ctx.scheduler.runAfter(0, internal.webPush.sendToApporteur, {
@@ -31,10 +30,6 @@ export async function notifyApporteurOfAssignment(
     await ctx.scheduler.runAfter(0, internal.email.sendApportDemandeAssignment, {
       to: email,
       apporteurName: args.apporteur.name,
-      clientName,
-      clientPhone,
-      projectType,
-      localisation: args.demande.localisation?.trim() || undefined,
       demandeUrl,
     });
   }
