@@ -32,7 +32,10 @@ function classNames(...classes: (string | false | null | undefined)[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-const pageLinks = [{ label: "Contact", href: "/contact" }];
+const pageLinks = [
+  { label: "À propos", href: "/a-propos", icon: "info" },
+  { label: "Contact", href: "/contact", icon: "mail" },
+];
 
 const hashLinks = [
   { label: "FAQ", hash: "faq", href: "/#faq" },
@@ -754,7 +757,7 @@ export default function Navbar() {
                       : "bg-surface-container text-on-surface-variant"
                   )}
                 >
-                  <MaterialIcon name="mail" className="text-base" />
+                  <MaterialIcon name={link.icon} className="text-base" />
                 </span>
                 {link.label}
               </Link>

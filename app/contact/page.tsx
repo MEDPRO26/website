@@ -4,6 +4,7 @@ import Breadcrumb from "@/components/breadcrumb";
 import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
+import { ABOUT_PATH, CONTACT_FAQS } from "@/lib/about-content";
 import { HERO_IMAGE, SITE_NAME, SITE_URL_DEFAULT } from "@/lib/brand";
 import ContactForm from "@/components/contact-form";
 import JsonLd from "@/components/json-ld";
@@ -17,6 +18,7 @@ import { hubCityPath } from "@/lib/routes";
 import {
   breadcrumbSchema,
   buildGraph,
+  faqSchema,
   localBusinessSchema,
   webPageSchema,
 } from "@/lib/schema";
@@ -100,6 +102,13 @@ const contactSchema = buildGraph(
     { name: "Accueil", item: "/" },
     { name: "Contact", item: "/contact" },
   ]),
+  faqSchema(
+    CONTACT_FAQS.map((faq) => ({
+      question: faq.question,
+      answer: faq.answer,
+    })),
+    "/contact"
+  ),
   localBusinessSchema({
     citySlug: "agadir",
     path: "/contact",
@@ -261,6 +270,38 @@ export default function ContactPage() {
               </div>
             </div>
           </div>
+        </section>
+
+        <section id="faq" className="mx-auto max-w-3xl px-4 py-14 sm:px-6 sm:py-20">
+          <h2 className="font-heading mb-8 text-2xl font-semibold text-primary sm:text-3xl">
+            Questions fréquentes
+          </h2>
+          <div className="divide-y divide-outline-variant/40 border-y border-outline-variant/40">
+            {CONTACT_FAQS.map((faq) => (
+              <details key={faq.question} className="group py-5">
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-4 font-heading text-base font-semibold text-on-surface marker:content-none [&::-webkit-details-marker]:hidden">
+                  {faq.question}
+                  <MaterialIcon
+                    name="expand_more"
+                    className="shrink-0 text-primary transition-transform group-open:rotate-180"
+                  />
+                </summary>
+                <p className="font-body mt-3 pr-8 text-sm leading-relaxed text-on-surface-variant sm:text-base">
+                  {faq.answer}
+                </p>
+              </details>
+            ))}
+          </div>
+          <p className="font-body mt-8 text-sm text-on-surface-variant">
+            Pour en savoir plus sur notre rôle de coordinateur, consultez{" "}
+            <Link
+              href={ABOUT_PATH}
+              className="font-semibold text-primary hover:underline"
+            >
+              À propos de SOS Santé
+            </Link>
+            .
+          </p>
         </section>
       </main>
       <SiteFooter />

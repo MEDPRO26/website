@@ -10,6 +10,10 @@ import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
 import {
+  ABOUT_PATH,
+  aboutCareEntity,
+} from "@/lib/about-content";
+import {
   getValuePropAccentClass,
 } from "@/lib/care-service-seo";
 import type { CareServicePageContent } from "@/lib/care-services";
@@ -207,8 +211,17 @@ export function CareServiceCityPage({
               {content.h1.replace(` à ${content.cityName}`, "")}
               <span className="text-primary"> à {content.cityName}</span>
             </h1>
-            <p className="font-body mx-auto mb-8 max-w-2xl text-base leading-relaxed text-white/90 sm:text-lg">
+            <p className="font-body mx-auto mb-4 max-w-2xl text-base leading-relaxed text-white/90 sm:text-lg">
               {content.intro}
+            </p>
+            <p className="font-body mx-auto mb-8 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
+              {aboutCareEntity(content.cityName)}{" "}
+              <Link
+                href={ABOUT_PATH}
+                className="font-semibold text-primary-fixed underline-offset-2 hover:underline"
+              >
+                À propos de SOS Santé
+              </Link>
             </p>
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
               <a

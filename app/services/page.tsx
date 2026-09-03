@@ -10,6 +10,10 @@ import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import {
+  ABOUT_PATH,
+  SERVICES_HERO_INTRO,
+} from "@/lib/about-content";
+import {
   PHONE_DISPLAY,
   PHONE_NUMBER,
   whatsAppHref,
@@ -117,12 +121,12 @@ const trustPoints = [
   {
     icon: "verified_user",
     title: "Professionnels Vérifiés",
-    text: "Chaque intervenant subit un processus de sélection rigoureux : diplômes, antécédents et références sont systématiquement contrôlés.",
+    text: "Chaque intervenant partenaire subit un processus de sélection : diplômes, antécédents et références sont systématiquement contrôlés avant mise en relation.",
   },
   {
     icon: "speed",
     title: "Réactivité Maximale",
-    text: "Nous trouvons un professionnel disponible dans votre zone géographique en moins de 2 heures pour les interventions urgentes.",
+    text: "Nous trouvons un professionnel partenaire disponible dans votre zone géographique en moins de 2 heures pour les interventions urgentes.",
   },
   {
     icon: "payments",
@@ -132,6 +136,11 @@ const trustPoints = [
 ];
 
 const faqs = [
+  {
+    question: "SOS Santé soigne-t-il directement les patients ?",
+    answer:
+      "Non. SOS Santé est un service de coordination : nous qualifions votre demande et vous mettons en relation avec un professionnel partenaire (kiné, infirmier, médecin, aide-soignant ou transporteur sanitaire). Le prestataire réalise la prestation.",
+  },
   {
     question: "Comment sont sélectionnés vos professionnels ?",
     answer:
@@ -157,7 +166,7 @@ const servicesSchema = buildGraph(
   webPageSchema(
     "/services",
     "Soins et aide à domicile à Agadir | SOS Santé",
-    "SOS Santé vous met en relation avec des kinésithérapeutes, infirmiers, médecins, aide-soignants et ambulance pour des soins à domicile."
+    "SOS Santé coordonne la mise en relation avec des kinésithérapeutes, infirmiers, médecins, aide-soignants et ambulance pour des soins à domicile au Maroc."
   ),
   breadcrumbSchema([
     { name: "Accueil", item: "/" },
@@ -168,7 +177,7 @@ const servicesSchema = buildGraph(
     citySlug: "agadir",
     path: "/services",
     description:
-      "Services d'aide à domicile et location de matériel médical à Agadir et au Maroc.",
+      "Locaux opérationnels à Agadir et Casablanca : livraison de matériel médical et coordination de soins à domicile avec des prestataires partenaires.",
   }),
   ...serviceSpecialties.map((service) =>
     serviceSchema(service.title, service.description, "/services")
@@ -279,10 +288,17 @@ export default function ServicesPage() {
               Services de soins et aide à domicile
             </h1>
             <p className="font-body mx-auto mb-8 max-w-2xl text-base leading-relaxed text-on-surface-variant sm:text-lg md:text-xl">
-              Nous vous mettons en relation avec des professionnels de santé
-              qualifiés et bienveillants pour assurer votre confort et votre
-              rétablissement dans la dignité de votre foyer.
+              {SERVICES_HERO_INTRO}
             </p>
+            <div className="mb-8">
+              <Link
+                href={ABOUT_PATH}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary transition-all hover:gap-2.5"
+              >
+                Qui est SOS Santé ?
+                <MaterialIcon name="arrow_forward" className="text-base" />
+              </Link>
+            </div>
             <div className="flex flex-col justify-center gap-3 sm:flex-row">
               <a
                 href="#request-form"

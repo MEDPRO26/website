@@ -44,8 +44,10 @@ export function getSitemapLastModified() {
 function pagesEntries(): SitemapEntry[] {
   return [
     { path: "/", priority: 1 },
+    { path: "/a-propos", priority: 0.9 },
     { path: "/services", priority: 0.9 },
     { path: "/contact", priority: 0.9 },
+    { path: "/llms.txt", priority: 0.4 },
     { path: "/blog", priority: 0.9 },
     ...legalPages.map((page) => ({ path: page.href, priority: 0.3 })),
     ...activeCities.map((city) => ({

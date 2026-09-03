@@ -1,5 +1,6 @@
-import { LOGO, SITE_NAME, SITE_URL_DEFAULT } from "@/lib/brand";
-import { activeCities } from "@/lib/cities";
+import { LOGO, SITE_FULL_NAME, SITE_NAME, SITE_URL_DEFAULT } from "@/lib/brand";
+import { ABOUT_DEFINITION, ABOUT_PATH } from "@/lib/about-content";
+import { activeCities, getCityBySlug } from "@/lib/cities";
 import type { Product } from "@/lib/products";
 import { CONTACT_EMAIL, PHONE_NUMBER, products } from "@/lib/products";
 
@@ -18,17 +19,40 @@ export function websiteSchema() {
     url: siteUrl,
     inLanguage: "fr-MA",
     publisher: { "@id": `${siteUrl}/#organization` },
+    about: { "@id": `${siteUrl}/#organization` },
+    significantLink: [
+      `${siteUrl}${ABOUT_PATH}`,
+      `${siteUrl}/services`,
+      `${siteUrl}/contact`,
+    ],
   };
 }
+
+const headquarters = getCityBySlug("agadir");
 
 export function organizationSchema() {
   return {
     "@type": "Organization",
     "@id": `${siteUrl}/#organization`,
     name: SITE_NAME,
+    legalName: SITE_FULL_NAME,
     alternateName: ["SOS sante", "sossante.ma"],
     url: siteUrl,
     logo: `${siteUrl}${LOGO.default}`,
+    image: `${siteUrl}${LOGO.default}`,
+    description: ABOUT_DEFINITION,
+    email: CONTACT_EMAIL,
+    telephone: contactPhone,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress:
+        headquarters?.streetAddress ?? "Lerac, Avenue Abderrahim Bouabid",
+      addressLocality: "Agadir",
+      postalCode: headquarters?.postalCode ?? "80000",
+      addressRegion: headquarters?.addressRegion ?? "Souss-Massa",
+      addressCountry: "MA",
+    },
+    foundingLocation: { "@type": "City", name: "Agadir" },
     areaServed: [
       { "@type": "Country", name: "Maroc" },
       ...activeCities.map((city) => ({ "@type": "City", name: city.name })),

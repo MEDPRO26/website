@@ -32,6 +32,11 @@ import {
 } from "@/lib/care-services";
 import { getCoverageAreas } from "@/lib/delivery-cities";
 import {
+  ABOUT_DEFINITION,
+  ABOUT_FAQS,
+  ABOUT_PATH,
+} from "@/lib/about-content";
+import {
   buildGraph,
   breadcrumbSchema,
   faqSchema,
@@ -125,6 +130,10 @@ const rentalSteps = [
 ];
 
 const faqs = [
+  {
+    question: ABOUT_FAQS[0].question,
+    answer: ABOUT_FAQS[0].answer,
+  },
   {
     question: "Quelle est la durée minimale de location de matériel médical ?",
     answer:
@@ -590,6 +599,33 @@ export default function Home() {
                 En savoir plus sur nos services
               </Link>
             </div>
+          </div>
+        </section>
+
+        {/* Entity / E-E-A-T */}
+        <section className="px-4 py-14 sm:px-6 sm:py-20">
+          <div className="mx-auto max-w-3xl text-center">
+            <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-secondary">
+              Qui est SOS Santé
+            </span>
+            <h2 className="font-heading mb-5 text-2xl font-semibold text-secondary sm:text-3xl md:text-4xl">
+              Un local, des livraisons, des partenaires
+            </h2>
+            <p className="font-body mb-4 text-base leading-relaxed text-on-surface-variant sm:text-lg">
+              {ABOUT_DEFINITION}
+            </p>
+            <p className="font-body mb-8 text-base leading-relaxed text-on-surface-variant sm:text-lg">
+              Nous avons des locaux à Agadir et Casablanca : c&apos;est de là
+              que partent nos livraisons de matériel et la coordination avec
+              nos prestataires partenaires.
+            </p>
+            <Link
+              href={ABOUT_PATH}
+              className="inline-flex items-center gap-2 rounded-xl border-2 border-primary bg-white px-6 py-3 text-sm font-semibold text-primary transition-all hover:-translate-y-0.5 hover:bg-primary/5"
+            >
+              À propos de nous
+              <MaterialIcon name="arrow_forward" className="text-lg" />
+            </Link>
           </div>
         </section>
 

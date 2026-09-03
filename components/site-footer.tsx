@@ -14,6 +14,7 @@ import { venteCityPath } from "@/lib/routes";
 
 const navigationLinks = [
   { label: "Accueil", href: "/" },
+  { label: "À propos", href: "/a-propos" },
   { label: "Nos Services", href: "/services" },
   ...activeCities.map((city) => ({
     label: `Vente ${city.name}`,

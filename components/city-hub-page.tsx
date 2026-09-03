@@ -7,6 +7,7 @@ import Navbar from "@/components/navbar";
 import CatalogPickerButton from "@/components/catalog-picker-button";
 import QuoteRequestSection from "@/components/quote-request-section";
 import SiteFooter from "@/components/site-footer";
+import { ABOUT_PATH } from "@/lib/about-content";
 import { activeCities, getCityBySlug, type CitySlug } from "@/lib/cities";
 import { getCityHubContent } from "@/lib/city-hub-content";
 import { blogPosts } from "@/lib/blog";
@@ -185,6 +186,18 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
                 {paragraph}
               </p>
             ))}
+            <p className="font-body mt-6 text-base leading-relaxed text-on-surface-variant sm:text-lg">
+              <Link
+                href={ABOUT_PATH}
+                className="font-semibold text-primary hover:underline"
+              >
+                En savoir plus sur SOS Santé
+              </Link>
+              {city.address ? ` · ${city.address}` : null}
+              {city.contactReady && city.phoneDisplay
+                ? ` · ${city.phoneDisplay}`
+                : null}
+            </p>
           </div>
         </section>
 

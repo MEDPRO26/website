@@ -1,3 +1,4 @@
+import { aboutCityEntity } from "@/lib/about-content";
 import { getCareServicesForCity } from "@/lib/care-services";
 import { getCityBySlug, type CitySlug } from "@/lib/cities";
 import { locationCityPath, venteCityPath } from "@/lib/routes";
@@ -60,14 +61,14 @@ const cityCopy: Partial<
 > = {
   agadir: {
     intro:
-      "SOS Santé Agadir accompagne les familles à Agadir et dans la région Souss-Massa : vente et location de matériel médical à domicile, et mise en relation avec des professionnels de soins et d'aide à domicile.",
+      "SOS Santé Agadir dispose d'un local opérationnel à Agadir. Nous y gérons la vente et la location de matériel médical, les livraisons à domicile, et la coordination avec des prestataires de soins et d'aide à domicile.",
     equipmentIntro:
-      "Achetez ou louez du matériel médical à Agadir : lits médicalisés, fauteuils roulants, concentrateurs d'oxygène, matelas anti-escarres et matériel de diagnostic. Livraison locale dans les communes environnantes.",
+      "Achetez ou louez du matériel médical à Agadir : lits médicalisés, fauteuils roulants, concentrateurs d'oxygène, matelas anti-escarres et matériel de diagnostic. Préparation depuis notre local, livraison dans les communes environnantes.",
     careIntro:
       "Besoin de soins ou d'aide à domicile à Agadir ? SOS Santé vous oriente vers des professionnels qualifiés : kinésithérapeute, infirmier, médecin, aide-soignant et transport médical.",
     paragraphs: [
       "Que vous recherchiez un lit médicalisé, un fauteuil roulant, un concentrateur d'oxygène ou du matériel de diagnostic, notre équipe vous conseille et organise la livraison à Agadir, Inezgane, Aït Melloul, Dcheira, Anza, Taghazout et environs.",
-      "Pour les soins à domicile, nous facilitons la mise en relation avec des professionnels de santé adaptés à votre situation. SOS Santé Agadir agit comme intermédiaire entre les familles et les prestataires locaux.",
+      "SOS Santé Agadir dispose d'un local opérationnel à Agadir. Depuis ce local, nous gérons le matériel médical, organisons les livraisons, et coordonnons avec des prestataires partenaires pour les soins à domicile. Nous ne sommes ni un hôpital ni un service d'urgence.",
     ],
   },
   rabat: {
@@ -79,25 +80,25 @@ const cityCopy: Partial<
       "Besoin de soins ou d'aide à domicile à Rabat ? SOS Santé vous oriente vers des professionnels qualifiés : kinésithérapeute, infirmier, médecin, aide-soignant et transport médical.",
     paragraphs: [
       "Notre catalogue couvre le matériel de mobilité, respiratoire, confort, diagnostic et instruments médicaux. Livraison à Rabat, Salé, Temara, Hay Riad, Agdal, Souissi et environs.",
-      "Pour l'aide à domicile, nous mettons en relation les patients et les familles avec des professionnels de santé qualifiés. Devis et orientation personnalisés par notre équipe locale.",
+      "SOS Santé Rabat organise la livraison de matériel et la mise en relation avec des prestataires partenaires, en lien avec nos locaux opérationnels d'Agadir et de Casablanca. Devis et orientation personnalisés, sans remplacer un cabinet médical ni les urgences officielles.",
     ],
   },
   casablanca: {
     intro:
-      "SOS Santé Casablanca accompagne les familles à Casablanca et dans la métropole : vente et location de matériel médical à domicile, et mise en relation avec des professionnels de soins et d'aide à domicile.",
+      "SOS Santé Casablanca dispose d'un local opérationnel à Casablanca. Nous y gérons la vente et la location de matériel médical, les livraisons, et la coordination avec des prestataires de soins et d'aide à domicile.",
     equipmentIntro:
-      "Achetez ou louez du matériel médical à Casablanca : mobilité, respiratoire, confort, diagnostic et instruments. Livraison à Bourgogne, Anfa, Maarif, Sidi Maarouf et environs.",
+      "Achetez ou louez du matériel médical à Casablanca : mobilité, respiratoire, confort, diagnostic et instruments. Préparation depuis notre local, livraison à Bourgogne, Anfa, Maarif, Sidi Maarouf et environs.",
     careIntro:
       "Besoin de soins ou d'aide à domicile à Casablanca ? SOS Santé vous oriente vers des professionnels qualifiés : kinésithérapeute, infirmier, médecin, aide-soignant et transport médical.",
     paragraphs: [
       "Notre catalogue couvre le matériel de mobilité, respiratoire, confort, diagnostic et instruments médicaux. Livraison à Casablanca, Bourgogne, Anfa, Ain Diab, Maarif, Hay Hassani et environs.",
-      "Pour l'aide à domicile, nous mettons en relation les patients et les familles avec des professionnels de santé qualifiés. Devis et orientation personnalisés pour la métropole casablancaise.",
+      "SOS Santé Casablanca dispose d'un local opérationnel (Boulevard Anoual). Depuis ce local, nous gérons le matériel, les livraisons et la coordination avec des prestataires partenaires. Pas un hôpital, pas le SAMU.",
     ],
   },
 };
 
 export const homepageCareIntro =
-  "Besoin de soins ou d'aide à domicile ? SOS Santé vous oriente vers des professionnels qualifiés : kinésithérapeute, infirmier, médecin, aide-soignant et transport médical.";
+  "Besoin de soins ou d'aide à domicile ? SOS Santé coordonne la mise en relation avec des professionnels partenaires : kinésithérapeute, infirmier, médecin, aide-soignant et transport médical.";
 
 export function getCityHubContent(citySlug: CitySlug): CityHubContent {
   const city = getCityBySlug(citySlug)!;
@@ -164,6 +165,10 @@ export function getCityHubContent(citySlug: CitySlug): CityHubContent {
       },
     ],
     faqs: [
+      {
+        question: `Qu'est-ce que SOS Santé ${cityLabel} ?`,
+        answer: aboutCityEntity(cityLabel),
+      },
       {
         question: `Livrez-vous du matériel médical à ${cityLabel} ?`,
         answer: `Oui, nous livrons à ${cityLabel} et dans les zones proches : ${city.zones.slice(0, 5).join(", ")} et environs. ${city.deliveryText}`,
