@@ -603,4 +603,36 @@ export default defineSchema({
     updatedAt: v.number(),
     updatedBy: v.id("staff"),
   }).index("by_key", ["key"]),
+
+  /** Blog articles imported from SEO Nexus (or created in CRM). */
+  blogArticles: defineTable({
+    title: v.string(),
+    slug: v.string(),
+    language: v.string(),
+    excerpt: v.string(),
+    markdown: v.string(),
+    html: v.string(),
+    status: v.union(v.literal("draft"), v.literal("published")),
+    metaTitle: v.optional(v.string()),
+    metaDescription: v.optional(v.string()),
+    metaKeywords: v.optional(v.string()),
+    featuredImageUrl: v.optional(v.string()),
+    featuredImageR2Key: v.optional(v.string()),
+    featuredImageAlt: v.optional(v.string()),
+    categories: v.array(v.string()),
+    faqs: v.array(
+      v.object({
+        question: v.string(),
+        answer: v.string(),
+      })
+    ),
+    author: v.string(),
+    readTime: v.string(),
+    publishedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_status", ["status"])
+    .index("by_status_updatedAt", ["status", "updatedAt"]),
 });

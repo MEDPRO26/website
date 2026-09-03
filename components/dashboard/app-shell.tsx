@@ -41,6 +41,7 @@ import {
   HelpCircle,
   LayoutGrid,
   Handshake,
+  Newspaper,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -80,6 +81,7 @@ export const ADMIN_NAV: NavItem[] = [
 ];
 
 const ADMIN_NAV_SECONDARY: NavItem[] = [
+  { href: "/admin/blog", label: "Blog", icon: Newspaper, permission: "cms.manage_blog" },
   { href: "/admin/complaints", label: "Réclamations", icon: AlertTriangle, permission: "complaints.view" },
   { href: "/admin/notifications", label: "Notifications", icon: Bell, permission: "notifications.view" },
   { href: "/admin/push-notifications", label: "Push mobile", icon: BellRing, permission: "notifications.view" },

@@ -86,9 +86,13 @@ function productsEntries(): SitemapEntry[] {
   }));
 }
 
-function blogEntries(): SitemapEntry[] {
-  return blogPosts.map((post) => ({
-    path: `/blog/${post.slug}`,
+function blogEntries(extraSlugs: string[] = []): SitemapEntry[] {
+  const slugs = new Set(blogPosts.map((post) => post.slug));
+  for (const slug of extraSlugs) {
+    if (slug) slugs.add(slug);
+  }
+  return [...slugs].map((slug) => ({
+    path: `/blog/${slug}`,
     priority: 0.8,
   }));
 }
@@ -97,9 +101,14 @@ const SITEMAP_BUILDERS: Record<SitemapId, () => SitemapEntry[]> = {
   pages: pagesEntries,
   catalog: catalogEntries,
   products: productsEntries,
-  blog: blogEntries,
+  blog: () => blogEntries(),
 };
 
 export function getSitemapEntries(id: SitemapId): SitemapEntry[] {
   return SITEMAP_BUILDERS[id]();
+}
+
+/** Blog sitemap with static + Convex published slugs. */
+export function getBlogSitemapEntries(extraSlugs: string[]): SitemapEntry[] {
+  return blogEntries(extraSlugs);
 }

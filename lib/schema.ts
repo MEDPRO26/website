@@ -385,12 +385,17 @@ export function blogPostingSchema(post: {
   publishedAt: string;
   modifiedAt: string;
 }) {
+  const imageUrl =
+    post.image.startsWith("http://") || post.image.startsWith("https://")
+      ? post.image
+      : `${siteUrl}${post.image.startsWith("/") ? post.image : `/${post.image}`}`;
+
   return {
     "@type": "BlogPosting",
     "@id": `${siteUrl}/blog/${post.slug}#article`,
     headline: post.title,
     description: post.excerpt,
-    image: `${siteUrl}${post.image}`,
+    image: imageUrl,
     author: {
       "@type": "Organization",
       name: post.author,

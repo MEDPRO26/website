@@ -15,6 +15,7 @@ import type * as auditLogs from "../auditLogs.js";
 import type * as auth from "../auth.js";
 import type * as authAdmin from "../authAdmin.js";
 import type * as authSession from "../authSession.js";
+import type * as blogArticles from "../blogArticles.js";
 import type * as cmsPages from "../cmsPages.js";
 import type * as commissions from "../commissions.js";
 import type * as complaints from "../complaints.js";
@@ -87,6 +88,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   authAdmin: typeof authAdmin;
   authSession: typeof authSession;
+  blogArticles: typeof blogArticles;
   cmsPages: typeof cmsPages;
   commissions: typeof commissions;
   complaints: typeof complaints;

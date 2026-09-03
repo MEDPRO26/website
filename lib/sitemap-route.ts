@@ -1,5 +1,8 @@
+import { fetchQuery } from "convex/nextjs";
+import { api } from "@/convex/_generated/api";
 import { isCrmHostname } from "@/lib/hosts";
 import {
+  getBlogSitemapEntries,
   getSiteUrl,
   getSitemapEntries,
   getSitemapLastModified,
@@ -8,7 +11,7 @@ import {
 import { buildUrlsetXml, SITEMAP_XML_HEADERS } from "@/lib/sitemap-xml";
 
 export function createSitemapSectionHandler(id: SitemapId) {
-  return function GET(request: Request) {
+  return async function GET(request: Request) {
     if (isCrmHostname(new URL(request.url).host)) {
       return new Response(
         `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>`,
@@ -16,8 +19,20 @@ export function createSitemapSectionHandler(id: SitemapId) {
       );
     }
 
+    let entries = getSitemapEntries(id);
+
+    if (id === "blog") {
+      let convexSlugs: string[] = [];
+      try {
+        convexSlugs = await fetchQuery(api.blogArticles.listPublishedSlugs, {});
+      } catch {
+        // Convex unavailable — keep static blog URLs only.
+      }
+      entries = getBlogSitemapEntries(convexSlugs);
+    }
+
     const xml = buildUrlsetXml(
-      getSitemapEntries(id),
+      entries,
       getSiteUrl(),
       getSitemapLastModified()
     );

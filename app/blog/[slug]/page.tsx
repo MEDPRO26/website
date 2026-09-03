@@ -2,18 +2,28 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { fetchQuery } from "convex/nextjs";
 import Breadcrumb from "@/components/breadcrumb";
+import { BlogArticleBody, BlogFeaturedImage } from "@/components/blog-article-body";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
+import { api } from "@/convex/_generated/api";
 import { blogPosts, getBlogPostBySlug } from "@/lib/blog";
+import {
+  convexToDisplay,
+  resolveImageSrc,
+  staticToDisplay,
+  type DisplayBlogPost,
+} from "@/lib/blog-display";
 import { CONTACT_EMAIL, products, whatsAppHref } from "@/lib/products";
 import { SITE_URL_DEFAULT } from "@/lib/brand";
 import {
   blogPostingSchema,
   breadcrumbSchema,
   buildGraph,
+  faqSchema,
 } from "@/lib/schema";
 
 const siteUrl = (
@@ -24,21 +34,40 @@ type PageProps = {
   params: Promise<{ slug: string }>;
 };
 
+export const dynamicParams = true;
+export const revalidate = 60;
+
 export async function generateStaticParams() {
   return blogPosts.map((post) => ({ slug: post.slug }));
+}
+
+async function loadDisplayPost(slug: string): Promise<DisplayBlogPost | null> {
+  try {
+    const imported = await fetchQuery(api.blogArticles.getPublishedBySlug, {
+      slug,
+    });
+    if (imported) return convexToDisplay(imported);
+  } catch {
+    // Convex unavailable at build time — fall back to static posts.
+  }
+
+  const staticPost = getBlogPostBySlug(slug);
+  return staticPost ? staticToDisplay(staticPost) : null;
 }
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = getBlogPostBySlug(slug);
+  const post = await loadDisplayPost(slug);
   if (!post) return {};
+
+  const imageUrl = resolveImageSrc(post.image);
 
   return {
     title: post.metaTitle,
     description: post.metaDescription,
-    keywords: [
+    keywords: post.keywords ?? [
       post.category,
       "matériel médical Agadir",
       "location matériel médical",
@@ -53,7 +82,7 @@ export async function generateMetadata({
       type: "article",
       locale: "fr_MA",
       siteName: "SOS Santé",
-      images: [{ url: `${siteUrl}${post.image}`, alt: post.alt }],
+      images: [{ url: imageUrl, alt: post.alt }],
       authors: [post.author],
       publishedTime: post.publishedAt,
       modifiedTime: post.modifiedAt,
@@ -61,36 +90,33 @@ export async function generateMetadata({
   };
 }
 
-function MaterialIcon({
-  name,
-  className = "",
-}: {
-  name: string;
-  className?: string;
-}) {
-  return (
-    <span className={`material-symbols-outlined ${className}`} aria-hidden="true">
-      {name}
-    </span>
-  );
-}
-
-function BlogPostJsonLd({ post }: { post: (typeof blogPosts)[number] }) {
-  const schema = buildGraph(
-    blogPostingSchema(post),
+function BlogPostJsonLd({ post }: { post: DisplayBlogPost }) {
+  const nodes: Record<string, unknown>[] = [
+    blogPostingSchema({
+      slug: post.slug,
+      title: post.title,
+      excerpt: post.excerpt,
+      image: post.image,
+      alt: post.alt,
+      author: post.author,
+      publishedAt: post.publishedAt,
+      modifiedAt: post.modifiedAt,
+    }),
     breadcrumbSchema([
       { name: "Accueil", item: "/" },
       { name: "Blog", item: "/blog" },
       { name: post.title, item: `/blog/${post.slug}` },
-    ])
-  );
-
-  return <JsonLd data={schema} />;
+    ]),
+  ];
+  if (post.faqs.length > 0) {
+    nodes.push(faqSchema(post.faqs, `/blog/${post.slug}`));
+  }
+  return <JsonLd data={buildGraph(...nodes)} />;
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
-  const post = getBlogPostBySlug(slug);
+  const post = await loadDisplayPost(slug);
 
   if (!post) notFound();
 
@@ -115,134 +141,18 @@ export default async function BlogPostPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Hero image */}
         <section className="px-4 pb-8 sm:px-6 sm:pb-12">
           <div className="mx-auto max-w-4xl">
-            <div className="relative aspect-[16/9] overflow-hidden rounded-3xl shadow-xl">
-              <Image
-                src={post.image}
-                alt={post.alt}
-                fill
-                priority
-                sizes="(min-width: 1024px) 66vw, 100vw"
-                className="object-cover"
-              />
-            </div>
+            <BlogFeaturedImage src={post.image} alt={post.alt} priority />
           </div>
         </section>
 
-        {/* Article content */}
         <article className="px-4 pb-14 sm:px-6 sm:pb-20">
           <div className="mx-auto max-w-3xl">
-            <header className="mb-8">
-              <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-on-surface-variant">
-                <span className="rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">
-                  {post.category}
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <MaterialIcon name="schedule" className="text-base" />
-                  {post.readTime}
-                </span>
-                <span>
-                  {new Date(post.publishedAt).toLocaleDateString("fr-FR", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </span>
-              </div>
-              <h1 className="font-heading mb-4 text-2xl font-bold leading-tight text-primary sm:text-3xl md:text-4xl lg:text-5xl">
-                {post.title}
-              </h1>
-              <p className="font-body text-lg leading-relaxed text-on-surface-variant sm:text-xl">
-                {post.excerpt}
-              </p>
-            </header>
-
-            <div className="prose prose-lg max-w-none">
-              {post.sections.map((section, index) => {
-                switch (section.type) {
-                  case "paragraph":
-                    return (
-                      <p
-                        key={index}
-                        className="font-body mb-5 text-base leading-relaxed text-on-surface-variant sm:text-lg"
-                      >
-                        {section.content}
-                      </p>
-                    );
-                  case "heading":
-                    return (
-                      <h2
-                        key={index}
-                        className="font-heading mb-4 mt-8 text-xl font-semibold text-primary sm:text-2xl"
-                      >
-                        {section.content}
-                      </h2>
-                    );
-                  case "list":
-                    return (
-                      <ul
-                        key={index}
-                        className="mb-6 ml-5 list-disc space-y-2 font-body text-base text-on-surface-variant sm:text-lg"
-                      >
-                        {section.items?.map((item, i) => (
-                          <li key={i}>{item}</li>
-                        ))}
-                      </ul>
-                    );
-                  case "tip":
-                    return (
-                      <div
-                        key={index}
-                        className="mb-6 rounded-2xl border-l-4 border-primary bg-primary/5 p-5"
-                      >
-                        <p className="font-heading mb-1 font-semibold text-primary">
-                          {section.title}
-                        </p>
-                        <p className="font-body text-base text-on-surface-variant sm:text-lg">
-                          {section.content}
-                        </p>
-                      </div>
-                    );
-                  default:
-                    return null;
-                }
-              })}
-            </div>
-
-            {/* FAQ */}
-            {post.faqs && post.faqs.length > 0 && (
-              <div className="mt-12">
-                <h2 className="font-heading mb-6 text-2xl font-semibold text-secondary">
-                  Questions fréquentes
-                </h2>
-                <div className="space-y-3">
-                  {post.faqs.map((faq, index) => (
-                    <details
-                      key={index}
-                      className="group overflow-hidden rounded-2xl border border-surface-container bg-white"
-                      open={index === 0}
-                    >
-                      <summary className="flex cursor-pointer list-none items-center justify-between p-4 font-heading text-base font-semibold text-primary sm:p-5">
-                        {faq.question}
-                        <MaterialIcon
-                          name="expand_more"
-                          className="shrink-0 rounded-full bg-primary-container/15 p-1 text-primary transition-transform group-open:rotate-180"
-                        />
-                      </summary>
-                      <p className="border-t border-surface-container p-4 pt-3 font-body text-sm leading-relaxed text-on-surface-variant sm:p-5 sm:pt-4 sm:text-base">
-                        {faq.answer}
-                      </p>
-                    </details>
-                  ))}
-                </div>
-              </div>
-            )}
+            <BlogArticleBody post={post} />
           </div>
         </article>
 
-        {/* Related products */}
         {relatedProducts.length > 0 && (
           <section className="border-t border-outline-variant/30 px-4 py-10 sm:px-6 sm:py-14">
             <div className="mx-auto max-w-7xl">
@@ -278,19 +188,6 @@ export default async function BlogPostPage({ params }: PageProps) {
                           {product.name}
                         </h3>
                       </Link>
-                      <p className="font-body mb-4 flex-1 text-sm leading-relaxed text-on-surface-variant">
-                        {product.description}
-                      </p>
-                      <Link
-                        href={`/produits/${product.slug}`}
-                        className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition-all group-hover:gap-2"
-                      >
-                        Voir le produit
-                        <MaterialIcon
-                          name="arrow_forward"
-                          className="text-base"
-                        />
-                      </Link>
                     </div>
                   </article>
                 ))}
@@ -299,29 +196,29 @@ export default async function BlogPostPage({ params }: PageProps) {
           </section>
         )}
 
-        {/* CTA */}
         <section className="px-4 pb-14 sm:px-6 sm:pb-20">
-          <div className="mx-auto max-w-5xl rounded-[32px] bg-primary px-6 py-12 text-center text-on-primary shadow-2xl shadow-primary/25 sm:px-10 sm:py-16">
-            <h2 className="font-heading mb-4 text-2xl font-bold sm:text-3xl md:text-4xl">
-              Besoin de ce matériel à Agadir ?
+          <div className="mx-auto max-w-3xl rounded-[32px] bg-primary px-6 py-10 text-center text-on-primary sm:px-10">
+            <h2 className="font-heading mb-3 text-2xl font-bold sm:text-3xl">
+              Besoin d&apos;un devis ?
             </h2>
-            <p className="font-body mx-auto mb-8 max-w-xl text-base text-white/90 sm:text-lg">
-              Demandez votre devis gratuit et recevez une réponse sous 15
-              minutes.
+            <p className="font-body mx-auto mb-6 max-w-lg text-white/90">
+              Contactez SOS Santé par WhatsApp ou email pour une réponse rapide.
             </p>
             <div className="flex flex-col justify-center gap-3 sm:flex-row">
               <a
-                href={whatsAppHref("Bonjour SOS Santé, je souhaite louer du matériel médical.", "materiel")}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-primary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
+                href={whatsAppHref(
+                  `Bonjour SOS Santé, j'ai lu l'article "${post.title}" et je souhaite un devis.`,
+                  "general"
+                )}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-primary"
               >
                 <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp
               </a>
               <a
-                href={`mailto:${CONTACT_EMAIL}?subject=Demande%20de%20devis%20matériel%20médical`}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white px-8 py-4 text-base font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-white/10"
+                href={`mailto:${CONTACT_EMAIL}`}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white px-6 py-3 text-sm font-semibold text-white"
               >
-                <MaterialIcon name="mail" />
                 Email
               </a>
             </div>
