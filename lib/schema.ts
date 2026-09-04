@@ -378,6 +378,7 @@ export function serviceSchema(
 export function blogPostingSchema(post: {
   slug: string;
   categorySlug?: string;
+  categoryName?: string;
   title: string;
   excerpt: string;
   image: string;
@@ -385,6 +386,7 @@ export function blogPostingSchema(post: {
   author: string;
   publishedAt: string;
   modifiedAt: string;
+  keywords?: string[];
 }) {
   const imageUrl =
     post.image.startsWith("http://") || post.image.startsWith("https://")
@@ -393,23 +395,49 @@ export function blogPostingSchema(post: {
   const path = post.categorySlug
     ? `/blog/${post.categorySlug}/${post.slug}`
     : `/blog/${post.slug}`;
+  const pageUrl = `${siteUrl}${path}`;
 
   return {
     "@type": "BlogPosting",
-    "@id": `${siteUrl}${path}#article`,
+    "@id": `${pageUrl}#article`,
     headline: post.title,
     description: post.excerpt,
-    image: imageUrl,
+    inLanguage: "fr-MA",
+    isAccessibleForFree: true,
+    image: {
+      "@type": "ImageObject",
+      url: imageUrl,
+      caption: post.alt || post.title,
+    },
     author: {
       "@type": "Organization",
-      name: post.author,
+      "@id": `${siteUrl}/#organization`,
+      name: post.author || SITE_NAME,
+      url: siteUrl,
     },
     publisher: { "@id": `${siteUrl}/#organization` },
     datePublished: post.publishedAt,
     dateModified: post.modifiedAt,
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `${siteUrl}${path}`,
+      "@id": pageUrl,
+      url: pageUrl,
+      name: post.title,
+      isPartOf: { "@id": `${siteUrl}/#website` },
+      about: { "@id": `${siteUrl}/#organization` },
+      inLanguage: "fr-MA",
+    },
+    isPartOf: { "@id": `${siteUrl}/#website` },
+    about: { "@id": `${siteUrl}/#organization` },
+    ...(post.categoryName
+      ? { articleSection: post.categoryName }
+      : {}),
+    ...(post.keywords?.length
+      ? { keywords: post.keywords.join(", ") }
+      : {}),
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: ["h1", ".blog-excerpt", ".blog-prose h2"],
     },
   };
 }

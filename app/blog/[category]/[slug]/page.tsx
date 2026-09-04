@@ -113,6 +113,7 @@ function BlogPostJsonLd({ post }: { post: DisplayBlogPost }) {
     blogPostingSchema({
       slug: post.slug,
       categorySlug: post.categorySlug,
+      categoryName: category?.name ?? post.category,
       title: post.title,
       excerpt: post.excerpt,
       image: post.image,
@@ -120,6 +121,7 @@ function BlogPostJsonLd({ post }: { post: DisplayBlogPost }) {
       author: post.author,
       publishedAt: post.publishedAt,
       modifiedAt: post.modifiedAt,
+      keywords: post.keywords,
     }),
     breadcrumbSchema([
       { name: "Accueil", item: "/" },

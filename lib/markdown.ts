@@ -17,21 +17,29 @@ export function sanitizeHtml(html: string) {
     .replace(/javascript:/gi, "");
 }
 
-/** Convert markdown body to sanitized HTML. Drops a leading H1 that duplicates the title. */
-export function markdownToHtml(markdown: string, title?: string) {
-  let source = markdown.trim();
-  if (title) {
-    const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    source = source.replace(
-      new RegExp(`^#\\s+${escaped}\\s*\\n+`, "i"),
-      ""
-    );
-  }
-  // Drop any first-line H1 so the page template owns the only H1.
-  source = source.replace(/^#\s+.+\n+/, "");
+/**
+ * Remove H1 tags from article HTML so the page template owns the only H1.
+ * Also demotes accidental leftover setext/markdown H1s already rendered as h1.
+ */
+export function stripBodyH1(html: string) {
+  return html
+    .replace(/<h1\b[^>]*>[\s\S]*?<\/h1>/gi, "")
+    .replace(/^\s+/, "");
+}
 
+/** Drop markdown ATX H1 lines (# ...) anywhere in the source. */
+function stripMarkdownH1(source: string) {
+  return source
+    .replace(/^\s*#\s+.+$/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+/** Convert markdown body to sanitized HTML. Page template owns the only H1. */
+export function markdownToHtml(markdown: string, _title?: string) {
+  const source = stripMarkdownH1(markdown.trim());
   const raw = marked.parse(source, { async: false }) as string;
-  return sanitizeHtml(raw);
+  return stripBodyH1(sanitizeHtml(raw));
 }
 
 export function estimateReadTime(markdown: string) {
