@@ -310,13 +310,15 @@ export default function Home() {
               <span className="leading-snug">Matériel médical certifié au Maroc</span>
             </div>
             <h1 className="font-heading mb-4 text-[1.65rem] font-bold leading-[1.15] tracking-tight text-secondary sm:mb-5 sm:text-3xl md:text-5xl lg:text-6xl">
-              Location et vente de{" "}
-              <span className="text-primary">matériel médical</span>, Services
+              <span className="text-primary">SOS Santé</span>
+              {" : "}
+              location et vente de{" "}
+              <span className="text-primary">matériel médical</span>, services
               de <span className="text-primary">soins</span> et{" "}
               <span className="text-primary">aide</span> au Maroc
             </h1>
             <p className="font-body mb-6 max-w-xl text-sm leading-relaxed text-on-surface-variant sm:mb-8 sm:text-base md:text-lg">
-              Achetez du matériel médical à domicile au Maroc : lits
+              SOS Santé accompagne les familles à domicile au Maroc : lits
               médicalisés, fauteuils roulants, concentrateurs d&apos;oxygène,
               matelas anti-escarres. Livraison et installation incluses.
               Devis gratuit en 15 minutes.
