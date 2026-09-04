@@ -31,7 +31,6 @@ import {
   Wallet,
   BarChart3,
   AlertTriangle,
-  Bell,
   BellRing,
   UserCog,
   Settings,
@@ -83,7 +82,6 @@ export const ADMIN_NAV: NavItem[] = [
 const ADMIN_NAV_SECONDARY: NavItem[] = [
   { href: "/admin/blog", label: "Blog", icon: Newspaper, permission: "cms.manage_blog" },
   { href: "/admin/complaints", label: "Réclamations", icon: AlertTriangle, permission: "complaints.view" },
-  { href: "/admin/notifications", label: "Notifications", icon: Bell, permission: "notifications.view" },
   { href: "/admin/push-notifications", label: "Push mobile", icon: BellRing, permission: "notifications.view" },
   { href: "/admin/users", label: "Utilisateurs", icon: UserCog, permission: "users.invite" },
   { href: "/admin/settings", label: "Paramètres", icon: Settings, permission: "settings.manage" },
