@@ -178,6 +178,39 @@ export const listPublishedSlugs = query({
   },
 });
 
+/** Nexus Refresh: list drafts + published (secret-gated). */
+export const listForNexus = query({
+  args: {
+    secret: v.string(),
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    if (!assertImportSecret(args.secret)) {
+      return { ok: false as const, error: "unauthorized" as const };
+    }
+
+    const limit = Math.min(
+      100,
+      Math.max(1, Math.floor(args.limit ?? 100))
+    );
+    const offset = Math.max(0, Math.floor(args.offset ?? 0));
+
+    const rows = await ctx.db.query("blogArticles").collect();
+    const sorted = rows.sort((a, b) => b.updatedAt - a.updatedAt);
+    const page = sorted.slice(offset, offset + limit);
+
+    return {
+      ok: true as const,
+      posts: page,
+      count: page.length,
+      total: sorted.length,
+      limit,
+      offset,
+    };
+  },
+});
+
 /** CRM: all articles. */
 export const listForAdmin = query({
   args: {
