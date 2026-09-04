@@ -30,9 +30,9 @@ const siteUrl = (
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Blog matériel médical & aide à domicile | SOS Santé",
+  title: "Guides et actualités matériel médical & aide à domicile | SOS Santé",
   description:
-    "Guides sur la location de matériel médical à Agadir et au Maroc : lits médicalisés, fauteuils roulants, oxygène, matelas anti-escarres.",
+    "Guides et actualités sur le matériel médical et l'aide à domicile à Agadir et au Maroc : lits médicalisés, fauteuils roulants, oxygène, matelas anti-escarres.",
   keywords: [
     "blog matériel médical",
     "guide lit médicalisé",
@@ -42,9 +42,9 @@ export const metadata: Metadata = {
     canonical: "/blog",
   },
   openGraph: {
-    title: "Blog matériel médical & aide à domicile | SOS Santé",
+    title: "Guides et actualités matériel médical & aide à domicile | SOS Santé",
     description:
-      "Guides pour choisir et louer du matériel médical à domicile.",
+      "Guides et actualités pour choisir et louer du matériel médical à domicile.",
     url: "/blog",
     type: "website",
     locale: "fr_MA",
@@ -81,8 +81,8 @@ export default async function BlogPage() {
   const blogSchema = buildGraph(
     webPageSchema(
       "/blog",
-      "Blog matériel médical & aide à domicile | SOS Santé",
-      "Guides sur la location de matériel médical à Agadir et au Maroc : lits médicalisés, fauteuils roulants, oxygène, matelas anti-escarres."
+      "Guides et actualités matériel médical & aide à domicile | SOS Santé",
+      "Guides et actualités sur le matériel médical et l'aide à domicile à Agadir et au Maroc : lits médicalisés, fauteuils roulants, oxygène, matelas anti-escarres."
     ),
     breadcrumbSchema([
       { name: "Accueil", item: "/" },
@@ -119,14 +119,15 @@ export default async function BlogPage() {
           <div className="mx-auto max-w-4xl text-center">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary">
               <MaterialIcon name="article" className="text-base" />
-              Guides & conseils
+              Guides & actualités
             </div>
             <h1 className="font-heading mb-5 text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl md:text-5xl lg:text-6xl">
-              Blog matériel médical et aide à domicile
+              Guides et actualités sur le matériel médical et l&apos;aide à
+              domicile
             </h1>
             <p className="font-body mx-auto max-w-2xl text-base leading-relaxed text-on-surface-variant sm:text-lg md:text-xl">
-              Retrouvez nos guides pratiques pour choisir, utiliser et louer du
-              matériel médical à Agadir et au Maroc.
+              Retrouvez nos guides pratiques et actualités pour choisir, utiliser
+              et louer du matériel médical à Agadir et au Maroc.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-2">
               {BLOG_CATEGORIES.map((category) => (
