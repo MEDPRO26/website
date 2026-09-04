@@ -25,6 +25,7 @@ import {
 } from "@/lib/blog-display";
 import { CONTACT_EMAIL, products, whatsAppHref } from "@/lib/products";
 import { SITE_URL_DEFAULT } from "@/lib/brand";
+import { extractFaqsFromHtml } from "@/lib/markdown";
 import {
   blogPostingSchema,
   breadcrumbSchema,
@@ -109,6 +110,12 @@ export async function generateMetadata({
 function BlogPostJsonLd({ post }: { post: DisplayBlogPost }) {
   const path = postHref(post);
   const category = getBlogCategory(post.categorySlug);
+  const faqs =
+    post.faqs.length > 0
+      ? post.faqs
+      : post.html
+        ? extractFaqsFromHtml(post.html)
+        : [];
   const nodes: Record<string, unknown>[] = [
     blogPostingSchema({
       slug: post.slug,
@@ -133,8 +140,8 @@ function BlogPostJsonLd({ post }: { post: DisplayBlogPost }) {
       { name: post.title, item: path },
     ]),
   ];
-  if (post.faqs.length > 0) {
-    nodes.push(faqSchema(post.faqs, path));
+  if (faqs.length > 0) {
+    nodes.push(faqSchema(faqs, path));
   }
   return <JsonLd data={buildGraph(...nodes)} />;
 }

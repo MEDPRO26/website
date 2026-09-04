@@ -42,6 +42,36 @@ export function markdownToHtml(markdown: string, _title?: string) {
   return stripBodyH1(sanitizeHtml(raw));
 }
 
+/** Extract FAQ pairs from article HTML when Nexus embeds them as H2/H3/P. */
+export function extractFaqsFromHtml(html: string) {
+  const faqs: { question: string; answer: string }[] = [];
+  const faqHeading =
+    /<h2\b[^>]*>\s*Questions?\s+fr[eé]quentes[\s\S]*?<\/h2>/i;
+  const match = faqHeading.exec(html);
+  if (!match || match.index == null) return faqs;
+
+  const after = html.slice(match.index + match[0].length);
+  const untilNextH2 = after.split(/<h2\b/i)[0] ?? after;
+  const pairs = [
+    ...untilNextH2.matchAll(
+      /<h3\b[^>]*>([\s\S]*?)<\/h3>\s*<p\b[^>]*>([\s\S]*?)<\/p>/gi
+    ),
+  ];
+
+  for (const pair of pairs) {
+    const question = pair[1]
+      .replace(/<[^>]+>/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    const answer = pair[2]
+      .replace(/<[^>]+>/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (question && answer) faqs.push({ question, answer });
+  }
+  return faqs;
+}
+
 export function estimateReadTime(markdown: string) {
   const words = markdown.trim().split(/\s+/).filter(Boolean).length;
   const minutes = Math.max(1, Math.round(words / 200));

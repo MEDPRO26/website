@@ -48,7 +48,7 @@ export function BlogSidebar({
     : "Bonjour SOS Santé, je souhaite un devis pour du matériel médical.";
 
   return (
-    <aside className="space-y-6 lg:sticky lg:top-24">
+    <aside className="space-y-6 lg:sticky lg:top-[calc(var(--site-header-offset,4rem)+1rem)] lg:self-start">
       <div className="rounded-2xl border border-surface-container-high bg-white p-5 shadow-sm">
         <h2 className="font-heading mb-2 text-lg font-semibold text-primary">
           Nos offres
