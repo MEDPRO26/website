@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { fetchMutation } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
+import { resolveCategorySlug, blogPostPath } from "@/lib/blog-categories";
 import { PUBLIC_SITE_ORIGIN } from "@/lib/hosts";
 import {
   estimateReadTime,
@@ -100,6 +101,7 @@ export async function POST(request: Request) {
     const siteUrl = (
       process.env.NEXT_PUBLIC_SITE_URL ?? PUBLIC_SITE_ORIGIN
     ).replace(/\/$/, "");
+    const categorySlug = resolveCategorySlug(body.categories?.[0]);
 
     return NextResponse.json({
       success: true,
@@ -107,7 +109,7 @@ export async function POST(request: Request) {
       slug: result.slug,
       language: result.language,
       status: result.status,
-      url: `${siteUrl}/blog/${result.slug}`,
+      url: `${siteUrl}${blogPostPath(categorySlug, result.slug)}`,
       created: result.created,
     });
   } catch (error) {

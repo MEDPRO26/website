@@ -22,13 +22,13 @@ export function createSitemapSectionHandler(id: SitemapId) {
     let entries = getSitemapEntries(id);
 
     if (id === "blog") {
-      let convexSlugs: string[] = [];
+      let convexPosts: { slug: string; categorySlug: string }[] = [];
       try {
-        convexSlugs = await fetchQuery(api.blogArticles.listPublishedSlugs, {});
+        convexPosts = await fetchQuery(api.blogArticles.listPublishedSlugs, {});
       } catch {
         // Convex unavailable — keep static blog URLs only.
       }
-      entries = getBlogSitemapEntries(convexSlugs);
+      entries = getBlogSitemapEntries(convexPosts);
     }
 
     const xml = buildUrlsetXml(

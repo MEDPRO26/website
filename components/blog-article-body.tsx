@@ -1,6 +1,7 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { DisplayBlogPost } from "@/lib/blog-display";
-import { isRemoteImage } from "@/lib/blog-display";
+import { isRemoteImage, postCategoryHref } from "@/lib/blog-display";
 
 function MaterialIcon({
   name,
@@ -21,9 +22,12 @@ export function BlogArticleBody({ post }: { post: DisplayBlogPost }) {
     <>
       <header className="mb-8">
         <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-on-surface-variant">
-          <span className="rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">
+          <Link
+            href={postCategoryHref(post)}
+            className="rounded-full bg-primary/10 px-3 py-1 font-medium text-primary hover:bg-primary/15"
+          >
             {post.category}
-          </span>
+          </Link>
           <span className="inline-flex items-center gap-1">
             <MaterialIcon name="schedule" className="text-base" />
             {post.readTime}

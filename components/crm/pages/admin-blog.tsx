@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { categoryLabel } from "@/lib/blog-categories";
+import { categoryLabel, blogPostPath, resolveCategorySlug } from "@/lib/blog-categories";
 import { PUBLIC_SITE_ORIGIN } from "@/lib/hosts";
 import { useAdminSession } from "@/hooks/use-admin-session";
 
@@ -62,7 +62,9 @@ export function AdminBlogPage() {
       ) : (
         <div className="space-y-3">
           {articles.map((article) => {
-            const publicUrl = `${siteUrl}/blog/${article.slug}`;
+            const categorySlug = resolveCategorySlug(article.categories[0]);
+            const path = blogPostPath(categorySlug, article.slug);
+            const publicUrl = `${siteUrl}${path}`;
             return (
               <Card key={article._id} className="p-4 sm:p-5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -79,7 +81,7 @@ export function AdminBlogPage() {
                       </Tag>
                       {article.categories[0] ? (
                         <span className="text-xs text-muted-foreground">
-                          {categoryLabel(article.categories[0])}
+                          {categoryLabel(categorySlug)}
                         </span>
                       ) : null}
                       <span className="text-xs text-muted-foreground">
@@ -93,7 +95,7 @@ export function AdminBlogPage() {
                       {article.excerpt || "Sans extrait"}
                     </p>
                     <p className="truncate font-mono text-xs text-muted-foreground">
-                      /blog/{article.slug}
+                      {path}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">

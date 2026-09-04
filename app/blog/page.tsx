@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { fetchQuery } from "convex/nextjs";
 import Breadcrumb from "@/components/breadcrumb";
+import { BlogPostCard } from "@/components/blog-post-card";
+import { BlogSidebar } from "@/components/blog-sidebar";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import SiteFooter from "@/components/site-footer";
 import { api } from "@/convex/_generated/api";
 import { blogPosts } from "@/lib/blog";
+import { BLOG_CATEGORIES } from "@/lib/blog-categories";
 import {
   convexToDisplay,
-  isRemoteImage,
   mergeBlogLists,
+  postHref,
 } from "@/lib/blog-display";
 import { HERO_IMAGE, SITE_URL_DEFAULT } from "@/lib/brand";
 import {
@@ -30,10 +32,9 @@ export const revalidate = 60;
 export const metadata: Metadata = {
   title: "Blog matériel médical & aide à domicile | SOS Santé",
   description:
-    "Conseils et guides sur la location de matériel médical à Agadir et au Maroc : lits médicalisés, fauteuils roulants, oxygène, matelas anti-escarres.",
+    "Guides sur la location de matériel médical à Agadir et au Maroc : lits médicalisés, fauteuils roulants, oxygène, matelas anti-escarres.",
   keywords: [
     "blog matériel médical",
-    "conseils aide à domicile",
     "guide lit médicalisé",
     "location matériel médical Agadir",
   ],
@@ -43,7 +44,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Blog matériel médical & aide à domicile | SOS Santé",
     description:
-      "Guides et conseils pour choisir et louer du matériel médical à domicile.",
+      "Guides pour choisir et louer du matériel médical à domicile.",
     url: "/blog",
     type: "website",
     locale: "fr_MA",
@@ -81,7 +82,7 @@ export default async function BlogPage() {
     webPageSchema(
       "/blog",
       "Blog matériel médical & aide à domicile | SOS Santé",
-      "Conseils et guides sur la location de matériel médical à Agadir et au Maroc : lits médicalisés, fauteuils roulants, oxygène, matelas anti-escarres."
+      "Guides sur la location de matériel médical à Agadir et au Maroc : lits médicalisés, fauteuils roulants, oxygène, matelas anti-escarres."
     ),
     breadcrumbSchema([
       { name: "Accueil", item: "/" },
@@ -90,7 +91,7 @@ export default async function BlogPage() {
     itemListSchema(
       "Articles du blog",
       "/blog",
-      posts.map((post) => ({ name: post.title, url: `/blog/${post.slug}` }))
+      posts.map((post) => ({ name: post.title, url: postHref(post) }))
     )
   );
 
@@ -127,56 +128,28 @@ export default async function BlogPage() {
               Retrouvez nos guides pratiques pour choisir, utiliser et louer du
               matériel médical à Agadir et au Maroc.
             </p>
+            <div className="mt-6 flex flex-wrap justify-center gap-2">
+              {BLOG_CATEGORIES.map((category) => (
+                <Link
+                  key={category.slug}
+                  href={`/blog/${category.slug}`}
+                  className="rounded-full border border-primary/20 bg-white px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary hover:text-on-primary"
+                >
+                  {category.name}
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 
         <section className="px-4 py-10 sm:px-6 sm:pb-14">
-          <div className="mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               {posts.map((post) => (
-                <article
-                  key={post.slug}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-surface-container-high bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
-                >
-                  <Link
-                    href={`/blog/${post.slug}`}
-                    className="relative aspect-[16/10] overflow-hidden"
-                  >
-                    <Image
-                      src={post.image}
-                      alt={post.alt}
-                      fill
-                      unoptimized={isRemoteImage(post.image)}
-                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  </Link>
-                  <div className="flex flex-1 flex-col p-5 sm:p-6">
-                    <div className="mb-3 flex flex-wrap items-center gap-2 text-xs text-on-surface-variant">
-                      <span className="rounded-full bg-primary/10 px-2.5 py-1 font-semibold text-primary">
-                        {post.category}
-                      </span>
-                      <span>{post.readTime}</span>
-                    </div>
-                    <Link href={`/blog/${post.slug}`}>
-                      <h2 className="font-heading mb-2 text-lg font-semibold text-primary transition-colors group-hover:text-primary-container sm:text-xl">
-                        {post.title}
-                      </h2>
-                    </Link>
-                    <p className="font-body mb-4 flex-1 text-sm leading-relaxed text-on-surface-variant">
-                      {post.excerpt}
-                    </p>
-                    <Link
-                      href={`/blog/${post.slug}`}
-                      className="inline-flex items-center gap-1 text-sm font-semibold text-primary"
-                    >
-                      Lire l&apos;article
-                      <MaterialIcon name="arrow_forward" className="text-base" />
-                    </Link>
-                  </div>
-                </article>
+                <BlogPostCard key={post.slug} post={post} />
               ))}
             </div>
+            <BlogSidebar />
           </div>
         </section>
       </main>

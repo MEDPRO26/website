@@ -78,7 +78,9 @@ export const importFromNexus = mutation({
       featuredImageUrl: args.featuredImageUrl?.trim() || undefined,
       featuredImageR2Key: args.featuredImageR2Key?.trim() || undefined,
       featuredImageAlt: args.featuredImageAlt?.trim() || undefined,
-      categories: (args.categories ?? []).map((c) => c.trim()).filter(Boolean),
+      categories: (args.categories ?? [])
+        .map((c) => c.trim().toLowerCase())
+        .filter(Boolean),
       faqs: (args.faqs ?? []).filter(
         (faq) => faq.question.trim() && faq.answer.trim()
       ),
@@ -154,7 +156,10 @@ export const listPublishedSlugs = query({
       .query("blogArticles")
       .withIndex("by_status", (q) => q.eq("status", "published"))
       .collect();
-    return rows.map((row) => row.slug);
+    return rows.map((row) => ({
+      slug: row.slug,
+      categorySlug: row.categories[0] ?? "guide",
+    }));
   },
 });
 

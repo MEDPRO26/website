@@ -377,6 +377,7 @@ export function serviceSchema(
 
 export function blogPostingSchema(post: {
   slug: string;
+  categorySlug?: string;
   title: string;
   excerpt: string;
   image: string;
@@ -389,10 +390,13 @@ export function blogPostingSchema(post: {
     post.image.startsWith("http://") || post.image.startsWith("https://")
       ? post.image
       : `${siteUrl}${post.image.startsWith("/") ? post.image : `/${post.image}`}`;
+  const path = post.categorySlug
+    ? `/blog/${post.categorySlug}/${post.slug}`
+    : `/blog/${post.slug}`;
 
   return {
     "@type": "BlogPosting",
-    "@id": `${siteUrl}/blog/${post.slug}#article`,
+    "@id": `${siteUrl}${path}#article`,
     headline: post.title,
     description: post.excerpt,
     image: imageUrl,
@@ -405,7 +409,7 @@ export function blogPostingSchema(post: {
     dateModified: post.modifiedAt,
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `${siteUrl}/blog/${post.slug}`,
+      "@id": `${siteUrl}${path}`,
     },
   };
 }

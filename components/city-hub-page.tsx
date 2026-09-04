@@ -11,6 +11,7 @@ import { ABOUT_PATH } from "@/lib/about-content";
 import { activeCities, getCityBySlug, type CitySlug } from "@/lib/cities";
 import { getCityHubContent } from "@/lib/city-hub-content";
 import { blogPosts } from "@/lib/blog";
+import { blogPostPath, resolveCategorySlug } from "@/lib/blog-categories";
 import { getLocationRentalProducts } from "@/lib/location-rental-products";
 import { getProductsByCity } from "@/lib/products";
 import { cityWhatsAppHref } from "@/lib/whatsapp-lines";
@@ -565,7 +566,10 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
                 {blogPosts.map((post) => (
                   <Link
                     key={post.slug}
-                    href={`/blog/${post.slug}`}
+                    href={blogPostPath(
+                      resolveCategorySlug(post.category),
+                      post.slug
+                    )}
                     className="group rounded-2xl border border-outline-variant/30 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-primary/20 hover:shadow-md"
                   >
                     <h3 className="font-heading mb-2 text-lg font-semibold text-primary group-hover:text-primary-container">

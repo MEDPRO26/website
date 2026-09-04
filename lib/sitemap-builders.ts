@@ -2,6 +2,8 @@ import { SITE_URL_DEFAULT } from "@/lib/brand";
 import { activeCities } from "@/lib/cities";
 import { getAllCareServicePageParams } from "@/lib/care-services";
 import { blogPosts } from "@/lib/blog";
+import { BLOG_CATEGORIES, resolveCategorySlug } from "@/lib/blog-categories";
+import { staticToDisplay } from "@/lib/blog-display";
 import { legalPages } from "@/lib/legal-routes";
 import { getAllProductLandingSlugs } from "@/lib/product-landing-pages";
 import { getActiveVenteCitySlugs, getAllCityProductParams } from "@/lib/products";
@@ -86,15 +88,31 @@ function productsEntries(): SitemapEntry[] {
   }));
 }
 
-function blogEntries(extraSlugs: string[] = []): SitemapEntry[] {
-  const slugs = new Set(blogPosts.map((post) => post.slug));
-  for (const slug of extraSlugs) {
-    if (slug) slugs.add(slug);
+type BlogSitemapItem = { slug: string; categorySlug: string };
+
+function blogEntries(extra: BlogSitemapItem[] = []): SitemapEntry[] {
+  const bySlug = new Map<string, string>();
+  for (const post of blogPosts) {
+    const display = staticToDisplay(post);
+    bySlug.set(display.slug, display.categorySlug);
   }
-  return [...slugs].map((slug) => ({
-    path: `/blog/${slug}`,
+  for (const item of extra) {
+    if (item.slug) {
+      bySlug.set(item.slug, resolveCategorySlug(item.categorySlug));
+    }
+  }
+
+  const categoryPages = BLOG_CATEGORIES.map((category) => ({
+    path: `/blog/${category.slug}`,
+    priority: 0.75,
+  }));
+
+  const articlePages = [...bySlug.entries()].map(([slug, categorySlug]) => ({
+    path: `/blog/${categorySlug}/${slug}`,
     priority: 0.8,
   }));
+
+  return [...categoryPages, ...articlePages];
 }
 
 const SITEMAP_BUILDERS: Record<SitemapId, () => SitemapEntry[]> = {
@@ -108,7 +126,7 @@ export function getSitemapEntries(id: SitemapId): SitemapEntry[] {
   return SITEMAP_BUILDERS[id]();
 }
 
-/** Blog sitemap with static + Convex published slugs. */
-export function getBlogSitemapEntries(extraSlugs: string[]): SitemapEntry[] {
-  return blogEntries(extraSlugs);
+/** Blog sitemap with static + Convex published posts. */
+export function getBlogSitemapEntries(extra: BlogSitemapItem[]): SitemapEntry[] {
+  return blogEntries(extra);
 }

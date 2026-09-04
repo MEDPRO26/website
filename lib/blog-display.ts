@@ -1,5 +1,10 @@
 import { blogPosts, type BlogPost } from "@/lib/blog";
-import { categoryLabel } from "@/lib/blog-categories";
+import {
+  categoryLabel,
+  resolveCategorySlug,
+  blogPostPath,
+  blogCategoryPath,
+} from "@/lib/blog-categories";
 import { PUBLIC_SITE_ORIGIN } from "@/lib/hosts";
 
 export type DisplayBlogPost = {
@@ -11,6 +16,7 @@ export type DisplayBlogPost = {
   metaTitle: string;
   metaDescription: string;
   category: string;
+  categorySlug: string;
   categories: string[];
   author: string;
   publishedAt: string;
@@ -34,6 +40,7 @@ function toDateString(value: number | string | undefined) {
 }
 
 export function staticToDisplay(post: BlogPost): DisplayBlogPost {
+  const categorySlug = resolveCategorySlug(post.category);
   return {
     source: "static",
     slug: post.slug,
@@ -41,8 +48,9 @@ export function staticToDisplay(post: BlogPost): DisplayBlogPost {
     excerpt: post.excerpt,
     metaTitle: post.metaTitle,
     metaDescription: post.metaDescription,
-    category: post.category,
-    categories: [post.category.toLowerCase()],
+    category: categoryLabel(categorySlug),
+    categorySlug,
+    categories: [categorySlug],
     author: post.author,
     publishedAt: post.publishedAt,
     modifiedAt: post.modifiedAt,
@@ -74,7 +82,7 @@ export function convexToDisplay(article: {
   html: string;
   faqs: { question: string; answer: string }[];
 }): DisplayBlogPost {
-  const categorySlug = article.categories[0] ?? "guide";
+  const categorySlug = resolveCategorySlug(article.categories[0]);
   return {
     source: "convex",
     id: article._id,
@@ -84,7 +92,8 @@ export function convexToDisplay(article: {
     metaTitle: article.metaTitle || article.title,
     metaDescription: article.metaDescription || article.excerpt,
     category: categoryLabel(categorySlug),
-    categories: article.categories,
+    categorySlug,
+    categories: article.categories.map(resolveCategorySlug),
     author: article.author,
     publishedAt: toDateString(article.publishedAt ?? article.createdAt),
     modifiedAt: toDateString(article.updatedAt),
@@ -97,6 +106,16 @@ export function convexToDisplay(article: {
       ? article.metaKeywords.split(",").map((k) => k.trim()).filter(Boolean)
       : undefined,
   };
+}
+
+export function postHref(post: Pick<DisplayBlogPost, "categorySlug" | "slug">) {
+  return blogPostPath(post.categorySlug, post.slug);
+}
+
+export function postCategoryHref(
+  post: Pick<DisplayBlogPost, "categorySlug">
+) {
+  return blogCategoryPath(post.categorySlug);
 }
 
 export function resolveImageSrc(src: string) {
@@ -126,4 +145,12 @@ export function mergeBlogLists(
   return [...bySlug.values()].sort((a, b) =>
     b.publishedAt.localeCompare(a.publishedAt)
   );
+}
+
+export function filterPostsByCategory(
+  posts: DisplayBlogPost[],
+  categorySlug: string
+) {
+  const slug = resolveCategorySlug(categorySlug);
+  return posts.filter((post) => post.categorySlug === slug);
 }
