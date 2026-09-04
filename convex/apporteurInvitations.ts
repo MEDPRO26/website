@@ -137,12 +137,37 @@ export const list = query({
         const latest = invites.sort((a, b) => b.createdAt - a.createdAt)[0];
         return {
           ...row,
+          maxUnpaidOpened: row.maxUnpaidOpened ?? 2,
           inviteStatus: latest?.status ?? null,
           inviteExpiresAt: latest?.expiresAt ?? null,
         };
       })
     );
     return withInvites.sort((a, b) => b.createdAt - a.createdAt);
+  },
+});
+
+/** Admin: set how many unpaid opened demandes an apporteur may hold. */
+export const updateMaxUnpaidOpened = mutation({
+  args: {
+    apporteurId: v.id("apporteurs"),
+    maxUnpaidOpened: v.number(),
+  },
+  handler: async (ctx, args) => {
+    await requireAdminStaff(ctx);
+    const apporteur = await ctx.db.get(args.apporteurId);
+    if (!apporteur) {
+      throw new Error("Apporteur introuvable.");
+    }
+    const value = Math.floor(args.maxUnpaidOpened);
+    if (!Number.isFinite(value) || value < 0 || value > 100) {
+      throw new Error("La limite doit être un nombre entre 0 et 100.");
+    }
+    await ctx.db.patch(args.apporteurId, {
+      maxUnpaidOpened: value,
+      updatedAt: Date.now(),
+    });
+    return { ok: true as const, maxUnpaidOpened: value };
   },
 });
 

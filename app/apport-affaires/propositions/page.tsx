@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from "convex/react";
 import { Loader2, Mail, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AdminShell } from "@/components/dashboard/app-shell";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -11,6 +11,75 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+
+function MaxUnpaidInput({
+  apporteurId,
+  value,
+}: {
+  apporteurId: Id<"apporteurs">;
+  value: number;
+}) {
+  const updateMaxUnpaidOpened = useMutation(
+    api.apporteurInvitations.updateMaxUnpaidOpened
+  );
+  const [local, setLocal] = useState(String(value));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setLocal(String(value));
+  }, [value]);
+
+  const save = async () => {
+    const parsed = Math.floor(Number(local));
+    if (!Number.isFinite(parsed) || parsed < 0 || parsed > 100) {
+      toast.error("Limite invalide (0–100). 100 = illimité.");
+      setLocal(String(value));
+      return;
+    }
+    if (parsed === value) return;
+    setSaving(true);
+    try {
+      await updateMaxUnpaidOpened({
+        apporteurId,
+        maxUnpaidOpened: parsed,
+      });
+      toast.success(
+        parsed >= 100
+          ? "Limite illimitée enregistrée."
+          : `Limite fixée à ${parsed} projet${parsed > 1 ? "s" : ""} non payé${parsed > 1 ? "s" : ""}.`
+      );
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Impossible d’enregistrer."
+      );
+      setLocal(String(value));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Input
+        type="number"
+        min={0}
+        max={100}
+        className="h-8 w-16"
+        value={local}
+        disabled={saving}
+        onChange={(event) => setLocal(event.target.value)}
+        onBlur={() => void save()}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.currentTarget.blur();
+          }
+        }}
+        aria-label="Projets ouverts non payés max"
+      />
+      {saving ? <Loader2 className="size-3.5 animate-spin text-muted-foreground" /> : null}
+    </div>
+  );
+}
 
 function InviteForm() {
   const list = useQuery(api.apporteurInvitations.list);
@@ -76,7 +145,7 @@ function InviteForm() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[720px] space-y-6">
+    <div className="mx-auto w-full max-w-[960px] space-y-6">
       <PageHeader
         title="Apport d’Affaires"
         description="Invitez un apporteur d’affaires. Il créera son compte et saisira date, client et montant du contrat."
@@ -122,6 +191,12 @@ function InviteForm() {
               <th className="px-4 py-3">Nom</th>
               <th className="px-4 py-3">Email</th>
               <th className="px-4 py-3">Statut</th>
+              <th className="px-4 py-3">
+                <span className="block">Max non payés</span>
+                <span className="mt-0.5 block normal-case tracking-normal text-[10px] font-normal text-muted-foreground">
+                  Après ce nombre, paiement requis (100 = illimité)
+                </span>
+              </th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
@@ -136,6 +211,12 @@ function InviteForm() {
                     : row.status === "actif"
                       ? "Actif"
                       : row.status}
+                </td>
+                <td className="px-4 py-3">
+                  <MaxUnpaidInput
+                    apporteurId={row._id}
+                    value={row.maxUnpaidOpened}
+                  />
                 </td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex justify-end gap-2">
@@ -171,7 +252,7 @@ function InviteForm() {
             ))}
             {list?.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
                   Aucun apporteur invité pour le moment.
                 </td>
               </tr>

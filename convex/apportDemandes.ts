@@ -13,7 +13,17 @@ import { notifyApporteurOfAssignment } from "./lib/apportDemandeNotifications";
 
 const ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024;
 const ATTACHMENT_MAX_COUNT = 5;
-const MAX_UNPAID_OPENED = 2;
+const DEFAULT_MAX_UNPAID_OPENED = 2;
+
+function getMaxUnpaidOpened(
+  apporteur: Doc<"apporteurs"> | null | undefined
+): number {
+  const raw = apporteur?.maxUnpaidOpened;
+  if (typeof raw === "number" && Number.isFinite(raw) && raw >= 0) {
+    return Math.floor(raw);
+  }
+  return DEFAULT_MAX_UNPAID_OPENED;
+}
 
 function unpaidLockMessage(unpaidCount: number) {
   return `Vous avez ${unpaidCount} projet${unpaidCount > 1 ? "s" : ""} non payé${unpaidCount > 1 ? "s" : ""}. Réglez-les tous dans Honoraires S2MBO pour ouvrir les prochains projets.`;
@@ -280,6 +290,11 @@ export const list = query({
         ? rows.filter(isDemandeUnpaid).length
         : 0;
 
+    const apporteurLimit =
+      viewer.kind === "apporteur" && viewer.apporteurId
+        ? getMaxUnpaidOpened(await ctx.db.get(viewer.apporteurId))
+        : DEFAULT_MAX_UNPAID_OPENED;
+
     const sorted = rows.sort((a, b) => b.createdAt - a.createdAt);
 
     return await Promise.all(
@@ -301,10 +316,14 @@ export const list = query({
           ? await ctx.storage.getUrl(row.devisStorageId)
           : null;
         const isUnpaid = isDemandeUnpaid(row);
+        const maxUnpaidOpened =
+          viewer.kind === "apporteur"
+            ? apporteurLimit
+            : getMaxUnpaidOpened(apporteur);
         const canOpen =
           viewer.kind === "admin" ||
           Boolean(row.openedAt) ||
-          unpaidCount < MAX_UNPAID_OPENED;
+          unpaidCount < maxUnpaidOpened;
         return {
           ...row,
           attachments,
@@ -313,6 +332,7 @@ export const list = query({
           isUnpaid,
           canOpen,
           unpaidCount,
+          maxUnpaidOpened,
           lockMessage: canOpen ? null : unpaidLockMessage(unpaidCount),
           apporteurName: apporteur?.name?.trim() || "—",
           apporteurEmail: apporteur?.email?.trim() || "",
@@ -713,7 +733,8 @@ export const markOpened = mutation({
     }
 
     const unpaid = await countUnpaidOpened(ctx, apporteur._id);
-    if (unpaid >= MAX_UNPAID_OPENED) {
+    const maxUnpaidOpened = getMaxUnpaidOpened(apporteur);
+    if (unpaid >= maxUnpaidOpened) {
       throw new Error(unpaidLockMessage(unpaid));
     }
 

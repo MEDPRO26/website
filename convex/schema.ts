@@ -188,6 +188,11 @@ export default defineSchema({
     name: v.string(),
     email: v.string(),
     status: staffStatusValidator,
+    /**
+     * Max unpaid opened demandes before the paywall blocks the next open.
+     * Missing → default 2. Use a high value (e.g. 100) for effectively unlimited.
+     */
+    maxUnpaidOpened: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
