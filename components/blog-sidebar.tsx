@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BLOG_CATEGORIES } from "@/lib/blog-categories";
-import { CONTACT_EMAIL, products, whatsAppHref } from "@/lib/products";
+import { PHONE_DISPLAY, PHONE_NUMBER, products, whatsAppHref } from "@/lib/products";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 
 const CATEGORY_PRODUCT_MATCH: Record<string, string[]> = {
@@ -110,10 +110,13 @@ export function BlogSidebar({
             WhatsApp
           </a>
           <a
-            href={`mailto:${CONTACT_EMAIL}`}
+            href={`tel:${PHONE_NUMBER}`}
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/40 px-4 py-2.5 text-sm font-semibold text-white"
           >
-            Email
+            <span className="material-symbols-outlined text-base" aria-hidden="true">
+              call
+            </span>
+            {PHONE_DISPLAY}
           </a>
         </div>
       </div>
