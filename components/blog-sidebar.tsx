@@ -118,11 +118,17 @@ export function BlogSidebar({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-surface-container-high bg-white p-5 shadow-sm">
-        <h2 className="font-heading mb-3 text-lg font-semibold text-primary">
+      <details className="group rounded-2xl border border-surface-container-high bg-white p-5 shadow-sm">
+        <summary className="font-heading flex cursor-pointer list-none items-center justify-between text-lg font-semibold text-primary">
           Catégories
-        </h2>
-        <ul className="space-y-1.5">
+          <span
+            className="material-symbols-outlined text-xl transition-transform group-open:rotate-180"
+            aria-hidden="true"
+          >
+            expand_more
+          </span>
+        </summary>
+        <ul className="mt-3 space-y-1.5">
           {BLOG_CATEGORIES.map((category) => (
             <li key={category.slug}>
               <Link
@@ -138,7 +144,7 @@ export function BlogSidebar({
             </li>
           ))}
         </ul>
-      </div>
+      </details>
     </aside>
   );
 }
