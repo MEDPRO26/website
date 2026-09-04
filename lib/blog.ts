@@ -8,7 +8,7 @@ export const blogPosts = [
       "Concentrateur d’oxygène à Agadir : location, prix et conseils | SOS Santé",
     metaDescription:
       "Louez un concentrateur d’oxygène à Agadir avec livraison et maintenance. Découvrez les avantages, l’entretien et les tarifs de location.",
-    category: "Conseil",
+    category: "Respiratoire",
     author: "SOS Santé",
     publishedAt: "2026-06-15",
     modifiedAt: "2026-06-15",
@@ -73,7 +73,7 @@ export const blogPosts = [
       "Appareil CPAP à Agadir : apnée du sommeil, masque et conseils | SOS Santé",
     metaDescription:
       "Guide CPAP à Agadir : fonctionnement, masques AirFit, humidificateur et demande de devis pour traiter l'apnée du sommeil à domicile.",
-    category: "Conseil",
+    category: "Respiratoire",
     author: "SOS Santé",
     publishedAt: "2026-07-01",
     modifiedAt: "2026-07-01",
@@ -135,7 +135,7 @@ export const blogPosts = [
       "Concentrateur portable Inogen à Agadir : mobilité et oxygène | SOS Santé",
     metaDescription:
       "Découvrez le concentrateur portable Inogen Rove G6 à Agadir : légèreté, autonomie batterie et conseils pour l'oxygénothérapie mobile.",
-    category: "Conseil",
+    category: "Respiratoire",
     author: "SOS Santé",
     publishedAt: "2026-07-03",
     modifiedAt: "2026-07-03",

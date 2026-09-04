@@ -4,15 +4,15 @@ export type BlogCategory = {
   slug: string;
 };
 
-/** Public categories exposed to SEO Nexus via GET /api/categories */
+/** Public categories for SOS Santé blog + SEO Nexus via GET /api/categories */
 export const BLOG_CATEGORIES: BlogCategory[] = [
-  { id: "conseil", name: "Conseil", slug: "conseil" },
   { id: "guide", name: "Guide", slug: "guide" },
   { id: "respiratoire", name: "Respiratoire", slug: "respiratoire" },
   { id: "mobilite", name: "Mobilité", slug: "mobilite" },
   { id: "confort", name: "Confort", slug: "confort" },
   { id: "soins", name: "Soins à domicile", slug: "soins" },
-  { id: "actualite", name: "Actualité", slug: "actualite" },
+  { id: "location", name: "Location", slug: "location" },
+  { id: "famille-aidants", name: "Famille & aidants", slug: "famille-aidants" },
 ];
 
 export function categoryLabel(slug: string) {

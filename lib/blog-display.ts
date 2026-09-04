@@ -74,7 +74,7 @@ export function convexToDisplay(article: {
   html: string;
   faqs: { question: string; answer: string }[];
 }): DisplayBlogPost {
-  const categorySlug = article.categories[0] ?? "conseil";
+  const categorySlug = article.categories[0] ?? "guide";
   return {
     source: "convex",
     id: article._id,
