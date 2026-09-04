@@ -121,6 +121,15 @@ export const importFromNexus = mutation({
   },
 });
 
+function isPubliclyVisible(
+  article: { status: string; publishedAt?: number },
+  now = Date.now()
+) {
+  if (article.status !== "published") return false;
+  if (article.publishedAt == null) return true;
+  return article.publishedAt <= now;
+}
+
 /** Public: published article by slug. */
 export const getPublishedBySlug = query({
   args: { slug: v.string() },
@@ -130,7 +139,7 @@ export const getPublishedBySlug = query({
       .query("blogArticles")
       .withIndex("by_slug", (q) => q.eq("slug", slug))
       .unique();
-    if (!article || article.status !== "published") return null;
+    if (!article || !isPubliclyVisible(article)) return null;
     return article;
   },
 });
@@ -139,27 +148,33 @@ export const getPublishedBySlug = query({
 export const listPublished = query({
   args: {},
   handler: async (ctx) => {
+    const now = Date.now();
     const rows = await ctx.db
       .query("blogArticles")
       .withIndex("by_status", (q) => q.eq("status", "published"))
       .collect();
-    return rows.sort(
-      (a, b) => (b.publishedAt ?? b.updatedAt) - (a.publishedAt ?? a.updatedAt)
-    );
+    return rows
+      .filter((row) => isPubliclyVisible(row, now))
+      .sort(
+        (a, b) => (b.publishedAt ?? b.updatedAt) - (a.publishedAt ?? a.updatedAt)
+      );
   },
 });
 
 export const listPublishedSlugs = query({
   args: {},
   handler: async (ctx) => {
+    const now = Date.now();
     const rows = await ctx.db
       .query("blogArticles")
       .withIndex("by_status", (q) => q.eq("status", "published"))
       .collect();
-    return rows.map((row) => ({
-      slug: row.slug,
-      categorySlug: row.categories[0] ?? "guide",
-    }));
+    return rows
+      .filter((row) => isPubliclyVisible(row, now))
+      .map((row) => ({
+        slug: row.slug,
+        categorySlug: row.categories[0] ?? "guide",
+      }));
   },
 });
 
@@ -184,21 +199,47 @@ export const setStatus = mutation({
   args: {
     id: v.id("blogArticles"),
     status: v.union(v.literal("draft"), v.literal("published")),
+    publishedAt: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     await requireAdminPermission(ctx, "cms.manage_blog");
     const article = await ctx.db.get(args.id);
     if (!article) throw new Error("Article introuvable");
     const now = Date.now();
+    let publishedAt = article.publishedAt;
+    if (args.status === "published") {
+      publishedAt =
+        args.publishedAt != null && Number.isFinite(args.publishedAt)
+          ? args.publishedAt
+          : (article.publishedAt ?? now);
+    }
     await ctx.db.patch(args.id, {
       status: args.status,
       updatedAt: now,
-      publishedAt:
-        args.status === "published"
-          ? (article.publishedAt ?? now)
-          : article.publishedAt,
+      publishedAt,
     });
     return { ok: true };
+  },
+});
+
+/** CRM: set or change the public publish date/time. */
+export const setPublishedAt = mutation({
+  args: {
+    id: v.id("blogArticles"),
+    publishedAt: v.number(),
+  },
+  handler: async (ctx, args) => {
+    await requireAdminPermission(ctx, "cms.manage_blog");
+    const article = await ctx.db.get(args.id);
+    if (!article) throw new Error("Article introuvable");
+    if (!Number.isFinite(args.publishedAt)) {
+      throw new Error("Date de publication invalide");
+    }
+    await ctx.db.patch(args.id, {
+      publishedAt: args.publishedAt,
+      updatedAt: Date.now(),
+    });
+    return { ok: true as const };
   },
 });
 

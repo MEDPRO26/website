@@ -3,16 +3,116 @@
 import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { ExternalLink, Loader2, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Tag } from "@/components/dashboard/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { categoryLabel, blogPostPath, resolveCategorySlug } from "@/lib/blog-categories";
+import {
+  categoryLabel,
+  blogPostPath,
+  resolveCategorySlug,
+} from "@/lib/blog-categories";
 import { PUBLIC_SITE_ORIGIN } from "@/lib/hosts";
 import { useAdminSession } from "@/hooks/use-admin-session";
+
+function toDatetimeLocalValue(ms: number | undefined) {
+  const date = new Date(ms ?? Date.now());
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function formatPublishLabel(ms: number | undefined) {
+  if (ms == null) return "Non définie";
+  return new Date(ms).toLocaleString("fr-FR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+}
+
+function PublishScheduleField({
+  articleId,
+  publishedAt,
+  status,
+}: {
+  articleId: Id<"blogArticles">;
+  publishedAt?: number;
+  status: "draft" | "published";
+}) {
+  const setPublishedAt = useMutation(api.blogArticles.setPublishedAt);
+  const [value, setValue] = useState(() => toDatetimeLocalValue(publishedAt));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setValue(toDatetimeLocalValue(publishedAt));
+  }, [publishedAt, articleId]);
+
+  const save = async () => {
+    const ms = new Date(value).getTime();
+    if (!Number.isFinite(ms)) {
+      toast.error("Date ou heure invalide");
+      return;
+    }
+    if (publishedAt != null && ms === publishedAt) return;
+    setSaving(true);
+    try {
+      await setPublishedAt({ id: articleId, publishedAt: ms });
+      toast.success(
+        ms > Date.now()
+          ? "Publication programmée"
+          : "Date de publication enregistrée"
+      );
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Échec de l’enregistrement"
+      );
+      setValue(toDatetimeLocalValue(publishedAt));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <Label
+        htmlFor={`publish-at-${articleId}`}
+        className="text-xs text-muted-foreground"
+      >
+        Date et heure de publication
+      </Label>
+      <div className="flex flex-wrap items-center gap-2">
+        <Input
+          id={`publish-at-${articleId}`}
+          type="datetime-local"
+          className="h-8 w-[11.5rem]"
+          value={value}
+          disabled={saving}
+          onChange={(event) => setValue(event.target.value)}
+          onBlur={() => void save()}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.currentTarget.blur();
+            }
+          }}
+        />
+        {saving ? (
+          <Loader2 className="size-3.5 animate-spin text-muted-foreground" />
+        ) : (
+          <span className="text-[11px] text-muted-foreground">
+            {status === "published" && (publishedAt ?? 0) > Date.now()
+              ? "Programmé (invisible jusqu’à cette heure)"
+              : `Affiché : ${formatPublishLabel(publishedAt)}`}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export function AdminBlogPage() {
   const { canQueryAdmin, can } = useAdminSession();
@@ -43,7 +143,7 @@ export function AdminBlogPage() {
     <div className="space-y-6">
       <PageHeader
         title="Blog"
-        description="Articles importés depuis SEO Nexus. Les brouillons ne sont pas visibles sur le site public."
+        description="Articles importés depuis SEO Nexus. Les brouillons et publications futures ne sont pas visibles sur le site public."
       />
 
       {!articles ? (
@@ -65,43 +165,65 @@ export function AdminBlogPage() {
             const categorySlug = resolveCategorySlug(article.categories[0]);
             const path = blogPostPath(categorySlug, article.slug);
             const publicUrl = `${siteUrl}${path}`;
+            const isScheduled =
+              article.status === "published" &&
+              (article.publishedAt ?? 0) > Date.now();
+            const isLive =
+              article.status === "published" &&
+              (article.publishedAt == null ||
+                article.publishedAt <= Date.now());
+
             return (
               <Card key={article._id} className="p-4 sm:p-5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0 space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Tag
-                        tone={
-                          article.status === "published" ? "success" : "neutral"
-                        }
-                      >
-                        {article.status === "published"
-                          ? "Publié"
-                          : "Brouillon"}
-                      </Tag>
-                      {article.categories[0] ? (
-                        <span className="text-xs text-muted-foreground">
-                          {categoryLabel(categorySlug)}
-                        </span>
-                      ) : null}
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(article.updatedAt).toLocaleDateString("fr-FR")}
-                      </span>
+                  <div className="min-w-0 flex-1 space-y-3">
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Tag
+                          tone={
+                            isLive
+                              ? "success"
+                              : isScheduled
+                                ? "warning"
+                                : "neutral"
+                          }
+                        >
+                          {isLive
+                            ? "Publié"
+                            : isScheduled
+                              ? "Programmé"
+                              : "Brouillon"}
+                        </Tag>
+                        {article.categories[0] ? (
+                          <span className="text-xs text-muted-foreground">
+                            {categoryLabel(categorySlug)}
+                          </span>
+                        ) : null}
+                      </div>
+                      <h2 className="text-base font-semibold leading-snug">
+                        {article.title}
+                      </h2>
+                      <p className="line-clamp-2 text-sm text-muted-foreground">
+                        {article.excerpt || "Sans extrait"}
+                      </p>
+                      <p className="truncate font-mono text-xs text-muted-foreground">
+                        {path}
+                      </p>
                     </div>
-                    <h2 className="text-base font-semibold leading-snug">
-                      {article.title}
-                    </h2>
-                    <p className="line-clamp-2 text-sm text-muted-foreground">
-                      {article.excerpt || "Sans extrait"}
-                    </p>
-                    <p className="truncate font-mono text-xs text-muted-foreground">
-                      {path}
-                    </p>
+                    <PublishScheduleField
+                      articleId={article._id}
+                      publishedAt={article.publishedAt}
+                      status={article.status}
+                    />
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {article.status === "published" ? (
+                    {isLive ? (
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={publicUrl} target="_blank" rel="noreferrer">
+                        <Link
+                          href={publicUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
                           <ExternalLink className="size-3.5" />
                           Voir
                         </Link>
@@ -112,16 +234,28 @@ export function AdminBlogPage() {
                       size="sm"
                       onClick={async () => {
                         try {
+                          if (article.status === "published") {
+                            await setStatus({
+                              id: article._id,
+                              status: "draft",
+                            });
+                            toast.success("Remis en brouillon");
+                            return;
+                          }
+                          const input = document.getElementById(
+                            `publish-at-${article._id}`
+                          ) as HTMLInputElement | null;
+                          const ms = input?.value
+                            ? new Date(input.value).getTime()
+                            : (article.publishedAt ?? Date.now());
                           await setStatus({
                             id: article._id,
-                            status:
-                              article.status === "published"
-                                ? "draft"
-                                : "published",
+                            status: "published",
+                            publishedAt: Number.isFinite(ms) ? ms : Date.now(),
                           });
                           toast.success(
-                            article.status === "published"
-                              ? "Remis en brouillon"
+                            ms > Date.now()
+                              ? "Article programmé"
                               : "Article publié"
                           );
                         } catch (error) {
