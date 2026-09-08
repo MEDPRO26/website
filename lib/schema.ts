@@ -271,12 +271,15 @@ export function productSchema(
 export function productPageGraph(
   product: Product,
   productPath: string,
-  hubPath: string,
-  hubLabel: string,
+  breadcrumbItems: { label: string; path: string }[],
   relatedProducts: Product[] = [],
   relatedPathForSlug: (slug: string) => string = (slug) =>
-    `/vente-de-materiel-medical-agadir/produits/${slug}`,
-  categoryCrumb?: { label: string; path: string }
+    `/vente-de-materiel-medical-agadir/produits/${slug}-agadir`,
+  options?: {
+    title?: string;
+    description?: string;
+    faqs?: { question: string; answer: string }[];
+  }
 ) {
   const path = normalizePath(productPath);
   const relatedItems = relatedProducts.map((item) => ({
@@ -285,18 +288,20 @@ export function productPageGraph(
   }));
 
   const nodes: Record<string, unknown>[] = [
-    webPageSchema(path, product.seoTitle, product.seoDescription),
-    productBreadcrumbSchema(
+    webPageSchema(
       path,
-      product.shortName,
-      hubPath,
-      hubLabel,
-      categoryCrumb
+      options?.title ?? product.seoTitle,
+      options?.description ?? product.seoDescription
     ),
+    productBreadcrumbSchema(path, breadcrumbItems),
   ];
 
   if (relatedItems.length > 0) {
     nodes.push(itemListSchema("Produits associés", path, relatedItems));
+  }
+
+  if (options?.faqs?.length) {
+    nodes.push(faqSchema(options.faqs, path));
   }
 
   return buildGraph(...nodes);
@@ -304,13 +309,9 @@ export function productPageGraph(
 
 export function productBreadcrumbSchema(
   productPath: string,
-  productName: string,
-  hubPath: string,
-  hubLabel: string,
-  categoryCrumb?: { label: string; path: string }
+  crumbs: { label: string; path: string }[]
 ) {
   const path = normalizePath(productPath);
-  const hub = normalizePath(hubPath);
   const items: {
     "@type": "ListItem";
     position: number;
@@ -323,35 +324,13 @@ export function productBreadcrumbSchema(
       name: "Accueil",
       item: siteUrl,
     },
-    {
-      "@type": "ListItem",
-      position: 2,
-      name: hubLabel,
-      item: `${siteUrl}${hub}`,
-    },
+    ...crumbs.map((crumb, index) => ({
+      "@type": "ListItem" as const,
+      position: index + 2,
+      name: crumb.label,
+      item: `${siteUrl}${normalizePath(crumb.path)}`,
+    })),
   ];
-
-  if (categoryCrumb) {
-    items.push({
-      "@type": "ListItem",
-      position: 3,
-      name: categoryCrumb.label,
-      item: `${siteUrl}${normalizePath(categoryCrumb.path)}`,
-    });
-    items.push({
-      "@type": "ListItem",
-      position: 4,
-      name: productName,
-      item: `${siteUrl}${path}`,
-    });
-  } else {
-    items.push({
-      "@type": "ListItem",
-      position: 3,
-      name: productName,
-      item: `${siteUrl}${path}`,
-    });
-  }
 
   return {
     "@type": "BreadcrumbList",

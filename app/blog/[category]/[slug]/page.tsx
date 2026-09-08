@@ -25,6 +25,8 @@ import {
 } from "@/lib/blog-display";
 import { CONTACT_EMAIL, products, whatsAppHref } from "@/lib/products";
 import { SITE_URL_DEFAULT } from "@/lib/brand";
+import { DEFAULT_CITY_SLUG } from "@/lib/cities";
+import { venteProductPath } from "@/lib/routes";
 import { extractFaqsFromHtml } from "@/lib/markdown";
 import {
   blogPostingSchema,
@@ -208,7 +210,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
                         className="group flex flex-col overflow-hidden rounded-2xl border border-surface-container-high bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
                       >
                         <Link
-                          href={`/produits/${product.slug}`}
+                          href={venteProductPath(product.slug, DEFAULT_CITY_SLUG)}
                           className="relative aspect-[4/3] overflow-hidden"
                         >
                           <Image
@@ -225,7 +227,12 @@ export default async function BlogArticlePage({ params }: PageProps) {
                           </span>
                         </Link>
                         <div className="flex flex-1 flex-col p-4">
-                          <Link href={`/produits/${product.slug}`}>
+                          <Link
+                            href={venteProductPath(
+                              product.slug,
+                              DEFAULT_CITY_SLUG
+                            )}
+                          >
                             <h3 className="font-heading mb-2 text-base font-semibold text-primary transition-colors hover:text-primary-container sm:text-lg">
                               {product.name}
                             </h3>

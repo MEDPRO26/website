@@ -11,7 +11,7 @@ import {
   CONTACT_EMAIL,
   whatsAppHref,
 } from "@/lib/products";
-import { cityWhatsAppHref } from "@/lib/whatsapp-lines";
+import { cityWhatsAppHref, cityWhatsAppText } from "@/lib/whatsapp-lines";
 import {
   SITE_NATIONAL_DESCRIPTION,
   SITE_NATIONAL_NAME,
@@ -63,7 +63,18 @@ export function buildNationalFooterContext(): FooterContext {
     phoneHref: `tel:${city.phone}`,
     whatsappHref: cityWhatsAppHref(
       { contactReady: true, whatsapp: city.whatsapp },
-      `Bonjour SOS Santé ${city.name}, je souhaite des informations.`,
+      cityWhatsAppText(city.name, "Je souhaite des informations."),
+      "general"
+    ),
+  }));
+
+  const whatsappContacts = activeCities.map((city) => ({
+    name: city.name,
+    phoneDisplay: city.phoneDisplay,
+    phoneHref: `tel:${city.phone}`,
+    whatsappHref: cityWhatsAppHref(
+      city,
+      cityWhatsAppText(city.name, "Je souhaite des informations."),
       "general"
     ),
   }));
@@ -73,7 +84,7 @@ export function buildNationalFooterContext(): FooterContext {
     brandTitle: SITE_NATIONAL_NAME,
     description: SITE_NATIONAL_DESCRIPTION,
     cityContacts,
-    whatsappContacts: cityContacts,
+    whatsappContacts,
     whatsappHref: whatsAppHref(undefined, "general"),
     email: CONTACT_EMAIL,
     websiteLabel: SITE_WEBSITE,
@@ -104,7 +115,7 @@ export function buildCityFooterContext(cityOrSlug: City | CitySlug): FooterConte
       hasLocalContact && city.whatsapp
         ? cityWhatsAppHref(
             city,
-            `Bonjour ${city.brandName}, je souhaite des informations.`,
+            cityWhatsAppText(city.name, "Je souhaite des informations."),
             "general"
           )
         : undefined,

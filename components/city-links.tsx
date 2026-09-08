@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { activeCities, cities } from "@/lib/cities";
-import { hubCityPath } from "@/lib/routes";
+import { hubCityPath, venteProductPath } from "@/lib/routes";
 
 function MaterialIcon({
   name,
@@ -24,9 +24,12 @@ function MaterialIcon({
 export default function CityLinks({
   title = "Livraison de ce matériel dans d'autres villes",
   excludeHubSlug,
+  productSlug,
 }: {
   title?: string;
   excludeHubSlug?: string;
+  /** When set, links go to the same product city page instead of the city hub. */
+  productSlug?: string;
 }) {
   const cityList = excludeHubSlug
     ? cities.filter((city) => city.hubSlug !== excludeHubSlug)
@@ -41,11 +44,15 @@ export default function CityLinks({
           {title}
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {cityList.map((city) =>
-            city.available ? (
+          {cityList.map((city) => {
+            const href = productSlug
+              ? venteProductPath(productSlug, city.slug)
+              : hubCityPath(city.slug);
+
+            return city.available ? (
               <Link
                 key={city.slug}
-                href={hubCityPath(city.slug)}
+                href={href}
                 className="group flex items-center justify-between rounded-2xl border border-outline-variant/30 bg-surface-base p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-primary/20 hover:shadow-md"
               >
                 <div>
@@ -81,8 +88,8 @@ export default function CityLinks({
                   </p>
                 </div>
               </div>
-            )
-          )}
+            );
+          })}
         </div>
         {activeCities.length > 1 && (
           <p className="mt-4 text-sm text-on-surface-variant">

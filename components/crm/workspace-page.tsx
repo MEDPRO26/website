@@ -59,7 +59,7 @@ export function WorkspacePage() {
           <div className="flex items-center gap-3">
             <div className="flex h-11 items-center justify-center overflow-hidden rounded-2xl bg-white px-2.5 shadow-sm ring-1 ring-border/70">
               <Image
-                src="/s2mbo-logo-new.png"
+                src="/s2mbo-logo-new.webp"
                 alt="S2MBO"
                 width={120}
                 height={32}
@@ -81,7 +81,7 @@ export function WorkspacePage() {
 
         <div className="text-center">
           <Image
-            src="/s2mbo-logo-new.png"
+            src="/s2mbo-logo-new.webp"
             alt="S2MBO"
             width={420}
             height={96}

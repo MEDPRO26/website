@@ -15,6 +15,12 @@ import { venteCityPath } from "@/lib/routes";
 const navigationLinks = [
   { label: "Accueil", href: "/" },
   { label: "À propos", href: "/a-propos" },
+  { label: "Location matériel médical", href: "/location-materiel-medical" },
+  { label: "Vente matériel médical", href: "/vente-materiel-medical" },
+  { label: "Livraison à domicile", href: "/livraison-materiel-medical-domicile" },
+  { label: "Matériel par ville", href: "/materiel-medical-par-ville" },
+  { label: "Aide à domicile", href: "/aide-a-domicile" },
+  { label: "Soins à domicile", href: "/soins-a-domicile" },
   { label: "Nos Services", href: "/services" },
   ...activeCities.map((city) => ({
     label: `Vente ${city.name}`,

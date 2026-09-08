@@ -80,7 +80,7 @@ const cityCopy: Partial<
       "Besoin de soins ou d'aide à domicile à Rabat ? SOS Santé vous oriente vers des professionnels qualifiés : kinésithérapeute, infirmier, médecin, aide-soignant et transport médical.",
     paragraphs: [
       "Notre catalogue couvre le matériel de mobilité, respiratoire, confort, diagnostic et instruments médicaux. Livraison à Rabat, Salé, Temara, Hay Riad, Agdal, Souissi et environs.",
-      "SOS Santé Rabat organise la livraison de matériel et la mise en relation avec des prestataires partenaires, en lien avec nos locaux opérationnels d'Agadir et de Casablanca. Devis et orientation personnalisés, sans remplacer un cabinet médical ni les urgences officielles.",
+      "SOS Santé Rabat organise la livraison de matériel et la mise en relation avec des prestataires partenaires via le numéro national Casablanca, en lien avec nos locaux opérationnels d'Agadir et de Casablanca. Devis et orientation personnalisés, sans remplacer un cabinet médical ni les urgences officielles.",
     ],
   },
   casablanca: {
@@ -93,6 +93,30 @@ const cityCopy: Partial<
     paragraphs: [
       "Notre catalogue couvre le matériel de mobilité, respiratoire, confort, diagnostic et instruments médicaux. Livraison à Casablanca, Bourgogne, Anfa, Ain Diab, Maarif, Hay Hassani et environs.",
       "SOS Santé Casablanca dispose d'un local opérationnel (Boulevard Anoual). Depuis ce local, nous gérons le matériel, les livraisons et la coordination avec des prestataires partenaires. Pas un hôpital, pas le SAMU.",
+    ],
+  },
+  marrakech: {
+    intro:
+      "SOS Santé Marrakech accompagne les familles à Marrakech et environs : vente et location de matériel médical à domicile selon disponibilité, et mise en relation avec des professionnels de soins et d'aide à domicile.",
+    equipmentIntro:
+      "Achetez ou louez du matériel médical à Marrakech : mobilité, respiratoire, confort, diagnostic et instruments. Livraison selon disponibilité à Guéliz, Hivernage, Médina et environs.",
+    careIntro:
+      "Besoin de soins ou d'aide à domicile à Marrakech ? SOS Santé vous oriente vers des professionnels qualifiés : kinésithérapeute, infirmier, médecin, aide-soignant et transport médical.",
+    paragraphs: [
+      "Notre catalogue couvre le matériel de mobilité, respiratoire, confort, diagnostic et instruments médicaux. Livraison à Marrakech et environs selon disponibilité.",
+      "SOS Santé Marrakech organise la coordination et l'orientation via le numéro national Casablanca, en lien avec nos locaux d'Agadir et de Casablanca. Nous ne sommes ni un hôpital ni un service d'urgence.",
+    ],
+  },
+  tanger: {
+    intro:
+      "SOS Santé Tanger accompagne les familles à Tanger et sa région : vente et location de matériel médical à domicile selon disponibilité, et mise en relation avec des professionnels de soins et d'aide à domicile.",
+    equipmentIntro:
+      "Achetez ou louez du matériel médical à Tanger : mobilité, respiratoire, confort, diagnostic et instruments. Livraison selon disponibilité au centre-ville, Malabata, Boukhalef et environs.",
+    careIntro:
+      "Besoin de soins ou d'aide à domicile à Tanger ? SOS Santé vous oriente vers des professionnels qualifiés : kinésithérapeute, infirmier, médecin, aide-soignant et transport médical.",
+    paragraphs: [
+      "Notre catalogue couvre le matériel de mobilité, respiratoire, confort, diagnostic et instruments médicaux. Livraison à Tanger et sa région selon disponibilité.",
+      "SOS Santé Tanger organise la coordination et l'orientation via le numéro national Casablanca, en lien avec nos locaux d'Agadir et de Casablanca. Nous ne sommes ni un hôpital ni un service d'urgence.",
     ],
   },
 };

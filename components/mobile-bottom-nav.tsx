@@ -46,6 +46,7 @@ export default function MobileBottomNav({
     pathname.startsWith("/location-materiel-medical-") ||
     pathname.startsWith("/materiel-") ||
     pathname.startsWith("/produits/") ||
+    pathname.startsWith("/vente-materiel-medical") ||
     pathname.startsWith("/vente-de-materiel-medical");
   const isServices =
     pathname === "/services" || pathname.startsWith("/services/");

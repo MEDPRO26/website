@@ -7,9 +7,11 @@ import {
   PHONE_DISPLAY,
   whatsAppHref,
 } from "@/lib/products";
+import { activeCities } from "@/lib/cities";
 import { careServiceFormOptions } from "@/lib/care-services";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { SuggestableItemField } from "@/components/suggestable-item-field";
+import { cityWhatsAppText } from "@/lib/whatsapp-lines";
 
 function MaterialIcon({
   name,
@@ -25,7 +27,7 @@ function MaterialIcon({
   );
 }
 
-const serviceCities = ["Agadir", "Casablanca", "Rabat"];
+const serviceCities = activeCities.map((city) => city.name);
 
 type CareServiceRequestFormProps = {
   id?: string;
@@ -144,7 +146,12 @@ export function CareServiceRequestForm({
                 href={
                   whatsappHrefProp ??
                   whatsAppHref(
-                    `Bonjour SOS Santé, je souhaite ${defaultCareType.toLowerCase()}${defaultCity ? ` à ${defaultCity}` : ""}.`,
+                    defaultCity
+                      ? cityWhatsAppText(
+                          defaultCity,
+                          `Je souhaite ${defaultCareType.toLowerCase()}.`
+                        )
+                      : `Bonjour SOS Santé, je souhaite ${defaultCareType.toLowerCase()}.`,
                     "garde_soins"
                   )
                 }

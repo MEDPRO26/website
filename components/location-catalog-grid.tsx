@@ -35,7 +35,7 @@ function productHref(
     return locationRentalProductPath(product.slug, citySlug);
   }
   if (linkMode === "produits") {
-    return `/produits/${product.slug}`;
+    return venteProductPath(product.slug, citySlug);
   }
   return venteProductPath(product.slug, citySlug);
 }
@@ -49,7 +49,7 @@ export default function LocationCatalogGrid({
   products: Product[];
   cityName: string;
   citySlug?: CitySlug;
-  /** Location city pages use `/location-materiel-medical-{city}/produits/...`. */
+  /** Location city pages use `/location-materiel-medical-{city}/produits/{slug}-{city}`. */
   linkMode?: "produits" | "vente" | "location";
 }) {
   const [currentPage, setCurrentPage] = useState(1);

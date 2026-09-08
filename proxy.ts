@@ -25,12 +25,16 @@ import {
 } from "@/lib/hosts";
 import {
   LEGACY_VENTE_PAGE_PATH,
+  getCityFromLocationPath,
+  getCityFromVentePath,
+  locationRentalProductPath,
   seoCategoryToCatalogParam,
   venteCategoryPath,
-  venteCityPath,
   venteProductPath,
 } from "@/lib/routes";
 import { isProductLandingSlug } from "@/lib/product-landing-pages";
+import { getLocationRentalProductBySlug } from "@/lib/location-rental-products";
+import { getProductBySlug } from "@/lib/products";
 
 const legacyCategorySlugs = Object.keys(seoCategoryToCatalogParam);
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
@@ -89,10 +93,19 @@ function redirect(request: NextRequest, pathname: string) {
 function handleLegacyRedirects(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname === LEGACY_VENTE_PAGE_PATH) {
-    return redirect(request, venteCityPath(DEFAULT_CITY_SLUG));
+  // Legacy short rental URLs → city-suffixed location product pages.
+  if (pathname.startsWith("/louer/")) {
+    const slug = pathname.replace("/louer/", "").replace(/\/$/, "");
+    if (slug && !slug.includes("/") && getLocationRentalProductBySlug(slug)) {
+      return redirect(
+        request,
+        locationRentalProductPath(slug, DEFAULT_CITY_SLUG)
+      );
+    }
   }
 
+  // National vente pillar lives at LEGACY_VENTE_PAGE_PATH — do not redirect the hub.
+  // Only legacy category paths under it still go to the default city catalogue.
   if (pathname.startsWith(`${LEGACY_VENTE_PAGE_PATH}/`)) {
     const legacyCategory = pathname.slice(LEGACY_VENTE_PAGE_PATH.length + 1);
     if (legacyCategory && categoryParamToValue[legacyCategory]) {
@@ -113,6 +126,49 @@ function handleLegacyRedirects(request: NextRequest) {
     }
   }
 
+  // Legacy city product URLs without `-{city}` suffix → permanent city-suffixed URL.
+  const venteCity = getCityFromVentePath(pathname);
+  if (venteCity) {
+    const productPrefix = `/${venteCity.venteSlug}/produits/`;
+    if (pathname.startsWith(productPrefix)) {
+      const productParam = pathname.slice(productPrefix.length).replace(/\/$/, "");
+      if (productParam && !productParam.includes("/")) {
+        const citySuffix = `-${venteCity.slug}`;
+        if (!productParam.endsWith(citySuffix)) {
+          // Only redirect when the base slug is a known vente product.
+          if (getProductBySlug(productParam)) {
+            return redirect(
+              request,
+              venteProductPath(productParam, venteCity.slug)
+            );
+          }
+        }
+      }
+    }
+  }
+
+  // Legacy location product URLs without `-{city}` suffix → city-suffixed URL.
+  const locationCity = getCityFromLocationPath(pathname);
+  if (locationCity) {
+    const productPrefix = `/${locationCity.locationSlug}/produits/`;
+    if (pathname.startsWith(productPrefix)) {
+      const productParam = pathname
+        .slice(productPrefix.length)
+        .replace(/\/$/, "");
+      if (productParam && !productParam.includes("/")) {
+        const citySuffix = `-${locationCity.slug}`;
+        if (!productParam.endsWith(citySuffix)) {
+          if (getLocationRentalProductBySlug(productParam)) {
+            return redirect(
+              request,
+              locationRentalProductPath(productParam, locationCity.slug)
+            );
+          }
+        }
+      }
+    }
+  }
+
   if (legacyCategorySlugs.includes(pathname.slice(1))) {
     const catalogParam = seoCategoryToCatalogParam[pathname.slice(1)];
     if (catalogParam) {
@@ -128,7 +184,8 @@ function handleLegacyRedirects(request: NextRequest) {
     if (cat !== "all" && categoryParamToValue[cat]) {
       return redirect(request, venteCategoryPath(cat, DEFAULT_CITY_SLUG));
     }
-    return redirect(request, venteCityPath(DEFAULT_CITY_SLUG));
+    // Plain ?cat=all (or unknown): stay on national vente pillar — strip query
+    return redirect(request, LEGACY_VENTE_PAGE_PATH);
   }
 
   return null;

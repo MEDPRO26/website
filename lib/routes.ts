@@ -5,7 +5,7 @@ import {
   type CitySlug,
 } from "@/lib/cities";
 
-export const LEGACY_VENTE_PAGE_PATH = "/vente-de-materiel-medical";
+export const LEGACY_VENTE_PAGE_PATH = "/vente-materiel-medical";
 
 export const seoCategoryToCatalogParam: Record<string, string> = {
   "materiel-mobilite": "mobilier-medical",
@@ -30,11 +30,41 @@ export function venteCategoryPath(
   return `${venteCityPath(citySlug)}/${categoryParam}`;
 }
 
+/** URL segment for a city product page: `{productSlug}-{citySlug}`. */
+export function cityProductUrlSlug(
+  productSlug: string,
+  citySlug: string = DEFAULT_CITY_SLUG
+): string {
+  const suffix = `-${citySlug}`;
+  if (productSlug.endsWith(suffix)) return productSlug;
+  return `${productSlug}${suffix}`;
+}
+
+/**
+ * Catalog product slug from a city product URL param.
+ * Returns null when the param is missing the required `-{city}` suffix.
+ */
+export function parseCityProductUrlSlug(
+  urlSlug: string,
+  citySlug: string
+): string | null {
+  const suffix = `-${citySlug}`;
+  if (!urlSlug.endsWith(suffix)) return null;
+  const baseSlug = urlSlug.slice(0, -suffix.length);
+  return baseSlug.length > 0 ? baseSlug : null;
+}
+
+/** @deprecated Prefer cityProductUrlSlug — same format for vente & location. */
+export const venteProductUrlSlug = cityProductUrlSlug;
+
+/** @deprecated Prefer parseCityProductUrlSlug. */
+export const parseVenteProductUrlSlug = parseCityProductUrlSlug;
+
 export function venteProductPath(
   productSlug: string,
   citySlug: string = DEFAULT_CITY_SLUG
 ): string {
-  return `${venteCityPath(citySlug)}/produits/${productSlug}`;
+  return `${venteCityPath(citySlug)}/produits/${cityProductUrlSlug(productSlug, citySlug)}`;
 }
 
 /** National product landing page (e.g. /inogen-rove-g6). */
@@ -42,12 +72,12 @@ export function nationalProductPath(productSlug: string): string {
   return `/${productSlug}`;
 }
 
-/** Rental product detail: `/location-materiel-medical-{city}/produits/{slug}` */
+/** Rental product detail: `/location-materiel-medical-{city}/produits/{slug}-{city}` */
 export function locationRentalProductPath(
   productSlug: string,
   citySlug: string = DEFAULT_CITY_SLUG
 ): string {
-  return `${locationCityPath(citySlug)}/produits/${productSlug}`;
+  return `${locationCityPath(citySlug)}/produits/${cityProductUrlSlug(productSlug, citySlug)}`;
 }
 
 export function hubCityPath(citySlug: string): string {
@@ -67,6 +97,14 @@ export function getCityFromVentePath(pathname: string) {
     (city) =>
       pathname === `/${city.venteSlug}` ||
       pathname.startsWith(`/${city.venteSlug}/`)
+  );
+}
+
+export function getCityFromLocationPath(pathname: string) {
+  return cities.find(
+    (city) =>
+      pathname === `/${city.locationSlug}` ||
+      pathname.startsWith(`/${city.locationSlug}/`)
   );
 }
 

@@ -285,7 +285,9 @@ export default function ServicesPage() {
               Accompagnement Professionnel
             </div>
             <h1 className="font-heading mb-5 text-3xl font-bold leading-tight tracking-tight text-secondary sm:text-4xl md:text-5xl lg:text-6xl">
-              Services de soins et aide à domicile
+              Services de{" "}
+              <span className="text-primary">soins</span> et{" "}
+              <span className="text-primary">aide</span> à domicile
             </h1>
             <p className="font-body mx-auto mb-8 max-w-2xl text-base leading-relaxed text-on-surface-variant sm:text-lg md:text-xl">
               {SERVICES_HERO_INTRO}

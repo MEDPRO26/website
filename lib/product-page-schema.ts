@@ -1,30 +1,53 @@
-import { categoryParamFromValue } from "@/lib/catalog-categories";
 import { getCityBySlug, type CitySlug } from "@/lib/cities";
+import { VENTE_MAROC_PATH } from "@/lib/national-pillars";
 import type { Product } from "@/lib/product-types";
 import { resolveRelatedProducts } from "@/lib/related-products";
-import { hubCityPath, venteCategoryPath, venteProductPath } from "@/lib/routes";
+import { venteCityPath, venteProductPath } from "@/lib/routes";
 import { productPageGraph } from "@/lib/schema";
+import {
+  formatVenteProductBreadcrumbLabel,
+  formatVenteProductMetaDescription,
+  formatVenteProductMetaTitle,
+  getVenteProductFaqs,
+} from "@/lib/vente-product-seo";
 
 export function buildProductPageSchema(product: Product, citySlug: CitySlug) {
   const city = getCityBySlug(citySlug)!;
   const productPath = venteProductPath(product.slug, citySlug);
-  const hubPath = hubCityPath(citySlug);
-  const hubLabel = `Location et vente de matériel médical à ${city.name}`;
-  const categoryParam = categoryParamFromValue(product.category);
-  const categoryCrumb = categoryParam
-    ? {
-        label: product.category,
-        path: venteCategoryPath(categoryParam, citySlug),
-      }
-    : undefined;
+  const cityVentePath = venteCityPath(citySlug);
+  const title = formatVenteProductMetaTitle(product.name, citySlug);
+  const description = formatVenteProductMetaDescription(
+    product.name,
+    citySlug
+  );
+  const productCrumbLabel = formatVenteProductBreadcrumbLabel(
+    product.shortName,
+    citySlug
+  );
 
   return productPageGraph(
     product,
     productPath,
-    hubPath,
-    hubLabel,
+    [
+      {
+        label: "Vente matériel médical Maroc",
+        path: VENTE_MAROC_PATH,
+      },
+      {
+        label: `Vente matériel médical ${city.name}`,
+        path: cityVentePath,
+      },
+      {
+        label: productCrumbLabel,
+        path: productPath,
+      },
+    ],
     resolveRelatedProducts(product),
     (relatedSlug) => venteProductPath(relatedSlug, citySlug),
-    categoryCrumb
+    {
+      title,
+      description,
+      faqs: getVenteProductFaqs(product.name, citySlug),
+    }
   );
 }

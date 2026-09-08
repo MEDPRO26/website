@@ -19,7 +19,7 @@ import {
 import type { CareServicePageContent } from "@/lib/care-services";
 import { getCityBySlug } from "@/lib/cities";
 import { hubCityPath } from "@/lib/routes";
-import { cityWhatsAppHref } from "@/lib/whatsapp-lines";
+import { cityWhatsAppHref, cityWhatsAppText } from "@/lib/whatsapp-lines";
 import {
   breadcrumbSchema,
   buildGraph,
@@ -137,7 +137,10 @@ export function CareServiceCityPage({
     city.contactReady && city.phoneDisplay
       ? city.phoneDisplay
       : "06 07 34 73 28";
-  const whatsappText = `Bonjour SOS Santé, je souhaite ${content.formLabel.toLowerCase()} à ${content.cityName}.`;
+  const whatsappText = cityWhatsAppText(
+    content.cityName,
+    `Je souhaite ${content.formLabel.toLowerCase()}.`
+  );
   const whatsappHref = cityWhatsAppHref(city, whatsappText, "garde_soins");
 
   const schema = buildGraph(

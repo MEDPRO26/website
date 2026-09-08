@@ -9,18 +9,28 @@ import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { useSubmitLead } from "@/hooks/use-submit-lead";
 import {
-  activeDeliveryCityLabel,
   activeDeliveryCities,
 } from "@/lib/delivery-cities";
 import { getCityBySlug, DEFAULT_CITY_SLUG, type CitySlug } from "@/lib/cities";
-import { formatProductLocationHeading } from "@/lib/french";
+import { LOCATION_PILLAR_PATH } from "@/lib/pillar-pages";
+import {
+  formatLocationProductAvailabilityCta,
+  formatLocationProductBreadcrumbLabel,
+  formatLocationProductCta,
+  formatLocationProductH1,
+  formatLocationProductIntro,
+  formatLocationProductZonesLine,
+  getLocationProductFaqs,
+  getLocationProductTrustSignals,
+  isSensitiveLocationProduct,
+} from "@/lib/location-product-seo";
 import { getLocationRentalProducts, LOCATION_PRICE_LABEL } from "@/lib/location-rental-products";
 import type { Product } from "@/lib/products";
 import {
   locationCityPath,
   locationRentalProductPath,
 } from "@/lib/routes";
-import { cityWhatsAppHref } from "@/lib/whatsapp-lines";
+import { cityWhatsAppHref, cityWhatsAppText } from "@/lib/whatsapp-lines";
 
 function MaterialIcon({
   name,
@@ -53,9 +63,24 @@ export default function LocationProductDetail({
   const city = getCityBySlug(citySlug)!;
   const pathname = usePathname();
   const catalogPath = locationCityPath(citySlug);
+  const productCrumbLabel = formatLocationProductBreadcrumbLabel(
+    product.shortName,
+    citySlug
+  );
+  const localIntro = formatLocationProductIntro(product.name, citySlug);
+  const zonesLine = formatLocationProductZonesLine(citySlug);
+  const ctaLabel = formatLocationProductCta(citySlug);
+  const availabilityCtaLabel =
+    formatLocationProductAvailabilityCta(citySlug);
+  const faqs = getLocationProductFaqs(product.name, citySlug);
+  const trustSignals = getLocationProductTrustSignals(citySlug);
+  const sensitiveNote = isSensitiveLocationProduct(product)
+    ? " Utilisation d'oxygène et matériel respiratoire selon recommandation médicale."
+    : "";
   const { submit, isSubmitting, error: submitError } = useSubmitLead();
   const gallery = product.gallery ?? [product.image];
   const [activeImage, setActiveImage] = useState(0);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [formStatus, setFormStatus] = useState<"idle" | "success" | "error">(
     "idle"
   );
@@ -139,7 +164,10 @@ export default function LocationProductDetail({
     }
   };
 
-  const whatsappText = `Bonjour SOS Santé, je souhaite louer un ${product.name} à ${formData.deliveryCity}.`;
+  const whatsappText = cityWhatsAppText(
+    city.name,
+    `Je souhaite louer un ${product.name}.`
+  );
 
   return (
     <>
@@ -167,16 +195,25 @@ export default function LocationProductDetail({
               <li className="flex items-center gap-2">
                 <MaterialIcon name="chevron_right" className="text-sm" />
                 <Link
+                  href={LOCATION_PILLAR_PATH}
+                  className="transition-colors hover:text-primary"
+                >
+                  Location matériel médical Maroc
+                </Link>
+              </li>
+              <li className="flex items-center gap-2">
+                <MaterialIcon name="chevron_right" className="text-sm" />
+                <Link
                   href={catalogPath}
                   className="transition-colors hover:text-primary"
                 >
-                  Location à {city.name}
+                  Location matériel médical {city.name}
                 </Link>
               </li>
               <li className="flex items-center gap-2">
                 <MaterialIcon name="chevron_right" className="text-sm" />
                 <span className="font-semibold text-primary">
-                  {product.shortName}
+                  {productCrumbLabel}
                 </span>
               </li>
             </ol>
@@ -199,16 +236,20 @@ export default function LocationProductDetail({
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-status-success opacity-75" />
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-status-success" />
                   </span>
-                  Livraison : {activeDeliveryCityLabel}
+                  Selon disponibilité : {city.name}
                 </span>
               </div>
               <h1 className="font-heading text-3xl font-bold leading-tight text-on-surface sm:text-4xl md:text-5xl">
-                {formatProductLocationHeading(
-                  product.name,
-                  formData.deliveryCity
-                )}
+                {formatLocationProductH1(product.name, citySlug)}
               </h1>
               <p className="mt-3 text-base leading-relaxed text-on-surface-variant sm:text-lg">
+                {localIntro}
+                {sensitiveNote}
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-on-surface-variant sm:text-base">
+                {zonesLine}
+              </p>
+              <p className="mt-3 text-base leading-relaxed text-on-surface-variant">
                 {product.tagline}
               </p>
             </div>
@@ -330,8 +371,9 @@ export default function LocationProductDetail({
                         {LOCATION_PRICE_LABEL}
                       </p>
                       <p className="mt-2 text-sm leading-relaxed text-on-surface-variant sm:text-base">
-                        Renseignez vos besoins, un conseiller vous rappelle pour
-                        finaliser votre location.
+                        Indiquez vos besoins à {city.name} : nous vérifions la
+                        disponibilité auprès de fournisseurs partenaires et vous
+                        orientons pour le devis de location.
                       </p>
                     </div>
 
@@ -344,8 +386,8 @@ export default function LocationProductDetail({
                           Demande envoyée !
                         </h3>
                         <p className="mb-4 text-sm text-on-surface-variant">
-                          Un conseiller vous rappelle sous 15 minutes pour
-                          finaliser votre location.
+                          Un conseiller vous rappelle rapidement pour préciser
+                          la location à {city.name} selon disponibilité.
                         </p>
                         <button
                           type="button"
@@ -510,7 +552,7 @@ export default function LocationProductDetail({
                         >
                           {isSubmitting
                             ? "Envoi en cours…"
-                            : "Demander un devis de location"}
+                            : ctaLabel}
                         </button>
                       </form>
                     )}
@@ -521,10 +563,10 @@ export default function LocationProductDetail({
                       </div>
                       <div>
                         <p className="text-sm font-bold text-primary">
-                          Conseil gratuit
+                          {availabilityCtaLabel}
                         </p>
                         <p className="text-xs text-on-surface-variant">
-                          Un spécialiste vous rappelle en 15 min
+                          Coordination et orientation selon disponibilité
                         </p>
                       </div>
                     </div>
@@ -638,31 +680,10 @@ export default function LocationProductDetail({
               {/* Trust signals */}
               <section className="mt-10 sm:mt-12">
                 <h2 className="font-heading mb-6 text-xl font-semibold text-primary sm:text-2xl">
-                  Pourquoi louer chez SOS Santé ?
+                  Pourquoi louer avec SOS Santé à {city.name} ?
                 </h2>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {[
-                    {
-                      icon: "local_shipping",
-                      title: "Livraison & installation",
-                      text: "Nos techniciens livrent et installent le matériel chez vous.",
-                    },
-                    {
-                      icon: "cleaning_services",
-                      title: "Matériel contrôlé",
-                      text: "Chaque équipement est vérifié, entretenu et désinfecté avant location.",
-                    },
-                    {
-                      icon: "support_agent",
-                      title: "Assistance 7j/7",
-                      text: "Une équipe disponible pour répondre à vos questions.",
-                    },
-                    {
-                      icon: "event_repeat",
-                      title: "Location flexible",
-                      text: "Durée adaptée à votre besoin, avec récupération en fin de période.",
-                    },
-                  ].map((item) => (
+                  {trustSignals.map((item) => (
                     <div
                       key={item.title}
                       className="flex items-start gap-4 rounded-2xl border border-surface-container-high bg-white p-4 shadow-sm sm:p-5"
@@ -684,6 +705,69 @@ export default function LocationProductDetail({
               </section>
             </div>
           </div>
+
+          <section className="mt-12 sm:mt-14">
+            <h2 className="font-heading mb-4 text-xl font-semibold text-primary sm:text-2xl">
+              Continuer votre recherche
+            </h2>
+            <ul className="flex flex-col gap-2 text-sm text-on-surface-variant sm:text-base">
+              <li>
+                <Link
+                  href={LOCATION_PILLAR_PATH}
+                  className="font-medium text-primary underline-offset-2 hover:underline"
+                >
+                  Location matériel médical Maroc
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={catalogPath}
+                  className="font-medium text-primary underline-offset-2 hover:underline"
+                >
+                  Location matériel médical {city.name}
+                </Link>
+              </li>
+            </ul>
+          </section>
+
+          <section id="faq" className="mt-12 sm:mt-14">
+            <h2 className="font-heading mb-6 text-xl font-semibold text-primary sm:text-2xl">
+              Questions fréquentes - location {city.name}
+            </h2>
+            <div className="space-y-3">
+              {faqs.map((faq, index) => {
+                const isOpen = openFaqIndex === index;
+                return (
+                  <article
+                    key={faq.question}
+                    className="overflow-hidden rounded-2xl border border-outline-variant/30 bg-white shadow-sm"
+                  >
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setOpenFaqIndex(isOpen ? null : index)
+                      }
+                      className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+                      aria-expanded={isOpen}
+                    >
+                      <span className="font-heading text-sm font-semibold text-on-surface sm:text-base">
+                        {faq.question}
+                      </span>
+                      <MaterialIcon
+                        name={isOpen ? "expand_less" : "expand_more"}
+                        className="shrink-0 text-primary"
+                      />
+                    </button>
+                    {isOpen ? (
+                      <p className="border-t border-outline-variant/20 px-5 py-4 text-sm leading-relaxed text-on-surface-variant sm:text-base">
+                        {faq.answer}
+                      </p>
+                    ) : null}
+                  </article>
+                );
+              })}
+            </div>
+          </section>
 
           {related.length > 0 && (
             <section className="mt-14 border-t border-outline-variant/40 pt-12">

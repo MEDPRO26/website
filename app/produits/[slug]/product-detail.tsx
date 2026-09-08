@@ -13,17 +13,31 @@ import CityLinks from "@/components/city-links";
 import { categoryParamFromValue } from "@/lib/catalog-categories";
 import { useSubmitLead } from "@/hooks/use-submit-lead";
 import {
-  activeDeliveryCityLabel,
   activeDeliveryCities,
 } from "@/lib/delivery-cities";
 import { getCityBySlug, DEFAULT_CITY_SLUG, type CitySlug } from "@/lib/cities";
-import { formatProductAchatHeading } from "@/lib/french";
-import { venteCityPath, venteCategoryPath, venteProductPath, hubCityPath } from "@/lib/routes";
+import { VENTE_MAROC_PATH } from "@/lib/national-pillars";
+import {
+  venteCityPath,
+  venteCategoryPath,
+  venteProductPath,
+} from "@/lib/routes";
 import {
   PRICE_ON_REQUEST,
   type Product,
 } from "@/lib/products";
-import { cityWhatsAppHref } from "@/lib/whatsapp-lines";
+import {
+  formatVenteProductAvailabilityCta,
+  formatVenteProductBreadcrumbLabel,
+  formatVenteProductCta,
+  formatVenteProductH1,
+  formatVenteProductIntro,
+  formatVenteProductZonesLine,
+  getVenteProductFaqs,
+  getVenteProductTrustSignals,
+  isSensitiveVenteProduct,
+} from "@/lib/vente-product-seo";
+import { cityWhatsAppHref, cityWhatsAppText } from "@/lib/whatsapp-lines";
 
 function MaterialIcon({
   name,
@@ -56,14 +70,26 @@ export default function ProductDetail({
   const city = getCityBySlug(citySlug)!;
   const pathname = usePathname();
   const catalogPath = venteCityPath(citySlug);
-  const hubPath = hubCityPath(citySlug);
   const categoryParam = categoryParamFromValue(product.category);
   const categoryPath = categoryParam
     ? venteCategoryPath(categoryParam, citySlug)
     : catalogPath;
+  const productCrumbLabel = formatVenteProductBreadcrumbLabel(
+    product.shortName,
+    citySlug
+  );
+  const localIntro = formatVenteProductIntro(product.name, citySlug, {
+    sensitive: isSensitiveVenteProduct(product),
+  });
+  const zonesLine = formatVenteProductZonesLine(citySlug);
+  const ctaLabel = formatVenteProductCta(citySlug);
+  const availabilityCtaLabel = formatVenteProductAvailabilityCta(citySlug);
+  const faqs = getVenteProductFaqs(product.name, citySlug);
+  const trustSignals = getVenteProductTrustSignals(citySlug);
   const { submit, isSubmitting, error: submitError } = useSubmitLead();
   const gallery = product.gallery ?? [product.image];
   const [activeImage, setActiveImage] = useState(0);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [formStatus, setFormStatus] = useState<"idle" | "success" | "error">(
     "idle"
   );
@@ -143,7 +169,10 @@ export default function ProductDetail({
     }
   };
 
-  const whatsappText = `Bonjour SOS Santé, je souhaite acheter un ${product.name} à ${formData.deliveryCity}.`;
+  const whatsappText = cityWhatsAppText(
+    city.name,
+    `Je souhaite acheter un ${product.name}.`
+  );
 
   return (
     <>
@@ -171,25 +200,25 @@ export default function ProductDetail({
               <li className="flex items-center gap-2">
                 <MaterialIcon name="chevron_right" className="text-sm" />
                 <Link
-                  href={hubPath}
+                  href={VENTE_MAROC_PATH}
                   className="transition-colors hover:text-primary"
                 >
-                  Location et vente à {city.name}
+                  Vente matériel médical Maroc
                 </Link>
               </li>
               <li className="flex items-center gap-2">
                 <MaterialIcon name="chevron_right" className="text-sm" />
                 <Link
-                  href={categoryPath}
+                  href={catalogPath}
                   className="transition-colors hover:text-primary"
                 >
-                  {product.category}
+                  Vente matériel médical {city.name}
                 </Link>
               </li>
               <li className="flex items-center gap-2">
                 <MaterialIcon name="chevron_right" className="text-sm" />
                 <span className="font-semibold text-primary">
-                  {product.shortName}
+                  {productCrumbLabel}
                 </span>
               </li>
             </ol>
@@ -212,16 +241,19 @@ export default function ProductDetail({
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-status-success opacity-75" />
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-status-success" />
                   </span>
-                  Livraison : {activeDeliveryCityLabel}
+                  Selon disponibilité : {city.name}
                 </span>
               </div>
               <h1 className="font-heading text-3xl font-bold leading-tight text-on-surface sm:text-4xl md:text-5xl">
-                {formatProductAchatHeading(
-                  product.name,
-                  formData.deliveryCity
-                )}
+                {formatVenteProductH1(product.name, citySlug)}
               </h1>
               <p className="mt-3 text-base leading-relaxed text-on-surface-variant sm:text-lg">
+                {localIntro}
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-on-surface-variant sm:text-base">
+                {zonesLine}
+              </p>
+              <p className="mt-3 text-base leading-relaxed text-on-surface-variant">
                 {product.tagline}
               </p>
             </div>
@@ -343,8 +375,9 @@ export default function ProductDetail({
                         {PRICE_ON_REQUEST}
                       </p>
                       <p className="mt-2 text-sm leading-relaxed text-on-surface-variant sm:text-base">
-                        Renseignez vos besoins, un conseiller vous rappelle pour
-                        finaliser votre achat.
+                        Indiquez vos besoins : nous vérifions la disponibilité à{" "}
+                        {city.name} auprès de fournisseurs partenaires et vous
+                        orientons pour le devis.
                       </p>
                     </div>
 
@@ -523,7 +556,7 @@ export default function ProductDetail({
                         >
                           {isSubmitting
                             ? "Envoi en cours…"
-                            : "Demander un devis d'achat"}
+                            : ctaLabel}
                         </button>
                       </form>
                     )}
@@ -534,10 +567,10 @@ export default function ProductDetail({
                       </div>
                       <div>
                         <p className="text-sm font-bold text-primary">
-                          Conseil gratuit
+                          {availabilityCtaLabel}
                         </p>
                         <p className="text-xs text-on-surface-variant">
-                          Un spécialiste vous rappelle en 15 min
+                          Coordination et orientation selon disponibilité
                         </p>
                       </div>
                     </div>
@@ -651,31 +684,10 @@ export default function ProductDetail({
               {/* Trust signals */}
               <section className="mt-10 sm:mt-12">
                 <h2 className="font-heading mb-6 text-xl font-semibold text-primary sm:text-2xl">
-                  Pourquoi acheter chez SOS Santé ?
+                  Pourquoi acheter chez SOS Santé à {city.name} ?
                 </h2>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {[
-                    {
-                      icon: "local_shipping",
-                      title: "Livraison & installation",
-                      text: "Nos techniciens livrent et installent le matériel chez vous.",
-                    },
-                    {
-                      icon: "cleaning_services",
-                      title: "Matériel contrôlé",
-                      text: "Matériel neuf ou reconditionné, contrôlé et certifié.",
-                    },
-                    {
-                      icon: "support_agent",
-                      title: "Assistance 7j/7",
-                      text: "Une équipe disponible pour répondre à vos questions.",
-                    },
-                    {
-                      icon: "verified",
-                      title: "Matériel certifié",
-                      text: "Équipements contrôlés et conformes aux normes médicales.",
-                    },
-                  ].map((item) => (
+                  {trustSignals.map((item) => (
                     <div
                       key={item.title}
                       className="flex items-start gap-4 rounded-2xl border border-surface-container-high bg-white p-4 shadow-sm sm:p-5"
@@ -698,13 +710,90 @@ export default function ProductDetail({
             </div>
           </div>
 
+          <section className="mt-12 sm:mt-14">
+            <h2 className="font-heading mb-4 text-xl font-semibold text-primary sm:text-2xl">
+              Continuer votre recherche
+            </h2>
+            <ul className="flex flex-col gap-2 text-sm text-on-surface-variant sm:text-base">
+              <li>
+                <Link
+                  href={VENTE_MAROC_PATH}
+                  className="font-medium text-primary underline-offset-2 hover:underline"
+                >
+                  Vente matériel médical Maroc
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={catalogPath}
+                  className="font-medium text-primary underline-offset-2 hover:underline"
+                >
+                  Vente matériel médical {city.name}
+                </Link>
+              </li>
+              {categoryParam ? (
+                <li>
+                  <Link
+                    href={categoryPath}
+                    className="font-medium text-primary underline-offset-2 hover:underline"
+                  >
+                    {product.category} à {city.name}
+                  </Link>
+                </li>
+              ) : null}
+            </ul>
+          </section>
+
+          <section id="faq" className="mt-12 sm:mt-14">
+            <h2 className="font-heading mb-6 text-xl font-semibold text-primary sm:text-2xl">
+              Questions fréquentes - {city.name}
+            </h2>
+            <div className="space-y-3">
+              {faqs.map((faq, index) => {
+                const isOpen = openFaqIndex === index;
+                return (
+                  <article
+                    key={faq.question}
+                    className="overflow-hidden rounded-2xl border border-outline-variant/30 bg-white shadow-sm"
+                  >
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setOpenFaqIndex(isOpen ? null : index)
+                      }
+                      className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+                      aria-expanded={isOpen}
+                    >
+                      <span className="font-heading text-sm font-semibold text-on-surface sm:text-base">
+                        {faq.question}
+                      </span>
+                      <MaterialIcon
+                        name={isOpen ? "expand_less" : "expand_more"}
+                        className="shrink-0 text-primary"
+                      />
+                    </button>
+                    {isOpen ? (
+                      <p className="border-t border-outline-variant/20 px-5 py-4 text-sm leading-relaxed text-on-surface-variant sm:text-base">
+                        {faq.answer}
+                      </p>
+                    ) : null}
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+
           <ProductGuideLinks productSlug={product.slug} />
           <RelatedProducts
             currentSlug={product.slug}
             category={product.category}
             citySlug={citySlug}
           />
-          <CityLinks title="Livraison de ce matériel dans d'autres villes" />
+          <CityLinks
+            title="Ce produit dans d'autres villes"
+            excludeHubSlug={city.hubSlug}
+            productSlug={product.slug}
+          />
         </div>
       </main>
 

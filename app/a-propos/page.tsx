@@ -256,6 +256,22 @@ export default function AboutPage() {
                   en vigueur.
                 </p>
                 <ul className="space-y-2">
+                  <li>
+                    <Link
+                      href="/location-materiel-medical"
+                      className="font-heading text-sm font-semibold text-primary transition-colors hover:text-primary-container"
+                    >
+                      Location de matériel médical au Maroc
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/livraison-materiel-medical-domicile"
+                      className="font-heading text-sm font-semibold text-primary transition-colors hover:text-primary-container"
+                    >
+                      Livraison à domicile
+                    </Link>
+                  </li>
                   {activeCities.map((city) => (
                     <li key={city.slug}>
                       <Link

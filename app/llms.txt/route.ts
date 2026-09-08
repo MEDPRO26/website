@@ -41,6 +41,15 @@ ${ABOUT_ROLE}
 ## Pages essentielles
 
 - [À propos de nous](${siteUrl}${ABOUT_PATH})
+- [Location de matériel médical au Maroc](${siteUrl}/location-materiel-medical)
+- [Livraison de matériel médical à domicile](${siteUrl}/livraison-materiel-medical-domicile)
+- [Vente de matériel médical au Maroc](${siteUrl}/vente-materiel-medical)
+- [Matériel respiratoire au Maroc](${siteUrl}/materiel-respiratoire-maroc)
+- [Matériel mobilité au Maroc](${siteUrl}/materiel-mobilite-maroc)
+- [Matériel confort au Maroc](${siteUrl}/materiel-confort-maroc)
+- [Aide à domicile et garde-malade](${siteUrl}/aide-a-domicile)
+- [Soins à domicile au Maroc](${siteUrl}/soins-a-domicile)
+- [Matériel médical par ville](${siteUrl}/materiel-medical-par-ville)
 - [Services de soins à domicile](${siteUrl}/services)
 - [Contact](${siteUrl}/contact)
 - [Mentions légales](${siteUrl}/mentions-legales)

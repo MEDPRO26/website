@@ -230,23 +230,83 @@ Chaque référence est proposée sur devis. Contactez-nous pour connaître la di
 
 export const seoCities: SeoCity[] = [
   {
+    slug: "location-materiel-medical-agadir",
+    name: "Agadir",
+    region: "Souss-Massa",
+    title: "Location de matériel médical à Agadir",
+    description:
+      "Location de matériel médical à Agadir et dans la région Souss-Massa. Lits, fauteuils roulants, oxygène, matelas anti-escarres. Livraison et installation depuis notre local.",
+    longDescription: `SOS Santé organise la location de matériel médical à Agadir depuis son local (Lerac, Avenue Abderrahim Bouabid). Nous desservons Agadir, Dcheira, Inezgane, Aït Melloul, Anza, Taghazout et les environs. Le matériel est préparé sur place, puis livré et installé à domicile selon le créneau confirmé.
+
+Notre catalogue couvre le confort (lits médicalisés électriques, matelas anti-escarres), la mobilité (fauteuils roulants, lève-personne, déambulateurs) et le respiratoire (concentrateurs d'oxygène, CPAP selon disponibilité). Chaque demande est qualifiée : ville, quartier, type d'équipement et délai.
+
+Nous ne sommes ni un hôpital ni un service d'urgence. Nous facilitons l'accès au matériel adapté et pouvons coordonner une mise en relation avec des prestataires partenaires pour les soins à domicile. En urgence vitale, composez les numéros d'urgence officiels.
+
+Que vous soyez en post-opératoire, en convalescence ou en situation de dépendance, un conseiller vous aide à choisir le matériel et reste disponible pendant toute la durée de la location.`,
+    metaTitle:
+      "Location matériel médical Agadir | Livraison & installation incluses",
+    metaDescription:
+      "Louez du matériel médical à Agadir : lit médicalisé, fauteuil roulant, oxygène, matelas anti-escarres. Livraison et installation à domicile. Devis 15 min.",
+    keywords: [
+      "location matériel médical Agadir",
+      "lit médicalisé Agadir",
+      "fauteuil roulant Agadir",
+      "concentrateur oxygène Agadir",
+      "matelas anti escarres Agadir",
+    ],
+    deliveryText:
+      "Livraison et installation incluses à Agadir et environs. Délai sous 24h selon stock.",
+    faqs: [
+      {
+        question: "Livrez-vous dans tous les quartiers d'Agadir ?",
+        answer:
+          "Oui : Agadir, Dcheira, Inezgane, Aït Melloul, Anza, Taghazout et environs. La livraison et l'installation sont organisées depuis notre local Agadir selon disponibilité.",
+      },
+      {
+        question: "Quel est le délai de livraison à Agadir ?",
+        answer:
+          "Souvent le jour même ou sous 24h selon le stock et votre quartier. Un conseiller confirme un créneau réaliste au moment de la demande.",
+      },
+      {
+        question: "Proposez-vous une location longue durée à Agadir ?",
+        answer:
+          "Oui. Nous adaptons la durée (semaine ou mois) et pouvons prolonger selon disponibilité. Demandez un devis selon la durée souhaitée.",
+      },
+      {
+        question: "Faut-il une ordonnance pour louer un concentrateur d'oxygène ?",
+        answer:
+          "Le matériel respiratoire s'inscrit généralement dans un parcours prescrit par un professionnel de santé. SOS Santé oriente et livre selon disponibilité ; nous ne remplaçons pas l'avis médical.",
+      },
+      {
+        question: "SOS Santé Agadir est-il un hôpital ?",
+        answer:
+          "Non. Nous préparons et livrons du matériel médical depuis notre local, et pouvons coordonner une mise en relation avec des prestataires partenaires pour les soins.",
+      },
+    ],
+  },
+  {
     slug: "location-materiel-medical-casablanca",
     name: "Casablanca",
     region: "Casablanca-Settat",
     title: "Location de matériel médical à Casablanca",
     description:
-      "Louez du matériel médical à Casablanca avec livraison à domicile. Lits médicalisés, fauteuils roulants, oxygène médical et plus encore.",
-    longDescription: `SOS Santé étend son service de location de matériel médical à Casablanca et sa région. Que vous soyez à Bourgogne, Anfa, Ain Diab, Sidi Maarouf ou ailleurs dans la métropole, nous livrons et installons le matériel nécessaire au maintien à domicile.
+      "Louez du matériel médical à Casablanca avec livraison à domicile depuis notre local Boulevard Anoual. Lits médicalisés, fauteuils, oxygène et confort.",
+    longDescription: `SOS Santé Casablanca organise la location de matériel médical depuis son local du Boulevard Anoual. Que vous soyez à Bourgogne, Anfa, Ain Diab, Maarif, Sidi Maarouf, Hay Hassani, Californie ou ailleurs dans la métropole, nous planifions la livraison et l'installation selon le matériel et le créneau confirmé.
 
-Nos délais de livraison à Casablanca sont généralement de 24 à 48 heures selon la disponibilité du matériel. Chaque équipement est contrôlé, nettoyé et désinfecté avant expédition. Contactez-nous pour un devis personnalisé et une mise à disposition rapide.`,
+Les délais sont généralement de 24 à 48 heures selon la disponibilité. Le matériel est contrôlé et préparé avant tournée. Pour accélérer la réponse, indiquez le quartier, l'étage / accès et le type d'équipement (lit médicalisé, fauteuil, concentrateur d'oxygène, lève-personne…).
+
+Nous restons une entreprise de matériel et de coordination : pas un hôpital, pas un cabinet médical, pas un SAMU. Pour les soins (infirmier, kiné, médecin), nous pouvons mettre en relation avec des prestataires partenaires ; le prestataire reste responsable de sa prestation.
+
+Contactez-nous sur WhatsApp ou par téléphone pour un devis transparent avant confirmation.`,
     metaTitle: "Location matériel médical Casablanca | Livraison à domicile",
     metaDescription:
-      "Louez du matériel médical à Casablanca : lit médicalisé, fauteuil roulant, concentrateur d'oxygène. Livraison et installation à domicile. Devis 15 min.",
+      "Louez du matériel médical à Casablanca : lit médicalisé, fauteuil roulant, concentrateur d'oxygène. Local Boulevard Anoual. Livraison et installation. Devis 15 min.",
     keywords: [
       "location matériel médical Casablanca",
       "lit médicalisé Casablanca",
       "fauteuil roulant Casablanca",
       "concentrateur oxygène Casablanca",
+      "location lit médicalisé Casa",
     ],
     deliveryText:
       "Livraison 24-48h à Casablanca et sa métropole. Frais de transport selon distance.",
@@ -254,12 +314,27 @@ Nos délais de livraison à Casablanca sont généralement de 24 à 48 heures se
       {
         question: "Livrez-vous du matériel médical à Casablanca ?",
         answer:
-          "Oui, nous livrons à Casablanca et dans les communes environnantes. Les délais sont de 24 à 48h selon le matériel choisi.",
+          "Oui, depuis notre local Boulevard Anoual vers Casablanca et les communes environnantes. Les délais sont souvent de 24 à 48h selon le matériel et la zone.",
+      },
+      {
+        question: "Où se trouve SOS Santé Casablanca ?",
+        answer:
+          "Notre local est situé Boulevard Anoual, Casablanca 20102. C'est là que le matériel est préparé avant livraison à domicile.",
       },
       {
         question: "Quels sont les frais de livraison à Casablanca ?",
         answer:
-          "Les frais de livraison à Casablanca dépendent de la zone exacte. Nous vous communiquons un devis transparent avant toute confirmation.",
+          "Ils dépendent de la zone exacte. Nous communiquons un devis transparent avant toute confirmation.",
+      },
+      {
+        question: "Installez-vous le lit médicalisé à domicile ?",
+        answer:
+          "Oui, selon le service confirmé : montage, positionnement dans la chambre et démonstration des réglages de base.",
+      },
+      {
+        question: "Puis-je prolonger une location à Casablanca ?",
+        answer:
+          "Oui, selon disponibilité. Prévenez-nous avant la date de fin pour organiser la prolongation ou la récupération.",
       },
     ],
   },
@@ -303,18 +378,21 @@ Nos équipements sont livrés dans des délais courts et installés par nos soin
     region: "Rabat-Salé-Kénitra",
     title: "Location de matériel médical à Rabat",
     description:
-      "Location de matériel médical à Rabat et Salé. Livraison à domicile de matériel de confort, mobilité et respiratoire.",
-    longDescription: `SOS Santé propose la location de matériel médical à Rabat, Salé, Temara et les communes avoisinantes. Notre service s’adresse aux familles, aux aidants et aux structures de soins qui recherchent un équipement fiable pour le maintien à domicile.
+      "Location de matériel médical à Rabat, Salé et Témara. Livraison à domicile de matériel de confort, mobilité et respiratoire.",
+    longDescription: `SOS Santé organise la location de matériel médical à Rabat, Salé, Témara et les communes avoisinantes. Le service s'adresse aux familles et aux aidants qui ont besoin d'un équipement fiable pour le maintien à domicile après une hospitalisation, une convalescence ou pour le quotidien d'une personne dépendante.
 
-Nous assurons la livraison, l’installation et la récupération du matériel à Rabat. Tous nos produits sont vérifiés et désinfectés selon les normes en vigueur. Demandez votre devis gratuit et recevez une réponse sous 15 minutes.`,
+Nous assurons la livraison, l'installation selon l'équipement et la récupération en fin de location. Indiquez votre quartier (Hay Riad, Agdal, Souissi, Hassan, Salé, Témara…) pour confirmer un délai réaliste, souvent sous 24 à 48 heures selon le stock.
+
+Comme pour Agadir et Casablanca, SOS Santé n'est pas un hôpital ni un service d'urgence : nous préparons et livrons le matériel, et pouvons coordonner une mise en relation avec des prestataires partenaires pour les soins. Demandez votre devis gratuit : un conseiller répond en général rapidement.`,
     metaTitle: "Location matériel médical Rabat | Livraison Rabat-Salé",
     metaDescription:
-      "Louez du matériel médical à Rabat et Salé. Lits, fauteuils roulants, oxygène. Livraison et installation à domicile. Devis rapide.",
+      "Louez du matériel médical à Rabat et Salé. Lits, fauteuils roulants, oxygène. Livraison et installation à domicile. Devis rapide WhatsApp.",
     keywords: [
       "location matériel médical Rabat",
       "lit médicalisé Rabat",
       "fauteuil roulant Rabat",
       "location oxygène Rabat",
+      "location matériel médical Salé",
     ],
     deliveryText:
       "Livraison à Rabat, Salé, Temara et environs sous 24-48h.",
@@ -322,12 +400,27 @@ Nous assurons la livraison, l’installation et la récupération du matériel �
       {
         question: "Livrez-vous à Salé et Temara depuis Rabat ?",
         answer:
-          "Oui, nous assurons la livraison à Rabat, Salé, Temara et les communes avoisinantes avec un service rapide et fiable.",
+          "Oui : Rabat, Salé, Témara et communes avoisinantes. Confirmez le quartier pour un créneau précis.",
       },
       {
         question: "Puis-je louer du matériel médical à Rabat pour une courte durée ?",
         answer:
-          "Oui, nous proposons des locations à la semaine ou au mois à Rabat. La durée minimale dépend du matériel choisi.",
+          "Oui, location à la semaine ou au mois selon le matériel. La durée minimale dépend de l'équipement choisi.",
+      },
+      {
+        question: "Quels équipements sont disponibles à Rabat ?",
+        answer:
+          "Selon disponibilité : lit médicalisé, fauteuil roulant, lève-personne, concentrateur d'oxygène, matelas anti-escarres et accessoires de confort.",
+      },
+      {
+        question: "Comment obtenir un devis à Rabat ?",
+        answer:
+          "WhatsApp ou téléphone : précisez la ville, le quartier et le matériel. Un conseiller confirme disponibilité, tarif et délai.",
+      },
+      {
+        question: "SOS Santé remplace-t-il un avis médical ?",
+        answer:
+          "Non. Nous orientons sur le matériel et la logistique. Pour l'oxygène ou tout besoin clinique, suivez les consignes de votre professionnel de santé.",
       },
     ],
   },
@@ -366,28 +459,9 @@ Notre catalogue comprend des lits médicalisés, fauteuils roulants, concentrate
   },
 ];
 
+/** @deprecated Prefer getCityBySlug("location-materiel-medical-agadir") */
 export const agadirHub = {
-  slug: "location-materiel-medical-agadir",
-  name: "Agadir",
-  title: "Location de matériel médical à Agadir",
-  description:
-    "Location de matériel médical à Agadir et dans la région Souss-Massa. Lits, fauteuils roulants, oxygène, matelas anti-escarres. Livraison incluse.",
-  longDescription: `SOS Santé est votre partenaire de confiance pour la location de matériel médical à Agadir. Nous desservons tous les quartiers de la ville : Hay Mohammadi, Taddart, Dakhla, Les Amicales, Islane, le secteur touristique, Anza, Aït Melloul et bien d’autres.
-
-Notre catalogue comprend des lits médicalisés électriques, des fauteuils roulants légers, des concentrateurs d’oxygène, des matelas à air anti-escarres, des rollators et des soulève-malade. Chaque équipement est livré, installé et vérifié par nos soins. La livraison et l’installation sont incluses à Agadir.
-
-Que vous soyez en post-opératoire, en convalescence ou en situation de dépendance, nous vous aidons à choisir le matériel adapté et nous restons disponibles pendant toute la durée de la location.`,
-  metaTitle:
-    "Location matériel médical Agadir | Livraison & installation incluses",
-  metaDescription:
-    "Louez du matériel médical à Agadir : lit médicalisé, fauteuil roulant, oxygène, matelas anti-escarres. Livraison et installation à domicile. Devis 15 min.",
-  keywords: [
-    "location matériel médical Agadir",
-    "lit médicalisé Agadir",
-    "fauteuil roulant Agadir",
-    "concentrateur oxygène Agadir",
-    "matelas anti escarres Agadir",
-  ],
+  ...seoCities[0],
   neighborhoods: [
     "Hay Mohammadi",
     "Taddart",
@@ -398,23 +472,6 @@ Que vous soyez en post-opératoire, en convalescence ou en situation de dépenda
     "Anza",
     "Aït Melloul",
     "Et autres environs…",
-  ],
-  faqs: [
-    {
-      question: "Livrez-vous dans tous les quartiers d’Agadir ?",
-      answer:
-        "Oui, nous livrons dans tous les quartiers d’Agadir : Hay Mohammadi, Taddart, Dakhla, Les Amicales, Islane, Anza, Aït Melloul et le secteur touristique. La livraison et l’installation sont incluses.",
-    },
-    {
-      question: "Quel est le délai de livraison à Agadir ?",
-      answer:
-        "À Agadir, la livraison peut avoir lieu le jour même ou sous 24h selon la disponibilité du matériel et votre quartier.",
-    },
-    {
-      question: "Proposez-vous un service de location longue durée à Agadir ?",
-      answer:
-        "Oui, nous proposons des tarifs dégressifs pour les locations longue durée à Agadir. Contactez-nous pour un devis personnalisé selon la durée souhaitée.",
-    },
   ],
 };
 
@@ -432,7 +489,6 @@ export function getCityBySlug(slug: string) {
 
 export function getAllSeoSlugs() {
   return [
-    agadirHub.slug,
     ...seoCategories.map((c) => c.slug),
     ...seoCities.map((c) => c.slug),
   ];

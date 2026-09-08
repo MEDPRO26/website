@@ -9,6 +9,11 @@ import { getAllProductLandingSlugs } from "@/lib/product-landing-pages";
 import { getActiveVenteCitySlugs, getAllCityProductParams } from "@/lib/products";
 import { venteCategoryParams } from "@/lib/catalog-categories";
 import {
+  LIVRAISON_PILLAR_PATH,
+  LOCATION_PILLAR_PATH,
+} from "@/lib/pillar-pages";
+import { NATIONAL_PILLAR_PATHS } from "@/lib/national-pillars";
+import {
   hubCityPath,
   nationalProductPath,
   venteCategoryPath,
@@ -47,6 +52,12 @@ function pagesEntries(): SitemapEntry[] {
   return [
     { path: "/", priority: 1 },
     { path: "/a-propos", priority: 0.9 },
+    { path: LOCATION_PILLAR_PATH, priority: 0.95 },
+    { path: LIVRAISON_PILLAR_PATH, priority: 0.95 },
+    ...NATIONAL_PILLAR_PATHS.filter(
+      (path) =>
+        path !== LOCATION_PILLAR_PATH && path !== LIVRAISON_PILLAR_PATH
+    ).map((path) => ({ path, priority: 0.95 })),
     { path: "/services", priority: 0.9 },
     { path: "/contact", priority: 0.9 },
     { path: "/llms.txt", priority: 0.4 },

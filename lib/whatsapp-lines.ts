@@ -7,13 +7,14 @@ export type WhatsAppLine =
 
 /**
  * One number per service line. Update when additional CRM lines go live.
- * Line 1 (matériel) matches `WHATSAPP_NUMBER` in lib/cities.ts.
+ * Defaults to the national Casablanca line (`WHATSAPP_NUMBER` in lib/cities.ts).
+ * City pages override via `cityWhatsAppHref` when a local number exists (e.g. Agadir).
  */
 export const WHATSAPP_LINES: Record<WhatsAppLine, string> = {
-  materiel: "212607347328",
-  aide_domicile: "212607347328",
-  garde_soins: "212607347328",
-  general: "212607347328",
+  materiel: "212603135888",
+  aide_domicile: "212603135888",
+  garde_soins: "212603135888",
+  general: "212603135888",
 };
 
 export const CHANNEL_PURPOSE_TO_LINE: Record<string, WhatsAppLine> = {
@@ -37,8 +38,17 @@ export function whatsAppHref(
   return text ? `${base}?text=${encodeURIComponent(text)}` : base;
 }
 
+/**
+ * Prefill so the team knows the visitor's city.
+ * Example: "Bonjour SOS Santé, je suis de Marrakech. Je souhaite un devis."
+ */
+export function cityWhatsAppText(cityName: string, request: string): string {
+  const body = request.trim().replace(/^\.+/, "");
+  return `Bonjour SOS Santé, je suis de ${cityName}. ${body}`;
+}
+
 export function cityWhatsAppHref(
-  city: { contactReady: boolean; whatsapp: string },
+  city: { contactReady: boolean; whatsapp: string; name?: string },
   text?: string,
   line: WhatsAppLine = "general"
 ) {

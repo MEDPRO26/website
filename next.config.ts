@@ -4,6 +4,10 @@ import { X_ROBOTS_NOINDEX, allowIndexing } from "./lib/indexing";
 const noIndexHeaders = [{ key: "X-Robots-Tag", value: X_ROBOTS_NOINDEX }];
 
 const nextConfig: NextConfig = {
+  images: {
+    // Allow sharper banners; default Next quality is 75 and rejects unlisted values.
+    qualities: [75, 90],
+  },
   async redirects() {
     return [
       {
@@ -29,11 +33,6 @@ const nextConfig: NextConfig = {
       {
         source: "/location-vente-materiel-medical-tanger",
         destination: "/tanger",
-        permanent: true,
-      },
-      {
-        source: "/louer/:slug",
-        destination: "/location-materiel-medical-agadir/produits/:slug",
         permanent: true,
       },
     ];

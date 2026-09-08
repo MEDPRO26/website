@@ -7,15 +7,26 @@ import Breadcrumb from "@/components/breadcrumb";
 import JsonLd from "@/components/json-ld";
 import CityLinks from "@/components/city-links";
 import LocationCatalogGrid from "@/components/location-catalog-grid";
+import LocationCityEnrichmentSections from "@/components/location-city-enrichment";
 import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import SiteFooter from "@/components/site-footer";
 import { DEFAULT_CITY_SLUG, cities } from "@/lib/cities";
 import { HERO_IMAGE } from "@/lib/brand";
-import { CONTACT_EMAIL, whatsAppHref, type Product } from "@/lib/products";
-import { hubCityPath, locationRentalProductPath, venteProductPath } from "@/lib/routes";
-import { seoCategories, type SeoCategory, type SeoCity } from "@/lib/seo-data";
-import { cityWhatsAppHref } from "@/lib/whatsapp-lines";
+import { getLocationCityEnrichment } from "@/lib/location-city-enrichment";
+import {
+  PHONE_DISPLAY,
+  PHONE_NUMBER,
+  whatsAppHref,
+  type Product,
+} from "@/lib/products";
+import {
+  hubCityPath,
+  locationRentalProductPath,
+  venteProductPath,
+} from "@/lib/routes";
+import type { SeoCategory, SeoCity } from "@/lib/seo-data";
+import { cityWhatsAppHref, cityWhatsAppText } from "@/lib/whatsapp-lines";
 import {
   breadcrumbSchema,
   buildGraph,
@@ -24,6 +35,7 @@ import {
   localBusinessSchema,
   webPageSchema,
 } from "@/lib/schema";
+
 
 function MaterialIcon({
   name,
@@ -96,11 +108,16 @@ function FaqAccordion({
 function ProductCard({
   product,
   citySlug = DEFAULT_CITY_SLUG,
+  linkMode = "vente",
 }: {
   product: Product;
   citySlug?: string;
+  linkMode?: "vente" | "location";
 }) {
-  const productPath = venteProductPath(product.slug, citySlug);
+  const productPath =
+    linkMode === "location"
+      ? locationRentalProductPath(product.slug, citySlug)
+      : venteProductPath(product.slug, citySlug);
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-surface-container-high bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
       <Link
@@ -149,11 +166,13 @@ function ProductCard({
 function CtaSection({
   title,
   whatsappHref,
-  emailSubject,
+  phoneNumber,
+  phoneDisplay,
 }: {
   title: string;
   whatsappHref?: string;
-  emailSubject?: string;
+  phoneNumber?: string;
+  phoneDisplay?: string;
 }) {
   const wa =
     whatsappHref ??
@@ -161,9 +180,8 @@ function CtaSection({
       "Bonjour SOS Santé, je souhaite louer du matériel médical.",
       "materiel"
     );
-  const mailHref = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
-    emailSubject ?? "Demande de devis matériel médical"
-  )}`;
+  const tel = phoneNumber || PHONE_NUMBER;
+  const telLabel = phoneDisplay || PHONE_DISPLAY;
 
   return (
     <section className="px-4 pb-14 sm:px-6 sm:pb-20">
@@ -184,11 +202,11 @@ function CtaSection({
             WhatsApp
           </a>
           <a
-            href={mailHref}
+            href={`tel:${tel}`}
             className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white px-8 py-4 text-base font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-white/10"
           >
-            <MaterialIcon name="mail" />
-            Email
+            <MaterialIcon name="call" />
+            {telLabel}
           </a>
         </div>
       </div>
@@ -230,7 +248,7 @@ export function SeoCategoryPage({
       <main className="flex-1 pb-20 pt-[calc(var(--site-header-offset,4rem)+0.5rem)] md:pb-0">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl">
-                  <Breadcrumb
+            <Breadcrumb
               items={[
                 { label: "Accueil", href: "/" },
                 { label: "Matériel médical", href: hubPath },
@@ -240,86 +258,85 @@ export function SeoCategoryPage({
           </div>
         </div>
 
-        {/* Hero */}
-      <section className="relative overflow-hidden px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute -left-[10%] -top-[10%] h-[50%] w-[50%] rounded-full bg-primary/5 blur-[100px]" />
-          <div className="absolute -bottom-[10%] -right-[10%] h-[50%] w-[50%] rounded-full bg-secondary/5 blur-[100px]" />
-        </div>
-        <div className="mx-auto max-w-4xl text-center">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary">
-            <MaterialIcon name={category.icon} className="text-base" />
-            Location à Agadir et au Maroc
+        <section className="relative overflow-hidden px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
+          <div className="absolute inset-0 -z-10">
+            <div className="absolute -left-[10%] -top-[10%] h-[50%] w-[50%] rounded-full bg-primary/5 blur-[100px]" />
+            <div className="absolute -bottom-[10%] -right-[10%] h-[50%] w-[50%] rounded-full bg-secondary/5 blur-[100px]" />
           </div>
-          <h1 className="font-heading mb-5 text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl md:text-5xl lg:text-6xl">
-            {category.title}
-          </h1>
-          <p className="font-body mx-auto max-w-2xl text-base leading-relaxed text-on-surface-variant sm:text-lg md:text-xl">
-            {category.description}
-          </p>
-        </div>
-      </section>
+          <div className="mx-auto max-w-4xl text-center">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary">
+              <MaterialIcon name={category.icon} className="text-base" />
+              Catégorie catalogue
+            </div>
+            <h1 className="font-heading mb-5 text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl md:text-5xl lg:text-6xl">
+              {category.title}
+            </h1>
+            <p className="font-body mx-auto max-w-2xl text-base leading-relaxed text-on-surface-variant sm:text-lg md:text-xl">
+              {category.description}
+            </p>
+          </div>
+        </section>
 
-      {/* Products */}
-      <section className="px-4 py-10 sm:px-6 sm:py-14">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-8">
-            <span className="mb-2 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
-              Notre sélection
-            </span>
-            <h2 className="font-heading text-xl font-semibold text-primary sm:text-2xl md:text-3xl">
-              Matériel de {category.label.toLowerCase()} disponible à la location
-            </h2>
+        <section className="px-4 py-10 sm:px-6 sm:py-14">
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-8">
+              <span className="mb-2 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
+                Notre sélection
+              </span>
+              <h2 className="font-heading text-xl font-semibold text-primary sm:text-2xl md:text-3xl">
+                Matériel de {category.label.toLowerCase()} disponible à la
+                location
+              </h2>
+            </div>
+            {products.length > 0 ? (
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {products.map((product) => (
+                  <ProductCard key={product.slug} product={product} />
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-2xl bg-surface-container-low p-8 text-center text-on-surface-variant">
+                Aucun produit dans cette catégorie pour le moment.
+              </p>
+            )}
           </div>
-          {products.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {products.map((product) => (
-                <ProductCard key={product.slug} product={product} />
+        </section>
+
+        <section className="bg-surface-container-low px-4 py-14 sm:px-6 sm:py-20">
+          <div className="mx-auto max-w-3xl">
+            <h2 className="font-heading mb-6 text-2xl font-semibold text-primary sm:text-3xl">
+              Pourquoi louer du matériel de {category.label.toLowerCase()} à
+              Agadir ?
+            </h2>
+            <div className="font-body space-y-4 text-base leading-relaxed text-on-surface-variant sm:text-lg">
+              {category.longDescription.split("\n\n").map((paragraph, index) => (
+                <p key={index}>{paragraph}</p>
               ))}
             </div>
-          ) : (
-            <p className="rounded-2xl bg-surface-container-low p-8 text-center text-on-surface-variant">
-              Aucun produit dans cette catégorie pour le moment.
-            </p>
-          )}
-        </div>
-      </section>
-
-      {/* Description */}
-      <section className="bg-surface-container-low px-4 py-14 sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-3xl">
-          <h2 className="font-heading mb-6 text-2xl font-semibold text-primary sm:text-3xl">
-            Pourquoi louer du matériel de {category.label.toLowerCase()} à
-            Agadir ?
-          </h2>
-          <div className="font-body space-y-4 text-base leading-relaxed text-on-surface-variant sm:text-lg">
-            {category.longDescription.split("\n\n").map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
-            ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* FAQ */}
-      <section className="px-4 py-14 sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-3xl">
-          <div className="mb-8 text-center">
-            <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
-              FAQ
-            </span>
-            <h2 className="font-heading text-2xl font-semibold text-secondary sm:text-3xl md:text-4xl">
-              Questions fréquentes
-            </h2>
+        <section className="px-4 py-14 sm:px-6 sm:py-20">
+          <div className="mx-auto max-w-3xl">
+            <div className="mb-8 text-center">
+              <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wider text-primary-container">
+                FAQ
+              </span>
+              <h2 className="font-heading text-2xl font-semibold text-secondary sm:text-3xl md:text-4xl">
+                Questions fréquentes
+              </h2>
+            </div>
+            <FaqAccordion faqs={category.faqs} />
           </div>
-          <FaqAccordion faqs={category.faqs} />
-        </div>
-      </section>
+        </section>
 
-      <CityLinks
-        title={`Livraison de matériel de ${category.label.toLowerCase()} par ville`}
-      />
+        <CityLinks
+          title={`Livraison de matériel de ${category.label.toLowerCase()} par ville`}
+        />
 
-      <CtaSection title={`Louer du matériel de ${category.label.toLowerCase()}`} />
+        <CtaSection
+          title={`Louer du matériel de ${category.label.toLowerCase()}`}
+        />
       </main>
       <SiteFooter />
     </>
@@ -336,14 +353,21 @@ export function SeoCityPage({
   const path = `/${city.slug}`;
   const hubCity = cities.find((c) => c.locationSlug === city.slug);
   const neighborhoods = hubCity?.zones ?? [];
+  const enrichment = getLocationCityEnrichment(city.slug);
   const waHref = hubCity
     ? cityWhatsAppHref(
         hubCity,
-        `Bonjour SOS Santé, je souhaite louer du matériel médical à ${city.name}.`,
+        cityWhatsAppText(
+          city.name,
+          "Je souhaite louer du matériel médical."
+        ),
         "materiel"
       )
     : whatsAppHref(
-        `Bonjour SOS Santé, je souhaite louer du matériel médical à ${city.name}.`,
+        cityWhatsAppText(
+          city.name,
+          "Je souhaite louer du matériel médical."
+        ),
         "materiel"
       );
 
@@ -351,6 +375,7 @@ export function SeoCityPage({
     webPageSchema(path, city.metaTitle, city.metaDescription),
     breadcrumbSchema([
       { name: "Accueil", item: "/" },
+      { name: "Location matériel médical Maroc", item: "/location-materiel-medical" },
       { name: city.name, item: path },
     ]),
     localBusinessSchema({
@@ -385,6 +410,10 @@ export function SeoCityPage({
             <Breadcrumb
               items={[
                 { label: "Accueil", href: "/" },
+                {
+                  label: "Location Maroc",
+                  href: "/location-materiel-medical",
+                },
                 { label: `Location matériel médical ${city.name}` },
               ]}
             />
@@ -408,8 +437,12 @@ export function SeoCityPage({
                 <span className="text-primary">matériel médical</span> à{" "}
                 {city.name}
               </h1>
-              <p className="font-body mb-8 text-base leading-relaxed text-on-surface-variant sm:text-lg md:text-xl">
+              <p className="font-body mb-4 text-base leading-relaxed text-on-surface-variant sm:text-lg md:text-xl">
                 {city.description}
+              </p>
+              <p className="font-body mb-8 text-sm leading-relaxed text-on-surface-variant sm:text-base">
+                {city.deliveryText}
+                {hubCity?.address ? ` · ${hubCity.address}` : null}
               </p>
               <div className="flex flex-col gap-3 sm:flex-row">
                 <a
@@ -521,6 +554,13 @@ export function SeoCityPage({
           </div>
         </section>
 
+        {enrichment ? (
+          <LocationCityEnrichmentSections
+            enrichment={enrichment}
+            cityName={city.name}
+          />
+        ) : null}
+
         {/* FAQ */}
         <section className="bg-surface-container-low px-4 py-14 sm:px-6 sm:py-20">
           <div className="mx-auto max-w-3xl">
@@ -539,7 +579,16 @@ export function SeoCityPage({
         <CtaSection
           title={`Besoin de matériel médical à ${city.name} ?`}
           whatsappHref={waHref}
-          emailSubject={`Demande de devis matériel médical ${city.name}`}
+          phoneNumber={
+            hubCity?.contactReady && hubCity.phone
+              ? hubCity.phone
+              : PHONE_NUMBER
+          }
+          phoneDisplay={
+            hubCity?.contactReady && hubCity.phoneDisplay
+              ? hubCity.phoneDisplay
+              : PHONE_DISPLAY
+          }
         />
       </main>
       <SiteFooter />

@@ -5,11 +5,16 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Logo from "@/components/logo";
 import CityCatalogPickerDialog from "@/components/city-catalog-picker-dialog";
+import NavSearch from "@/components/nav-search";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { activeCities } from "@/lib/cities";
 import { careServiceCityPath, careServices } from "@/lib/care-services";
 import { whatsAppHref } from "@/lib/products";
-import { isVenteCatalogPath, locationCityPath, venteCityPath } from "@/lib/routes";
+import {
+  isVenteCatalogPath,
+  locationCityPath,
+  venteCityPath,
+} from "@/lib/routes";
 
 function MaterialIcon({
   name,
@@ -35,10 +40,6 @@ function classNames(...classes: (string | false | null | undefined)[]) {
 const pageLinks = [
   { label: "À propos", href: "/a-propos", icon: "info" },
   { label: "Contact", href: "/contact", icon: "mail" },
-];
-
-const hashLinks = [
-  { label: "FAQ", hash: "faq", href: "/#faq" },
 ];
 
 function MaterialDropdownLinks({
@@ -69,7 +70,7 @@ function MaterialDropdownLinks({
 
               return (
                 <Link
-                  key={city.slug}
+                  key={`location-${city.slug}`}
                   href={href}
                   onClick={onNavigate}
                   className={classNames(
@@ -112,7 +113,7 @@ function MaterialDropdownLinks({
 
               return (
                 <Link
-                  key={city.slug}
+                  key={`vente-${city.slug}`}
                   href={href}
                   onClick={onNavigate}
                   className={classNames(
@@ -184,7 +185,7 @@ function MaterialDropdownLinks({
 
         return (
           <Link
-            key={city.slug}
+            key={`vente-${city.slug}`}
             href={href}
             onClick={onNavigate}
             className={classNames(
@@ -462,29 +463,18 @@ export default function Navbar() {
     setPickerServiceSlug(null);
   };
 
-  const handleHashLink = (
-    e: React.MouseEvent,
-    href: string,
-    hash: string,
-  ) => {
-    setMobileMenuOpen(false);
-    const id = hash.replace("#", "");
-    const basePath = href.split("#")[0] || "/";
-
-    if (pathname === basePath) {
-      const element = document.getElementById(id);
-      if (element) {
-        e.preventDefault();
-        element.scrollIntoView({ behavior: "smooth" });
-      }
-    }
-  };
-
   const isMaterialActive =
     pathname === "/" ||
     isVenteCatalogPath(pathname) ||
+    pathname === "/location-materiel-medical" ||
+    pathname === "/livraison-materiel-medical-domicile" ||
+    pathname === "/vente-materiel-medical" ||
+    pathname === "/materiel-medical-par-ville" ||
+    pathname.endsWith("-maroc") ||
+    pathname.startsWith("/materiel-") ||
     pathname.startsWith("/location-vente-materiel-medical-") ||
-    pathname.startsWith("/location-materiel-medical-");
+    pathname.startsWith("/location-materiel-medical-") ||
+    pathname.startsWith("/vente-de-materiel-medical-");
 
   const isServicesActive =
     pathname === "/services" || pathname.startsWith("/services/");
@@ -648,23 +638,10 @@ export default function Navbar() {
                 </Link>
               );
             })}
-
-            {hashLinks.map((link) => (
-              <Link
-                key={link.hash}
-                href={link.href}
-                onClick={(e) => handleHashLink(e, link.href, link.hash)}
-                className={classNames(
-                  "rounded-lg text-sm font-medium text-on-surface-variant transition-colors hover:bg-surface-container hover:text-primary",
-                  isCompact ? "px-3 py-1.5" : "px-4 py-2"
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
         </nav>
 
-        <div className="relative z-10 col-start-2 flex items-center justify-self-end gap-3 md:col-start-3">
+        <div className="relative z-10 col-start-2 flex items-center justify-self-end gap-2 sm:gap-3 md:col-start-3">
+          <NavSearch compact={isCompact} />
           <a
             href={whatsAppHref("Bonjour SOS Santé, je souhaite des informations.", "general")}
             className={classNames(
@@ -707,6 +684,10 @@ export default function Navbar() {
         )}
       >
         <nav className="mx-auto max-w-lg space-y-2.5 px-3 py-3 sm:px-4">
+          <NavSearch
+            variant="mobile"
+            onNavigate={() => setMobileMenuOpen(false)}
+          />
           <div className="overflow-hidden rounded-xl border border-outline-variant/50 bg-white p-3 shadow-sm">
             <div className="mb-2 flex items-center gap-2 border-b border-outline-variant/30 pb-2">
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -758,19 +739,6 @@ export default function Navbar() {
                   )}
                 >
                   <MaterialIcon name={link.icon} className="text-base" />
-                </span>
-                {link.label}
-              </Link>
-            ))}
-            {hashLinks.map((link) => (
-              <Link
-                key={link.hash}
-                href={link.href}
-                onClick={(e) => handleHashLink(e, link.href, link.hash)}
-                className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-on-surface transition-all hover:bg-surface-container-low hover:text-primary"
-              >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-container text-on-surface-variant">
-                  <MaterialIcon name="help" className="text-base" />
                 </span>
                 {link.label}
               </Link>

@@ -1,7 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BLOG_CATEGORIES } from "@/lib/blog-categories";
+import { DEFAULT_CITY_SLUG } from "@/lib/cities";
 import { PHONE_DISPLAY, PHONE_NUMBER, products, whatsAppHref } from "@/lib/products";
+import { venteProductPath } from "@/lib/routes";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 
 const CATEGORY_PRODUCT_MATCH: Record<string, string[]> = {
@@ -61,7 +63,7 @@ export function BlogSidebar({
           {offers.map((product) => (
             <li key={product.slug}>
               <Link
-                href={`/produits/${product.slug}`}
+                href={venteProductPath(product.slug, DEFAULT_CITY_SLUG)}
                 className="group flex gap-3 rounded-xl border border-transparent p-1.5 transition-colors hover:border-primary/15 hover:bg-primary/5"
               >
                 <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-surface-container-low">

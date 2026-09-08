@@ -34,7 +34,7 @@ export function formatProductAchatHeading(
   city: string
 ): string {
   return normalizePublicDash(
-    `Achat ${frenchDe(normalizePublicDash(productName))} - ${city}`
+    `Achat ${frenchDe(normalizePublicDash(productName))} à ${city}`
   );
 }
 
@@ -43,6 +43,6 @@ export function formatProductLocationHeading(
   city: string
 ): string {
   return normalizePublicDash(
-    `Location ${frenchDe(normalizePublicDash(productName))} - ${city}`
+    `Location ${frenchDe(normalizePublicDash(productName))} à ${city}`
   );
 }

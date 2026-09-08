@@ -6,13 +6,26 @@ import { SITE_URL_DEFAULT } from "@/lib/brand";
 import type { CitySlug } from "@/lib/cities";
 import { getCityBySlug } from "@/lib/cities";
 import {
+  formatLocationProductBreadcrumbLabel,
+  formatLocationProductMetaDescription,
+  formatLocationProductMetaTitle,
+  getLocationProductFaqs,
+} from "@/lib/location-product-seo";
+import {
   getAllLocationRentalSlugs,
   getLocationRentalProductBySlug,
 } from "@/lib/location-rental-products";
-import { locationCityPath, locationRentalProductPath } from "@/lib/routes";
+import { LOCATION_PILLAR_PATH } from "@/lib/pillar-pages";
+import {
+  cityProductUrlSlug,
+  locationCityPath,
+  locationRentalProductPath,
+  parseCityProductUrlSlug,
+} from "@/lib/routes";
 import {
   breadcrumbSchema,
   buildGraph,
+  faqSchema,
   productSchema,
   webPageSchema,
 } from "@/lib/schema";
@@ -29,26 +42,35 @@ export function createLocationProductPage(citySlug: CitySlug) {
   const city = getCityBySlug(citySlug)!;
 
   function generateStaticParams() {
-    return getAllLocationRentalSlugs().map((slug) => ({ slug }));
+    return getAllLocationRentalSlugs().map((slug) => ({
+      slug: cityProductUrlSlug(slug, citySlug),
+    }));
   }
 
   async function generateMetadata({
     params,
   }: PageProps): Promise<Metadata> {
-    const { slug } = await params;
-    const product = getLocationRentalProductBySlug(slug);
+    const { slug: urlSlug } = await params;
+    const baseSlug = parseCityProductUrlSlug(urlSlug, citySlug);
+    if (!baseSlug) return {};
+
+    const product = getLocationRentalProductBySlug(baseSlug);
     if (!product) return {};
 
-    const path = locationRentalProductPath(slug, citySlug);
-    const title = `${product.seoTitle.replace(" | SOS Santé Maroc", "")} · ${city.name} | SOS Santé`;
+    const path = locationRentalProductPath(baseSlug, citySlug);
+    const title = formatLocationProductMetaTitle(product.name, citySlug);
+    const description = formatLocationProductMetaDescription(
+      product.name,
+      citySlug
+    );
 
     return {
       title,
-      description: product.seoDescription,
+      description,
       alternates: { canonical: path },
       openGraph: {
         title,
-        description: product.seoDescription,
+        description,
         url: path,
         type: "website",
         locale: "fr_MA",
@@ -59,23 +81,42 @@ export function createLocationProductPage(citySlug: CitySlug) {
   }
 
   async function Page({ params }: PageProps) {
-    const { slug } = await params;
-    const product = getLocationRentalProductBySlug(slug);
+    const { slug: urlSlug } = await params;
+    const baseSlug = parseCityProductUrlSlug(urlSlug, citySlug);
+    if (!baseSlug) notFound();
+
+    const product = getLocationRentalProductBySlug(baseSlug);
     if (!product) notFound();
 
-    const path = locationRentalProductPath(slug, citySlug);
+    const path = locationRentalProductPath(baseSlug, citySlug);
     const localized = { ...product, city: city.name };
+    const title = formatLocationProductMetaTitle(product.name, citySlug);
+    const description = formatLocationProductMetaDescription(
+      product.name,
+      citySlug
+    );
+    const crumbLabel = formatLocationProductBreadcrumbLabel(
+      product.shortName,
+      citySlug
+    );
+    const faqs = getLocationProductFaqs(product.name, citySlug);
+
     const schema = buildGraph(
-      webPageSchema(path, localized.seoTitle, localized.seoDescription),
+      webPageSchema(path, title, description),
       breadcrumbSchema([
         { name: "Accueil", item: "/" },
+        {
+          name: "Location matériel médical Maroc",
+          item: LOCATION_PILLAR_PATH,
+        },
         {
           name: `Location matériel médical ${city.name}`,
           item: locationCityPath(citySlug),
         },
-        { name: product.name, item: path },
+        { name: crumbLabel, item: path },
       ]),
-      productSchema(localized, path)
+      productSchema(localized, path),
+      faqSchema(faqs, path)
     );
 
     return (

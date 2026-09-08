@@ -14,7 +14,7 @@ import { blogPosts } from "@/lib/blog";
 import { blogPostPath, resolveCategorySlug } from "@/lib/blog-categories";
 import { getLocationRentalProducts } from "@/lib/location-rental-products";
 import { getProductsByCity } from "@/lib/products";
-import { cityWhatsAppHref } from "@/lib/whatsapp-lines";
+import { cityWhatsAppHref, cityWhatsAppText } from "@/lib/whatsapp-lines";
 import {
   hubCityPath,
   locationCityPath,
@@ -79,7 +79,10 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
   const content = getCityHubContent(citySlug);
   const path = hubCityPath(citySlug);
 
-  const whatsappText = `Bonjour ${content.badgeLabel}, je souhaite des informations sur le matériel médical à ${city.name}.`;
+  const whatsappText = cityWhatsAppText(
+    city.name,
+    "Je souhaite des informations sur le matériel médical."
+  );
   const latestProducts = [...getProductsByCity(citySlug)].slice(-6).reverse();
   const latestLocationProducts = getLocationRentalProducts().slice(0, 6);
   const productNames = getProductsByCity(citySlug).map((product) => product.name);
@@ -214,6 +217,22 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
               </h2>
               <p className="font-body mx-auto mt-4 max-w-2xl text-base leading-relaxed text-on-surface-variant">
                 {content.equipmentIntro}
+              </p>
+              <p className="font-body mx-auto mt-3 max-w-2xl text-sm text-on-surface-variant">
+                Vue d&apos;ensemble nationale :{" "}
+                <Link
+                  href="/location-materiel-medical"
+                  className="font-semibold text-primary hover:underline"
+                >
+                  location de matériel médical au Maroc
+                </Link>
+                {" · "}
+                <Link
+                  href="/livraison-materiel-medical-domicile"
+                  className="font-semibold text-primary hover:underline"
+                >
+                  livraison à domicile
+                </Link>
               </p>
             </div>
             <div className="mb-10 grid grid-cols-1 gap-5 md:grid-cols-2">

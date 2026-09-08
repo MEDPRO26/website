@@ -1,7 +1,17 @@
 export const CONTACT_EMAIL = "contact@sossante.ma";
-export const WHATSAPP_NUMBER = "212607347328";
-export const PHONE_NUMBER = "+212607347328";
-export const PHONE_DISPLAY = "06 07 34 73 28";
+
+/** Agadir local office line. */
+export const AGADIR_WHATSAPP_NUMBER = "212607347328";
+export const AGADIR_PHONE_NUMBER = "+212607347328";
+export const AGADIR_PHONE_DISPLAY = "06 07 34 73 28";
+
+/**
+ * National public line = Casablanca.
+ * Used for Rabat, Marrakech, Tanger, and site-wide CTAs outside Agadir.
+ */
+export const WHATSAPP_NUMBER = "212603135888";
+export const PHONE_NUMBER = "+212603135888";
+export const PHONE_DISPLAY = "06 03 13 58 88";
 
 export type CitySlug = "agadir" | "rabat" | "casablanca" | "marrakech" | "tanger";
 
@@ -82,9 +92,9 @@ export const cities: City[] = [
     slug: "agadir",
     name: "Agadir",
     brandName: "SOS Santé Agadir",
-    phone: PHONE_NUMBER,
-    phoneDisplay: PHONE_DISPLAY,
-    whatsapp: WHATSAPP_NUMBER,
+    phone: AGADIR_PHONE_NUMBER,
+    phoneDisplay: AGADIR_PHONE_DISPLAY,
+    whatsapp: AGADIR_WHATSAPP_NUMBER,
     email: CONTACT_EMAIL,
     contactReady: true,
     address: "Lerac, Avenue Abderrahim Bouabid, 8000, Agadir 80000",
@@ -120,11 +130,11 @@ export const cities: City[] = [
     slug: "rabat",
     name: "Rabat",
     brandName: "SOS Santé Rabat",
-    phone: "",
-    phoneDisplay: "",
-    whatsapp: "",
+    phone: PHONE_NUMBER,
+    phoneDisplay: PHONE_DISPLAY,
+    whatsapp: WHATSAPP_NUMBER,
     email: CONTACT_EMAIL,
-    contactReady: false,
+    contactReady: true,
     available: true,
     zones: [
       "Hay Riad",
@@ -136,7 +146,7 @@ export const cities: City[] = [
       "Et autres environs…",
     ],
     deliveryText:
-      "Livraison à Rabat, Salé, Temara et environs. Délai sous 24h.",
+      "Livraison à Rabat, Salé, Temara et environs selon disponibilité.",
     locationHeroImage: "/products/lit-electrique-3-positions.webp",
     locationSlug: "location-materiel-medical-rabat",
     venteSlug: "vente-de-materiel-medical-rabat",
@@ -146,9 +156,9 @@ export const cities: City[] = [
     slug: "casablanca",
     name: "Casablanca",
     brandName: "SOS Santé Casablanca",
-    phone: "+212603135888",
-    phoneDisplay: "06 03 13 58 88",
-    whatsapp: "212603135888",
+    phone: PHONE_NUMBER,
+    phoneDisplay: PHONE_DISPLAY,
+    whatsapp: WHATSAPP_NUMBER,
     email: CONTACT_EMAIL,
     contactReady: true,
     address: "Bd Anoual, Casablanca 20102",
@@ -173,7 +183,7 @@ export const cities: City[] = [
       "Et autres environs…",
     ],
     deliveryText:
-      "Livraison 24-48h à Casablanca et sa métropole. Frais selon distance.",
+      "Livraison 24-48h à Casablanca et sa métropole selon disponibilité.",
     locationHeroImage: "/cities/casablanca-fauteuil-roulant.webp",
     locationSlug: "location-materiel-medical-casablanca",
     venteSlug: "vente-de-materiel-medical-casablanca",
@@ -183,12 +193,12 @@ export const cities: City[] = [
     slug: "marrakech",
     name: "Marrakech",
     brandName: "SOS Santé Marrakech",
-    phone: "",
-    phoneDisplay: "",
-    whatsapp: "",
+    phone: PHONE_NUMBER,
+    phoneDisplay: PHONE_DISPLAY,
+    whatsapp: WHATSAPP_NUMBER,
     email: CONTACT_EMAIL,
-    contactReady: false,
-    available: false,
+    contactReady: true,
+    available: true,
     zones: [
       "Guéliz",
       "Hivernage",
@@ -198,7 +208,7 @@ export const cities: City[] = [
       "Massira",
     ],
     deliveryText:
-      "Livraison rapide à Marrakech centre, Guéliz, Hivernage et environs.",
+      "Livraison à Marrakech et environs selon disponibilité.",
     locationHeroImage: "/products/fauteuil-roulant-pliable-classique.webp",
     locationSlug: "location-materiel-medical-marrakech",
     venteSlug: "vente-de-materiel-medical-marrakech",
@@ -208,12 +218,12 @@ export const cities: City[] = [
     slug: "tanger",
     name: "Tanger",
     brandName: "SOS Santé Tanger",
-    phone: "",
-    phoneDisplay: "",
-    whatsapp: "",
+    phone: PHONE_NUMBER,
+    phoneDisplay: PHONE_DISPLAY,
+    whatsapp: WHATSAPP_NUMBER,
     email: CONTACT_EMAIL,
-    contactReady: false,
-    available: false,
+    contactReady: true,
+    available: true,
     zones: [
       "Centre-ville",
       "Malabata",
@@ -222,7 +232,7 @@ export const cities: City[] = [
       "California",
       "Moussadak",
     ],
-    deliveryText: "Livraison à Tanger et sa région sous 48-72h.",
+    deliveryText: "Livraison à Tanger et sa région selon disponibilité.",
     locationHeroImage: "/products/concentrateur-oxygene-5l.webp",
     locationSlug: "location-materiel-medical-tanger",
     venteSlug: "vente-de-materiel-medical-tanger",
@@ -243,9 +253,16 @@ export type CityContact = {
   whatsapp: string;
 };
 
+/** Local offices with their own NAP (Agadir, Casablanca). National number cities are excluded. */
 export function getActiveCityContacts(): CityContact[] {
   return activeCities
-    .filter((city) => city.contactReady && city.phone && city.phoneDisplay)
+    .filter(
+      (city) =>
+        city.contactReady &&
+        city.showAddress &&
+        city.phone &&
+        city.phoneDisplay
+    )
     .map(({ name, phone, phoneDisplay, whatsapp }) => ({
       name,
       phone,

@@ -1,7 +1,7 @@
 /* S2MBO partner SW — bump SW_VERSION when changing push behavior. */
 const SW_VERSION = "s2mbo-push-v2";
 const ICON_CACHE = `s2mbo-push-icons-${SW_VERSION}`;
-const S2MBO_ICON = "/s2mbo-logo-rounded.png";
+const S2MBO_ICON = "/s2mbo-logo-rounded.webp";
 const PRECACHE_URLS = [S2MBO_ICON];
 
 self.addEventListener("install", (event) => {

@@ -22,7 +22,7 @@ import {
   categoryValueFromParam,
 } from "@/lib/catalog-categories";
 import { getCatalogProducts } from "@/lib/products";
-import { cityWhatsAppHref } from "@/lib/whatsapp-lines";
+import { cityWhatsAppHref, cityWhatsAppText } from "@/lib/whatsapp-lines";
 import {
   hubCityPath,
   venteCityPath,
@@ -139,7 +139,10 @@ export default function VenteCatalog({ citySlug, categorySlug }: VenteCatalogPro
           { label: activeCategoryLabel },
         ];
 
-  const whatsappText = `Bonjour SOS Santé ${city.name}, je souhaite acheter du matériel médical.`;
+  const whatsappText = cityWhatsAppText(
+    city.name,
+    "Je souhaite acheter du matériel médical."
+  );
 
   return (
     <>
