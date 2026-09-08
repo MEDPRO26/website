@@ -25,10 +25,13 @@ import { getCatalogProducts } from "@/lib/products";
 import { cityWhatsAppHref, cityWhatsAppText } from "@/lib/whatsapp-lines";
 import {
   hubCityPath,
+  locationCityPath,
   venteCityPath,
   venteCategoryPath,
   venteProductPath,
 } from "@/lib/routes";
+import { VENTE_MAROC_PATH } from "@/lib/national-pillars";
+import { LOCATION_PILLAR_PATH } from "@/lib/pillar-pages";
 
 function MaterialIcon({
   name,
@@ -121,16 +124,16 @@ export default function VenteCatalog({ citySlug, categorySlug }: VenteCatalogPro
       ? [
           { label: "Accueil", href: "/" },
           {
-            label: `Location et vente à ${city.name}`,
-            href: hubPath,
+            label: "Vente matériel médical Maroc",
+            href: VENTE_MAROC_PATH,
           },
           { label: `Vente matériel médical ${city.name}` },
         ]
       : [
           { label: "Accueil", href: "/" },
           {
-            label: `Location et vente à ${city.name}`,
-            href: hubPath,
+            label: "Vente matériel médical Maroc",
+            href: VENTE_MAROC_PATH,
           },
           {
             label: `Vente ${city.name}`,
@@ -170,11 +173,19 @@ export default function VenteCatalog({ citySlug, categorySlug }: VenteCatalogPro
             </h1>
             <p className="font-body mx-auto max-w-2xl text-base leading-relaxed text-on-surface-variant sm:text-lg">
               Catalogue vente disponible à {city.name}. {city.deliveryText}{" "}
+              Vue nationale :{" "}
+              <Link
+                href={VENTE_MAROC_PATH}
+                className="font-semibold text-primary underline-offset-2 hover:underline"
+              >
+                vente de matériel médical au Maroc
+              </Link>
+              {" · "}
               <Link
                 href={hubPath}
                 className="font-semibold text-primary underline-offset-2 hover:underline"
               >
-                Retour à la page {city.name}
+                page {city.name}
               </Link>
             </p>
           </div>
@@ -366,6 +377,56 @@ export default function VenteCatalog({ citySlug, categorySlug }: VenteCatalogPro
         </section>
 
         <VenteCatalogFaq citySlug={citySlug} />
+
+        <section className="border-t border-outline-variant/30 bg-surface-container-low px-4 py-12 sm:px-6 sm:py-14">
+          <div className="mx-auto max-w-5xl">
+            <h2 className="font-heading mb-3 text-xl font-semibold text-primary sm:text-2xl">
+              Pages utiles
+            </h2>
+            <p className="font-body mb-6 max-w-3xl text-sm text-on-surface-variant sm:text-base">
+              Pour voir les autres équipements disponibles à l&apos;achat, ou
+              continuer vers la location et le hub local.
+            </p>
+            <ul className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <li>
+                <Link
+                  href={VENTE_MAROC_PATH}
+                  className="font-heading inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+                >
+                  Vente de matériel médical au Maroc
+                  <MaterialIcon name="arrow_forward" className="text-base" />
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={locationCityPath(citySlug)}
+                  className="font-heading inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+                >
+                  Location à {city.name}
+                  <MaterialIcon name="arrow_forward" className="text-base" />
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={LOCATION_PILLAR_PATH}
+                  className="font-heading inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+                >
+                  Location de matériel médical au Maroc
+                  <MaterialIcon name="arrow_forward" className="text-base" />
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={hubPath}
+                  className="font-heading inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+                >
+                  Hub {city.name}
+                  <MaterialIcon name="arrow_forward" className="text-base" />
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </section>
 
         <section className="px-4 pb-14 sm:px-6 sm:pb-20">
           <div className="mx-auto max-w-5xl rounded-[32px] bg-secondary px-6 py-12 text-center text-on-secondary shadow-2xl shadow-secondary/20 sm:px-10 sm:py-16">

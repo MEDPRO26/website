@@ -8,6 +8,19 @@ import CatalogPickerButton from "@/components/catalog-picker-button";
 import QuoteRequestSection from "@/components/quote-request-section";
 import SiteFooter from "@/components/site-footer";
 import { ABOUT_PATH } from "@/lib/about-content";
+import {
+  AIDE_DOMICILE_PATH,
+  CONFORT_MAROC_PATH,
+  MATERIEL_PAR_VILLE_PATH,
+  MOBILITE_MAROC_PATH,
+  RESPIRATOIRE_MAROC_PATH,
+  SOINS_DOMICILE_PATH,
+  VENTE_MAROC_PATH,
+} from "@/lib/national-pillars";
+import {
+  LIVRAISON_PILLAR_PATH,
+  LOCATION_PILLAR_PATH,
+} from "@/lib/pillar-pages";
 import { activeCities, getCityBySlug, type CitySlug } from "@/lib/cities";
 import { getCityHubContent } from "@/lib/city-hub-content";
 import { blogPosts } from "@/lib/blog";
@@ -218,20 +231,69 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
               <p className="font-body mx-auto mt-4 max-w-2xl text-base leading-relaxed text-on-surface-variant">
                 {content.equipmentIntro}
               </p>
-              <p className="font-body mx-auto mt-3 max-w-2xl text-sm text-on-surface-variant">
+              <p className="font-body mx-auto mt-3 max-w-3xl text-sm text-on-surface-variant">
                 Vue d&apos;ensemble nationale :{" "}
                 <Link
-                  href="/location-materiel-medical"
+                  href={LOCATION_PILLAR_PATH}
                   className="font-semibold text-primary hover:underline"
                 >
-                  location de matériel médical au Maroc
+                  location
                 </Link>
                 {" · "}
                 <Link
-                  href="/livraison-materiel-medical-domicile"
+                  href={VENTE_MAROC_PATH}
                   className="font-semibold text-primary hover:underline"
                 >
-                  livraison à domicile
+                  vente
+                </Link>
+                {" · "}
+                <Link
+                  href={LIVRAISON_PILLAR_PATH}
+                  className="font-semibold text-primary hover:underline"
+                >
+                  livraison
+                </Link>
+                {" · "}
+                <Link
+                  href={RESPIRATOIRE_MAROC_PATH}
+                  className="font-semibold text-primary hover:underline"
+                >
+                  respiratoire
+                </Link>
+                {" · "}
+                <Link
+                  href={MOBILITE_MAROC_PATH}
+                  className="font-semibold text-primary hover:underline"
+                >
+                  mobilité
+                </Link>
+                {" · "}
+                <Link
+                  href={CONFORT_MAROC_PATH}
+                  className="font-semibold text-primary hover:underline"
+                >
+                  confort
+                </Link>
+                {" · "}
+                <Link
+                  href={AIDE_DOMICILE_PATH}
+                  className="font-semibold text-primary hover:underline"
+                >
+                  aide à domicile
+                </Link>
+                {" · "}
+                <Link
+                  href={SOINS_DOMICILE_PATH}
+                  className="font-semibold text-primary hover:underline"
+                >
+                  soins à domicile
+                </Link>
+                {" · "}
+                <Link
+                  href={MATERIEL_PAR_VILLE_PATH}
+                  className="font-semibold text-primary hover:underline"
+                >
+                  par ville
                 </Link>
               </p>
             </div>

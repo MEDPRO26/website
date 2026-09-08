@@ -27,6 +27,7 @@ import { CONTACT_EMAIL, products, whatsAppHref } from "@/lib/products";
 import { SITE_URL_DEFAULT } from "@/lib/brand";
 import { DEFAULT_CITY_SLUG } from "@/lib/cities";
 import { venteProductPath } from "@/lib/routes";
+import { blogClusterSupportLinks } from "@/lib/blog-seo-links";
 import { extractFaqsFromHtml } from "@/lib/markdown";
 import {
   blogPostingSchema,
@@ -166,6 +167,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
     post.relatedProducts?.includes(p.slug)
   );
   const categoryMeta = getBlogCategory(post.categorySlug);
+  const clusterLinks = blogClusterSupportLinks(post.categorySlug);
 
   return (
     <>
@@ -197,6 +199,72 @@ export default async function BlogArticlePage({ params }: PageProps) {
               <article className="mx-auto max-w-3xl lg:mx-0">
                 <BlogArticleBody post={post} />
               </article>
+
+              <section className="mt-12 border-t border-outline-variant/30 pt-10">
+                <h2 className="font-heading mb-3 text-xl font-semibold text-primary sm:text-2xl">
+                  Pour aller plus loin
+                </h2>
+                <p className="font-body mb-5 max-w-3xl text-sm text-on-surface-variant sm:text-base">
+                  Cet article s&apos;inscrit dans nos guides. Continuez vers la
+                  page principale du sujet et les options disponibles dans votre
+                  ville.
+                </p>
+                <div className="space-y-5">
+                  <div>
+                    <p className="font-heading mb-2 text-sm font-semibold text-on-surface">
+                      Guide principal
+                    </p>
+                    <Link
+                      href={clusterLinks.pillar.href}
+                      className="font-heading inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+                    >
+                      {clusterLinks.pillar.label}
+                      <span
+                        className="material-symbols-outlined text-base"
+                        aria-hidden="true"
+                      >
+                        arrow_forward
+                      </span>
+                    </Link>
+                  </div>
+                  {clusterLinks.relatedPillars.length > 0 ? (
+                    <div>
+                      <p className="font-heading mb-2 text-sm font-semibold text-on-surface">
+                        Pages liées
+                      </p>
+                      <ul className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                        {clusterLinks.relatedPillars.map((link) => (
+                          <li key={link.href}>
+                            <Link
+                              href={link.href}
+                              className="font-heading inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+                            >
+                              {link.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                  <div>
+                    <p className="font-heading mb-2 text-sm font-semibold text-on-surface">
+                      Voir dans votre ville
+                    </p>
+                    <ul className="flex flex-wrap gap-2">
+                      {clusterLinks.cityMoney.map((link) => (
+                        <li key={link.href}>
+                          <Link
+                            href={link.href}
+                            className="font-heading inline-flex items-center rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-primary/90 sm:text-sm"
+                          >
+                            {link.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </section>
 
               {relatedProducts.length > 0 ? (
                 <section className="mt-12 border-t border-outline-variant/30 pt-10">

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BLOG_CATEGORIES } from "@/lib/blog-categories";
+import { blogClusterSupportLinks } from "@/lib/blog-seo-links";
 import { DEFAULT_CITY_SLUG } from "@/lib/cities";
 import { PHONE_DISPLAY, PHONE_NUMBER, products, whatsAppHref } from "@/lib/products";
 import { venteProductPath } from "@/lib/routes";
@@ -44,6 +45,7 @@ export function BlogSidebar({
   const offers = products
     .filter((product) => matchCats.includes(product.category))
     .slice(0, 3);
+  const clusterLinks = blogClusterSupportLinks(categorySlug ?? "guide");
 
   const waMessage = articleTitle
     ? `Bonjour SOS Santé, j'ai lu l'article "${articleTitle}" et je souhaite un devis.`
@@ -88,10 +90,10 @@ export function BlogSidebar({
           ))}
         </ul>
         <Link
-          href="/services"
+          href={clusterLinks.pillar.href}
           className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary"
         >
-          Voir tous les services
+          Voir le guide associé
           <MaterialIcon name="arrow_forward" className="text-base" />
         </Link>
       </div>
@@ -150,6 +152,51 @@ export function BlogSidebar({
           ))}
         </ul>
       </details>
+
+      <div className="rounded-2xl border border-surface-container-high bg-white p-5 shadow-sm">
+        <h2 className="font-heading mb-2 text-lg font-semibold text-primary">
+          Guides & pages utiles
+        </h2>
+        <p className="font-body mb-4 text-sm text-on-surface-variant">
+          Continuez vers nos guides nationaux et les pages disponibles dans
+          votre ville.
+        </p>
+        <ul className="space-y-2">
+          <li>
+            <Link
+              href={clusterLinks.pillar.href}
+              className="font-heading text-sm font-semibold text-primary hover:underline"
+            >
+              {clusterLinks.pillar.label}
+            </Link>
+          </li>
+          {clusterLinks.relatedPillars.map((link) => (
+            <li key={link.href}>
+              <Link
+                href={link.href}
+                className="font-heading text-sm font-semibold text-primary hover:underline"
+              >
+                {link.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <p className="font-heading mt-4 mb-2 text-xs font-semibold uppercase tracking-wide text-on-surface-variant">
+          Par ville
+        </p>
+        <ul className="flex flex-wrap gap-1.5">
+          {clusterLinks.cityMoney.map((link) => (
+            <li key={link.href}>
+              <Link
+                href={link.href}
+                className="font-heading inline-flex rounded-md bg-primary px-2 py-1 text-[10px] font-semibold text-white hover:bg-primary/90 sm:text-[11px]"
+              >
+                {link.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
     </aside>
   );
 }

@@ -278,6 +278,114 @@ export const locationCityEnrichments: Record<string, LocationCityEnrichment> = {
     ],
     relatedLinks: sharedRelated("rabat", "Rabat"),
   },
+  "location-materiel-medical-marrakech": {
+    processTitle: "Comment louer du matériel médical à Marrakech ?",
+    processIntro:
+      "Nous organisons la location de matériel médical à Marrakech et environs. Indiquez votre quartier pour confirmer délai, accès et créneau de livraison.",
+    processSteps: processStepsBase,
+    useCasesTitle: "Situations fréquentes à Marrakech",
+    useCases: [
+      {
+        title: "Retour d'hospitalisation",
+        description:
+          "Mettre en place rapidement un lit médicalisé, un fauteuil ou un équipement de confort pour le retour à domicile.",
+      },
+      {
+        title: "Maintien à domicile",
+        description:
+          "Faciliter le quotidien d'une personne âgée ou dépendante avec des aides à la mobilité et au confort.",
+      },
+      {
+        title: "Convalescence temporaire",
+        description:
+          "Louer pour quelques semaines : béquilles, déambulateur, fauteuil ou lit selon le besoin.",
+      },
+      {
+        title: "Besoin respiratoire",
+        description:
+          "Orienter vers un concentrateur d'oxygène selon disponibilité et recommandations médicales.",
+      },
+    ],
+    sections: [
+      {
+        id: "local-marrakech",
+        title: "Location organisée pour Marrakech",
+        paragraphs: [
+          "À Marrakech, SOS Santé organise la location et la livraison selon disponibilité. Précisez Guéliz, Hivernage, Médina, Daoudiate, Massira ou votre zone pour une confirmation réaliste.",
+          "Nous préparons le matériel, planifions la livraison et l'installation selon l'équipement, puis la récupération en fin de période. Nous ne remplaçons pas un avis médical.",
+        ],
+        bullets: [
+          "Zones : Marrakech et environs selon disponibilité",
+          "Délais souvent sous 24-48h selon stock",
+          "Installation pour équipements volumineux",
+          "Suivi WhatsApp / téléphone pendant la location",
+        ],
+      },
+      {
+        id: "equipements-marrakech",
+        title: "Équipements à louer à Marrakech",
+        paragraphs: [
+          "Le catalogue inclut lit médicalisé, fauteuil roulant, lève-personne, concentrateur d'oxygène et accessoires de confort selon disponibilité.",
+          "Un conseiller confirme le stock et oriente vers la location ou l'achat selon la durée estimée.",
+        ],
+      },
+    ],
+    relatedLinks: sharedRelated("marrakech", "Marrakech"),
+  },
+  "location-materiel-medical-tanger": {
+    processTitle: "Comment louer du matériel médical à Tanger ?",
+    processIntro:
+      "Nous organisons la location de matériel médical à Tanger et environs. Indiquez votre quartier pour confirmer délai et créneau.",
+    processSteps: processStepsBase,
+    useCasesTitle: "Situations fréquentes à Tanger",
+    useCases: [
+      {
+        title: "Retour à domicile",
+        description:
+          "Installer rapidement le matériel nécessaire après une hospitalisation ou une opération.",
+      },
+      {
+        title: "Personne âgée à domicile",
+        description:
+          "Sécuriser mobilité et confort au quotidien, avec livraison selon disponibilité.",
+      },
+      {
+        title: "Convalescence temporaire",
+        description:
+          "Location courte durée pour limiter l'investissement pendant une période limitée.",
+      },
+      {
+        title: "Besoin respiratoire",
+        description:
+          "Orienter vers un concentrateur d'oxygène selon disponibilité et prescription.",
+      },
+    ],
+    sections: [
+      {
+        id: "local-tanger",
+        title: "Location organisée pour Tanger",
+        paragraphs: [
+          "À Tanger, SOS Santé organise la location et la livraison selon disponibilité. Précisez votre quartier et l'accès au logement pour accélérer la confirmation.",
+          "Comme partout au Maroc, SOS Santé reste une entreprise de matériel et de coordination : pas un hôpital, pas un service d'urgence vitale.",
+        ],
+        bullets: [
+          "Zones : Tanger et environs selon disponibilité",
+          "Délais souvent sous 24-48h selon stock",
+          "Installation selon type d'équipement",
+          "Récupération organisée en fin de location",
+        ],
+      },
+      {
+        id: "equipements-tanger",
+        title: "Équipements à louer à Tanger",
+        paragraphs: [
+          "Lits médicalisés, fauteuils roulants, lève-personne, concentrateurs d'oxygène et accessoires de confort selon stock partenaire.",
+          "Pour un devis, indiquez le matériel recherché, le quartier et le délai souhaité.",
+        ],
+      },
+    ],
+    relatedLinks: sharedRelated("tanger", "Tanger"),
+  },
 };
 
 export function getLocationCityEnrichment(locationSlug: string) {
