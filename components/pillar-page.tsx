@@ -13,6 +13,7 @@ import {
   breadcrumbSchema,
   buildGraph,
   faqSchema,
+  serviceSchema,
   webPageSchema,
 } from "@/lib/schema";
 
@@ -62,6 +63,7 @@ export default function PillarPage({ content }: { content: PillarPageContent }) 
       { name: "Accueil", item: "/" },
       { name: content.h1, item: content.path },
     ]),
+    serviceSchema(content.h1, content.metaDescription, content.path),
     faqSchema(content.faqs, content.path)
   );
 
