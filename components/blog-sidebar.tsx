@@ -6,6 +6,7 @@ import { DEFAULT_CITY_SLUG } from "@/lib/cities";
 import { PHONE_DISPLAY, PHONE_NUMBER, products, whatsAppHref } from "@/lib/products";
 import { venteProductPath } from "@/lib/routes";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { TrackedWhatsAppLink } from "@/components/tracked-whatsapp-link";
 
 const CATEGORY_PRODUCT_MATCH: Record<string, string[]> = {
   respiratoire: ["Respiratoire"],
@@ -106,13 +107,16 @@ export function BlogSidebar({
           Un conseiller SOS Santé vous répond en général sous 15 minutes.
         </p>
         <div className="flex flex-col gap-2">
-          <a
+          <TrackedWhatsAppLink
             href={whatsAppHref(waMessage, "general")}
+            placement="blog_sidebar"
+            line="general"
+            label={articleTitle ?? "Sidebar blog"}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-primary"
           >
             <WhatsAppIcon className="h-4 w-4" />
             WhatsApp
-          </a>
+          </TrackedWhatsAppLink>
           <a
             href={`tel:${PHONE_NUMBER}`}
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/40 px-4 py-2.5 text-sm font-semibold text-white"

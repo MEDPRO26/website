@@ -7,6 +7,7 @@ import { whatsAppHref } from "@/lib/products";
 import { isVenteCatalogPath } from "@/lib/routes";
 import CityCatalogPickerDialog from "@/components/city-catalog-picker-dialog";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { TrackedWhatsAppLink } from "@/components/tracked-whatsapp-link";
 
 function MaterialIcon({
   name,
@@ -121,15 +122,16 @@ export default function MobileBottomNav({
           </span>
         </button>
 
-        <a
+        <TrackedWhatsAppLink
           href={whatsappHref}
-          target="_blank"
-          rel="noopener noreferrer"
+          placement="mobile_nav"
+          line="general"
+          label="Navigation mobile"
           className="flex flex-1 flex-col items-center justify-center py-2 text-on-surface-variant transition-colors hover:text-[#25D366]"
         >
           <WhatsAppIcon className="h-5 w-5 text-[#25D366]" />
           <span className="text-[10px] font-medium">WhatsApp</span>
-        </a>
+        </TrackedWhatsAppLink>
       </nav>
 
       <CityCatalogPickerDialog

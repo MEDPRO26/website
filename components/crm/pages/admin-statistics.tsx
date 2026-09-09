@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useQuery } from "convex/react";
 import {
   Activity,
@@ -7,6 +8,7 @@ import {
   BarChart3,
   Clock3,
   Globe,
+  MessageCircle,
   Monitor,
   Package,
   Smartphone,
@@ -145,6 +147,24 @@ export function AdminStatisticsPage() {
           icon={Package}
           tone="success"
         />
+        <Link href="/admin/statistics/whatsapp" className="block transition-opacity hover:opacity-90">
+          <StatCard
+            label="Clics WhatsApp"
+            value={totals.whatsappClicksToday}
+            hint="Aujourd'hui · Voir le détail"
+            icon={MessageCircle}
+            tone="success"
+          />
+        </Link>
+        <Link href="/admin/statistics/whatsapp" className="block transition-opacity hover:opacity-90">
+          <StatCard
+            label="Clics WhatsApp"
+            value={totals.whatsappClicks30d}
+            hint="30 derniers jours · Voir le détail"
+            icon={MessageCircle}
+            tone="brand"
+          />
+        </Link>
       </div>
 
       <VisitorHistoryChart enabled={canQuery("statistics.view")} />

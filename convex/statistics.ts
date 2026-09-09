@@ -328,6 +328,17 @@ export const overview = query({
         .map((row) => row.sessionKey)
     );
 
+    const whatsappTodayRows = await ctx.db
+      .query("whatsappClicks")
+      .withIndex("by_dateKey", (q) => q.eq("dateKey", today))
+      .collect();
+    const whatsapp30dRows = await ctx.db
+      .query("whatsappClicks")
+      .withIndex("by_dateKey", (q) =>
+        q.gte("dateKey", addDays(today, -29)).lte("dateKey", today)
+      )
+      .collect();
+
     const commissionBySupplier = new Map<
       Id<"suppliers">,
       {
@@ -489,6 +500,8 @@ export const overview = query({
           0
         ),
         avgDeliveryMs: average(allDeliveryTimes),
+        whatsappClicksToday: whatsappTodayRows.length,
+        whatsappClicks30d: whatsapp30dRows.length,
       },
     };
   },
@@ -795,6 +808,82 @@ export const peakHours = query({
       endDate,
       buckets,
       peakVisitors: peakVisitors.visitors > 0 ? peakVisitors : null,
+    };
+  },
+});
+
+export const whatsappClicks = query({
+  args: {
+    startDate: v.string(),
+    endDate: v.string(),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, { startDate, endDate, limit }) => {
+    await requireAdminPermission(ctx, "statistics.view");
+
+    const rows = await ctx.db
+      .query("whatsappClicks")
+      .withIndex("by_dateKey", (q) =>
+        q.gte("dateKey", startDate).lte("dateKey", endDate)
+      )
+      .collect();
+
+    rows.sort((a, b) => b.clickedAt - a.clickedAt);
+
+    const byPlacement = new Map<string, number>();
+    const byPageCity = new Map<string, number>();
+    const byVisitorCity = new Map<string, number>();
+    let morocco = 0;
+    let abroad = 0;
+    let unknownGeo = 0;
+
+    for (const row of rows) {
+      byPlacement.set(row.placement, (byPlacement.get(row.placement) ?? 0) + 1);
+
+      const pageCity = row.pageCitySlug?.trim() || "national";
+      byPageCity.set(pageCity, (byPageCity.get(pageCity) ?? 0) + 1);
+
+      if (isMorocco(row.countryCode)) {
+        morocco += 1;
+        const city = row.city?.trim() || "Ville inconnue";
+        byVisitorCity.set(city, (byVisitorCity.get(city) ?? 0) + 1);
+      } else if (row.countryCode) {
+        abroad += 1;
+      } else {
+        unknownGeo += 1;
+      }
+    }
+
+    const now = Date.now();
+    const recentLimit = Math.min(Math.max(limit ?? 100, 1), 300);
+
+    return {
+      startDate,
+      endDate,
+      total: rows.length,
+      totals: { morocco, abroad, unknown: unknownGeo },
+      byPlacement: [...byPlacement.entries()]
+        .map(([placement, count]) => ({ placement, count }))
+        .sort((a, b) => b.count - a.count),
+      byPageCity: [...byPageCity.entries()]
+        .map(([city, count]) => ({ city, count }))
+        .sort((a, b) => b.count - a.count),
+      moroccoCities: [...byVisitorCity.entries()]
+        .map(([city, count]) => ({ city, count }))
+        .sort((a, b) => b.count - a.count),
+      recent: rows.slice(0, recentLimit).map((row) => ({
+        id: row._id,
+        clickedAt: row.clickedAt,
+        clickedLabel: formatRelativeTime(row.clickedAt, now),
+        path: row.path,
+        placement: row.placement,
+        pageCitySlug: row.pageCitySlug ?? null,
+        location: formatVisitorLocation(row),
+        deviceLabel: visitorDeviceLabel(row.deviceType),
+        line: row.line ?? null,
+        label: row.label ?? null,
+      })),
+      recentLimit,
     };
   },
 });

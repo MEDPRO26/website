@@ -7,6 +7,7 @@ import Logo from "@/components/logo";
 import CityCatalogPickerDialog from "@/components/city-catalog-picker-dialog";
 import NavSearch from "@/components/nav-search";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { TrackedWhatsAppLink } from "@/components/tracked-whatsapp-link";
 import { activeCities } from "@/lib/cities";
 import { careServiceCityPath, careServices } from "@/lib/care-services";
 import { whatsAppHref } from "@/lib/products";
@@ -642,8 +643,11 @@ export default function Navbar() {
 
         <div className="relative z-10 col-start-2 flex items-center justify-self-end gap-2 sm:gap-3 md:col-start-3">
           <NavSearch compact={isCompact} />
-          <a
+          <TrackedWhatsAppLink
             href={whatsAppHref("Bonjour SOS Santé, je souhaite des informations.", "general")}
+            placement="navbar"
+            line="general"
+            label="Menu header"
             className={classNames(
               "hidden items-center gap-2 rounded-full bg-status-success text-sm font-semibold text-white shadow-sm transition-all hover:brightness-110 sm:inline-flex",
               isCompact ? "px-4 py-2" : "px-5 py-2.5"
@@ -651,7 +655,7 @@ export default function Navbar() {
           >
             <WhatsAppIcon className="h-5 w-5" />
             WhatsApp
-          </a>
+          </TrackedWhatsAppLink>
           <button
             type="button"
             aria-label={mobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}

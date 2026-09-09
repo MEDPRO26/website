@@ -72,6 +72,7 @@ import type * as suppliers from "../suppliers.js";
 import type * as validators from "../validators.js";
 import type * as webPush from "../webPush.js";
 import type * as whatsappChannels from "../whatsappChannels.js";
+import type * as whatsappClicks from "../whatsappClicks.js";
 import type * as whatsappMessenger from "../whatsappMessenger.js";
 
 import type {
@@ -145,6 +146,7 @@ declare const fullApi: ApiFromModules<{
   validators: typeof validators;
   webPush: typeof webPush;
   whatsappChannels: typeof whatsappChannels;
+  whatsappClicks: typeof whatsappClicks;
   whatsappMessenger: typeof whatsappMessenger;
 }>;
 

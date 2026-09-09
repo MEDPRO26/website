@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import SiteFooter from "@/components/site-footer";
 import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { TrackedWhatsAppLink } from "@/components/tracked-whatsapp-link";
 import { useSubmitLead } from "@/hooks/use-submit-lead";
 import {
   activeDeliveryCities,
@@ -571,15 +572,16 @@ export default function LocationProductDetail({
                       </div>
                     </div>
 
-                    <a
+                    <TrackedWhatsAppLink
                       href={cityWhatsAppHref(city, whatsappText, "materiel")}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      placement="product_location"
+                      line="materiel"
+                      label={product.name}
                       className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#25D366]/30 bg-[#25D366]/5 py-3 text-sm font-semibold text-[#128C7E] transition-colors hover:bg-[#25D366]/10"
                     >
                       <WhatsAppIcon className="h-5 w-5" />
                       WhatsApp Express
-                    </a>
+                    </TrackedWhatsAppLink>
                   </div>
                 </div>
               </div>

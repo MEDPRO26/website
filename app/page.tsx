@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import HeroScrollSection from "@/components/hero-scroll-section";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { TrackedWhatsAppLink } from "@/components/tracked-whatsapp-link";
 import SiteFooter from "@/components/site-footer";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
@@ -324,13 +325,16 @@ export default function Home() {
               Devis gratuit en 15 minutes.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <a
+              <TrackedWhatsAppLink
                 href={whatsAppHref("Bonjour SOS Santé, j'ai besoin d'aide pour choisir un matériel médical.", "general")}
+                placement="home_hero"
+                line="general"
+                label="Accueil hero"
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-base font-semibold text-on-primary shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary-container hover:shadow-xl sm:w-auto"
               >
                 <WhatsAppIcon className="h-5 w-5 shrink-0" />
                 Besoin d&apos;aide ?
-              </a>
+              </TrackedWhatsAppLink>
               <button
                 type="button"
                 onClick={() => openCatalogPicker()}
@@ -853,6 +857,8 @@ export default function Home() {
             "Bonjour SOS Santé, je souhaite louer du matériel médical.",
             "materiel"
           )}
+          whatsappPlacement="quote"
+          whatsappLabel="Accueil devis"
           defaultCityName={defaultFormCity}
           pagePath="/accueil"
           productNames={productNames}

@@ -19,6 +19,7 @@ import {
   presenceKindValidator,
   roleValidator,
   visitorDeviceValidator,
+  whatsappPlacementValidator,
   staffStatusValidator,
   supplierInvitationStatusValidator,
   supplierQuoteStatusValidator,
@@ -493,6 +494,26 @@ export default defineSchema({
   })
     .index("by_dateKey", ["dateKey"])
     .index("by_dateKey_sessionKey", ["dateKey", "sessionKey"]),
+
+  /** Public WhatsApp CTA clicks from the website. */
+  whatsappClicks: defineTable({
+    sessionKey: v.string(),
+    clickedAt: v.number(),
+    dateKey: v.string(),
+    path: v.string(),
+    placement: whatsappPlacementValidator,
+    pageCitySlug: v.optional(v.string()),
+    city: v.optional(v.string()),
+    country: v.optional(v.string()),
+    countryCode: v.optional(v.string()),
+    deviceType: v.optional(visitorDeviceValidator),
+    line: v.optional(v.string()),
+    label: v.optional(v.string()),
+  })
+    .index("by_clickedAt", ["clickedAt"])
+    .index("by_dateKey", ["dateKey"])
+    .index("by_placement", ["placement"])
+    .index("by_pageCitySlug", ["pageCitySlug"]),
 
   apportDeals: defineTable({
     /** @deprecated unused — author shown via createdBy / apporteurId */

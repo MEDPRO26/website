@@ -156,6 +156,26 @@ export const visitorDeviceValidator = v.union(
   v.literal("desktop")
 );
 
+export const whatsappPlacementValidator = v.union(
+  v.literal("navbar"),
+  v.literal("mobile_nav"),
+  v.literal("footer"),
+  v.literal("home_hero"),
+  v.literal("quote"),
+  v.literal("product_vente"),
+  v.literal("product_location"),
+  v.literal("catalog"),
+  v.literal("city_hub"),
+  v.literal("pillar"),
+  v.literal("blog"),
+  v.literal("blog_sidebar"),
+  v.literal("contact"),
+  v.literal("services"),
+  v.literal("care_service"),
+  v.literal("about"),
+  v.literal("other")
+);
+
 export const commissionPaymentMethodValidator = v.union(
   v.literal("versement_bancaire"),
   v.literal("virement_bancaire"),

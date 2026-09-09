@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { TrackedWhatsAppLink } from "@/components/tracked-whatsapp-link";
 import { SuggestableItemField } from "@/components/suggestable-item-field";
 import { useSubmitLead } from "@/hooks/use-submit-lead";
 import { activeCities } from "@/lib/cities";
@@ -12,6 +13,7 @@ import {
   isLeadRequestKindDisabled,
 } from "@/lib/lead-form-request-kinds";
 import { RENTAL_MATERIAL_OPTIONS } from "@/lib/order-request-kinds";
+import type { WhatsAppPlacement } from "@/lib/whatsapp-tracking";
 
 type RequestKind = "general" | "location" | "vente" | "service";
 
@@ -48,6 +50,8 @@ type QuoteRequestSectionProps = {
   title: string;
   description: string;
   whatsappHref: string;
+  whatsappPlacement?: WhatsAppPlacement;
+  whatsappLabel?: string;
   defaultCityName: string;
   pagePath: string;
   productNames: string[];
@@ -59,6 +63,8 @@ export default function QuoteRequestSection({
   title,
   description,
   whatsappHref,
+  whatsappPlacement = "quote",
+  whatsappLabel,
   defaultCityName,
   pagePath,
   productNames,
@@ -154,13 +160,15 @@ export default function QuoteRequestSection({
             {description}
           </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center md:justify-start">
-            <a
+            <TrackedWhatsAppLink
               href={whatsappHref}
+              placement={whatsappPlacement}
+              label={whatsappLabel ?? "Bloc devis"}
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-status-success px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-black/10 transition-all hover:-translate-y-0.5 hover:brightness-110"
             >
               <WhatsAppIcon className="h-5 w-5 shrink-0" />
               Commander par WhatsApp
-            </a>
+            </TrackedWhatsAppLink>
             <a
               href={`mailto:${CONTACT_EMAIL}?subject=Demande%20de%20devis%20matériel%20médical`}
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3.5 text-base font-semibold text-secondary transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"

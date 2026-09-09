@@ -1,5 +1,6 @@
 import { CONTACT_EMAIL } from "@/lib/products";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { TrackedWhatsAppLink } from "@/components/tracked-whatsapp-link";
 import type { FooterContext } from "@/lib/footer-context";
 
 function MaterialIcon({
@@ -118,9 +119,11 @@ export default function FooterContact({
         <div className="mt-4 flex flex-wrap gap-3">
           {whatsappContacts.map((contact) =>
             contact.whatsappHref ? (
-              <a
+              <TrackedWhatsAppLink
                 key={contact.name}
                 href={contact.whatsappHref}
+                placement="footer"
+                label={`Footer ${contact.name}`}
                 aria-label={`Contacter SOS Santé ${contact.name} sur WhatsApp`}
                 title={`WhatsApp ${contact.name}`}
                 className="inline-flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-full bg-primary px-3 text-on-primary transition-transform hover:scale-110"
@@ -129,7 +132,7 @@ export default function FooterContact({
                 {context.variant === "national" ? (
                   <span className="text-xs font-semibold">{contact.name}</span>
                 ) : null}
-              </a>
+              </TrackedWhatsAppLink>
             ) : null
           )}
           <a
