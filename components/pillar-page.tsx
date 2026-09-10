@@ -6,6 +6,7 @@ import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import SiteFooter from "@/components/site-footer";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { TrackedWhatsAppLink } from "@/components/tracked-whatsapp-link";
 import { HERO_IMAGE, SITE_NAME, SITE_URL_DEFAULT } from "@/lib/brand";
 import type { PillarPageContent } from "@/lib/pillar-pages";
 import { PHONE_DISPLAY, PHONE_NUMBER, whatsAppHref } from "@/lib/products";
@@ -95,13 +96,16 @@ export default function PillarPage({ content }: { content: PillarPageContent }) 
               {content.heroLead}
             </p>
             <div className="flex flex-col gap-3 sm:flex-row animate-fade-in-up">
-              <a
+              <TrackedWhatsAppLink
                 href={whatsapp}
+                placement="pillar"
+                line="general"
+                label="Guide — hero"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-base font-semibold text-on-primary shadow-lg shadow-black/20 transition-transform hover:-translate-y-0.5"
               >
                 <WhatsAppIcon className="h-5 w-5" />
                 Demander un devis WhatsApp
-              </a>
+              </TrackedWhatsAppLink>
               <a
                 href={`tel:${PHONE_NUMBER}`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/40 bg-white/10 px-7 py-3.5 text-base font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
@@ -379,13 +383,16 @@ export default function PillarPage({ content }: { content: PillarPageContent }) 
               {content.ctaText}
             </p>
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <a
+              <TrackedWhatsAppLink
                 href={whatsapp}
+                placement="pillar"
+                line="general"
+                label="Guide — CTA bas"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-on-primary shadow-lg transition-transform hover:-translate-y-0.5"
               >
                 <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp
-              </a>
+              </TrackedWhatsAppLink>
               <a
                 href={`tel:${PHONE_NUMBER}`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-primary bg-white px-8 py-4 text-base font-semibold text-primary transition-colors hover:bg-primary/5"

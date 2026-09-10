@@ -10,6 +10,7 @@ import LocationCatalogGrid from "@/components/location-catalog-grid";
 import LocationCityEnrichmentSections from "@/components/location-city-enrichment";
 import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { TrackedWhatsAppLink } from "@/components/tracked-whatsapp-link";
 import SiteFooter from "@/components/site-footer";
 import { DEFAULT_CITY_SLUG, cities } from "@/lib/cities";
 import { HERO_IMAGE } from "@/lib/brand";
@@ -194,13 +195,16 @@ function CtaSection({
           Notre équipe vous accompagne dans le choix du matériel adapté.
         </p>
         <div className="flex flex-col justify-center gap-3 sm:flex-row">
-          <a
+          <TrackedWhatsAppLink
             href={wa}
+            placement="catalog"
+            line="materiel"
+            label="SEO page — CTA"
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-primary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
           >
             <WhatsAppIcon className="h-5 w-5" />
             WhatsApp
-          </a>
+          </TrackedWhatsAppLink>
           <a
             href={`tel:${tel}`}
             className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white px-8 py-4 text-base font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-white/10"
@@ -452,13 +456,16 @@ export function SeoCityPage({
                   Voir les produits
                   <MaterialIcon name="arrow_forward" className="text-lg" />
                 </a>
-                <a
+                <TrackedWhatsAppLink
                   href={waHref}
+                  placement="city_hub"
+                  line="materiel"
+                  label="Location ville — hero"
                   className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-secondary bg-white/60 px-6 py-3.5 text-base font-semibold text-secondary backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-secondary/10"
                 >
                   <WhatsAppIcon className="h-5 w-5" />
                   WhatsApp
-                </a>
+                </TrackedWhatsAppLink>
               </div>
               <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-on-surface-variant sm:mt-8">
                 <span className="inline-flex items-center gap-1.5">

@@ -10,6 +10,7 @@ import Navbar from "@/components/navbar";
 import RelatedProducts from "@/components/related-products";
 import SiteFooter from "@/components/site-footer";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { TrackedWhatsAppLink } from "@/components/tracked-whatsapp-link";
 import { useSubmitLead } from "@/hooks/use-submit-lead";
 import { activeCities } from "@/lib/cities";
 import type { ProductLandingContent } from "@/lib/product-landing-pages";
@@ -217,13 +218,16 @@ export default function ProductLandingPage({
                   <MaterialIcon name="request_quote" />
                   Devis gratuit
                 </a>
-                <a
+                <TrackedWhatsAppLink
                   href={whatsAppHref(whatsappText, "general")}
+                  placement="product_vente"
+                  line="general"
+                  label="Landing produit — hero"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-status-success px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition-all hover:brightness-110 sm:text-base"
                 >
                   <WhatsAppIcon className="h-5 w-5" />
                   WhatsApp
-                </a>
+                </TrackedWhatsAppLink>
               </div>
               <p className="mt-4 text-sm text-on-surface-variant">
                 Ou appelez-nous :{" "}
@@ -672,13 +676,16 @@ export default function ProductLandingPage({
         >
           Devis gratuit
         </a>
-        <a
+        <TrackedWhatsAppLink
           href={whatsAppHref(whatsappText, "general")}
+          placement="product_vente"
+          line="general"
+          label="Landing produit — barre mobile"
           className="flex flex-1 items-center justify-center gap-2 rounded-full bg-status-success py-3 text-sm font-semibold text-white"
         >
           <WhatsAppIcon className="h-5 w-5" />
           WhatsApp
-        </a>
+        </TrackedWhatsAppLink>
       </div>
 
       <SiteFooter />

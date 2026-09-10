@@ -29,6 +29,7 @@ import { DEFAULT_CITY_SLUG } from "@/lib/cities";
 import { venteProductPath } from "@/lib/routes";
 import { blogClusterSupportLinks } from "@/lib/blog-seo-links";
 import { extractFaqsFromHtml } from "@/lib/markdown";
+import { TrackedWhatsAppLink } from "@/components/tracked-whatsapp-link";
 import {
   blogPostingSchema,
   breadcrumbSchema,
@@ -321,16 +322,19 @@ export default async function BlogArticlePage({ params }: PageProps) {
                   rapide.
                 </p>
                 <div className="flex flex-col justify-center gap-3 sm:flex-row">
-                  <a
+                  <TrackedWhatsAppLink
                     href={whatsAppHref(
                       `Bonjour SOS Santé, j'ai lu l'article "${post.title}" et je souhaite un devis.`,
                       "general"
                     )}
+                    placement="blog"
+                    line="general"
+                    label={post.title}
                     className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-primary"
                   >
                     <WhatsAppIcon className="h-5 w-5" />
                     WhatsApp
-                  </a>
+                  </TrackedWhatsAppLink>
                   <a
                     href={`mailto:${CONTACT_EMAIL}`}
                     className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white px-6 py-3 text-sm font-semibold text-white"

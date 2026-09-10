@@ -12,6 +12,7 @@ import CatalogPagination, {
 } from "@/components/catalog-pagination";
 import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { TrackedWhatsAppLink } from "@/components/tracked-whatsapp-link";
 import SiteFooter from "@/components/site-footer";
 import VenteCatalogFaq from "@/components/vente-catalog-faq";
 import { useProductsPerPage } from "@/hooks/use-products-per-page";
@@ -438,13 +439,16 @@ export default function VenteCatalog({ citySlug, categorySlug }: VenteCatalogPro
               vente de votre matériel médical à {city.name}.
             </p>
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <a
+              <TrackedWhatsAppLink
                 href={cityWhatsAppHref(city, whatsappText, "materiel")}
+                placement="catalog"
+                line="materiel"
+                label={`Catalogue vente ${city.name}`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-secondary shadow-lg transition-all hover:-translate-y-0.5 hover:bg-surface-container-low"
               >
                 <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp
-              </a>
+              </TrackedWhatsAppLink>
               <Link
                 href="/#contact"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white/80 bg-transparent px-8 py-4 text-base font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-white/10"

@@ -6,6 +6,7 @@ import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import SiteFooter from "@/components/site-footer";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { TrackedWhatsAppLink } from "@/components/tracked-whatsapp-link";
 import {
   ABOUT_DEFINITION,
   ABOUT_DESCRIPTION,
@@ -164,16 +165,19 @@ export default function AboutPage() {
                 Nous contacter
                 <MaterialIcon name="arrow_forward" />
               </Link>
-              <a
+              <TrackedWhatsAppLink
                 href={whatsAppHref(
                   "Bonjour SOS Santé, je souhaite des informations.",
                   "general"
                 )}
+                placement="about"
+                line="general"
+                label="À propos — hero"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/40 bg-white/10 px-7 py-3.5 text-base font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
               >
                 <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp
-              </a>
+              </TrackedWhatsAppLink>
             </div>
           </div>
         </section>
@@ -443,16 +447,19 @@ export default function AboutPage() {
               >
                 Demander un devis
               </Link>
-              <a
+              <TrackedWhatsAppLink
                 href={whatsAppHref(
                   "Bonjour SOS Santé, je souhaite un devis.",
                   "general"
                 )}
+                placement="about"
+                line="general"
+                label="À propos — CTA bas"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-white/10"
               >
                 <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp
-              </a>
+              </TrackedWhatsAppLink>
             </div>
           </div>
         </section>

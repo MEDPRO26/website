@@ -8,6 +8,7 @@ import { CareServiceRequestForm } from "@/components/care-service-request-form";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { TrackedWhatsAppLink } from "@/components/tracked-whatsapp-link";
 import SiteFooter from "@/components/site-footer";
 import {
   ABOUT_PATH,
@@ -227,13 +228,16 @@ export function CareServiceCityPage({
               </Link>
             </p>
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <a
+              <TrackedWhatsAppLink
                 href={whatsappHref}
+                placement="care_service"
+                line="garde_soins"
+                label={content.h1}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-on-primary shadow-lg shadow-primary/30 transition-all hover:-translate-y-0.5 hover:bg-primary-container"
               >
                 <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp · {phoneDisplay}
-              </a>
+              </TrackedWhatsAppLink>
               <a
                 href="#request-form"
                 onClick={(e) => {

@@ -6,6 +6,7 @@ import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import SiteFooter from "@/components/site-footer";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { TrackedWhatsAppLink } from "@/components/tracked-whatsapp-link";
 import { SITE_NAME, SITE_URL_DEFAULT } from "@/lib/brand";
 import PillarSectionImage from "@/components/pillar-section-image";
 import type {
@@ -91,13 +92,16 @@ function WhatsAppCta({
   className?: string;
 }) {
   return (
-    <a
+    <TrackedWhatsAppLink
       href={href}
+      placement="pillar"
+      line="general"
+      label={label}
       className={`inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-base font-semibold text-on-primary shadow-lg shadow-black/20 transition-transform hover:-translate-y-0.5 ${className}`}
     >
       <WhatsAppIcon className="h-5 w-5" />
       {label}
-    </a>
+    </TrackedWhatsAppLink>
   );
 }
 

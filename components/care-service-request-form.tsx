@@ -10,6 +10,7 @@ import {
 import { activeCities } from "@/lib/cities";
 import { careServiceFormOptions } from "@/lib/care-services";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { TrackedWhatsAppLink } from "@/components/tracked-whatsapp-link";
 import { SuggestableItemField } from "@/components/suggestable-item-field";
 import { cityWhatsAppText } from "@/lib/whatsapp-lines";
 
@@ -142,7 +143,7 @@ export function CareServiceRequestForm({
               <p className="font-heading mb-3 text-sm font-semibold text-on-surface">
                 Vous préférez WhatsApp ?
               </p>
-              <a
+              <TrackedWhatsAppLink
                 href={
                   whatsappHrefProp ??
                   whatsAppHref(
@@ -155,11 +156,14 @@ export function CareServiceRequestForm({
                     "garde_soins"
                   )
                 }
+                placement="care_service"
+                line="garde_soins"
+                label={defaultCareType}
                 className="inline-flex items-center gap-2 rounded-xl border-2 border-status-success px-5 py-3 text-sm font-semibold text-status-success transition-all hover:bg-status-success hover:text-white"
               >
                 <WhatsAppIcon className="h-5 w-5" />
                 Discuter maintenant
-              </a>
+              </TrackedWhatsAppLink>
             </div>
           </div>
 

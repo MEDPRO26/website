@@ -9,6 +9,7 @@ import SiteFooter from "@/components/site-footer";
 import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { TrackedWhatsAppLink } from "@/components/tracked-whatsapp-link";
 import {
   ABOUT_PATH,
   SERVICES_HERO_INTRO,
@@ -313,13 +314,16 @@ export default function ServicesPage() {
                 Demander un service
                 <MaterialIcon name="arrow_forward" />
               </a>
-              <a
+              <TrackedWhatsAppLink
                 href={whatsAppHref("Bonjour SOS Santé, je souhaite un service de soins à domicile.", "garde_soins")}
+                placement="services"
+                line="garde_soins"
+                label="Services — hero"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-secondary bg-white/60 px-8 py-4 text-base font-semibold text-secondary backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-secondary/10"
               >
                 <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp Express
-              </a>
+              </TrackedWhatsAppLink>
             </div>
 
             {/* Quick stats */}
@@ -527,13 +531,16 @@ export default function ServicesPage() {
                 <p className="font-heading mb-3 text-sm font-semibold text-on-surface">
                   Vous préférez WhatsApp ?
                 </p>
-                <a
+                <TrackedWhatsAppLink
                   href={whatsAppHref("Bonjour SOS Santé, je souhaite un service de soins à domicile.", "garde_soins")}
+                  placement="services"
+                  line="garde_soins"
+                  label="Services — formulaire"
                   className="inline-flex items-center gap-2 rounded-xl border-2 border-status-success px-5 py-3 text-sm font-semibold text-status-success transition-all hover:bg-status-success hover:text-white"
                 >
                   <WhatsAppIcon className="h-5 w-5" />
                   Discuter maintenant
-                </a>
+                </TrackedWhatsAppLink>
               </div>
             </div>
 
@@ -790,13 +797,16 @@ export default function ServicesPage() {
                 <MaterialIcon name="phone_in_talk" />
                 Appeler maintenant
               </a>
-              <a
+              <TrackedWhatsAppLink
                 href={whatsAppHref("Bonjour SOS Santé, j'ai besoin d'un soin urgent à domicile.", "garde_soins")}
+                placement="services"
+                line="garde_soins"
+                label="Services — CTA bas de page"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white px-8 py-4 text-base font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-white/10"
               >
                 <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp
-              </a>
+              </TrackedWhatsAppLink>
             </div>
           </div>
         </section>

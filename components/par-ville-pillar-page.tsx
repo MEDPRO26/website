@@ -6,6 +6,7 @@ import JsonLd from "@/components/json-ld";
 import Navbar from "@/components/navbar";
 import SiteFooter from "@/components/site-footer";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { TrackedWhatsAppLink } from "@/components/tracked-whatsapp-link";
 import PillarSectionImage from "@/components/pillar-section-image";
 import PillarProductSidebar from "@/components/pillar-product-sidebar";
 import { SITE_NAME, SITE_URL_DEFAULT } from "@/lib/brand";
@@ -91,13 +92,16 @@ function WhatsAppCta({
   className?: string;
 }) {
   return (
-    <a
+    <TrackedWhatsAppLink
       href={href}
+      placement="pillar"
+      line="general"
+      label={label}
       className={`inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-base font-semibold text-on-primary shadow-lg shadow-black/20 transition-transform hover:-translate-y-0.5 ${className}`}
     >
       <WhatsAppIcon className="h-5 w-5" />
       {label}
-    </a>
+    </TrackedWhatsAppLink>
   );
 }
 
@@ -169,13 +173,16 @@ export default function ParVillePillarPage({
                 <MaterialIcon name="location_on" />
                 {content.primaryCtaLabel}
               </a>
-              <a
+              <TrackedWhatsAppLink
                 href={whatsapp}
+                placement="pillar"
+                line="general"
+                label={content.secondaryCtaLabel}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/40 bg-white/10 px-7 py-3.5 text-base font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
               >
                 <WhatsAppIcon className="h-5 w-5" />
                 {content.secondaryCtaLabel}
-              </a>
+              </TrackedWhatsAppLink>
             </div>
           </div>
         </section>

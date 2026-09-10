@@ -702,6 +702,8 @@ export default function CityHubPage({ citySlug }: CityHubPageProps) {
           title={`Besoin d'un devis à ${city.name} ?`}
           description={`Contactez ${content.badgeLabel} pour la vente, la location ou l'aide à domicile. Nos experts vous répondent en moins de 15 minutes pour organiser la livraison de votre matériel médical.`}
           whatsappHref={cityWhatsAppHref(city, whatsappText, "materiel")}
+          whatsappPlacement="city_hub"
+          whatsappLabel={`Hub ${city.name}`}
           defaultCityName={city.name}
           pagePath={path}
           productNames={productNames}

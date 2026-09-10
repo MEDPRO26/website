@@ -3,6 +3,7 @@ import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb";
 import Navbar from "@/components/navbar";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { TrackedWhatsAppLink } from "@/components/tracked-whatsapp-link";
 import SiteFooter from "@/components/site-footer";
 import { ABOUT_PATH, CONTACT_FAQS } from "@/lib/about-content";
 import { HERO_IMAGE, SITE_NAME, SITE_URL_DEFAULT } from "@/lib/brand";
@@ -15,6 +16,7 @@ import {
 } from "@/lib/delivery-cities";
 import { CONTACT_EMAIL, PHONE_DISPLAY, PHONE_NUMBER, whatsAppHref } from "@/lib/products";
 import { hubCityPath } from "@/lib/routes";
+import type { WhatsAppPlacement } from "@/lib/whatsapp-tracking";
 import {
   breadcrumbSchema,
   buildGraph,
@@ -66,7 +68,15 @@ function MaterialIcon({
   );
 }
 
-const contactChannels = [
+const contactChannels: {
+  icon: string;
+  title: string;
+  value: string;
+  href: string;
+  cta: string;
+  color: string;
+  trackPlacement?: WhatsAppPlacement;
+}[] = [
   {
     icon: "chat",
     title: "WhatsApp",
@@ -74,6 +84,7 @@ const contactChannels = [
     href: whatsAppHref("Bonjour SOS Santé, je souhaite un devis ou plus d'informations.", "general"),
     cta: "Discuter sur WhatsApp",
     color: "bg-[#25D366]/10 text-[#25D366]",
+    trackPlacement: "contact",
   },
   {
     icon: "mail",
@@ -159,33 +170,58 @@ export default function ContactPage() {
         <section className="px-4 pb-10 sm:px-6 sm:pb-14">
           <div className="mx-auto max-w-7xl">
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {contactChannels.map((channel) => (
-                <a
-                  key={channel.title}
-                  href={channel.href}
-                  className="group flex flex-col rounded-3xl border border-outline-variant/30 bg-surface-base p-6 shadow-sm transition-all hover:-translate-y-2 hover:shadow-lg sm:p-8"
-                >
-                  <div
-                    className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl transition-all ${channel.color}`}
+              {contactChannels.map((channel) => {
+                const channelInner = (
+                  <>
+                    <div
+                      className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl transition-all ${channel.color}`}
+                    >
+                      {channel.title === "WhatsApp" ? (
+                        <WhatsAppIcon className="h-7 w-7" />
+                      ) : (
+                        <MaterialIcon name={channel.icon} className="text-[28px]" />
+                      )}
+                    </div>
+                    <h2 className="font-heading mb-1 text-xl font-semibold text-primary">
+                      {channel.title}
+                    </h2>
+                    <p className="font-body mb-5 flex-1 text-on-surface-variant">
+                      {channel.value}
+                    </p>
+                    <span className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition-all group-hover:gap-2">
+                      {channel.cta}
+                      <MaterialIcon name="arrow_forward" className="text-base" />
+                    </span>
+                  </>
+                );
+                const className =
+                  "group flex flex-col rounded-3xl border border-outline-variant/30 bg-surface-base p-6 shadow-sm transition-all hover:-translate-y-2 hover:shadow-lg sm:p-8";
+
+                if (channel.trackPlacement) {
+                  return (
+                    <TrackedWhatsAppLink
+                      key={channel.title}
+                      href={channel.href}
+                      placement={channel.trackPlacement}
+                      line="general"
+                      label="Page contact"
+                      className={className}
+                    >
+                      {channelInner}
+                    </TrackedWhatsAppLink>
+                  );
+                }
+
+                return (
+                  <a
+                    key={channel.title}
+                    href={channel.href}
+                    className={className}
                   >
-                    {channel.title === "WhatsApp" ? (
-                      <WhatsAppIcon className="h-7 w-7" />
-                    ) : (
-                      <MaterialIcon name={channel.icon} className="text-[28px]" />
-                    )}
-                  </div>
-                  <h2 className="font-heading mb-1 text-xl font-semibold text-primary">
-                    {channel.title}
-                  </h2>
-                  <p className="font-body mb-5 flex-1 text-on-surface-variant">
-                    {channel.value}
-                  </p>
-                  <span className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition-all group-hover:gap-2">
-                    {channel.cta}
-                    <MaterialIcon name="arrow_forward" className="text-base" />
-                  </span>
-                </a>
-              ))}
+                    {channelInner}
+                  </a>
+                );
+              })}
             </div>
           </div>
         </section>
