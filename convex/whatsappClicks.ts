@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { internalMutation, mutation } from "./_generated/server";
 import { dateKeyInSiteTimezone } from "./presence";
 import {
   visitorDeviceValidator,
@@ -60,5 +60,17 @@ export const recordClick = mutation({
     });
 
     return { ok: true as const, deduped: false };
+  },
+});
+
+/** One-shot: delete all WhatsApp click analytics rows. */
+export const clearAll = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("whatsappClicks").collect();
+    for (const row of rows) {
+      await ctx.db.delete(row._id);
+    }
+    return { deleted: rows.length };
   },
 });
