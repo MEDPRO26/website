@@ -791,14 +791,14 @@ export const locationPillarContent: LocationPillarContent = {
       description: "Critères pour louer ou choisir un lit médicalisé à domicile",
     },
     {
+      label: "Lit médicalisé ou matelas anti-escarres",
+      href: "/blog/guide/lit-medicalise-ou-matelas-anti-escarres",
+      description: "Quelle solution de confort choisir à domicile",
+    },
+    {
       label: "Location de concentrateurs d'oxygène à Agadir",
       href: "/blog/respiratoire/concentrateur-oxygene-agadir",
       description: "Confort, assistance et options de location à domicile",
-    },
-    {
-      label: "Blog respiratoire",
-      href: "/blog/respiratoire",
-      description: "Autres guides oxygène, CPAP et concentrateurs",
     },
   ],
   productSidebar: locationPillarSidebar(),

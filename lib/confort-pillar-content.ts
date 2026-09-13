@@ -586,14 +586,14 @@ export const confortPillarContent: LocationPillarContent = {
     "Quelques contenus de soutien pour préparer un retour à domicile ou mieux comprendre certains besoins liés au maintien à domicile.",
   blogLinks: [
     {
+      label: "Lit médicalisé ou matelas anti-escarres",
+      href: "/blog/guide/lit-medicalise-ou-matelas-anti-escarres",
+      description: "Quelle solution de confort choisir à domicile",
+    },
+    {
       label: "Comment choisir le lit médicalisé idéal",
       href: "/blog/guide/comment-choisir-lit-medicalise-domicile",
       description: "Critères pour un lit médicalisé à domicile",
-    },
-    {
-      label: "Catalogue confort Agadir",
-      href: venteCategoryPath("confort", "agadir"),
-      description: "Produits confort disponibles à l’achat",
     },
     {
       label: "Lit médicalisé en location",
@@ -604,9 +604,9 @@ export const confortPillarContent: LocationPillarContent = {
       description: "Exemple de lit médicalisé à louer",
     },
     {
-      label: "Aide à domicile au Maroc",
-      href: AIDE_DOMICILE_PATH,
-      description: "Compléter le matériel par un accompagnement humain",
+      label: "Catalogue confort Agadir",
+      href: venteCategoryPath("confort", "agadir"),
+      description: "Produits confort disponibles à l’achat",
     },
   ],
   productSidebar: confortPillarSidebar(),

@@ -394,6 +394,88 @@ const CONCENTRATEUR_AGADIR_SAFE_LINKS: Array<{ needle: string; href: string }> =
   },
 ];
 
+/** Turn Nexus `[label](url)` leftovers in HTML into real anchors. */
+function convertMarkdownLinksToHtmlAnchors(html: string): {
+  html: string;
+  converted: number;
+} {
+  let converted = 0;
+  const next = html.replace(
+    /\[([^\]]+)\]\((https?:\/\/[^)\s]+|\/[^)\s]*)\)/g,
+    (_full, label: string, href: string) => {
+      converted += 1;
+      let url = href.trim();
+      url = url.replace(/^https?:\/\/(www\.)?sossante\.ma/i, "");
+      if (!url.startsWith("/")) url = `/${url}`;
+      return `<a href="${url}">${label}</a>`;
+    }
+  );
+  return { html: next, converted };
+}
+
+/** Prefer relative paths in markdown links that still use absolute site URLs. */
+function relativizeSiteMarkdownLinks(markdown: string): {
+  markdown: string;
+  converted: number;
+} {
+  let converted = 0;
+  const next = markdown.replace(
+    /\[([^\]]+)\]\((https?:\/\/(?:www\.)?sossante\.ma(\/[^)\s]*))\)/gi,
+    (_full, label: string, _abs: string, path: string) => {
+      converted += 1;
+      return `[${label}](${path})`;
+    }
+  );
+  return { markdown: next, converted };
+}
+
+/**
+ * One-shot: Nexus injected markdown links into the HTML body of
+ * lit-medicalise-ou-matelas-anti-escarres. Convert them to <a> tags.
+ */
+export const fixLitMatelasAntiEscarresNexusLinks = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const slug = "lit-medicalise-ou-matelas-anti-escarres";
+    const article = await ctx.db
+      .query("blogArticles")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .unique();
+
+    if (!article) {
+      return { ok: false as const, error: "article_not_found" as const };
+    }
+
+    const htmlResult = convertMarkdownLinksToHtmlAnchors(article.html);
+    const mdResult = relativizeSiteMarkdownLinks(article.markdown);
+    const changed = htmlResult.converted > 0 || mdResult.converted > 0;
+
+    if (!changed) {
+      return {
+        ok: true as const,
+        slug,
+        changed: false,
+        htmlConverted: 0,
+        markdownRelativized: 0,
+      };
+    }
+
+    await ctx.db.patch(article._id, {
+      html: htmlResult.html,
+      markdown: mdResult.markdown,
+      updatedAt: Date.now(),
+    });
+
+    return {
+      ok: true as const,
+      slug,
+      changed: true,
+      htmlConverted: htmlResult.converted,
+      markdownRelativized: mdResult.converted,
+    };
+  },
+});
+
 /**
  * One-shot: inject a small set of safe internal links into the
  * concentrateur Agadir rental article (first occurrence only).
