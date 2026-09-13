@@ -15,6 +15,7 @@ import {
 } from "@/lib/pillar-pages";
 import {
   hubCityPath,
+  locationCityPath,
   locationRentalProductPath,
   venteCategoryPath,
   venteProductPath,
@@ -601,24 +602,19 @@ export const mobilitePillarContent: LocationPillarContent = {
     "Quelques contenus de soutien pour préparer un retour à domicile ou mieux comprendre certains besoins liés à la mobilité et au maintien à domicile.",
   blogLinks: [
     {
-      label: "Location concentrateur d’oxygène à Agadir",
-      href: "/blog/respiratoire/concentrateur-oxygene-agadir",
-      description: "Organisation pratique à domicile",
-    },
-    {
-      label: "Concentrateur portable Inogen à Agadir",
-      href: "/blog/respiratoire/concentrateur-oxygene-portable-inogen-agadir",
-      description: "Mobilité et oxygène portable",
-    },
-    {
-      label: "Blog respiratoire",
-      href: "/blog/respiratoire",
-      description: "Guides liés au maintien à domicile",
+      label: "Comment choisir le lit médicalisé idéal",
+      href: "/blog/guide/comment-choisir-lit-medicalise-domicile",
+      description: "Lit médicalisé et organisation du retour à domicile",
     },
     {
       label: "Catalogue mobilité Agadir",
       href: venteCategoryPath("mobilier-medical", "agadir"),
       description: "Produits mobilité disponibles à l’achat",
+    },
+    {
+      label: "Location matériel médical Agadir",
+      href: locationCityPath("agadir"),
+      description: "Fauteuils, déambulateurs et aides à la mobilité",
     },
   ],
   productSidebar: mobilitePillarSidebar(),

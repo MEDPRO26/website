@@ -659,11 +659,6 @@ export const ventePillarContent: LocationPillarContent = {
       description: "Guide oxygène portable",
     },
     {
-      label: "Location concentrateur d’oxygène à Agadir",
-      href: "/blog/respiratoire/concentrateur-oxygene-agadir",
-      description: "Comparer location et usage à domicile",
-    },
-    {
       label: "Appareil CPAP et apnée du sommeil",
       href: "/blog/respiratoire/appareil-cpap-apnee-sommeil-agadir",
       description: "CPAP à domicile",

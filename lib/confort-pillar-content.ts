@@ -586,9 +586,9 @@ export const confortPillarContent: LocationPillarContent = {
     "Quelques contenus de soutien pour préparer un retour à domicile ou mieux comprendre certains besoins liés au maintien à domicile.",
   blogLinks: [
     {
-      label: "Location concentrateur d’oxygène à Agadir",
-      href: "/blog/respiratoire/concentrateur-oxygene-agadir",
-      description: "Organisation pratique à domicile",
+      label: "Comment choisir le lit médicalisé idéal",
+      href: "/blog/guide/comment-choisir-lit-medicalise-domicile",
+      description: "Critères pour un lit médicalisé à domicile",
     },
     {
       label: "Catalogue confort Agadir",
