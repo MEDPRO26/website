@@ -574,8 +574,8 @@ export const respiratoirePillarContent: LocationPillarContent = {
   blogLinks: [
     {
       label: "Location concentrateur d’oxygène à Agadir",
-      href: "/blog/respiratoire/concentreur-oxygene-agadir-avantages",
-      description: "Avantages pratiques à domicile",
+      href: "/blog/respiratoire/concentrateur-oxygene-agadir",
+      description: "Confort, assistance et options de location à domicile",
     },
     {
       label: "Concentrateur portable Inogen à Agadir",

@@ -660,7 +660,7 @@ export const ventePillarContent: LocationPillarContent = {
     },
     {
       label: "Location concentrateur d’oxygène à Agadir",
-      href: "/blog/respiratoire/concentreur-oxygene-agadir-avantages",
+      href: "/blog/respiratoire/concentrateur-oxygene-agadir",
       description: "Comparer location et usage à domicile",
     },
     {

@@ -602,7 +602,7 @@ export const livraisonPillarContent: LocationPillarContent = {
   blogLinks: [
     {
       label: "Location concentrateur d’oxygène à Agadir",
-      href: "/blog/respiratoire/concentreur-oxygene-agadir-avantages",
+      href: "/blog/respiratoire/concentrateur-oxygene-agadir",
       description: "Usage à domicile et organisation pratique",
     },
     {

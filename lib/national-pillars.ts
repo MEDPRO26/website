@@ -164,7 +164,7 @@ function categoryMarocPillar(opts: {
             },
             {
               label: "Concentrateur à Agadir",
-              href: "/blog/respiratoire/concentreur-oxygene-agadir-avantages",
+              href: "/blog/respiratoire/concentrateur-oxygene-agadir",
             },
           ]
         : [],
