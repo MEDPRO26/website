@@ -9,7 +9,12 @@ import {
   getCareServiceBySlug,
 } from "@/lib/care-services";
 import { writeStoredCitySlug } from "@/lib/city-storage";
-import { venteCityPath, venteProductPath } from "@/lib/routes";
+import {
+  locationCityPath,
+  locationRentalProductPath,
+  venteCityPath,
+  venteProductPath,
+} from "@/lib/routes";
 
 function MaterialIcon({
   name,
@@ -33,7 +38,7 @@ type CityCatalogPickerDialogProps = {
   onClose: () => void;
   productSlug?: string;
   serviceSlug?: string;
-  destination?: "catalog" | "services";
+  destination?: "catalog" | "services" | "location";
 };
 
 export default function CityCatalogPickerDialog({
@@ -52,11 +57,17 @@ export default function CityCatalogPickerDialog({
 
   if (!open || !mounted) return null;
 
+  const isLocationPicker = destination === "location";
+
   const handleCitySelect = (citySlug: CitySlug) => {
     writeStoredCitySlug(citySlug);
     onClose();
     if (productSlug) {
-      router.push(venteProductPath(productSlug, citySlug));
+      router.push(
+        isLocationPicker
+          ? locationRentalProductPath(productSlug, citySlug)
+          : venteProductPath(productSlug, citySlug)
+      );
       return;
     }
     if (serviceSlug) {
@@ -65,6 +76,10 @@ export default function CityCatalogPickerDialog({
     }
     if (destination === "services") {
       router.push("/services");
+      return;
+    }
+    if (isLocationPicker) {
+      router.push(locationCityPath(citySlug));
       return;
     }
     router.push(venteCityPath(citySlug));
@@ -105,7 +120,9 @@ export default function CityCatalogPickerDialog({
               ? "Choisissez votre ville pour accéder à ce service"
               : isServicesHubPicker
                 ? "Choisissez votre ville pour accéder à nos services"
-                : "Accédez au catalogue matériel de votre ville"}
+                : isLocationPicker
+                  ? "Accédez au catalogue location de votre ville"
+                  : "Accédez au catalogue matériel de votre ville"}
         </p>
         <div className="space-y-2">
           {activeCities.map((city) => (
@@ -129,7 +146,9 @@ export default function CityCatalogPickerDialog({
                       ? `${serviceTitle ?? "Service"} - ${city.name}`
                       : isServicesHubPicker
                         ? `Services à domicile - ${city.name}`
-                        : `Catalogue vente - ${city.name}`}
+                        : isLocationPicker
+                          ? `Catalogue location - ${city.name}`
+                          : `Catalogue vente - ${city.name}`}
                 </span>
               </span>
               <MaterialIcon

@@ -26,6 +26,7 @@ import {
   getCatalogProducts,
   whatsAppHref,
 } from "@/lib/products";
+import { getLocationRentalProducts } from "@/lib/location-rental-products";
 import { activeCities, comingSoonCities, DEFAULT_CITY_SLUG } from "@/lib/cities";
 import { homepageCareIntro } from "@/lib/city-hub-content";
 import {
@@ -214,6 +215,9 @@ export default function Home() {
   const [pickerServiceSlug, setPickerServiceSlug] = useState<string | null>(
     null
   );
+  const [pickerDestination, setPickerDestination] = useState<
+    "catalog" | "location" | "services"
+  >("catalog");
   const latestProductsCount = useProductsPerPage(
     HOMEPAGE_LATEST_PRODUCTS_MOBILE,
     HOMEPAGE_LATEST_PRODUCTS_DESKTOP
@@ -224,6 +228,14 @@ export default function Home() {
     [products, latestProductsCount]
   );
 
+  const latestLocationProducts = useMemo(
+    () =>
+      [...getLocationRentalProducts()]
+        .slice(-latestProductsCount)
+        .reverse(),
+    [latestProductsCount]
+  );
+
   const productNames = useMemo(
     () => products.map((product) => product.name),
     [products]
@@ -231,12 +243,21 @@ export default function Home() {
 
   const openCatalogPicker = (productSlug?: string) => {
     setPickerServiceSlug(null);
+    setPickerDestination("catalog");
+    setPickerProductSlug(productSlug ?? null);
+    setCatalogPickerOpen(true);
+  };
+
+  const openLocationCatalogPicker = (productSlug?: string) => {
+    setPickerServiceSlug(null);
+    setPickerDestination("location");
     setPickerProductSlug(productSlug ?? null);
     setCatalogPickerOpen(true);
   };
 
   const openServicePicker = (serviceSlug: string) => {
     setPickerProductSlug(null);
+    setPickerDestination("services");
     setPickerServiceSlug(serviceSlug);
     setCatalogPickerOpen(true);
   };
@@ -245,6 +266,7 @@ export default function Home() {
     setCatalogPickerOpen(false);
     setPickerProductSlug(null);
     setPickerServiceSlug(null);
+    setPickerDestination("catalog");
   };
 
   const scrollToSection = (id: string) => {
@@ -526,6 +548,102 @@ export default function Home() {
                 className="inline-flex items-center gap-2 rounded-full border border-primary bg-white px-6 py-3 text-sm font-semibold text-primary transition-all hover:bg-primary/5"
               >
                 Voir tout le catalogue
+                <MaterialIcon name="arrow_forward" className="text-lg" />
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Location rental products */}
+        <section
+          id="location"
+          className="scroll-mt-20 bg-surface-base px-4 py-12 sm:px-6 sm:py-16 lg:py-20 md:scroll-mt-24"
+        >
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <span className="mb-2 inline-block text-sm font-semibold uppercase tracking-wider text-secondary">
+                  Catalogue location
+                </span>
+                <h2 className="font-heading text-xl font-semibold text-secondary sm:text-2xl md:text-3xl">
+                  Location de matériel médical
+                </h2>
+                <p className="font-body mt-2 text-sm text-on-surface-variant sm:text-base">
+                  Les équipements les plus demandés à la location près de chez
+                  vous.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => openLocationCatalogPicker()}
+                className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-primary bg-white px-4 py-2.5 text-sm font-medium text-primary transition-all hover:bg-primary/5"
+              >
+                Voir tout le catalogue location
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
+              {latestLocationProducts.map((product) => (
+                <article
+                  key={product.slug}
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-surface-container-high bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
+                >
+                  <button
+                    type="button"
+                    onClick={() => openLocationCatalogPicker(product.slug)}
+                    className="relative aspect-[4/3] w-full overflow-hidden text-left"
+                  >
+                    <Image
+                      src={product.image}
+                      alt={product.alt}
+                      fill
+                      sizes="(min-width: 1024px) 33vw, 50vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <span
+                      className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold sm:left-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-xs ${product.categoryStyle}`}
+                    >
+                      {product.category}
+                    </span>
+                  </button>
+                  <div className="flex flex-1 flex-col p-3 sm:p-5">
+                    <button
+                      type="button"
+                      onClick={() => openLocationCatalogPicker(product.slug)}
+                      className="text-left"
+                    >
+                      <h3 className="font-heading mb-1.5 line-clamp-2 text-sm font-semibold text-primary transition-colors hover:text-primary-container sm:mb-2 sm:text-lg md:text-xl">
+                        {product.name}
+                      </h3>
+                    </button>
+                    <p className="font-body mb-3 line-clamp-3 flex-1 text-xs leading-relaxed text-on-surface-variant sm:mb-5 sm:line-clamp-none sm:text-sm md:text-base">
+                      {product.description}
+                    </p>
+                    <div className="flex items-center justify-between gap-1 border-t border-surface-container pt-3 sm:pt-4">
+                      <span className="font-heading text-[11px] font-bold leading-tight text-secondary sm:text-sm md:text-base">
+                        {product.priceLabel}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => openLocationCatalogPicker(product.slug)}
+                        aria-label={`Voir les détails de ${product.name}`}
+                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary transition-all hover:scale-110 hover:bg-primary-container sm:h-10 sm:w-10"
+                      >
+                        <MaterialIcon name="arrow_forward" className="text-lg sm:text-xl" />
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="mt-10 flex justify-center">
+              <button
+                type="button"
+                onClick={() => openLocationCatalogPicker()}
+                className="inline-flex items-center gap-2 rounded-full border border-primary bg-white px-6 py-3 text-sm font-semibold text-primary transition-all hover:bg-primary/5"
+              >
+                Voir tout le catalogue location
                 <MaterialIcon name="arrow_forward" className="text-lg" />
               </button>
             </div>
@@ -872,6 +990,7 @@ export default function Home() {
         onClose={closeCatalogPicker}
         productSlug={pickerProductSlug ?? undefined}
         serviceSlug={pickerServiceSlug ?? undefined}
+        destination={pickerDestination}
       />
     </>
   );
