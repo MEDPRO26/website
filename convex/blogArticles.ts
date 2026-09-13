@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAdminPermission, requireAdminStaff } from "./lib/authz";
 
@@ -285,5 +285,166 @@ export const remove = mutation({
     if (!article) throw new Error("Article introuvable");
     await ctx.db.delete(args.id);
     return { ok: true };
+  },
+});
+
+function linkFirstPlainHtml(html: string, needle: string, href: string) {
+  let searchFrom = 0;
+  while (true) {
+    const idx = html.indexOf(needle, searchFrom);
+    if (idx === -1) return { html, linked: false };
+
+    const before = html.slice(Math.max(0, idx - 240), idx);
+    const lastOpen = before.lastIndexOf("<a ");
+    const lastClose = before.lastIndexOf("</a>");
+    if (lastOpen > lastClose) {
+      searchFrom = idx + needle.length;
+      continue;
+    }
+
+    return {
+      html:
+        html.slice(0, idx) +
+        `<a href="${href}">${needle}</a>` +
+        html.slice(idx + needle.length),
+      linked: true,
+    };
+  }
+}
+
+function linkFirstPlainMarkdown(markdown: string, needle: string, href: string) {
+  let searchFrom = 0;
+  while (true) {
+    const idx = markdown.indexOf(needle, searchFrom);
+    if (idx === -1) return { markdown, linked: false };
+
+    const before = markdown.slice(Math.max(0, idx - 80), idx);
+    if (before.endsWith("[") || before.endsWith("](")) {
+      searchFrom = idx + needle.length;
+      continue;
+    }
+
+    return {
+      markdown:
+        markdown.slice(0, idx) +
+        `[${needle}](${href})` +
+        markdown.slice(idx + needle.length),
+      linked: true,
+    };
+  }
+}
+
+const CONCENTRATEUR_AGADIR_SAFE_LINKS: Array<{ needle: string; href: string }> = [
+  {
+    needle: "SOS Santé Agadir",
+    href: "/agadir",
+  },
+  {
+    needle: "location lit médicalisé Agadir",
+    href: "/location-materiel-medical-agadir/produits/lit-medicalise-electrique-matelas-location-agadir",
+  },
+  {
+    needle: "fauteuil roulant Agadir",
+    href: "/location-materiel-medical-agadir/produits/fauteuil-roulant-location-agadir",
+  },
+  {
+    needle: "matelas anti-escarres Agadir",
+    href: "/materiel-confort-maroc",
+  },
+  // Straight + typographic apostrophes (Nexus HTML often uses ’)
+  {
+    needle: "location concentrateur d'oxygène Agadir",
+    href: "/location-materiel-medical-agadir",
+  },
+  {
+    needle: "location concentrateur d’oxygène Agadir",
+    href: "/location-materiel-medical-agadir",
+  },
+  {
+    needle: "location matériel médical Agadir",
+    href: "/location-materiel-medical-agadir",
+  },
+  {
+    needle: "livraison matériel médical Agadir",
+    href: "/livraison-materiel-medical-domicile",
+  },
+  {
+    needle: "garde-malade Agadir",
+    href: "/services/aide-soignant-a-domicile-agadir",
+  },
+  {
+    needle: "soins à domicile Agadir",
+    href: "/services/soins-infirmiers-a-domicile-agadir",
+  },
+  {
+    needle: "aide à domicile Agadir",
+    href: "/aide-a-domicile",
+  },
+  {
+    needle: "Les modèles 5L",
+    href: "/location-materiel-medical-agadir/produits/concentrateur-oxygene-5l-nebuliseur-location-agadir",
+  },
+  {
+    needle: "Les modèles 10L",
+    href: "/location-materiel-medical-agadir/produits/concentrateur-oxygene-10l-nebuliseur-location-agadir",
+  },
+  {
+    needle: "modèle portable",
+    href: "/blog/respiratoire/concentrateur-oxygene-portable-inogen-agadir",
+  },
+];
+
+/**
+ * One-shot: inject a small set of safe internal links into the
+ * concentrateur Agadir rental article (first occurrence only).
+ */
+export const applyConcentrateurAgadirSafeLinks = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const slug = "concentrateur-oxygene-agadir";
+    const article = await ctx.db
+      .query("blogArticles")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .unique();
+
+    if (!article) {
+      return { ok: false as const, error: "article_not_found" as const };
+    }
+
+    let html = article.html;
+    let markdown = article.markdown;
+    const applied: string[] = [];
+
+    for (const { needle, href } of CONCENTRATEUR_AGADIR_SAFE_LINKS) {
+      const htmlResult = linkFirstPlainHtml(html, needle, href);
+      const mdResult = linkFirstPlainMarkdown(markdown, needle, href);
+      html = htmlResult.html;
+      markdown = mdResult.markdown;
+      if (htmlResult.linked || mdResult.linked) {
+        applied.push(`${needle} → ${href}`);
+      }
+    }
+
+    if (applied.length === 0) {
+      return {
+        ok: true as const,
+        slug,
+        applied,
+        changed: false,
+      };
+    }
+
+    await ctx.db.patch(article._id, {
+      html,
+      markdown,
+      updatedAt: Date.now(),
+    });
+
+    return {
+      ok: true as const,
+      slug,
+      applied,
+      changed: true,
+    };
   },
 });

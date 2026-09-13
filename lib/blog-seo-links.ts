@@ -51,10 +51,12 @@ export function blogClusterSupportLinks(categorySlug: string): {
       },
       relatedPillars: [
         { label: "Location de matériel médical au Maroc", href: LOCATION_PILLAR_PATH },
-        { label: "Vente de matériel médical au Maroc", href: VENTE_MAROC_PATH },
+        {
+          label: "Livraison de matériel médical à domicile",
+          href: LIVRAISON_PILLAR_PATH,
+        },
       ],
-      moneyKind: "vente-category",
-      categoryParam: "respiratoire",
+      moneyKind: "location",
     },
     mobilite: {
       pillar: {
