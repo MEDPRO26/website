@@ -654,6 +654,11 @@ export const ventePillarContent: LocationPillarContent = {
     "Quelques contenus de soutien pour préparer un achat ou mieux comprendre certains équipements.",
   blogLinks: [
     {
+      label: "Louer ou acheter du matériel médical",
+      href: "/blog/guide/louer-ou-acheter-materiel-medical",
+      description: "Comparer location et achat selon la durée et le besoin",
+    },
+    {
       label: "Concentrateur portable Inogen à Agadir",
       href: "/blog/respiratoire/concentrateur-oxygene-portable-inogen-agadir",
       description: "Guide oxygène portable",
@@ -662,11 +667,6 @@ export const ventePillarContent: LocationPillarContent = {
       label: "Appareil CPAP et apnée du sommeil",
       href: "/blog/respiratoire/appareil-cpap-apnee-sommeil-agadir",
       description: "CPAP à domicile",
-    },
-    {
-      label: "Blog respiratoire",
-      href: "/blog/respiratoire",
-      description: "Tous les guides oxygène et respiratoire",
     },
   ],
   productSidebar: ventePillarSidebar(),
