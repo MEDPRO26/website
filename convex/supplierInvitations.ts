@@ -307,3 +307,94 @@ export const resendForSupplier = mutation({
     return result;
   },
 });
+
+/**
+ * CLI/admin recovery: if the invitee already created an auth account but
+ * never finished Accept, link staff + mark pending invites accepted.
+ */
+export const activateAccessByEmail = internalMutation({
+  args: {
+    email: v.string(),
+    supplierId: v.optional(v.id("suppliers")),
+  },
+  handler: async (ctx, args) => {
+    const email = normalizeEmail(args.email);
+
+    const authUser = (await ctx.db.query("users").collect()).find(
+      (user) => user.email?.toLowerCase() === email
+    );
+    if (!authUser) {
+      return {
+        ok: false as const,
+        error: "auth_user_missing" as const,
+        message:
+          `Aucun compte auth pour ${email}. Elle doit d'abord créer son mot de passe via le lien d'invitation, puis relancer cette activation.`,
+      };
+    }
+
+    let supplier = args.supplierId
+      ? await ctx.db.get(args.supplierId)
+      : null;
+
+    if (!supplier) {
+      const matches = (await ctx.db.query("suppliers").collect()).filter(
+        (row) => row.email?.trim().toLowerCase() === email
+      );
+      if (matches.length === 1) {
+        supplier = matches[0];
+      } else if (matches.length > 1) {
+        return {
+          ok: false as const,
+          error: "multiple_suppliers" as const,
+          message: `Plusieurs fournisseurs avec ${email}. Passez supplierId.`,
+          supplierIds: matches.map((row) => row._id),
+        };
+      }
+    }
+
+    if (!supplier) {
+      return {
+        ok: false as const,
+        error: "supplier_missing" as const,
+        message: `Aucun fournisseur trouvé pour ${email}.`,
+      };
+    }
+
+    const staffId = await linkSupplierStaff(ctx, {
+      userId: authUser._id,
+      supplierId: supplier._id,
+      email,
+      name: authUser.name ?? supplier.name,
+    });
+
+    const invites = await ctx.db
+      .query("supplierInvitations")
+      .withIndex("by_supplierId", (q) => q.eq("supplierId", supplier!._id))
+      .collect();
+
+    const now = Date.now();
+    let invitesAccepted = 0;
+    for (const invite of invites) {
+      if (invite.status !== "pending") continue;
+      if (normalizeEmail(invite.email) !== email) continue;
+      await ctx.db.patch(invite._id, {
+        status: "accepted",
+        acceptedAt: now,
+        acceptedByUserId: authUser._id,
+      });
+      invitesAccepted += 1;
+    }
+
+    return {
+      ok: true as const,
+      email,
+      userId: authUser._id,
+      staffId,
+      supplierId: supplier._id,
+      supplierName: supplier.name,
+      invitesAccepted,
+      message:
+        "Compte fournisseur lié. Elle peut se connecter sur /supplier/login avec cet email.",
+    };
+  },
+});
