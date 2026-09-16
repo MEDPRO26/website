@@ -613,17 +613,35 @@ export const assignSupplier = mutation({
       if (supplier.status !== "actif") {
         throw new Error("Ce fournisseur n'est pas actif.");
       }
+
+      const missed = await ctx.db
+        .query("supplierMissedOrders")
+        .withIndex("by_orderId_supplierId", (q) =>
+          q.eq("orderId", args.orderId).eq("supplierId", args.supplierId!)
+        )
+        .unique();
+      if (missed?.reason === "unavailable") {
+        throw new Error(
+          `${supplier.name} a déjà déclaré cette commande non disponible. Choisissez un autre fournisseur.`
+        );
+      }
     }
 
     const supplierName = supplier?.name ?? null;
 
     const shouldSend =
       Boolean(args.supplierId) &&
-      (["nouvelle", "a_qualifier", "a_affecter"].includes(order.status) ||
+      (["nouvelle", "a_qualifier", "a_affecter", "non_disponible"].includes(
+        order.status
+      ) ||
         (args.supplierId !== order.supplierId &&
-          ["envoyee_fournisseur", "vue_fournisseur", "en_contact_client", "prix_recu"].includes(
-            order.status
-          )));
+          [
+            "envoyee_fournisseur",
+            "vue_fournisseur",
+            "en_contact_client",
+            "prix_recu",
+            "non_disponible",
+          ].includes(order.status)));
 
     await ctx.db.patch(args.orderId, {
       supplierId: args.supplierId,

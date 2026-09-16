@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { useAdminSession } from "@/hooks/use-admin-session";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatusBadge } from "@/components/dashboard/status-badge";
@@ -38,7 +38,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { formatOrderPagePath } from "@/lib/crm/format-page-path";
 import {
-  Search, LayoutGrid, List, Filter, X, Clock, MapPin, BriefcaseMedical, MoreHorizontal, Plus, Trash2, Star,
+  Search, LayoutGrid, List, Filter, X, Clock, MapPin, BriefcaseMedical, MoreHorizontal, Plus, Trash2, Star, BellRing, Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -588,6 +588,9 @@ function avatarColor(name: string) {
 
 function priorityBarClass(status: OrderStatus, createdAtTs: number) {
   const ageHours = (Date.now() - createdAtTs) / 3_600_000;
+  if (status === "non_disponible") {
+    return "bg-amber-500";
+  }
   if (status === "nouvelle" && ageHours < 2) {
     return "bg-red-500";
   }
@@ -610,7 +613,7 @@ function supplierHasClaimedOrder(status: OrderStatus) {
 
 const KANBAN_COLUMN_LABEL: Partial<Record<OrderStatus, string>> = {
   en_contact_client: "En contact client",
-  en_cours: "En livraison",
+  non_disponible: "Non disponible",
   terminee: "Livrée",
   annulee: "Annulée",
 };
@@ -668,12 +671,45 @@ function KanbanCard({
   canDeleteOrder: boolean;
   onDelete: (order: Pick<Order, "id" | "ref" | "client">) => void;
 }) {
+  const sendOrderPushReminder = useAction(api.webPush.sendOrderPushReminder);
+  const [pushing, setPushing] = useState(false);
   const assignees = [order.assistant, order.supplier].filter(
     (name): name is string => Boolean(name && name !== "Non assigné")
   );
   const location = order.district
     ? `${order.city} · ${order.district}`
     : order.city;
+  const showPushReminder =
+    order.status === "envoyee_fournisseur" && Boolean(order.supplierId);
+
+  const handlePushReminder = async (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!order.supplierId || pushing) return;
+    setPushing(true);
+    try {
+      const result = await sendOrderPushReminder({
+        orderId: order.id as Id<"orders">,
+      });
+      if (result.total === 0) {
+        toast.message(
+          result.supplierName
+            ? `${result.supplierName} n'a pas d'appareil abonné aux notifications.`
+            : "Aucun appareil abonné pour ce fournisseur."
+        );
+      } else {
+        toast.success(
+          `Push envoyé${result.supplierName ? ` à ${result.supplierName}` : ""} (${result.sent}/${result.total}).`
+        );
+      }
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Impossible d'envoyer le push."
+      );
+    } finally {
+      setPushing(false);
+    }
+  };
 
   return (
     <div className="group flex overflow-hidden rounded-md border border-border bg-card shadow-sm transition-shadow hover:shadow-md lg:rounded-lg">
@@ -697,6 +733,21 @@ function KanbanCard({
                 >
                   <Star className="size-2.5 fill-current lg:size-3" />
                 </span>
+              ) : showPushReminder ? (
+                <button
+                  type="button"
+                  title="Envoyer une notification push au fournisseur"
+                  aria-label="Envoyer une notification push au fournisseur"
+                  disabled={pushing}
+                  onClick={(event) => void handlePushReminder(event)}
+                  className="grid size-4 place-items-center rounded-full bg-brand text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-60 lg:size-5"
+                >
+                  {pushing ? (
+                    <Loader2 className="size-2.5 animate-spin lg:size-3" />
+                  ) : (
+                    <BellRing className="size-2.5 lg:size-3" />
+                  )}
+                </button>
               ) : null}
             </div>
           </div>

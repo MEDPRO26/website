@@ -208,6 +208,33 @@ export const getForOrder = query({
       ? await ctx.db.get(declinedQuote.supplierId)
       : null;
 
+    const missedRows = await ctx.db
+      .query("supplierMissedOrders")
+      .withIndex("by_orderId", (q) => q.eq("orderId", args.orderId))
+      .collect();
+    const unavailableSupplierIds = [
+      ...new Set(
+        missedRows
+          .filter((row) => row.reason === "unavailable")
+          .map((row) => row.supplierId)
+      ),
+    ];
+    const unavailableSuppliers = (
+      await Promise.all(
+        unavailableSupplierIds.map(async (id) => {
+          const row = await ctx.db.get(id);
+          return row
+            ? {
+                _id: row._id,
+                name: row.name,
+              }
+            : null;
+        })
+      )
+    ).filter((row): row is { _id: typeof unavailableSupplierIds[number]; name: string } =>
+      Boolean(row)
+    );
+
     const pricing = activeQuote ? getQuotePricing(activeQuote) : null;
     const customer = await ctx.db.get(order.customerId);
     const suggestedMessage =
@@ -229,6 +256,7 @@ export const getForOrder = query({
       supplier,
       declinedQuote,
       declinedSupplier,
+      unavailableSuppliers,
       suggestedMessage,
       pricing: pricing
         ? {

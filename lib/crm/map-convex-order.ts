@@ -29,6 +29,7 @@ export function mapConvexOrderToUi(order: OrderWithCustomer): Order {
     source: order.source,
     status: order.status,
     supplier: order.supplierName ?? undefined,
+    supplierId: order.supplierId,
     assistant: order.assignedStaffName ?? "Non assigné",
     createdAt: new Date(order.createdAt).toLocaleString("fr-FR", {
       day: "2-digit",

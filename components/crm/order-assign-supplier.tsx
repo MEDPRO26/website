@@ -117,14 +117,34 @@ export function OrderAssignSupplier({
     api.suppliers.list,
     canQueryAdmin ? { status: "actif" } : "skip"
   ) as SupplierOption[] | undefined;
+  const quoteData = useQuery(
+    api.quotes.getForOrder,
+    canQueryAdmin ? { orderId } : "skip"
+  );
   const assignSupplier = useMutation(api.orders.assignSupplier);
   const [submitting, setSubmitting] = useState(false);
+
+  const unavailableIds = new Set(
+    (quoteData?.unavailableSuppliers ?? []).map((s) => s._id)
+  );
+  const availableSuppliers = (suppliers ?? []).filter(
+    (s) => !unavailableIds.has(s._id)
+  );
+  const unavailableSuppliers = (suppliers ?? []).filter((s) =>
+    unavailableIds.has(s._id)
+  );
 
   const selected = (suppliers ?? []).find((s) => s._id === supplierId);
   const selectedPhotoUrl = selected?.photoUrl ?? null;
   const selectedName = selected?.name ?? supplierName ?? "";
 
   const handleAssign = async (value: string) => {
+    if (value !== "none" && unavailableIds.has(value as Id<"suppliers">)) {
+      toast.error(
+        "Ce fournisseur a déjà déclaré cette commande non disponible."
+      );
+      return;
+    }
     setSubmitting(true);
     try {
       await assignSupplier({
@@ -170,6 +190,12 @@ export function OrderAssignSupplier({
           </div>
           <Tag tone="success">Affecté</Tag>
         </div>
+        {unavailableSuppliers.length > 0 ? (
+          <p className="mt-3 text-xs text-warning">
+            Déjà non disponible :{" "}
+            {unavailableSuppliers.map((s) => s.name).join(", ")}
+          </p>
+        ) : null}
         <div className="mt-3">
           <Label htmlFor="change-supplier" className="sr-only">
             Changer de fournisseur
@@ -187,7 +213,7 @@ export function OrderAssignSupplier({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">Retirer le fournisseur</SelectItem>
-              {(suppliers ?? []).map((supplier) => (
+              {availableSuppliers.map((supplier) => (
                 <SelectItem
                   key={supplier._id}
                   value={supplier._id}
@@ -197,6 +223,21 @@ export function OrderAssignSupplier({
                   <SupplierSelectLabel
                     name={supplier.name}
                     photoUrl={supplier.photoUrl}
+                  />
+                </SelectItem>
+              ))}
+              {unavailableSuppliers.map((supplier) => (
+                <SelectItem
+                  key={supplier._id}
+                  value={supplier._id}
+                  disabled
+                  className="py-2.5 pl-2 opacity-60"
+                  textValue={`${supplier.name} non disponible`}
+                >
+                  <SupplierSelectLabel
+                    name={supplier.name}
+                    photoUrl={supplier.photoUrl}
+                    detail="non disponible"
                   />
                 </SelectItem>
               ))}
@@ -210,6 +251,12 @@ export function OrderAssignSupplier({
   return (
     <div className="rounded-lg border border-dashed border-border p-6 text-center">
       <p className="mb-3 text-sm text-muted-foreground">Aucun fournisseur affecté</p>
+      {unavailableSuppliers.length > 0 ? (
+        <p className="mb-3 text-xs text-warning">
+          Déjà non disponible :{" "}
+          {unavailableSuppliers.map((s) => s.name).join(", ")}
+        </p>
+      ) : null}
       <div className="mx-auto max-w-sm space-y-2">
         <Label htmlFor="assign-supplier">Envoyer à un fournisseur</Label>
         <Select
@@ -220,7 +267,7 @@ export function OrderAssignSupplier({
             <SelectValue placeholder="Choisir un fournisseur actif" />
           </SelectTrigger>
           <SelectContent>
-            {(suppliers ?? []).map((supplier) => (
+            {availableSuppliers.map((supplier) => (
               <SelectItem
                 key={supplier._id}
                 value={supplier._id}
@@ -231,6 +278,21 @@ export function OrderAssignSupplier({
                   name={supplier.name}
                   photoUrl={supplier.photoUrl}
                   detail={supplier.city}
+                />
+              </SelectItem>
+            ))}
+            {unavailableSuppliers.map((supplier) => (
+              <SelectItem
+                key={supplier._id}
+                value={supplier._id}
+                disabled
+                className="py-2.5 pl-2 opacity-60"
+                textValue={`${supplier.name} non disponible`}
+              >
+                <SupplierSelectLabel
+                  name={supplier.name}
+                  photoUrl={supplier.photoUrl}
+                  detail="non disponible"
                 />
               </SelectItem>
             ))}

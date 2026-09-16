@@ -10,7 +10,7 @@ export const WORKFLOW_STATUSES: OrderStatus[] = [
   "nouvelle",
   "envoyee_fournisseur",
   "en_contact_client",
-  "en_cours",
+  "non_disponible",
   "terminee",
   "annulee",
 ];
@@ -27,12 +27,14 @@ export function kanbanColumnForStatus(status: OrderStatus): OrderStatus {
       return "envoyee_fournisseur";
     case "prix_recu":
     case "offre_envoyee":
-      return "en_contact_client";
     case "acceptee":
     case "planifiee":
+    case "en_cours":
     case "location_active":
     case "reclamation":
-      return "en_cours";
+      return "en_contact_client";
+    case "non_disponible":
+      return "non_disponible";
     default:
       return status;
   }
@@ -43,6 +45,7 @@ const SUPPLIER_STATUS_LABEL_OVERRIDES: Partial<Record<OrderStatus, string>> = {
   vue_fournisseur: "Commande réclamée",
   en_contact_client: "En contact avec le client",
   en_cours: "En cours de livraison",
+  non_disponible: "Non disponible",
   prix_recu: "Prix envoyé à S2MBO",
   terminee: "Commande livrée",
   annulee: "Commande annulée par le client",
@@ -77,17 +80,24 @@ export const SUGGESTED_NEXT_STATUSES: Record<OrderStatus, OrderStatus[]> = {
   envoyee_fournisseur: [
     "vue_fournisseur",
     "en_contact_client",
+    "non_disponible",
     "nouvelle",
     "annulee",
   ],
-  vue_fournisseur: ["en_contact_client", "envoyee_fournisseur", "annulee"],
-  en_contact_client: ["en_cours", "terminee", "annulee"],
-  prix_recu: ["en_contact_client", "en_cours", "annulee"],
-  offre_envoyee: ["en_contact_client", "en_cours", "annulee"],
+  vue_fournisseur: [
+    "en_contact_client",
+    "envoyee_fournisseur",
+    "non_disponible",
+    "annulee",
+  ],
+  en_contact_client: ["en_cours", "terminee", "non_disponible", "annulee"],
+  prix_recu: ["en_contact_client", "en_cours", "non_disponible", "annulee"],
+  offre_envoyee: ["en_contact_client", "en_cours", "non_disponible", "annulee"],
   acceptee: ["en_cours", "annulee"],
   planifiee: ["en_cours", "annulee"],
   en_cours: ["location_active", "terminee", "reclamation", "annulee"],
   location_active: ["terminee", "reclamation", "annulee"],
+  non_disponible: ["envoyee_fournisseur", "annulee"],
   terminee: ["reclamation", "annulee"],
   annulee: ["nouvelle"],
   reclamation: ["en_cours", "location_active", "terminee", "annulee"],

@@ -20,15 +20,23 @@ export function OrderQuotePanel({ orderId, supplierId }: OrderQuotePanelProps) {
     canQueryAdmin ? { orderId } : "skip"
   );
 
+  const unavailableSuppliers = quoteData?.unavailableSuppliers ?? [];
+
   if (!supplierId) {
-    if (quoteData?.declinedSupplier) {
+    if (unavailableSuppliers.length > 0 || quoteData?.declinedSupplier) {
+      const names =
+        unavailableSuppliers.length > 0
+          ? unavailableSuppliers.map((s) => s.name)
+          : quoteData?.declinedSupplier
+            ? [quoteData.declinedSupplier.name]
+            : [];
       return (
         <div className="rounded-lg border border-dashed border-warning/40 bg-warning-soft/30 p-4 text-sm">
           <p className="font-medium text-foreground">Fournisseur non disponible</p>
           <p className="mt-1 text-muted-foreground">
-            <strong>{quoteData.declinedSupplier.name}</strong> ne peut pas traiter
-            cette commande
-            {quoteData.declinedQuote?.notes
+            Déjà déclaré non disponible :{" "}
+            <strong>{names.join(", ")}</strong>
+            {quoteData?.declinedQuote?.notes
               ? ` (${quoteData.declinedQuote.notes.toLowerCase()})`
               : ""}
             . Affectez un autre fournisseur dans la section{" "}

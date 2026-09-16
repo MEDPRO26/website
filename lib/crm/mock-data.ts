@@ -11,6 +11,7 @@ export type OrderStatus =
   | "planifiee"
   | "en_cours"
   | "location_active"
+  | "non_disponible"
   | "terminee"
   | "annulee"
   | "reclamation";
@@ -28,6 +29,7 @@ export const STATUS_LABEL: Record<OrderStatus, string> = {
   planifiee: "Planifiée",
   en_cours: "En cours de livraison",
   location_active: "Location active",
+  non_disponible: "Non disponible",
   terminee: "Commande livrée",
   annulee: "Annulée",
   reclamation: "Réclamation ouverte",
@@ -46,6 +48,7 @@ export const STATUS_TONE: Record<OrderStatus, "info" | "warning" | "success" | "
   planifiee: "success",
   en_cours: "success",
   location_active: "success",
+  non_disponible: "warning",
   terminee: "neutral",
   annulee: "danger",
   reclamation: "danger",
@@ -68,6 +71,7 @@ export type Order = {
   source: string;
   status: OrderStatus;
   supplier?: string;
+  supplierId?: string;
   supplierPrice?: number;
   delivery?: number;
   install?: number;

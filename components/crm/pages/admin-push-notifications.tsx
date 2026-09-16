@@ -21,6 +21,10 @@ import {
 } from "@/components/ui/select";
 import { useAdminSession } from "@/hooks/use-admin-session";
 import { resolveSupplierPartnerKind } from "@/lib/supplier-activity-types";
+import {
+  DEFAULT_PUSH_BODY,
+  DEFAULT_PUSH_TITLE,
+} from "@/lib/crm/push-defaults";
 
 type Audience = "all" | "materiel" | "soins" | "apporteurs";
 
@@ -35,7 +39,7 @@ export function AdminPushNotificationsPage() {
 
   const [audience, setAudience] = useState<Audience>("all");
   const [supplierId, setSupplierId] = useState<string>("all");
-  const [title, setTitle] = useState("Message S2MBO");
+  const [title, setTitle] = useState(DEFAULT_PUSH_TITLE);
   const [body, setBody] = useState("");
   const [url, setUrl] = useState("");
   const [sending, setSending] = useState(false);
@@ -158,8 +162,10 @@ export function AdminPushNotificationsPage() {
             <Select
               value={audience}
               onValueChange={(value) => {
-                setAudience(value as Audience);
+                const next = value as Audience;
+                setAudience(next);
                 setSupplierId("all");
+                setBody(DEFAULT_PUSH_BODY[next]);
               }}
             >
               <SelectTrigger className="mt-1.5">
@@ -176,7 +182,39 @@ export function AdminPushNotificationsPage() {
           {audience !== "apporteurs" ? (
             <div>
               <Label>Partenaire précis (optionnel)</Label>
-              <Select value={supplierId} onValueChange={setSupplierId}>
+              <Select
+                value={supplierId}
+                onValueChange={(value) => {
+                  setSupplierId(value);
+                  if (value === "all") {
+                    setBody(DEFAULT_PUSH_BODY[audience]);
+                    return;
+                  }
+                  const partner = partnerOptions.find(
+                    (s: { _id: Id<"suppliers"> }) => s._id === value
+                  ) as
+                    | {
+                        _id: Id<"suppliers">;
+                        type: string;
+                        types?: string[];
+                        partnerKind?: "materiel" | "soins";
+                      }
+                    | undefined;
+                  const kind =
+                    (partner
+                      ? resolveSupplierPartnerKind(partner) ??
+                        partner.partnerKind
+                      : undefined) ??
+                    (audience === "soins" || audience === "materiel"
+                      ? audience
+                      : "materiel");
+                  setBody(
+                    DEFAULT_PUSH_BODY[
+                      kind === "soins" ? "soins" : "materiel"
+                    ]
+                  );
+                }}
+              >
                 <SelectTrigger className="mt-1.5">
                   <SelectValue placeholder="Tous" />
                 </SelectTrigger>

@@ -799,7 +799,7 @@ export const markUnavailable = mutation({
 
     await ctx.db.patch(args.orderId, {
       supplierId: undefined,
-      status: "nouvelle",
+      status: "non_disponible",
       updatedAt: now,
     });
 
@@ -810,13 +810,13 @@ export const markUnavailable = mutation({
       actorStaffId: staff._id,
     });
 
-    if (previousStatus !== "nouvelle") {
+    if (previousStatus !== "non_disponible") {
       await appendOrderEvent(ctx, {
         orderId: args.orderId,
         type: "status_change",
-        label: "Statut remis en nouvelle demande",
+        label: "Statut : non disponible (fournisseur)",
         fromStatus: previousStatus,
-        toStatus: "nouvelle",
+        toStatus: "non_disponible",
         actorStaffId: staff._id,
       });
     }
@@ -824,7 +824,7 @@ export const markUnavailable = mutation({
     await notifyStaff(ctx, "supplier_response", {
       type: "supplier",
       title: `${supplier.name} — non disponible`,
-      description: `${order.ref} · commande remise en nouvelle demande`,
+      description: `${order.ref} · commande placée en Non disponible`,
       link: `/admin/orders/${args.orderId}`,
       entityId: args.orderId,
     });

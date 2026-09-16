@@ -84,3 +84,42 @@ export const deleteSubscriptionById = internalMutation({
     return null;
   },
 });
+
+export const getOrderPushTarget = internalQuery({
+  args: { orderId: v.id("orders") },
+  handler: async (ctx, args) => {
+    const order = await ctx.db.get(args.orderId);
+    if (!order) return null;
+
+    if (!order.supplierId) {
+      return {
+        status: order.status,
+        supplierId: null as null,
+        supplierName: null as null,
+        partnerKind: "materiel" as const,
+      };
+    }
+
+    const supplier = await ctx.db.get(order.supplierId);
+    if (!supplier) {
+      return {
+        status: order.status,
+        supplierId: null as null,
+        supplierName: null as null,
+        partnerKind: "materiel" as const,
+      };
+    }
+
+    const partnerKind =
+      resolveSupplierPartnerKind(supplier) ??
+      supplier.partnerKind ??
+      "materiel";
+
+    return {
+      status: order.status,
+      supplierId: supplier._id,
+      supplierName: supplier.name,
+      partnerKind,
+    };
+  },
+});

@@ -201,3 +201,61 @@ export const sendBroadcast = action({
     });
   },
 });
+
+/** Admin Kanban: remind the assigned supplier about an unclaimed order. */
+export const sendOrderPushReminder = action({
+  args: {
+    orderId: v.id("orders"),
+  },
+  handler: async (ctx, args): Promise<PushResult & { supplierName?: string }> => {
+    await ctx.runMutation(api.pushSubscriptions.assertAdminCanBroadcast, {});
+
+    const result = await ctx.runQuery(internal.pushInternal.getOrderPushTarget, {
+      orderId: args.orderId,
+    });
+
+    if (!result) {
+      throw new Error("Commande introuvable.");
+    }
+    if (!result.supplierId) {
+      throw new Error("Aucun fournisseur affecté à cette commande.");
+    }
+    if (result.status !== "envoyee_fournisseur") {
+      throw new Error(
+        "La notification n'est disponible que pour les commandes pas encore vues par le fournisseur."
+      );
+    }
+
+    const body =
+      result.partnerKind === "soins"
+        ? "Une nouvelle commande est disponible dans votre espace prestataire et attend votre réponse."
+        : "Une nouvelle commande est disponible dans votre espace fournisseur et attend votre réponse.";
+
+    const portalBase =
+      result.partnerKind === "soins" ? "/prestataire" : "/supplier";
+    const pushUrl = `${portalBase}/orders/${args.orderId}`;
+
+    const subscriptions: Doc<"pushSubscriptions">[] = await ctx.runQuery(
+      internal.pushInternal.listSubscriptionsForSupplier,
+      { supplierId: result.supplierId }
+    );
+
+    if (subscriptions.length === 0) {
+      return {
+        sent: 0,
+        failed: 0,
+        total: 0,
+        supplierName: result.supplierName,
+      };
+    }
+
+    const delivered = await deliverToSubscriptions(ctx, subscriptions, {
+      title: "Message S2MBO",
+      body,
+      url: pushUrl,
+      tag: `order-reminder-${args.orderId}`,
+    });
+
+    return { ...delivered, supplierName: result.supplierName };
+  },
+});

@@ -36,6 +36,7 @@ const SUGGESTED_BUTTON_TONE: Partial<Record<OrderStatus, string>> = {
   envoyee_fournisseur: "border-warning/30 bg-warning-soft/50 hover:bg-warning-soft",
   en_contact_client: "border-info/30 bg-info-soft/40 text-info hover:bg-info-soft",
   en_cours: "border-brand/30 bg-brand-soft/40 text-brand-deep hover:bg-brand-soft",
+  non_disponible: "border-warning/30 bg-warning-soft/50 text-warning hover:bg-warning-soft",
   annulee: "border-danger/30 bg-danger-soft/40 text-danger hover:bg-danger-soft",
 };
 

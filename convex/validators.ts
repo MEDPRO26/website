@@ -13,6 +13,7 @@ export const orderStatusValidator = v.union(
   v.literal("planifiee"),
   v.literal("en_cours"),
   v.literal("location_active"),
+  v.literal("non_disponible"),
   v.literal("terminee"),
   v.literal("annulee"),
   v.literal("reclamation")
