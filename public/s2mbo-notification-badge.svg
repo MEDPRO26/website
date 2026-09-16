@@ -1,4 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
-  <circle cx="48" cy="48" r="42" fill="none" stroke="#fff" stroke-width="6"/>
-  <text x="48" y="62" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="800" font-size="40" fill="#fff">S2</text>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <defs>
+    <mask id="cut">
+      <rect width="192" height="192" fill="black"/>
+      <circle cx="96" cy="96" r="86" fill="white"/>
+      <text x="96" y="120" text-anchor="middle"
+        font-family="Arial, Helvetica, DejaVu Sans, sans-serif"
+        font-weight="800" font-size="88" fill="black"
+        letter-spacing="-4">S2</text>
+    </mask>
+  </defs>
+  <!-- White disc with S2 punched out (transparent letters) -->
+  <circle cx="96" cy="96" r="86" fill="white" mask="url(#cut)"/>
 </svg>

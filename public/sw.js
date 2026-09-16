@@ -1,5 +1,5 @@
 /* S2MBO partner SW — bump SW_VERSION when changing push behavior. */
-const SW_VERSION = "s2mbo-push-v3";
+const SW_VERSION = "s2mbo-push-v4";
 const ICON_CACHE = `s2mbo-push-icons-${SW_VERSION}`;
 const S2MBO_ICON = "/s2mbo-logo-rounded.webp";
 /** Android badge = monochrome silhouette; opaque “S2” on transparent bg. */
