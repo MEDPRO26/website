@@ -30,8 +30,8 @@ export const LOGO = {
 /** Branding shown in the CRM (admin, fournisseurs, prestataires). */
 export const CRM_BRAND_NAME = "S2MBO";
 export const CRM_LOGO = "/s2mbo-logo-rounded.webp";
-/** Small icon in Android notification/status bar — must not use SOS Santé assets. */
-export const CRM_NOTIFICATION_BADGE = CRM_LOGO;
+/** Monochrome “S2” badge for Android status bar / notification shade (alpha silhouette). */
+export const CRM_NOTIFICATION_BADGE = "/s2mbo-notification-badge.png";
 
 export const CRM_PWA_ICONS = [
   {
@@ -59,9 +59,9 @@ export const CRM_PWA_ICONS = [
     purpose: "any",
   },
   {
-    src: CRM_LOGO,
+    src: CRM_NOTIFICATION_BADGE,
     sizes: "96x96",
-    type: "image/webp",
+    type: "image/png",
     purpose: "monochrome",
   },
 ] as const;

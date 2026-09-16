@@ -1,8 +1,10 @@
 /* S2MBO partner SW — bump SW_VERSION when changing push behavior. */
-const SW_VERSION = "s2mbo-push-v2";
+const SW_VERSION = "s2mbo-push-v3";
 const ICON_CACHE = `s2mbo-push-icons-${SW_VERSION}`;
 const S2MBO_ICON = "/s2mbo-logo-rounded.webp";
-const PRECACHE_URLS = [S2MBO_ICON];
+/** Android badge = monochrome silhouette; opaque “S2” on transparent bg. */
+const S2MBO_BADGE = "/s2mbo-notification-badge.png";
+const PRECACHE_URLS = [S2MBO_ICON, S2MBO_BADGE];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -88,7 +90,7 @@ async function showPushNotification(data) {
   const options = {
     body: data.body,
     icon: `${origin}${S2MBO_ICON}`,
-    badge: `${origin}${S2MBO_ICON}`,
+    badge: `${origin}${S2MBO_BADGE}`,
     tag: data.tag,
     renotify: true,
     silent: false,
