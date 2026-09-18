@@ -598,7 +598,7 @@ export const livraisonPillarContent: LocationPillarContent = {
   ],
   blogTitle: "Guides et articles utiles",
   blogIntro:
-    "Quelques contenus de soutien pour préparer un retour à domicile ou mieux comprendre certains équipements livrés.",
+    "Des contenus pour organiser la livraison de matériel médical à domicile et mieux préparer le retour du patient.",
   blogLinks: [
     {
       label: "Organiser la livraison de matériel médical à domicile",
