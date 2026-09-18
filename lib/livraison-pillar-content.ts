@@ -601,24 +601,19 @@ export const livraisonPillarContent: LocationPillarContent = {
     "Quelques contenus de soutien pour préparer un retour à domicile ou mieux comprendre certains équipements livrés.",
   blogLinks: [
     {
-      label: "Location concentrateur d’oxygène à Agadir",
-      href: "/blog/respiratoire/concentrateur-oxygene-agadir",
-      description: "Usage à domicile et organisation pratique",
+      label: "Organiser la livraison de matériel médical à domicile",
+      href: "/blog/guide/organiser-livraison-materiel-medical-domicile",
+      description: "Préparer, livrer et installer le matériel chez le patient",
     },
     {
-      label: "Concentrateur portable Inogen à Agadir",
-      href: "/blog/respiratoire/concentrateur-oxygene-portable-inogen-agadir",
-      description: "Guide oxygène portable",
+      label: "Louer ou acheter du matériel médical",
+      href: "/blog/guide/louer-ou-acheter-materiel-medical",
+      description: "Comparer location et achat selon la durée et le besoin",
     },
     {
-      label: "Appareil CPAP et apnée du sommeil",
-      href: "/blog/respiratoire/appareil-cpap-apnee-sommeil-agadir",
-      description: "CPAP à domicile",
-    },
-    {
-      label: "Blog respiratoire",
-      href: "/blog/respiratoire",
-      description: "Tous les guides oxygène et respiratoire",
+      label: "Lit médicalisé ou matelas anti-escarres",
+      href: "/blog/guide/lit-medicalise-ou-matelas-anti-escarres",
+      description: "Quelle solution de confort choisir à domicile",
     },
   ],
   productSidebar: livraisonPillarSidebar(),
