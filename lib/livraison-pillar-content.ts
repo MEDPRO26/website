@@ -606,14 +606,14 @@ export const livraisonPillarContent: LocationPillarContent = {
       description: "Préparer, livrer et installer le matériel chez le patient",
     },
     {
+      label: "Délai de livraison de matériel médical à Tanger",
+      href: "/blog/guide/delai-livraison-materiel-medical-tanger",
+      description: "Délais, organisation et options de livraison à domicile",
+    },
+    {
       label: "Louer ou acheter du matériel médical",
       href: "/blog/guide/louer-ou-acheter-materiel-medical",
       description: "Comparer location et achat selon la durée et le besoin",
-    },
-    {
-      label: "Lit médicalisé ou matelas anti-escarres",
-      href: "/blog/guide/lit-medicalise-ou-matelas-anti-escarres",
-      description: "Quelle solution de confort choisir à domicile",
     },
   ],
   productSidebar: livraisonPillarSidebar(),
