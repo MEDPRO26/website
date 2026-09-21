@@ -54,7 +54,15 @@ function shouldEmailSuperAdmin(
   }
 }
 
-async function getSuperAdminEmails(ctx: MutationCtx) {
+async function getStaffAlertRecipients(
+  ctx: MutationCtx,
+  settings: Awaited<ReturnType<typeof getPlatformSettings>>
+) {
+  const alertEmail = settings?.staffAlertEmail?.trim().toLowerCase();
+  if (alertEmail?.includes("@")) {
+    return [alertEmail];
+  }
+
   const staff = await ctx.db.query("staff").collect();
   return staff
     .filter(
@@ -92,7 +100,7 @@ export async function notifyStaff(
     return;
   }
 
-  const recipients = await getSuperAdminEmails(ctx);
+  const recipients = await getStaffAlertRecipients(ctx, settings);
   if (recipients.length === 0) {
     return;
   }

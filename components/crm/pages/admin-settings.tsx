@@ -91,6 +91,7 @@ export function AdminSettingsPage() {
   const [contactEmail, setContactEmail] = useState("");
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDescription, setSeoDescription] = useState("");
+  const [staffAlertEmail, setStaffAlertEmail] = useState("");
   const [notifyNewOrder, setNotifyNewOrder] = useState(true);
   const [notifySupplier, setNotifySupplier] = useState(true);
   const [notifyAccepted, setNotifyAccepted] = useState(true);
@@ -136,6 +137,7 @@ export function AdminSettingsPage() {
     setContactEmail(settings.contactEmail);
     setSeoTitle(settings.seoSiteTitle);
     setSeoDescription(settings.seoSiteDescription);
+    setStaffAlertEmail(settings.staffAlertEmail ?? "");
     setNotifyNewOrder(settings.notifyNewOrderEmail);
     setNotifySupplier(settings.notifySupplierResponseEmail);
     setNotifyAccepted(settings.notifyClientAcceptedEmail);
@@ -159,6 +161,7 @@ export function AdminSettingsPage() {
   const handleSaveNotifications = async () => {
     try {
       await updateNotifications({
+        staffAlertEmail,
         notifyNewOrderEmail: notifyNewOrder,
         notifySupplierResponseEmail: notifySupplier,
         notifyClientAcceptedEmail: notifyAccepted,
@@ -293,8 +296,19 @@ export function AdminSettingsPage() {
         <Card className="space-y-3 p-5">
           <h3 className="font-semibold">Notifications email staff</h3>
           <p className="text-xs text-muted-foreground">
-            Envoie un email aux admins/assistants actifs (nécessite RESEND_API_KEY).
+            Destinataire des alertes (nouvelle demande, livraison). Le login super
+            admin reste inchangé. Nécessite RESEND_API_KEY.
           </p>
+          <div className="space-y-1.5">
+            <Label htmlFor="staff-alert-email">Email d’alerte</Label>
+            <Input
+              id="staff-alert-email"
+              type="email"
+              value={staffAlertEmail}
+              onChange={(e) => setStaffAlertEmail(e.target.value)}
+              placeholder="agadirsossante@gmail.com"
+            />
+          </div>
           {[
             { label: "Nouvelle demande", value: notifyNewOrder, set: setNotifyNewOrder },
             { label: "Fournisseur a répondu", value: notifySupplier, set: setNotifySupplier },

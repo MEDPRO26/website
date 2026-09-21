@@ -377,6 +377,8 @@ export default defineSchema({
     whatsappProvider: whatsappProviderValidator,
     defaultCity: v.optional(v.string()),
     contactEmail: v.optional(v.string()),
+    /** Inbox for staff alert emails (new order, delivery). Login emails stay on staff accounts. */
+    staffAlertEmail: v.optional(v.string()),
     seoSiteTitle: v.optional(v.string()),
     seoSiteDescription: v.optional(v.string()),
     notifyNewOrderEmail: v.optional(v.boolean()),

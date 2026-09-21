@@ -7,6 +7,7 @@ import { whatsappProviderValidator } from "./validators";
 const DEFAULTS = {
   defaultCity: "Agadir",
   contactEmail: "contact@sossante.ma",
+  staffAlertEmail: "agadirsossante@gmail.com",
   seoSiteTitle: "SOS Santé Agadir - Matériel médical et aide à domicile",
   seoSiteDescription:
     "Coordination locale pour location matériel médical, garde-malade et aide à domicile à Agadir.",
@@ -139,6 +140,7 @@ export const updateGeneral = mutation({
 
 export const updateNotifications = mutation({
   args: {
+    staffAlertEmail: v.string(),
     notifyNewOrderEmail: v.boolean(),
     notifySupplierResponseEmail: v.boolean(),
     notifyClientAcceptedEmail: v.boolean(),
@@ -153,8 +155,18 @@ export const updateNotifications = mutation({
       throw new Error("Paramètres introuvables.");
     }
 
+    const staffAlertEmail = args.staffAlertEmail.trim().toLowerCase();
+    if (staffAlertEmail && !staffAlertEmail.includes("@")) {
+      throw new Error("Email d’alerte invalide.");
+    }
+
     await ctx.db.patch(settings._id, {
-      ...args,
+      staffAlertEmail,
+      notifyNewOrderEmail: args.notifyNewOrderEmail,
+      notifySupplierResponseEmail: args.notifySupplierResponseEmail,
+      notifyClientAcceptedEmail: args.notifyClientAcceptedEmail,
+      notifyComplaintEmail: args.notifyComplaintEmail,
+      notifyRentalEndingEmail: args.notifyRentalEndingEmail,
       updatedAt: Date.now(),
     });
 
@@ -164,6 +176,7 @@ export const updateNotifications = mutation({
       action: "update",
       entityType: "settings",
       entityLabel: "Notifications email",
+      toValue: staffAlertEmail || "super_admins",
     });
   },
 });
