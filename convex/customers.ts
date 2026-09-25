@@ -1,6 +1,8 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAdminPermission } from "./lib/authz";
+import { requireAdminPermission, requireAdminStaff } from "./lib/authz";
+import { findCustomerByPhone } from "./lib/customers";
+import { normalizePhone } from "./lib/refs";
 import { customerStatusValidator } from "./validators";
 
 function formatDate(ts?: number) {
@@ -96,6 +98,64 @@ export const get = query({
         createdAtLabel: formatDate(customer.createdAt),
       },
       orders: ordersWithMeta,
+    };
+  },
+});
+
+/** Live lookup while typing a phone on « Nouvelle commande ». */
+export const lookupByPhone = query({
+  args: { phone: v.string() },
+  handler: async (ctx, args) => {
+    await requireAdminStaff(ctx);
+
+    const digits = normalizePhone(args.phone);
+    if (digits.length < 9) {
+      return null;
+    }
+
+    const customer = await findCustomerByPhone(ctx, args.phone);
+    if (!customer) {
+      return null;
+    }
+
+    const orders = await ctx.db
+      .query("orders")
+      .withIndex("by_customerId", (q) => q.eq("customerId", customer._id))
+      .collect();
+
+    const priorOrders = orders
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .map((order) => ({
+        _id: order._id,
+        ref: order.ref,
+        status: order.status,
+        type: order.type,
+        item: order.item,
+        source: order.source,
+        createdAt: order.createdAt,
+        createdAtLabel: new Date(order.createdAt).toLocaleString("fr-FR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      }));
+
+    return {
+      customer: {
+        _id: customer._id,
+        name: customer.name,
+        phone: customer.phone,
+        whatsapp: customer.whatsapp,
+        email: customer.email,
+        city: customer.city,
+        district: customer.district,
+        address: customer.address,
+        ordersCount: priorOrders.length,
+        lastOrderLabel: formatDate(customer.lastOrderAt),
+      },
+      orders: priorOrders,
     };
   },
 });

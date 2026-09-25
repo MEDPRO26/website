@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2, Undo2, UserRoundSearch } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { StatusBadge } from "@/components/dashboard/status-badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FrenchDatePicker } from "@/components/ui/french-date-picker";
@@ -44,6 +45,7 @@ import {
 import { FrenchTimePicker } from "@/components/ui/french-time-picker";
 import { SuggestableItemField } from "@/components/suggestable-item-field";
 import { MOROCCO_CITY_OPTIONS } from "@/lib/morocco-cities";
+import type { OrderStatus } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
 const SOURCES = [
@@ -124,6 +126,22 @@ export function AdminOrdersNewPage() {
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [conversationId, setConversationId] = useState<string | undefined>();
+  const [debouncedPhone, setDebouncedPhone] = useState("");
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedPhone(form.phone.trim());
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [form.phone]);
+
+  const phoneDigits = debouncedPhone.replace(/\D/g, "");
+  const phoneLookup = useQuery(
+    api.customers.lookupByPhone,
+    canQueryAdmin && phoneDigits.length >= 9
+      ? { phone: debouncedPhone }
+      : "skip"
+  );
 
   useEffect(() => {
     const phone = searchParams.get("phone");
@@ -366,8 +384,114 @@ export function AdminOrdersNewPage() {
                 value={form.phone}
                 onChange={(e) => patch({ phone: e.target.value })}
                 placeholder="+212 6 ..."
+                inputMode="tel"
+                autoComplete="tel"
               />
             </Field>
+            {phoneDigits.length >= 9 ? (
+              <div className="sm:col-span-2">
+                {phoneLookup === undefined ? (
+                  <div className="flex items-center gap-2 rounded-xl border border-border/70 bg-muted/30 px-3 py-2.5 text-sm text-muted-foreground">
+                    <Loader2 className="size-4 animate-spin" />
+                    Vérification du numéro…
+                  </div>
+                ) : phoneLookup === null ? (
+                  <div className="rounded-xl border border-border/70 bg-muted/20 px-3 py-2.5 text-sm text-muted-foreground">
+                    Nouveau numéro — aucun client trouvé avec ce téléphone.
+                  </div>
+                ) : (
+                  <div className="overflow-hidden rounded-xl border border-orange-300/80 bg-orange-50/70">
+                    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-orange-200/80 px-3 py-2.5">
+                      <div className="min-w-0">
+                        <p className="inline-flex items-center gap-2 text-sm font-semibold text-orange-950">
+                          <span className="grid size-5 place-items-center rounded-full bg-orange-500 text-white">
+                            <Undo2 className="size-3 stroke-[2.5]" />
+                          </span>
+                          Client déjà connu
+                        </p>
+                        <p className="mt-1 text-sm text-orange-950/90">
+                          <span className="font-medium">{phoneLookup.customer.name}</span>
+                          {" · "}
+                          {phoneLookup.customer.phone}
+                          {phoneLookup.customer.city
+                            ? ` · ${phoneLookup.customer.city}`
+                            : ""}
+                          {phoneLookup.customer.district
+                            ? ` (${phoneLookup.customer.district})`
+                            : ""}
+                        </p>
+                        <p className="mt-0.5 text-xs text-orange-900/70">
+                          {phoneLookup.orders.length} commande
+                          {phoneLookup.orders.length > 1 ? "s" : ""} · dernière :{" "}
+                          {phoneLookup.customer.lastOrderLabel}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="border-orange-300 bg-white text-orange-950 hover:bg-orange-100"
+                          onClick={() =>
+                            patch({
+                              client: phoneLookup.customer.name,
+                              phone: phoneLookup.customer.phone,
+                              whatsapp:
+                                phoneLookup.customer.whatsapp ||
+                                phoneLookup.customer.phone,
+                              email: phoneLookup.customer.email ?? form.email,
+                              city: phoneLookup.customer.city || form.city,
+                              district:
+                                phoneLookup.customer.district ?? form.district,
+                              address:
+                                phoneLookup.customer.address ?? form.address,
+                            })
+                          }
+                        >
+                          <UserRoundSearch className="size-3.5" />
+                          Remplir le formulaire
+                        </Button>
+                        <Button type="button" size="sm" variant="ghost" asChild>
+                          <Link
+                            href={`/admin/customers/${phoneLookup.customer._id}`}
+                          >
+                            Fiche client
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                    {phoneLookup.orders.length > 0 ? (
+                      <ul className="max-h-56 space-y-1.5 overflow-y-auto p-2.5">
+                        {phoneLookup.orders.map((order) => (
+                          <li key={order._id}>
+                            <Link
+                              href={`/admin/orders/${order._id}`}
+                              className="flex items-start justify-between gap-3 rounded-lg border border-orange-200/60 bg-white/80 px-2.5 py-2 transition-colors hover:border-orange-400 hover:bg-white"
+                            >
+                              <div className="min-w-0">
+                                <p className="font-mono text-xs font-semibold text-foreground">
+                                  {order.ref}
+                                </p>
+                                <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                                  {order.item || order.type}
+                                </p>
+                                <p className="mt-0.5 text-[11px] text-muted-foreground/80">
+                                  {order.createdAtLabel}
+                                  {order.source ? ` · ${order.source}` : ""}
+                                </p>
+                              </div>
+                              <StatusBadge
+                                status={order.status as OrderStatus}
+                              />
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+            ) : null}
             <Field label="WhatsApp">
               <Input
                 value={form.whatsapp}
