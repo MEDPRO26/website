@@ -204,6 +204,12 @@ export const list = query({
             !order.assignedStaffId || order.assignedStaffId === staff._id
         );
 
+    const ordersPerCustomer = new Map<string, number>();
+    for (const order of allOrders) {
+      const key = order.customerId;
+      ordersPerCustomer.set(key, (ordersPerCustomer.get(key) ?? 0) + 1);
+    }
+
     const enriched = await Promise.all(
       orders.map(async (order) => {
         const customer = await ctx.db.get(order.customerId);
@@ -213,12 +219,15 @@ export const list = query({
         const supplier = order.supplierId
           ? await ctx.db.get(order.supplierId)
           : null;
+        const customerOrderCount = ordersPerCustomer.get(order.customerId) ?? 1;
 
         return {
           ...order,
           customer,
           assignedStaffName: assignedStaff?.name ?? null,
           supplierName: supplier?.name ?? null,
+          isReturningCustomer: customerOrderCount > 1,
+          priorOrdersCount: Math.max(0, customerOrderCount - 1),
         };
       })
     );
@@ -295,12 +304,32 @@ export const get = query({
       .withIndex("by_orderId", (q) => q.eq("orderId", order._id))
       .collect();
 
+    const siblingOrders = await ctx.db
+      .query("orders")
+      .withIndex("by_customerId", (q) => q.eq("customerId", order.customerId))
+      .collect();
+
+    const priorOrders = siblingOrders
+      .filter((row) => row._id !== order._id)
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .map((row) => ({
+        _id: row._id,
+        ref: row.ref,
+        status: row.status,
+        type: row.type,
+        item: row.item,
+        source: row.source,
+        createdAt: row.createdAt,
+      }));
+
     return {
       order,
       customer,
       assignedStaff,
       supplier,
       events: events.sort((a, b) => a.createdAt - b.createdAt),
+      priorOrders,
+      isReturningCustomer: priorOrders.length > 0,
     };
   },
 });

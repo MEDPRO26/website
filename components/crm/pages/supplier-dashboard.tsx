@@ -26,6 +26,7 @@ import {
   isSupplierResponseExpired,
 } from "@/components/crm/supplier-response-countdown";
 import { Tag } from "@/components/dashboard/status-badge";
+import { ReturningCustomerBadge } from "@/components/crm/returning-customer-badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -176,6 +177,8 @@ type PriorityOrder = {
   status: string;
   hasQuote: boolean;
   supplierAssignedAt?: number;
+  isReturningCustomer?: boolean;
+  priorOrdersCount?: number;
 };
 
 function PriorityOrderItem({ order }: { order: PriorityOrder }) {
@@ -237,6 +240,12 @@ function PriorityOrderItem({ order }: { order: PriorityOrder }) {
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-2">
             <Tag tone={priorityTone(order)}>{priorityLabel(order)}</Tag>
+            {order.isReturningCustomer ? (
+              <ReturningCustomerBadge
+                priorOrdersCount={order.priorOrdersCount}
+                size="sm"
+              />
+            ) : null}
             <span className="font-mono text-xs font-semibold text-brand">
               {order.ref}
             </span>

@@ -41,6 +41,7 @@ import {
   Search, LayoutGrid, List, Filter, X, Clock, MapPin, BriefcaseMedical, MoreHorizontal, Plus, Trash2, Star, BellRing, Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ReturningCustomerBadge } from "@/components/crm/returning-customer-badge";
 
 type KanbanOrder = Order & { createdAtTs: number };
 
@@ -382,7 +383,16 @@ function OrdersTable({
                 </td>
                 <td className="py-3">
                   <div className="font-medium">{o.client}</div>
-                  <div className="text-xs text-muted-foreground">{o.phone}</div>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <span>{o.phone}</span>
+                    {o.isReturningCustomer ? (
+                      <span
+                        title="Client récurrent"
+                        aria-label="Client récurrent"
+                        className="inline-block size-2.5 rounded-full bg-orange-500"
+                      />
+                    ) : null}
+                  </div>
                 </td>
                 <td className="py-3">
                   <div>{o.city}</div>
@@ -725,30 +735,37 @@ function KanbanCard({
                 <Clock className="size-2.5" />
                 {formatTimeAgo(order.createdAtTs)}
               </span>
-              {supplierHasClaimedOrder(order.status) ? (
-                <span
-                  title="Fournisseur a réclamé la commande"
-                  aria-label="Fournisseur a réclamé la commande"
-                  className="grid size-4 place-items-center rounded-full bg-amber-400 text-white shadow-sm lg:size-5"
-                >
-                  <Star className="size-2.5 fill-current lg:size-3" />
-                </span>
-              ) : showPushReminder ? (
-                <button
-                  type="button"
-                  title="Envoyer une notification push au fournisseur"
-                  aria-label="Envoyer une notification push au fournisseur"
-                  disabled={pushing}
-                  onClick={(event) => void handlePushReminder(event)}
-                  className="grid size-4 place-items-center rounded-full bg-brand text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-60 lg:size-5"
-                >
-                  {pushing ? (
-                    <Loader2 className="size-2.5 animate-spin lg:size-3" />
-                  ) : (
-                    <BellRing className="size-2.5 lg:size-3" />
-                  )}
-                </button>
-              ) : null}
+              <div className="flex items-center gap-0.5 lg:gap-1">
+                {order.isReturningCustomer ? (
+                  <ReturningCustomerBadge
+                    priorOrdersCount={order.priorOrdersCount}
+                  />
+                ) : null}
+                {supplierHasClaimedOrder(order.status) ? (
+                  <span
+                    title="Fournisseur a réclamé la commande"
+                    aria-label="Fournisseur a réclamé la commande"
+                    className="grid size-4 place-items-center rounded-full bg-amber-400 text-white shadow-sm lg:size-5"
+                  >
+                    <Star className="size-2.5 fill-current lg:size-3" />
+                  </span>
+                ) : showPushReminder ? (
+                  <button
+                    type="button"
+                    title="Envoyer une notification push au fournisseur"
+                    aria-label="Envoyer une notification push au fournisseur"
+                    disabled={pushing}
+                    onClick={(event) => void handlePushReminder(event)}
+                    className="grid size-4 place-items-center rounded-full bg-brand text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-60 lg:size-5"
+                  >
+                    {pushing ? (
+                      <Loader2 className="size-2.5 animate-spin lg:size-3" />
+                    ) : (
+                      <BellRing className="size-2.5 lg:size-3" />
+                    )}
+                  </button>
+                ) : null}
+              </div>
             </div>
           </div>
 

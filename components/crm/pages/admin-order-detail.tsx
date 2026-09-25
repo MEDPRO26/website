@@ -50,6 +50,7 @@ import {
   orderShowsSchedulingFields,
   resolveOrderDuration,
 } from "@/lib/crm/order-scheduling";
+import type { OrderStatus } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
 type AdminOrderDetailPageProps = { orderId: string };
@@ -147,6 +148,18 @@ export function AdminOrderDetailPage({ orderId }: AdminOrderDetailPageProps) {
               <Tag tone="neutral">
                 {getOrderSourceLabel(o.source, data.order.pagePath)}
               </Tag>
+              {data.isReturningCustomer ? (
+                <span
+                  title="Client récurrent"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-orange-500 px-2.5 py-0.5 text-[11px] font-semibold text-white"
+                >
+                  <span className="size-1.5 rounded-full bg-white/90" />
+                  Client récurrent
+                  {data.priorOrders.length > 0
+                    ? ` · ${data.priorOrders.length} avant`
+                    : null}
+                </span>
+              ) : null}
             </div>
             <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
@@ -224,6 +237,43 @@ export function AdminOrderDetailPage({ orderId }: AdminOrderDetailPageProps) {
               </Button>
             </div>
           </SectionCard>
+
+          {data.priorOrders.length > 0 ? (
+            <SectionCard tone="history" icon={History} title="Commandes précédentes">
+              <p className="mb-3 text-xs text-muted-foreground">
+                Autres demandes du même client (même numéro).
+              </p>
+              <ul className="space-y-2">
+                {data.priorOrders.map((prior) => (
+                  <li key={prior._id}>
+                    <Link
+                      href={`/admin/orders/${prior._id}`}
+                      className="flex items-start justify-between gap-3 rounded-xl border border-border/70 bg-muted/30 px-3 py-2.5 transition-colors hover:border-orange-300 hover:bg-orange-50/60"
+                    >
+                      <div className="min-w-0">
+                        <p className="font-mono text-xs font-semibold text-foreground">
+                          {prior.ref}
+                        </p>
+                        <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                          {prior.item || prior.type}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground/80">
+                          {new Date(prior.createdAt).toLocaleString("fr-FR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                      <StatusBadge status={prior.status as OrderStatus} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </SectionCard>
+          ) : null}
 
           <SectionCard tone="demande" icon={ClipboardList} title="Détail de la demande">
             <div className="grid gap-4 sm:grid-cols-2">

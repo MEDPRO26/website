@@ -22,6 +22,7 @@ import {
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { StatusBadge } from "@/components/dashboard/status-badge";
+import { ReturningCustomerBadge } from "@/components/crm/returning-customer-badge";
 import {
   SupplierResponseCountdown,
   isSupplierResponseExpired,
@@ -124,6 +125,8 @@ type SupplierOrder = {
   missedAt?: number;
   reason?: "timeout" | "unavailable";
   supplierAssignedAt?: number;
+  isReturningCustomer?: boolean;
+  priorOrdersCount?: number;
 };
 
 function formatOrderDate(ts: number) {
@@ -690,18 +693,26 @@ function SupplierOrderRow({ order }: { order: SupplierOrder }) {
       order.isMissed && "opacity-75"
     )}>
       <td className="px-5 py-4">
-        {order.isMissed ? (
-          <span className="font-mono text-xs font-semibold text-muted-foreground">
-            {order.ref}
-          </span>
-        ) : (
-          <Link
-            href={`/supplier/orders/${order._id}`}
-            className="font-mono text-xs font-semibold text-brand hover:underline"
-          >
-            {order.ref}
-          </Link>
-        )}
+        <div className="flex items-center gap-2">
+          {order.isMissed ? (
+            <span className="font-mono text-xs font-semibold text-muted-foreground">
+              {order.ref}
+            </span>
+          ) : (
+            <Link
+              href={`/supplier/orders/${order._id}`}
+              className="font-mono text-xs font-semibold text-brand hover:underline"
+            >
+              {order.ref}
+            </Link>
+          )}
+          {order.isReturningCustomer ? (
+            <ReturningCustomerBadge
+              priorOrdersCount={order.priorOrdersCount}
+              size="sm"
+            />
+          ) : null}
+        </div>
       </td>
       <td className="px-3 py-4">
         <div className="flex items-center gap-3">

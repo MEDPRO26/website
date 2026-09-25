@@ -151,6 +151,18 @@ export const listOrders = query({
       .withIndex("by_supplierId", (q) => q.eq("supplierId", staff.supplierId!))
       .collect();
 
+    const uniqueCustomerIds = [...new Set(orders.map((order) => order.customerId))];
+    const ordersPerCustomer = new Map<string, number>();
+    await Promise.all(
+      uniqueCustomerIds.map(async (customerId) => {
+        const siblings = await ctx.db
+          .query("orders")
+          .withIndex("by_customerId", (q) => q.eq("customerId", customerId))
+          .collect();
+        ordersPerCustomer.set(customerId, siblings.length);
+      })
+    );
+
     const enriched = await Promise.all(
       orders.map(async (order) => {
         const customer = await ctx.db.get(order.customerId);
@@ -173,6 +185,8 @@ export const listOrders = query({
             .filter((event) => event.toStatus === "envoyee_fournisseur")
             .sort((a, b) => b.createdAt - a.createdAt)[0]?.createdAt ?? order.updatedAt;
 
+        const customerOrderCount = ordersPerCustomer.get(order.customerId) ?? 1;
+
         return {
           ...order,
           city: customer?.city ?? "—",
@@ -180,6 +194,8 @@ export const listOrders = query({
           hasQuote: quoteStatus === "submitted",
           clientContactVisible,
           supplierAssignedAt,
+          isReturningCustomer: customerOrderCount > 1,
+          priorOrdersCount: Math.max(0, customerOrderCount - 1),
           clientName: clientContactVisible
             ? resolveOrderClientName(order, customer)
             : undefined,
@@ -249,9 +265,17 @@ export const getOrder = query({
 
     const clientContactVisible = supplierCanSeeClientContact(order.status);
 
+    const siblingOrders = await ctx.db
+      .query("orders")
+      .withIndex("by_customerId", (q) => q.eq("customerId", order.customerId))
+      .collect();
+    const priorOrdersCount = Math.max(0, siblingOrders.length - 1);
+
     return {
       order,
       clientContactVisible,
+      isReturningCustomer: priorOrdersCount > 0,
+      priorOrdersCount,
       customer: customer
         ? {
             city: customer.city,

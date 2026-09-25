@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { toast } from "sonner";
 import { StatusBadge, Tag } from "@/components/dashboard/status-badge";
+import { ReturningCustomerBadge } from "@/components/crm/returning-customer-badge";
 import { SupplierQuoteForm } from "@/components/crm/supplier-quote-form";
 import { SupplierOrderSchedulingEditor } from "@/components/crm/supplier-order-scheduling-editor";
 import { OrderClientRemarks } from "@/components/crm/order-client-remarks";
@@ -169,6 +170,11 @@ export function SupplierOrderDetailPage({ orderId }: SupplierOrderDetailPageProp
             </h1>
             {isUrgent(order.status) ? (
               <Tag tone="danger">URGENT</Tag>
+            ) : null}
+            {data.isReturningCustomer ? (
+              <ReturningCustomerBadge
+                priorOrdersCount={data.priorOrdersCount}
+              />
             ) : null}
             <span className="text-sm text-muted-foreground">
               · {formatReceivedAgo(order.createdAt)}

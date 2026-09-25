@@ -83,6 +83,9 @@ export type Order = {
   message: string;
   notes?: string;
   pagePath?: string;
+  /** True when this phone/customer already has at least one other order. */
+  isReturningCustomer?: boolean;
+  priorOrdersCount?: number;
 };
 
 export const ORDERS: Order[] = [

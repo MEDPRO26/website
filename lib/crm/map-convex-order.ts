@@ -5,6 +5,8 @@ type OrderWithCustomer = Doc<"orders"> & {
   customer: Doc<"customers"> | null;
   assignedStaffName: string | null;
   supplierName?: string | null;
+  isReturningCustomer?: boolean;
+  priorOrdersCount?: number;
 };
 
 export function mapConvexOrderToUi(order: OrderWithCustomer): Order {
@@ -41,6 +43,8 @@ export function mapConvexOrderToUi(order: OrderWithCustomer): Order {
     message: order.message ?? "",
     notes: order.notes,
     pagePath: order.pagePath,
+    isReturningCustomer: order.isReturningCustomer,
+    priorOrdersCount: order.priorOrdersCount,
   };
 }
 
