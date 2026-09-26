@@ -42,34 +42,100 @@ export function markdownToHtml(markdown: string, _title?: string) {
   return stripBodyH1(sanitizeHtml(raw));
 }
 
-/** Extract FAQ pairs from article HTML when Nexus embeds them as H2/H3/P. */
+const FAQ_SECTION_HEADING =
+  /<h2\b[^>]*>\s*Questions?\s+fr[eé]quentes[\s\S]*?<\/h2>/i;
+
+function stripTags(value: string) {
+  return value
+    .replace(/<[^>]+>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isQuestionHeading(text: string) {
+  const normalized = text.replace(/\s+/g, " ").trim();
+  if (!normalized) return false;
+  if (/\?$/.test(normalized)) return true;
+  return /^(quel|quelle|quels|quelles|comment|pourquoi|qui|quoi|où|ou|combien)\b/i.test(
+    normalized
+  );
+}
+
+/**
+ * Extract FAQ pairs from article HTML when Nexus embeds them as H2/H3/P.
+ * Supports both:
+ * - H2 "Questions fréquentes…" then H3 question + P answer
+ * - H2 "Questions fréquentes…" then H2 questions ending with "?" + P answers
+ */
 export function extractFaqsFromHtml(html: string) {
   const faqs: { question: string; answer: string }[] = [];
-  const faqHeading =
-    /<h2\b[^>]*>\s*Questions?\s+fr[eé]quentes[\s\S]*?<\/h2>/i;
-  const match = faqHeading.exec(html);
+  const match = FAQ_SECTION_HEADING.exec(html);
   if (!match || match.index == null) return faqs;
 
   const after = html.slice(match.index + match[0].length);
-  const untilNextH2 = after.split(/<h2\b/i)[0] ?? after;
-  const pairs = [
-    ...untilNextH2.matchAll(
-      /<h3\b[^>]*>([\s\S]*?)<\/h3>\s*<p\b[^>]*>([\s\S]*?)<\/p>/gi
+  const untilNextNonFaq = splitAfterFaqSection(after);
+  const section = untilNextNonFaq.section;
+
+  const h3Pairs = [
+    ...section.matchAll(
+      /<h3\b[^>]*>([\s\S]*?)<\/h3>\s*((?:<p\b[^>]*>[\s\S]*?<\/p>\s*)+)/gi
     ),
   ];
-
-  for (const pair of pairs) {
-    const question = pair[1]
-      .replace(/<[^>]+>/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
-    const answer = pair[2]
-      .replace(/<[^>]+>/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
+  for (const pair of h3Pairs) {
+    const question = stripTags(pair[1] ?? "");
+    const answer = stripTags(pair[2] ?? "");
     if (question && answer) faqs.push({ question, answer });
   }
+
+  if (faqs.length > 0) return faqs;
+
+  const h2Pairs = [
+    ...section.matchAll(
+      /<h2\b[^>]*>([\s\S]*?)<\/h2>\s*((?:<p\b[^>]*>[\s\S]*?<\/p>\s*)+)/gi
+    ),
+  ];
+  for (const pair of h2Pairs) {
+    const question = stripTags(pair[1] ?? "");
+    if (!isQuestionHeading(question)) continue;
+    const answer = stripTags(pair[2] ?? "");
+    if (question && answer) faqs.push({ question, answer });
+  }
+
   return faqs;
+}
+
+/**
+ * Remove the FAQ block from article HTML so questions only appear in the accordion.
+ * Keeps everything before the FAQ heading and any non-FAQ sections after it.
+ */
+export function stripFaqSectionFromHtml(html: string) {
+  const match = FAQ_SECTION_HEADING.exec(html);
+  if (!match || match.index == null) return html;
+
+  const before = html.slice(0, match.index);
+  const after = html.slice(match.index + match[0].length);
+  const { rest } = splitAfterFaqSection(after);
+  return `${before}${rest}`.replace(/\n{3,}/g, "\n\n").trim();
+}
+
+/** Slice FAQ body until the next non-question H2 (or end). */
+function splitAfterFaqSection(afterFaqHeading: string) {
+  const headingMatches = [
+    ...afterFaqHeading.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/gi),
+  ];
+
+  for (const heading of headingMatches) {
+    const text = stripTags(heading[1] ?? "");
+    if (!text || isQuestionHeading(text)) continue;
+    if (/^questions?\s+fr[eé]quentes/i.test(text)) continue;
+    const index = heading.index ?? 0;
+    return {
+      section: afterFaqHeading.slice(0, index),
+      rest: afterFaqHeading.slice(index),
+    };
+  }
+
+  return { section: afterFaqHeading, rest: "" };
 }
 
 export function estimateReadTime(markdown: string) {

@@ -5,8 +5,10 @@ import { resolveCategorySlug, blogPostPath } from "@/lib/blog-categories";
 import { PUBLIC_SITE_ORIGIN } from "@/lib/hosts";
 import {
   estimateReadTime,
+  extractFaqsFromHtml,
   markdownToHtml,
   normalizeSlug,
+  stripFaqSectionFromHtml,
 } from "@/lib/markdown";
 
 export const runtime = "nodejs";
@@ -60,13 +62,16 @@ export async function POST(request: Request) {
     return jsonError(400, "title, slug and markdown are required");
   }
 
-  const html = markdownToHtml(markdown, title);
+  const rawHtml = markdownToHtml(markdown, title);
+  const faqsFromBody = extractFaqsFromHtml(rawHtml);
+  const html = stripFaqSectionFromHtml(rawHtml);
   const faqs = (body.faqs ?? [])
     .map((faq) => ({
       question: faq.question?.trim() ?? "",
       answer: faq.answer?.trim() ?? "",
     }))
     .filter((faq) => faq.question && faq.answer);
+  const resolvedFaqs = faqs.length > 0 ? faqs : faqsFromBody;
 
   try {
     const result = await fetchMutation(api.blogArticles.importFromNexus, {
@@ -86,7 +91,7 @@ export async function POST(request: Request) {
       featuredImageR2Key: body.featuredImageR2Key,
       featuredImageAlt: body.featuredImageAlt,
       categories: body.categories ?? [],
-      faqs,
+      faqs: resolvedFaqs,
       readTime: estimateReadTime(markdown),
       author: "SOS Santé",
     });

@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { DisplayBlogPost } from "@/lib/blog-display";
 import { isRemoteImage, postCategoryHref } from "@/lib/blog-display";
-import { stripBodyH1 } from "@/lib/markdown";
+import { stripBodyH1, stripFaqSectionFromHtml, extractFaqsFromHtml } from "@/lib/markdown";
 import { ABOUT_PATH, ABOUT_SHORT } from "@/lib/about-content";
 import { SITE_NAME } from "@/lib/brand";
 
@@ -21,7 +21,11 @@ function MaterialIcon({
 }
 
 export function BlogArticleBody({ post }: { post: DisplayBlogPost }) {
-  const bodyHtml = post.html ? stripBodyH1(post.html) : undefined;
+  const extractedFaqs = post.html ? extractFaqsFromHtml(post.html) : [];
+  const faqs = post.faqs.length > 0 ? post.faqs : extractedFaqs;
+  const bodyHtml = post.html
+    ? stripFaqSectionFromHtml(stripBodyH1(post.html))
+    : undefined;
 
   return (
     <>
@@ -136,29 +140,24 @@ export function BlogArticleBody({ post }: { post: DisplayBlogPost }) {
         </div>
       )}
 
-      {post.faqs.length > 0 ? (
+      {faqs.length > 0 ? (
         <div className="mt-12">
           <h2 className="font-heading mb-6 text-2xl font-semibold text-secondary">
             Questions fréquentes
           </h2>
-          <div className="space-y-3">
-            {post.faqs.map((faq, index) => (
-              <details
+          <div className="space-y-5">
+            {faqs.map((faq, index) => (
+              <div
                 key={`${faq.question}-${index}`}
-                className="group overflow-hidden rounded-2xl border border-surface-container bg-white"
-                open={index === 0}
+                className="rounded-2xl border border-surface-container bg-white p-4 sm:p-5"
               >
-                <summary className="flex cursor-pointer list-none items-center justify-between p-4 font-heading text-base font-semibold text-primary sm:p-5">
+                <h3 className="font-heading text-base font-semibold text-primary sm:text-lg">
                   {faq.question}
-                  <MaterialIcon
-                    name="expand_more"
-                    className="shrink-0 rounded-full bg-primary-container/15 p-1 text-primary transition-transform group-open:rotate-180"
-                  />
-                </summary>
-                <p className="border-t border-surface-container p-4 pt-3 font-body text-sm leading-relaxed text-on-surface-variant sm:p-5 sm:pt-4 sm:text-base">
+                </h3>
+                <p className="mt-2 font-body text-sm leading-relaxed text-on-surface-variant sm:text-base">
                   {faq.answer}
                 </p>
-              </details>
+              </div>
             ))}
           </div>
         </div>
