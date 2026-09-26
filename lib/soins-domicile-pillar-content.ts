@@ -105,11 +105,12 @@ export const soinsDomicilePillarContent: LocationPillarContent = {
       title: "Retour à domicile après hospitalisation",
       paragraphs: [
         "Après une hospitalisation, le patient peut avoir besoin d’un suivi à domicile. La famille peut rechercher un infirmier, un kinésithérapeute ou un autre prestataire selon les recommandations reçues.",
-        "SOS Santé Maroc peut aider à coordonner la demande selon la ville et les disponibilités. Si du matériel est aussi nécessaire, la location et la livraison restent sur leurs pages dédiées.",
+        "Avant d’appeler un prestataire, il est utile de clarifier les rôles à la maison, le matériel éventuel et le type de soin demandé — notre guide pour préparer des soins à domicile en famille détaille cette étape.",
+        "SOS Santé Maroc peut ensuite aider à coordonner la demande selon la ville et les disponibilités. Si du matériel est aussi nécessaire, la location et la livraison restent sur leurs pages dédiées.",
       ],
       link: {
-        label: "Location de matériel médical au Maroc",
-        href: LOCATION_PILLAR_PATH,
+        label: "Préparer des soins à domicile pour votre famille",
+        href: "/blog/soins/preparer-soins-domicile-famille",
       },
     },
     {
@@ -593,10 +594,16 @@ export const soinsDomicilePillarContent: LocationPillarContent = {
       description: "Rôle, locaux et fonctionnement",
     },
   ],
-  blogTitle: "Guides et pages utiles",
+  blogTitle: "Guides et articles utiles",
   blogIntro:
-    "Quelques pages de soutien pour préparer une demande de soins à domicile ou un besoin complémentaire.",
+    "Pour préparer l’organisation des soins à domicile en famille — rôles, matériel et démarche — commencez par ce guide pratique, puis consultez les pages locales selon votre ville.",
   blogLinks: [
+    {
+      label: "Préparer des soins à domicile pour votre famille",
+      href: "/blog/soins/preparer-soins-domicile-famille",
+      description:
+        "Comment organiser les rôles, anticiper le matériel et structurer la demande avant d’appeler un prestataire",
+    },
     {
       label: "Soins infirmiers à domicile Agadir",
       href: careServiceCityPath("soins-infirmiers-a-domicile", "agadir"),
