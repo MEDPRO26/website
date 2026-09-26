@@ -9,6 +9,7 @@ import {
   markdownToHtml,
   normalizeSlug,
   stripFaqSectionFromHtml,
+  stripKnownFaqsFromHtml,
 } from "@/lib/markdown";
 
 export const runtime = "nodejs";
@@ -64,7 +65,6 @@ export async function POST(request: Request) {
 
   const rawHtml = markdownToHtml(markdown, title);
   const faqsFromBody = extractFaqsFromHtml(rawHtml);
-  const html = stripFaqSectionFromHtml(rawHtml);
   const faqs = (body.faqs ?? [])
     .map((faq) => ({
       question: faq.question?.trim() ?? "",
@@ -72,6 +72,10 @@ export async function POST(request: Request) {
     }))
     .filter((faq) => faq.question && faq.answer);
   const resolvedFaqs = faqs.length > 0 ? faqs : faqsFromBody;
+  const html = stripKnownFaqsFromHtml(
+    stripFaqSectionFromHtml(rawHtml),
+    resolvedFaqs
+  );
 
   try {
     const result = await fetchMutation(api.blogArticles.importFromNexus, {

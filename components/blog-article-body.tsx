@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { DisplayBlogPost } from "@/lib/blog-display";
 import { isRemoteImage, postCategoryHref } from "@/lib/blog-display";
-import { stripBodyH1, stripFaqSectionFromHtml, extractFaqsFromHtml } from "@/lib/markdown";
+import { stripBodyH1, stripFaqSectionFromHtml, stripKnownFaqsFromHtml, extractFaqsFromHtml } from "@/lib/markdown";
 import { ABOUT_PATH, ABOUT_SHORT } from "@/lib/about-content";
 import { SITE_NAME } from "@/lib/brand";
 
@@ -24,7 +24,10 @@ export function BlogArticleBody({ post }: { post: DisplayBlogPost }) {
   const extractedFaqs = post.html ? extractFaqsFromHtml(post.html) : [];
   const faqs = post.faqs.length > 0 ? post.faqs : extractedFaqs;
   const bodyHtml = post.html
-    ? stripFaqSectionFromHtml(stripBodyH1(post.html))
+    ? stripKnownFaqsFromHtml(
+        stripFaqSectionFromHtml(stripBodyH1(post.html)),
+        faqs
+      )
     : undefined;
 
   return (

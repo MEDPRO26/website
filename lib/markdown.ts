@@ -43,7 +43,15 @@ export function markdownToHtml(markdown: string, _title?: string) {
 }
 
 const FAQ_SECTION_HEADING =
-  /<h2\b[^>]*>\s*Questions?\s+fr[eé]quentes[\s\S]*?<\/h2>/i;
+  /<h2\b[^>]*>\s*(?:FAQ\s*[:\-–—.]?\s*)?Questions?\s+fr[eé]quentes[\s\S]*?<\/h2>/i;
+
+/** Also catch standalone "FAQ" / "FAQ :" section titles from Nexus. */
+const FAQ_SECTION_HEADING_LOOSE =
+  /<h2\b[^>]*>\s*FAQ\b[\s\S]*?<\/h2>/i;
+
+function findFaqSectionHeading(html: string) {
+  return FAQ_SECTION_HEADING.exec(html) ?? FAQ_SECTION_HEADING_LOOSE.exec(html);
+}
 
 function stripTags(value: string) {
   return value
@@ -52,24 +60,59 @@ function stripTags(value: string) {
     .trim();
 }
 
+function normalizeFaqText(value: string) {
+  return stripTags(value)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[’']/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function isQuestionHeading(text: string) {
   const normalized = text.replace(/\s+/g, " ").trim();
   if (!normalized) return false;
   if (/\?$/.test(normalized)) return true;
-  return /^(quel|quelle|quels|quelles|comment|pourquoi|qui|quoi|où|ou|combien)\b/i.test(
+  return /^(quel|quelle|quels|quelles|comment|pourquoi|qui|quoi|où|ou|combien|à|a|c['']est)\b/i.test(
     normalized
   );
+}
+
+function isFaqSectionTitle(text: string) {
+  const normalized = normalizeFaqText(text);
+  return (
+    normalized === "faq" ||
+    normalized.startsWith("faq ") ||
+    normalized.startsWith("faq:") ||
+    /^questions?\s+frequentes/.test(normalized)
+  );
+}
+
+/** H2 that ends the FAQ block (CTA / next section), even if it contains "?". */
+function isFaqSectionEndHeading(text: string) {
+  if (isFaqSectionTitle(text)) return false;
+  const normalized = normalizeFaqText(text);
+  if (
+    /^(conclusion|pour aller plus loin|besoin d|contactez|etapes suivantes|appel a l|liens vers)/.test(
+      normalized
+    )
+  ) {
+    return true;
+  }
+  if (isQuestionHeading(text)) return false;
+  return true;
 }
 
 /**
  * Extract FAQ pairs from article HTML when Nexus embeds them as H2/H3/P.
  * Supports both:
- * - H2 "Questions fréquentes…" then H3 question + P answer
- * - H2 "Questions fréquentes…" then H2 questions ending with "?" + P answers
+ * - H2 "Questions fréquentes…" / "FAQ : …" then H3 question + P answer
+ * - H2 FAQ title then H2 questions ending with "?" + P answers
  */
 export function extractFaqsFromHtml(html: string) {
   const faqs: { question: string; answer: string }[] = [];
-  const match = FAQ_SECTION_HEADING.exec(html);
+  const match = findFaqSectionHeading(html);
   if (!match || match.index == null) return faqs;
 
   const after = html.slice(match.index + match[0].length);
@@ -78,7 +121,7 @@ export function extractFaqsFromHtml(html: string) {
 
   const h3Pairs = [
     ...section.matchAll(
-      /<h3\b[^>]*>([\s\S]*?)<\/h3>\s*((?:<p\b[^>]*>[\s\S]*?<\/p>\s*)+)/gi
+      /<h3\b[^>]*>([^<]+)<\/h3>\s*((?:<p\b[^>]*>[\s\S]*?<\/p>\s*)+)/gi
     ),
   ];
   for (const pair of h3Pairs) {
@@ -91,12 +134,12 @@ export function extractFaqsFromHtml(html: string) {
 
   const h2Pairs = [
     ...section.matchAll(
-      /<h2\b[^>]*>([\s\S]*?)<\/h2>\s*((?:<p\b[^>]*>[\s\S]*?<\/p>\s*)+)/gi
+      /<h2\b[^>]*>([^<]+)<\/h2>\s*((?:<p\b[^>]*>[\s\S]*?<\/p>\s*)+)/gi
     ),
   ];
   for (const pair of h2Pairs) {
     const question = stripTags(pair[1] ?? "");
-    if (!isQuestionHeading(question)) continue;
+    if (!isQuestionHeading(question) || isFaqSectionTitle(question)) continue;
     const answer = stripTags(pair[2] ?? "");
     if (question && answer) faqs.push({ question, answer });
   }
@@ -105,11 +148,11 @@ export function extractFaqsFromHtml(html: string) {
 }
 
 /**
- * Remove the FAQ block from article HTML so questions only appear in the accordion.
+ * Remove the FAQ block from article HTML so questions only appear in the FAQ section.
  * Keeps everything before the FAQ heading and any non-FAQ sections after it.
  */
 export function stripFaqSectionFromHtml(html: string) {
-  const match = FAQ_SECTION_HEADING.exec(html);
+  const match = findFaqSectionHeading(html);
   if (!match || match.index == null) return html;
 
   const before = html.slice(0, match.index);
@@ -118,16 +161,44 @@ export function stripFaqSectionFromHtml(html: string) {
   return `${before}${rest}`.replace(/\n{3,}/g, "\n\n").trim();
 }
 
+/**
+ * Remove H2/H3 FAQ Q&A blocks that match known structured faqs (Nexus payload),
+ * even when they were duplicated under Conclusion or elsewhere in the body.
+ */
+export function stripKnownFaqsFromHtml(
+  html: string,
+  faqs: Array<{ question: string; answer?: string }>
+) {
+  if (!faqs.length) return html;
+
+  const targets = new Set(
+    faqs
+      .map((faq) => normalizeFaqText(faq.question))
+      .filter(Boolean)
+  );
+  if (targets.size === 0) return html;
+
+  return html
+    .replace(
+      /<h([23])\b[^>]*>([^<]+)<\/h\1>\s*((?:<p\b[^>]*>[\s\S]*?<\/p>\s*)+)/gi,
+      (full, _level: string, headingHtml: string) => {
+        const question = normalizeFaqText(headingHtml);
+        return targets.has(question) ? "" : full;
+      }
+    )
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 /** Slice FAQ body until the next non-question H2 (or end). */
 function splitAfterFaqSection(afterFaqHeading: string) {
   const headingMatches = [
-    ...afterFaqHeading.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/gi),
+    ...afterFaqHeading.matchAll(/<h2\b[^>]*>([^<]+)<\/h2>/gi),
   ];
 
   for (const heading of headingMatches) {
     const text = stripTags(heading[1] ?? "");
-    if (!text || isQuestionHeading(text)) continue;
-    if (/^questions?\s+fr[eé]quentes/i.test(text)) continue;
+    if (!text || !isFaqSectionEndHeading(text)) continue;
     const index = heading.index ?? 0;
     return {
       section: afterFaqHeading.slice(0, index),
