@@ -432,6 +432,7 @@ export const soinsDomicilePillarContent: LocationPillarContent = {
       title: "Soins à domicile à Casablanca",
       paragraphs: [
         "À Casablanca, les familles recherchent souvent un infirmier à domicile, un pansement, une injection, une kinésithérapie ou un médecin à domicile selon disponibilité. SOS Santé Maroc peut aider à vérifier les possibilités auprès de prestataires partenaires selon les quartiers et le besoin.",
+        "Pour organiser concrètement les étapes — matériel, aide à domicile et coordination locale — notre guide Organiser des soins à domicile à Casablanca détaille la démarche pour les familles.",
         "Indiquez votre quartier, le type de soin et l’horaire pour accélérer la confirmation.",
       ],
       hubHref: hubCityPath("casablanca"),
@@ -596,13 +597,19 @@ export const soinsDomicilePillarContent: LocationPillarContent = {
   ],
   blogTitle: "Guides et articles utiles",
   blogIntro:
-    "Pour préparer l’organisation des soins à domicile en famille — rôles, matériel et démarche — commencez par ce guide pratique, puis consultez les pages locales selon votre ville.",
+    "Pour préparer l’organisation des soins à domicile en famille, commencez par le guide pratique national ; si la demande concerne Casablanca, suivez aussi le guide local pour structurer les étapes dans votre ville.",
   blogLinks: [
     {
       label: "Préparer des soins à domicile pour votre famille",
       href: "/blog/soins/preparer-soins-domicile-famille",
       description:
         "Comment organiser les rôles, anticiper le matériel et structurer la demande avant d’appeler un prestataire",
+    },
+    {
+      label: "Organiser des soins à domicile à Casablanca",
+      href: "/blog/soins/organiser-soins-domicile-casablanca",
+      description:
+        "Guide local pour coordonner matériel, aide à domicile et prestataires selon les quartiers de Casablanca",
     },
     {
       label: "Soins infirmiers à domicile Agadir",
