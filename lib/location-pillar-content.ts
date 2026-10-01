@@ -786,6 +786,12 @@ export const locationPillarContent: LocationPillarContent = {
     "Quelques contenus de soutien pour préparer une demande de location ou mieux comprendre certains équipements.",
   blogLinks: [
     {
+      label: "Matériel médical après une opération",
+      href: "/blog/guide/materiel-medical-apres-operation",
+      description:
+        "Équipements essentiels pour le retour à domicile et la convalescence",
+    },
+    {
       label: "Comment choisir le lit médicalisé idéal",
       href: "/blog/guide/comment-choisir-lit-medicalise-domicile",
       description: "Critères pour louer ou choisir un lit médicalisé à domicile",
