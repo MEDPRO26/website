@@ -5,10 +5,10 @@ import "./crm.css";
 
 export const metadata: Metadata = {
   ...crmPageMetadata("S2MBO"),
-  manifest: "/manifest.webmanifest",
+  manifest: "/admin/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "S2MBO",
+    title: "S2MBO Admin",
     statusBarStyle: "default",
   },
 };

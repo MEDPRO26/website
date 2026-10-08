@@ -6,7 +6,7 @@ import "./crm.css";
 
 export const metadata: Metadata = {
   ...crmPageMetadata("S2MBO"),
-  manifest: "/manifest.webmanifest",
+  manifest: "/supplier/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     title: "S2MBO",

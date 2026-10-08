@@ -41,8 +41,11 @@ import {
   LayoutGrid,
   Handshake,
   Newspaper,
+  Download,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { useAdminPwaInstall } from "@/hooks/use-admin-pwa-install";
+import { AdminWebappInstallPrompt } from "@/components/crm/admin-webapp-install-prompt";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -271,6 +274,8 @@ function Topbar({
   onMenu,
   onSignOut,
   showAdminTools = false,
+  canInstallApp = false,
+  onInstallApp,
 }: {
   roleLabel: string;
   userName: string;
@@ -278,6 +283,8 @@ function Topbar({
   onMenu?: () => void;
   onSignOut?: () => void;
   showAdminTools?: boolean;
+  canInstallApp?: boolean;
+  onInstallApp?: () => void;
 }) {
   return (
     <header className="sticky top-0 z-30 flex items-center gap-4 border-b border-border/60 bg-card/90 px-4 py-3 backdrop-blur-md sm:px-6">
@@ -293,6 +300,17 @@ function Topbar({
       )}
       <div className="ml-auto flex items-center gap-2 sm:gap-3">
         {showAdminTools ? <NotificationBell /> : null}
+        {canInstallApp ? (
+          <Button
+            size="icon"
+            variant="ghost"
+            className="lg:hidden"
+            onClick={onInstallApp}
+            aria-label="Installer l'application admin"
+          >
+            <Download className="size-5" />
+          </Button>
+        ) : null}
         <Button size="icon" variant="ghost">
           <HelpCircle className="size-5" />
         </Button>
@@ -327,6 +345,11 @@ function Topbar({
             <DropdownMenuItem asChild>
               <Link href="/admin/settings">Paramètres</Link>
             </DropdownMenuItem>
+            {canInstallApp ? (
+              <DropdownMenuItem onClick={onInstallApp}>
+                <Download className="mr-2 size-4" /> Installer l&apos;app
+              </DropdownMenuItem>
+            ) : null}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-[var(--danger)]"
@@ -354,6 +377,7 @@ export function AdminShell({
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const { staff, sessionLoading } = useAdminSession();
   const { can } = usePermissions((staff?.role ?? "assistant") as Role);
+  const pwaInstall = useAdminPwaInstall();
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -435,8 +459,13 @@ export function AdminShell({
             onMenu={() => setMobileOpen(true)}
             onSignOut={handleSignOut}
             showAdminTools={variant === "crm"}
+            canInstallApp={pwaInstall.canInstall}
+            onInstallApp={pwaInstall.openInstallDialog}
           />
-          <main className="min-w-0 flex-1 overflow-auto px-3 py-4 pb-24 sm:px-6 sm:py-6 md:pb-6">{children}</main>
+          <main className="min-w-0 flex-1 overflow-auto px-3 py-4 pb-24 sm:px-6 sm:py-6 md:pb-6">
+            <AdminWebappInstallPrompt install={pwaInstall} />
+            {children}
+          </main>
         </div>
       </div>
     </div>
