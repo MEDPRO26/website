@@ -16,6 +16,7 @@ import {
   SUPPLIER_LOGIN_PATH,
 } from "@/lib/auth-routes";
 import { resolveSupplierPartnerKind } from "@/lib/supplier-activity-types";
+import { AdminPwaInstallHost } from "@/components/crm/admin-pwa-install-host";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -264,6 +265,7 @@ export function StaffLoginPage({ audience }: { audience: StaffLoginAudience }) {
 
   return (
     <div className="crm-app flex min-h-screen items-center justify-center bg-[var(--background)] px-4">
+      {audience === "admin" ? <AdminPwaInstallHost /> : null}
       {redirecting ? (
         <p className="text-sm text-muted-foreground">Redirection…</p>
       ) : (

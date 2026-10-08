@@ -14,6 +14,7 @@ import {
 } from "@/lib/auth-routes";
 import { isAdminStaffRole } from "@/lib/crm/staff-roles";
 import { WORKSPACE_PROJECTS } from "@/lib/workspace-projects";
+import { AdminPwaInstallHost } from "@/components/crm/admin-pwa-install-host";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -54,6 +55,7 @@ export function WorkspacePage() {
 
   return (
     <div className="crm-app min-h-screen bg-[var(--background)] px-4 py-8 sm:px-8">
+      <AdminPwaInstallHost />
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-10">
         <header className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
