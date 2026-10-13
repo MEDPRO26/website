@@ -184,8 +184,89 @@ function InviteForm() {
         </Button>
       </form>
 
-      <div className="overflow-hidden rounded-[1.5rem] border border-border/60 bg-card">
-        <table className="w-full text-sm">
+      {/* Mobile: stacked cards so every field stays readable */}
+      <div className="space-y-3 md:hidden">
+        {(list ?? []).map((row) => {
+          const statusLabel =
+            row.status === "en_attente"
+              ? "En attente"
+              : row.status === "actif"
+                ? "Actif"
+                : row.status;
+          return (
+            <div
+              key={row._id}
+              className="space-y-3 rounded-[1.5rem] border border-border/60 bg-card p-4 shadow-sm"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-semibold text-foreground">{row.name}</p>
+                  <p className="mt-0.5 break-all text-sm text-muted-foreground">
+                    {row.email}
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {statusLabel}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 rounded-xl bg-muted/40 px-3 py-2.5">
+                <div className="min-w-0">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Max non payés
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    100 = illimité
+                  </p>
+                </div>
+                <MaxUnpaidInput
+                  apporteurId={row._id}
+                  value={row.maxUnpaidOpened}
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {row.status !== "actif" ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    disabled={resending === row._id || deleting === row._id}
+                    onClick={() => void handleResend(row._id)}
+                  >
+                    Renvoyer
+                  </Button>
+                ) : null}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 text-red-600 hover:bg-red-50 hover:text-red-700"
+                  disabled={deleting === row._id}
+                  onClick={() => void handleDelete(row._id, row.name)}
+                >
+                  {deleting === row._id ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="size-4" />
+                  )}
+                  Supprimer
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+        {list?.length === 0 ? (
+          <div className="rounded-[1.5rem] border border-border/60 bg-card px-4 py-8 text-center text-sm text-muted-foreground">
+            Aucun apporteur invité pour le moment.
+          </div>
+        ) : null}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden overflow-x-auto rounded-[1.5rem] border border-border/60 bg-card md:block">
+        <table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr className="border-b bg-muted/40 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               <th className="px-4 py-3">Nom</th>
