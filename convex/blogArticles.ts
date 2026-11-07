@@ -224,7 +224,12 @@ export const listForAdmin = query({
           .withIndex("by_status", (q) => q.eq("status", args.status!))
           .collect()
       : await ctx.db.query("blogArticles").collect();
-    return rows.sort((a, b) => b.updatedAt - a.updatedAt);
+    // Newest publish date first so CRM order matches the date field admins edit.
+    return rows.sort((a, b) => {
+      const aDate = a.publishedAt ?? a.createdAt ?? a.updatedAt;
+      const bDate = b.publishedAt ?? b.createdAt ?? b.updatedAt;
+      return bDate - aDate;
+    });
   },
 });
 
